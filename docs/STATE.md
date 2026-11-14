@@ -85,7 +85,8 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   lessons in the headset, no zoom or see-through, no drones or robots, no home menu. The work is on the issue board,
   one label per pillar (`ws:bench`, `ws:run`, `ws:learn`, `ws:scale`, `ws:range`, `ws:shell`, `ws:assets`); the
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
-- Converted assets: the app draws placeholders built from the part descriptors until `tools/xr-assets` ships glTF.
+- Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
+  glTF in the ink look; every other part is still a placeholder built from its descriptor.
 - Firmware engines in the headset: the worker runs iynk's interpreter only (no avr8js, rp2040js or rapier yet).
 - Saving projects in the headset: it opens a template each time.
 - Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
