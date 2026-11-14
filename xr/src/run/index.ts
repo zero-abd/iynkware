@@ -3,5 +3,8 @@ import { composeModules } from '../compose';
 import { viewsModule } from './views';
 import { controlsModule } from './controls';
 import { inputsModule } from './inputs';
+import { toolsModule } from './tools';
+import { findingsModule } from './findings';
+import { faultsModule } from './faults';
 
-export const runModule = composeModules('run', [viewsModule, controlsModule, inputsModule]);
+export const runModule = composeModules('run', [viewsModule, controlsModule, inputsModule, toolsModule, findingsModule, faultsModule]);

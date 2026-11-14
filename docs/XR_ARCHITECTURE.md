@@ -48,7 +48,8 @@ xr/
     project/            ProjectStore over iynk's session, TemplateSource
     ui/                 canvas text labels, the overlay layer, a tiny observable value
     bench/              pillar 1, build: space.ts (BenchSpace), shelf/ wire/ edit/ pose/
-    run/                pillar 2, run and stress: controls/ (Run, Stop, status) views/ (LED) inputs/
+    run/                pillar 2, run and stress: controls/ (run cluster, clock) views/ (part views) inputs/ (parts
+                        worked by hand) tools/ (meter, scope, serial) findings/ (problems at the part) faults/ (fault lab)
     learn/              pillar 3, learn: lessons/ callouts/, guide.ts, progress.ts
     scale/              pillar 4, scale and insight: zoom/ insight/ probe/
     range/              pillar 5, range: flight/ robots/
