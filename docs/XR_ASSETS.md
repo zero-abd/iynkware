@@ -18,12 +18,12 @@ a PR.
 tools/xr-assets/
   package.json        its own dependencies (three, jsdom); the Next app gains none
   build.mjs           the converter: node build.mjs [--out <dir>] [<dir>/<id> ...]
-  capture/            the headless runner and the bench, drone and flight adapters
+  capture/            the headless runner and the bench and drone adapters (no flight range adapter yet)
   gltf/               geometry builders, merging, the glb writer
   material/           the ink look for three.js, and loadXrAsset()
   schema/             xr-asset.ts, xr-asset.schema.json
   viewer/             a desktop page to look at any item
-  samples/            four items, committed, which the tests read
+  samples/            the Blink scene's items and one drone, committed
   test/               node:test suites
   out/                build output, git-ignored
 ```
@@ -41,8 +41,10 @@ out/<dir>/<id>.json            the sidecar
 `drones`, `flight`; the sidecar's `kind` says the same in the singular (`robotics` is `bench`).
 
 Generated assets are built, not committed: `out/` is git-ignored and the app's build copies what it needs (pass
-`--out <dir>` to write straight into the app's static folder). Only `samples/` is committed: the Uno R3, the half
-breadboard, one bench and one drone, so tests and the viewer work without a build. An asset is stale when its
+`--out <dir>` to write straight into the app's static folder). Only `samples/` is committed, so the app and the viewer
+work without a build: the Blink scene (`boards/uno-r3`, `parts/breadboard`, `parts/led`, `parts/resistor`,
+`parts/wire`) and `drones/quad5`. A test checks that the samples are byte-identical to a fresh build;
+`node build.mjs --samples` rewrites them. An asset is stale when its
 `source.pageSha256` differs from the figure page the current code builds; `build.mjs --check` reports that.
 
 ## 2. Coordinates
@@ -50,7 +52,10 @@ breadboard, one bench and one drone, so tests and the viewer work without a buil
 - Units are **metres**. Axes are glTF's: right-handed, **+Y up**, the item's **front faces +Z**. A person standing at
   +Z looking towards -Z sees the item's front; +X is on their right (the item's own left).
 - **Origin.** Bench items (boards, parts, modules, benches): x and z at the centre of the geometry's bounds, y = 0 on
-  the surface the item stands on (the top of the cutting mat in the figure; standoffs and feet rest on it). Drones:
+  the surface the item stands on (the top of the cutting mat in the figure; standoffs and feet rest on it). A part
+  that plugs into a breadboard (an LED, a resistor, a jumper wire: every `parts/*` page that shows the part in a
+  breadboard) has y = 0 on the breadboard's top face, where its legs enter, so its leg anchors sit at y = 0 and it
+  seats by matching a leg anchor to a hole anchor. Its sidecar says so in `extras.bench.partPage`. Drones:
   x and z at the craft's own origin (the centre of its motors), y = 0 on the mat. The flight range: its own world
   origin.
 - **The figure's frames.** Board data is in mm with x to the right, y towards the back and z up from the PCB's top
