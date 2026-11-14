@@ -11,7 +11,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { convert } from '../capture/assemble.mjs';
 import { adapterFor } from '../capture/adapters.mjs';
-import { ROOT } from '../capture/page.mjs';
+import { ROOT, buildPage, loadPage } from '../capture/page.mjs';
+import { allItems } from '../build.mjs';
 import { validateGlb, sidecarErrors } from './validate.mjs';
 
 const MM = 0.001;
@@ -120,6 +121,88 @@ test('LED, resistor, wire: leg ids from the descriptors, the LED lens and its em
   const wire = (await converted('parts/wire')).sidecar, Wr = byId(wire);
   for (const id of ['1', '2']) assert.ok(Wr.get(id) && Wr.get(id).kind === 'pin', `wire end ${id}`);
   assert.ok(wire.parts.some((p) => p.role === 'wire'), 'the wire is a wire part');
+});
+
+test('every part page stands on the breadboard top: its leads meet the holes at y = 0', async () => {
+  const pages = allItems().filter((i) => i.startsWith('parts/') && i !== 'parts/breadboard');
+  let legs = 0;
+  for (const item of pages) {
+    const { sidecar: s } = await converted(item);
+    for (const a of s.anchors.filter((x) => x.kind === 'pin' && x.extras && x.extras.hole)) {
+      legs++;
+      assert.ok(Math.abs(a.position[1]) <= 1 * MM, `${item} ${a.id} (hole ${a.extras.hole}) at y = ${(a.position[1] / MM).toFixed(2)} mm`);
+      assert.ok(a.normal[1] < -0.99, `${item} ${a.id} points down into its hole`);
+    }
+  }
+  assert.ok(legs > 60, `${legs} leads in holes`);
+});
+
+test('knobs, servos, steppers, RGB and module LEDs have channels; anchors name only channels that exist', async () => {
+  const ch = async (item, id) => { const { sidecar: s } = await converted(item); const c = s.channels.find((x) => x.id === id); assert.ok(c, `${item} ${id}`); return c; };
+  const deg = Math.PI / 180, vertical = (c) => Math.abs(Math.abs(c.axis[1]) - 1) < 1e-6;
+  // the servo turns its horn by the commanded angle about the vertical shaft (the fit of the drawing, not a guess)
+  const sv = await ch('parts/servo-sg90', 'servo:SV1');
+  assert.ok(vertical(sv) && Math.abs(Math.abs(sv.scale) - deg) < 1e-4, `servo turns 1 degree per degree (${sv.scale})`);
+  const pot = await ch('parts/potentiometer', 'turn:P1');
+  assert.ok(vertical(pot) && Math.abs(Math.abs(pot.scale) - deg) < 1e-6, 'pot knob turns about its shaft');
+  assert.equal((await ch('parts/rgb-led', 'led:P1')).value.unit, 'rgb');
+  assert.equal((await ch('parts/stepper-28byj48', 'motor:ST1')).kind, 'spin');
+  assert.ok((await converted('parts/stepper-28byj48')).sidecar.anchors.some((a) => a.id === 'motor:ST1'), 'stepper motor anchor');
+  for (const id of ['led:LED_R', 'led:LED_Y', 'led:LED_G']) assert.equal((await ch('modules/traffic-light', id)).kind, 'emissive');
+  for (const id of ['led:LED_A', 'led:LED_D']) assert.equal((await ch('modules/uln2003', id)).kind, 'emissive');
+  for (const [item, r] of results) {
+    const { sidecar: s } = await r, ids = new Set(s.channels.map((c) => c.id));
+    for (const a of s.anchors) if (a.channel) assert.ok(ids.has(a.channel), `${item} ${a.id} names channel ${a.channel}`);
+  }
+});
+
+test('robotics/l298n: mat items carry prefixed anchors and every wire end lands on its pin', async () => {
+  const item = 'robotics/l298n';
+  const { glb, sidecar: s } = await converted(item);
+  const A = byId(s);
+  for (const id of ['NANO/D8', 'NANO/GND', 'header:NANO/J1', 'led:NANO/L', 'MOTA/PLUS', 'MOTB/MINUS', 'IN1', 'ENA']) assert.ok(A.has(id), `anchor ${id}`);
+  assert.ok(!s.anchors.some((a) => a.id.startsWith('BB/')), 'no breadboard on this bench');
+  // the wire ends the engine draws (matEnd), from a page in the same rest state, mapped like the anchors
+  const page = await loadPage(buildPage(item).html, item, 'power=0');
+  try {
+    const ad = adapterFor(item);
+    await ad.setup(page, { warn: () => {} });
+    page.eval('SL.bench.__xr.wires = []');
+    page.scene();
+    const ends = JSON.parse(page.eval('JSON.stringify(SL.bench.__xr.wires)'));
+    const defs = ad.info.wires.filter((w) => w.on && w.mat);
+    assert.equal(ends.length, defs.length, 'one drawn wire per wire set out');
+    assert.ok(defs.length >= 11, `${defs.length} wires`);
+    const toAsset = (w) => apply(s.frame.fromSource, ad.toBoard(w));
+    const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    // the anchor a ref names: a mat item's pin or leg under its prefix, a base pin by the figure's id
+    const named = (ref) => {
+      const m = /^([A-Za-z_][\w-]*)\.(.+)$/.exec(ref);
+      if (m && ad.info.mat.some((it) => it.id === m[1])) {
+        const want = `${m[1]}/${m[2]}`, x = (a) => a.extras || {};
+        // by id, alias, figure pin, net (a net with several pins: the engine takes one of them) or a mat part's leg
+        return s.anchors.filter((a) => a.kind === 'pin' && a.id.startsWith(`${m[1]}/`)
+          && (a.id === want || (a.aliases || []).includes(want) || x(a).figurePin === want || x(a).net === want || x(a).leg === m[2]));
+      }
+      return s.anchors.filter((a) => a.kind === 'pin' && (a.id === ref || (a.extras && a.extras.figurePin === ref)));
+    };
+    defs.forEach((w, i) => {
+      for (const [ref, end] of [[w.from, ends[i].a], [w.to, ends[i].b]]) {
+        const p = toAsset(end), cands = named(ref);
+        assert.ok(cands.length, `${ref} names an anchor`);
+        const ok = cands.some((a) => {
+          const d = sub(p, a.position), ax = dot(d, a.normal), lat = Math.hypot(...sub(d, a.normal.map((v) => v * ax)));
+          // on the pin's axis, from its tip down to the 2 mm the engine seats a jumper below a top-side part's top
+          // (bench.js matEnd; on a flat pad that is inside the board, a figure quirk)
+          return lat <= 0.3 * MM && ax <= 0.3 * MM && ax >= -(Math.max(a.depth || 0, 2 * MM) + 0.3 * MM);
+        });
+        assert.ok(ok, `wire ${w.from}-${w.to}: the end at ${ref} (${p.map((v) => (v / MM).toFixed(2))} mm) is on ${cands.map((a) => `${a.id} (${a.position.map((v) => (v / MM).toFixed(2))})`).join(', ')}`);
+      }
+    });
+  } finally { page.close(); }
+  const v = await validateGlb(glb);
+  assert.equal(v.errors, 0);
+  assert.deepEqual(sidecarErrors(s), []);
 });
 
 for (const item of ITEMS) {

@@ -87,7 +87,9 @@ export function info() {
       const legs = (def.legs || []).slice();
       const legW = legs.map((_, i) => {
         const h = q.holes && q.holes[i] ? B.hole(g, q.holes[i]) : null;
-        if (h) return { w: pl.at(h.x, h.y, pl.zTop + (def.pinZ || 0)), up: !!def.pinZ, hole: q.holes[i] };
+        // a lead in a hole: its anchor is the hole's mouth, where it meets the breadboard's own hole anchor (a module
+        // standing on header pins, def.pinZ, enters the same hole)
+        if (h) return { w: pl.at(h.x, h.y, pl.zTop), up: false, hole: q.holes[i] };
         if (typeof def.legAt === 'function' && Array.isArray(q.at)) { try { return { w: def.legAt(q, B.BP(q.at[0], q.at[1], G.matH - G.top), i), up: true }; } catch (e) { return null; } }
         return null;
       });
