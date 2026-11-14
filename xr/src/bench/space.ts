@@ -43,7 +43,6 @@
  * poses, not where a running transition has an object.
  */
 import {
-  BoxGeometry,
   Color,
   Group,
   Matrix4,
@@ -277,11 +276,10 @@ function tubeRenderer(root: Object3D): WireRenderer {
 export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
   const root = new Group();
   root.name = 'board';
+  // The bench top's own frame. It draws nothing itself: the look kit lays the inked work mat and rail in it
+  // (look/bench.ts), so in passthrough the real table shows under the mat instead of a slab.
   const table = new Group();
   table.name = 'bench';
-  const slab = new Mesh(new BoxGeometry(1.1, 0.03, 0.6), new MeshStandardMaterial({ color: 0xc9b48f, roughness: 0.9 }));
-  slab.position.y = -0.015;
-  table.add(slab);
 
   const scale = value(opts.scale ?? 4);
   const benchTop = value(opts.benchTop ?? { position: [0, 0.74, -0.6] as Vec3, yawRad: 0 });

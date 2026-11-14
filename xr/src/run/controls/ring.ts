@@ -18,6 +18,7 @@ import {
   RepeatWrapping,
 } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
+import { drawnBox } from '../../look/ink';
 import { INK } from '../kit/tokens';
 
 /** Board frame metres (real size; at the default 4x a 3 mm margin is 12 mm on the bench). */
@@ -130,7 +131,8 @@ export function createBoardRings(app: XrApp, reduced: () => boolean): BoardRings
     for (const b of coded.length ? coded : doc.boards) {
       const object = app.bench.objectOf(b.id);
       if (!object) continue;
-      box.setFromObject(object).applyMatrix4(inv);
+      // Bodies only: the ink's fat lines and halos are screen quads whose geometry would make the box metres wide.
+      drawnBox(object, box).applyMatrix4(inv);
       if (box.isEmpty()) continue;
       const mesh = new Mesh(ringGeometry(box.min.x - MARGIN, box.min.z - MARGIN, box.max.x + MARGIN, box.max.z + MARGIN), mat);
       mesh.name = `run-ring:${b.id}`;

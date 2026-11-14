@@ -11,6 +11,7 @@ import type { OverlayItem, OverlayLayer } from '../contracts/overlay';
 import type { BenchSpace } from '../contracts/space';
 import { createCallout, type Callout } from '../look/callout';
 import { ACCENT, hexNum, INK, STATE, TONE_FILL } from '../look/palette';
+import { onFontsReady } from '../look/type';
 
 /** Fills by tone, from the look kit's palette (XR_DESIGN.md 9.3). */
 export const TONE_COLOURS: Record<Tone, string> = { ...TONE_FILL };
@@ -22,7 +23,7 @@ export function createOverlay(bench: BenchSpace, parent: Object3D): OverlayLayer
   const layer = new Group();
   layer.name = 'overlay';
   parent.add(layer);
-  const items = new Set<{ item: OverlayItem; node: Group; callout?: Callout }>();
+  const items = new Set<{ item: OverlayItem; node: Group; callout?: Callout; offFonts?: () => void }>();
   const ring = new RingGeometry(0.0085, 0.0115, 40);
   const rim = new RingGeometry(0.0115, 0.0132, 40);
   const inkMat = new MeshBasicMaterial({ color: hexNum(INK), toneMapped: false });
@@ -36,7 +37,8 @@ export function createOverlay(bench: BenchSpace, parent: Object3D): OverlayLayer
     return m;
   };
 
-  const baseLift = (item: OverlayItem) => (item.style === 'glow' ? 0.035 : item.style === 'pin' ? 0.06 : 0.04);
+  // High enough that a label never covers the part it names, nor a lit LED's halo.
+  const baseLift = (item: OverlayItem) => (item.style === 'glow' ? 0.05 : item.style === 'pin' ? 0.07 : 0.06);
   const place = (e: { item: OverlayItem; node: Group }) => {
     const p = bench.worldOf(e.item.target);
     e.node.visible = !!p;
@@ -45,17 +47,23 @@ export function createOverlay(bench: BenchSpace, parent: Object3D): OverlayLayer
     layer.updateMatrixWorld(true);
     e.node.position.copy(layer.worldToLocal(new Vector3(p[0], p[1] + lift, p[2])));
   };
-  /** Callouts whose labels would overlap climb their leaders in turn, so no label covers another. */
+  /**
+   * Callouts whose labels would overlap climb their leaders in turn, so no label covers another. Overlap is judged as
+   * the person sees the bench, from above and in front (about 38 degrees down): a label nearer the person shows lower,
+   * by its nearness times tan 38 (the flat view), so heights are compared after that shift.
+   */
   const GAP = 0.016;
+  const SEEN_FROM_ABOVE = Math.tan((38 * Math.PI) / 180);
+  const LEAN = 0.3;
   const stack = () => {
     const placed: Array<{ x: number; w: number; bottom: number; top: number }> = [];
     for (const e of items) {
       if (!e.callout || !e.node.visible) continue;
       const c = e.callout;
-      const x = e.node.position.x, y = e.node.position.y;
+      const x = e.node.position.x, y = e.node.position.y - e.node.position.z * SEEN_FROM_ABOVE;
       let bottom = y + baseLift(e.item);
-      // labels lean back a little, so their vertical extent is a bit less than their height
-      const h = c.height * 0.96;
+      // A label leans back 0.3 rad (look/callout.ts): its top is lower but further away, which from above shows higher.
+      const h = c.height * (Math.cos(LEAN) + Math.sin(LEAN) * SEEN_FROM_ABOVE);
       for (let moved = true; moved; ) {
         moved = false;
         for (const q of placed) {
@@ -84,18 +92,22 @@ export function createOverlay(bench: BenchSpace, parent: Object3D): OverlayLayer
         a.rotation.x = b.rotation.x = -Math.PI / 2;
         node.add(a, b);
       }
+      let offFonts: (() => void) | undefined;
       if (item.text) {
         callout = createCallout(item.text, { tone: item.tone, lift: baseLift(item) });
         node.add(callout.group);
+        // The label grows or shrinks when the faces load (after its own redraw, registered first): stack again.
+        offFonts = onFontsReady(stack);
       }
       layer.add(node);
-      const entry = { item, node, callout };
+      const entry = { item, node, callout, offFonts };
       items.add(entry);
       place(entry);
       stack();
       return () => {
         if (!items.delete(entry)) return;
         node.removeFromParent();
+        offFonts?.();
         callout?.dispose();
       };
     },
@@ -104,6 +116,7 @@ export function createOverlay(bench: BenchSpace, parent: Object3D): OverlayLayer
         if (e.item.owner !== owner) continue;
         items.delete(e);
         e.node.removeFromParent();
+        e.offFonts?.();
         e.callout?.dispose();
       }
     },
