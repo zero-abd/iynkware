@@ -5,9 +5,10 @@
 `16 kHz PCM16 WAV upload → Gemini Live WebSocket → 24 kHz PCM16 WAV response`
 
 It is not the canonical collaboration server in `server/`, a shared API contract, or a headset client. iynkware's
-headset app is WebXR in the Quest browser. The foundation now exposes `XrApp.partner` as a `null` seam; a small
-`contract-change` PR must define that service before a voice client is added under `xr/`. This PR deliberately
-changes neither `xr/` nor its shared contracts.
+headset app is WebXR in the Quest browser. `xr/src/contracts/assistant.ts` now defines the co-builder's grounded
+`BenchSnapshot`, plans and reviewable `CoBuildSession`; it explicitly places voice in front of that session.
+`XrApp.partner` remains `null`, so a later contract PR still has to mount the assistant and define its voice front
+end. This PR deliberately changes neither `xr/` nor its shared contracts.
 
 ## Run locally
 
@@ -25,9 +26,11 @@ the collaboration server on 8787. `GET /healthz` and `GET /readyz` are public; `
 `sessionId`, `scenario`, `objective`, `learnerLevel`, `currentStep`, `lastAction`, and `locale`. Here
 `scenario` is an iynkware lab item such as a board, robotics bench, or drone.
 
-The future partner adapter must derive that context from the existing `XrApp` services instead of keeping a second
-lesson state: the project and `guide.state` supply the lab, lesson and current step, while `input.onAny` supplies the
-last in-world interaction. The eventual contract decides the exact mapping.
+These multipart context fields are experimental and must not become a second source of truth. The future adapter
+should start from `AssistantService.snapshot()`: `BenchSnapshot` already carries the structured project, simulation,
+findings and current lesson. Speech commands map to `CoBuildSession.accept`, `acceptAll`, `reject`, `undo` and `stop`;
+free requests map to `BuildGoal` `ask`. The eventual voice contract decides how recent `input.onAny` interaction and
+equipment mistake state are added without encoding identifiers in free-form learner text.
 
 ```bash
 curl -X POST http://127.0.0.1:8790/v1/voice/turn \
