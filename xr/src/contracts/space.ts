@@ -41,6 +41,11 @@ export interface BenchSpace {
   boardToDoc(p: Vec3): { xMm: number; yMm: number; heightMm: number };
   /** World position of a target, or null when it is not on the bench. */
   worldOf(target: BoardTarget): Vec3 | null;
+  /**
+   * The drawn path of a wire in the board frame, from its `from` end to its `to` end, bends and arches included, as
+   * the bench draws it now. Null when the wire is not on the bench. Rebuilt with the layout (`onLayout`).
+   */
+  wirePath(wire: string): readonly Vec3[] | null;
   /** The placed object of a part, or undefined. */
   objectOf(partId: string): Object3D | undefined;
   /** The part id an object belongs to (walks up the parents), for ray hits. */
