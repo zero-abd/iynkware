@@ -11,6 +11,7 @@ import { createProgressStore } from './learn/progress';
 import { createProjectStore, createTemplateSource } from './project/store';
 import { createPartViewRegistry } from './run/views/registry';
 import { createShellService } from './shell/service';
+import { createScaleService } from './scale/service';
 import { createSettingsStore } from './shell/settings';
 import { createSimBridge } from './sim/bridge';
 import { createOverlay } from './ui/overlay';
@@ -36,6 +37,7 @@ export function createApp(world: World, doc: Project): AppHandle {
   const overlay = createOverlay(bench, bench.table);
   const mode = value<XrMode>('flat');
   const lessons = createLessonSlot();
+  const shell = createShellService();
   const app: XrApp = {
     world,
     mode,
@@ -48,10 +50,11 @@ export function createApp(world: World, doc: Project): AppHandle {
     views: createPartViewRegistry(),
     overlay,
     settings,
-    shell: createShellService(),
+    shell,
     progress: createProgressStore(),
     guide: lessons.guide,
     lessons,
+    scale: createScaleService({ bench, settings, mode, shell }),
     partner: null,
   };
   const teardowns: Array<() => void> = [];
