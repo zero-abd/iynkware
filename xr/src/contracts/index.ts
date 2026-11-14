@@ -10,4 +10,5 @@ export type * from './lesson';
 export type * from './overlay';
 export * from './settings';
 export type * from './shell';
+export type * from './scale';
 export type * from './app';

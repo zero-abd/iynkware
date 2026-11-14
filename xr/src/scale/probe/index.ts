@@ -1,4 +1,4 @@
-/** Probes: a multimeter and a scope in the hand (stub). */
+/** Probe: the part inspector, a card at the part with its name, pins, ratings and live readings (stub). */
 import type { FeatureModule } from '../../contracts/app';
 
 export const probeModule: FeatureModule = {

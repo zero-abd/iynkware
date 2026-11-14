@@ -11,6 +11,7 @@ import type { LessonGuide, ProgressStore } from './lesson';
 import type { OverlayLayer } from './overlay';
 import type { PartViewRegistry } from './part-view';
 import type { ProjectStore, TemplateSource } from './project';
+import type { ScaleService } from './scale';
 import type { SettingsStore } from './settings';
 import type { ShellService } from './shell';
 import type { SimBridge } from './sim';
@@ -36,6 +37,8 @@ export interface XrApp {
   readonly progress: ProgressStore;
   /** Set while a lesson is open. */
   readonly guide: ReadonlyValue<LessonGuide | null>;
+  /** Work scale, Room size, see-through, explode, current flow, the part inspector and the room (pillar 4). */
+  readonly scale: ScaleService;
   /**
    * Seam for the AI lab partner with voice (after the seven pillars; nothing is built). It will observe `project`,
    * `sim`, `guide` and `input.onAny`, and propose ops through `project.apply` with an `ai` author. Stays null.
