@@ -6,6 +6,7 @@
  * Implementation: `xr/src/sim/bridge.ts` (`createSimBridge`). Fake for tests: pass `inlinePort` to run the same
  * handler in the calling thread.
  */
+import type { PhysicsFrame } from '@/core/robot-report';
 import type { Project } from '@/project/generated/types';
 import type { Finding } from '@/sim/faults/types';
 import type { HostInput, PartInput, PartState, SimDiagnostic } from '@/sim/engine';
@@ -15,7 +16,7 @@ import type { MeterProbes } from '@/sim/probe/meter';
 import type { Reading } from '@/sim/probe/tap';
 import type { Unsubscribe } from './common';
 
-export type { Finding, HostInput, PartInput, PartState, PinLevel, AnalogFrame, AnalogWatch, Reading, MeterProbes };
+export type { Finding, HostInput, PartInput, PartState, PinLevel, AnalogFrame, AnalogWatch, Reading, MeterProbes, PhysicsFrame };
 
 /** The worker's run states plus the two the bridge adds: `unloaded` (nothing loaded) and `error` (load refused). */
 export type RunState = SimRunState | 'unloaded' | 'error';
@@ -54,12 +55,24 @@ export type WorldInput =
   /** Type into the serial monitor. */
   | { kind: 'serial'; text: string };
 
+/**
+ * The physics side of a robot run (a project where `needsPhysics` holds: a robotics domain and mechanical bodies).
+ * `loading-physics` while the physics module loads, `ready` once the world is built, `failed` when the robot is refused
+ * or the physics halts mid-run (`reason` is the refusal's message, or the halt's code and body).
+ */
+export interface MechStatus {
+  readonly state: 'loading-physics' | 'ready' | 'failed';
+  readonly reason?: string;
+}
+
 export interface SimBridge {
   readonly state: RunState;
   /** The last frame of the current run, or null before the first one. */
   readonly lastFrame: SimFrame | null;
   /** Findings posted at the last pause or run end (the fault rules and the solver's `solve:*` rules). */
   readonly findings: readonly Finding[];
+  /** The last physics frame of the current run (robot projects only), or null. Bodies in metres, yaw in radians. */
+  readonly lastMech: PhysicsFrame | null;
 
   /** Builds the netlist from the document and loads its firmware. Replaces any earlier run. */
   load(doc: Project): Promise<LoadResult>;
@@ -83,6 +96,9 @@ export interface SimBridge {
   onState(fn: (state: RunState) => void): Unsubscribe;
   onFindings(fn: (findings: readonly Finding[]) => void): Unsubscribe;
   onDiagnostic(fn: (d: { kind: string; message: string; atNs: number }) => void): Unsubscribe;
+  /** Physics frames of a robot run: 30 per simulated second, chassis and wheel poses, sensor readings. */
+  onMech(fn: (frame: PhysicsFrame) => void): Unsubscribe;
+  onMechState(fn: (status: MechStatus) => void): Unsubscribe;
 
   /** Ends the worker. Calls after this reject. */
   dispose(): Promise<void>;

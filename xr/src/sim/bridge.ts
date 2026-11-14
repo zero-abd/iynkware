@@ -8,9 +8,21 @@ import type { Project } from '@/project/generated/types';
 import { simDiag } from '@/sim/core/diagnostic';
 import type { HostInput, ProgramImage, SimDiagnostic, WorkLimits } from '@/sim/engine';
 import { buildSimNetlist } from '@/sim/netlist';
+import { needsPhysics } from '@/sim-host/robot-doc';
 import type { SimEv, SimReq } from '@/sim-host/protocol';
 import type { Unsubscribe } from '../contracts/common';
-import type { AnalogWatch, Finding, LoadResult, Reading, RunState, SimBridge, SimFrame, WorldInput } from '../contracts/sim';
+import type {
+  AnalogWatch,
+  Finding,
+  LoadResult,
+  MechStatus,
+  PhysicsFrame,
+  Reading,
+  RunState,
+  SimBridge,
+  SimFrame,
+  WorldInput,
+} from '../contracts/sim';
 import { createXrSimHandler, type XrHandlerOptions } from './handler-deps';
 
 export type SimPort = RpcPort<SimReq, SimEv>;
@@ -122,6 +134,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
   let state: RunState = 'unloaded';
   let lastFrame: SimFrame | null = null;
   let findings: readonly Finding[] = [];
+  let lastMech: PhysicsFrame | null = null;
   let speed = 1;
   let watch: AnalogWatch | null = null;
   let disposed = false;
@@ -130,6 +143,8 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
   const states = listeners<RunState>();
   const findingsFns = listeners<readonly Finding[]>();
   const diagnostics = listeners<{ kind: string; message: string; atNs: number }>();
+  const mechFrames = listeners<PhysicsFrame>();
+  const mechStates = listeners<MechStatus>();
 
   const setState = (next: RunState) => {
     if (next === state) return;
@@ -152,6 +167,16 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       } else if (e.kind !== 'paused') {
         diagnostics.emit({ kind: e.kind, message: e.message, atNs: e.at });
       }
+    } else if (ev.t === 'mech_frame') {
+      lastMech = ev.frame;
+      mechFrames.emit(ev.frame);
+    } else if (ev.t === 'mech_status') {
+      const reason = ev.refusal?.message ?? ev.reason;
+      mechStates.emit(reason === undefined ? { state: ev.state } : { state: ev.state, reason });
+    } else if (ev.t === 'mech_halt') {
+      lastMech = ev.frame;
+      mechFrames.emit(ev.frame);
+      mechStates.emit({ state: 'failed', reason: `${ev.code}: ${ev.body}` });
     }
   });
 
@@ -201,6 +226,9 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
     get findings() {
       return findings;
     },
+    get lastMech() {
+      return lastMech;
+    },
 
     async load(doc) {
       if (disposed) throw new Error('the sim bridge was disposed');
@@ -210,6 +238,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       const id = ++run;
       if (state === 'running') await call({ t: 'control', run: old, op: 'cancel' }).catch(() => undefined);
       lastFrame = null;
+      lastMech = null;
       findings = [];
       watch = null;
       const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
@@ -224,6 +253,8 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
           net,
           opts: { seed: doc.simulation.seed, speed, limits: WORK_LIMITS, tier: 'T1' },
           program,
+          // A robot project brings its own physics world; a board project never loads the physics module.
+          ...(needsPhysics(doc) ? { robot: doc } : {}),
         });
         const loadDiags = (ack.result as { diagnostics?: SimDiagnostic[] } | undefined)?.diagnostics ?? [];
         const all = [...netDiags, ...loadDiags];
@@ -294,11 +325,13 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
     onState: (fn) => states.add(fn),
     onFindings: (fn) => findingsFns.add(fn),
     onDiagnostic: (fn) => diagnostics.add(fn),
+    onMech: (fn) => mechFrames.add(fn),
+    onMechState: (fn) => mechStates.add(fn),
 
     async dispose() {
       if (disposed) return;
       disposed = true;
-      for (const l of [frames, states, findingsFns, diagnostics]) l.clear();
+      for (const l of [frames, states, findingsFns, diagnostics, mechFrames, mechStates]) l.clear();
       await port.kill(0);
     },
   };
