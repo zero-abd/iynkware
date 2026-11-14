@@ -4,6 +4,9 @@ import type { BuildPlan, CoBuildState, PlanStep } from '../../src/contracts/assi
 import { cardModel } from '../../src/assistant/card';
 import { DEFAULT_TEMPLATE, menuTarget } from '../../src/assistant/index';
 import { emptyBench } from '../../src/assistant/empty';
+import { attachPresence, createAssistantService, instantPresence } from '../../src/assistant/service';
+import type { StepPresence } from '../../src/assistant/session';
+import { createProjectStore, createTemplateSource } from '../../src/project/store';
 
 const step = (key: string, label: string, reason = `${label} because`): PlanStep => ({ key, kind: 'place', ops: [], reason, label, anchors: [], needs: [] });
 const plan: BuildPlan = {
@@ -71,5 +74,20 @@ describe('Build it with me from the menu', () => {
     const doc = await loadTemplate('prj_uno-r3-blink');
     expect(menuTarget(doc)).toBe(doc);
     expect(menuTarget(emptyBench(doc))).toBe(DEFAULT_TEMPLATE);
+  });
+
+  it("shows the app's headless service on the bench once the module attaches its presence, and stops when detached", async () => {
+    const project = createProjectStore(await loadTemplate('prj_uno-r3-blink'));
+    const service = createAssistantService({ project, templates: createTemplateSource(), lang: () => 'en', presence: instantPresence });
+    const seen: string[] = [];
+    const bench: StepPresence = { preview: (s) => void seen.push(s.label), perform: async (_s, commit) => void commit(), rest: () => undefined };
+    const detach = attachPresence(service, bench);
+    const s = await service.buildWithMe('prj_uno-r3-blink');
+    expect(seen).toEqual(['Place U1']);
+    s.stop();
+    detach();
+    const t = await service.buildWithMe('prj_uno-r3-blink');
+    expect(seen).toEqual(['Place U1']);
+    t.stop();
   });
 });

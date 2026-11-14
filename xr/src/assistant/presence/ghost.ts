@@ -5,6 +5,7 @@
  * part's shape; what the instance owns (its channel nodes' materials) is disposed with it, shared things never.
  */
 import {
+  BackSide,
   Mesh,
   MeshBasicMaterial,
   QuadraticBezierCurve3,
@@ -43,6 +44,21 @@ export interface PartGhost {
   dispose(): void;
 }
 
+/**
+ * What a ghost leaves out: the ink (lines, fat-line quads, the outline hull), the cast shadow, the x-ray layer and LED
+ * glows. Only the solid bodies take the ghost's colour; fat-line quads in a plain material would stack every instance
+ * at one spot and flood the fill rate.
+ */
+function ghostSkips(o: Object3D): boolean {
+  const m = o as Mesh & { isLine?: boolean; isPoints?: boolean };
+  if (m.isLine || m.isPoints) return true;
+  if (!m.isMesh) return false;
+  if ((m.geometry as { isInstancedBufferGeometry?: boolean }).isInstancedBufferGeometry) return true;
+  const mats = Array.isArray(m.material) ? m.material : [m.material];
+  if (mats.some((x) => x.side === BackSide || !x.visible)) return true;
+  return /(\.outline|\.shadow|\.fat)$|xray|^glow$/i.test(m.name);
+}
+
 /** A part's ghost at `pose`. */
 export function ghostPart(asset: PartAsset, pose: Pose): PartGhost {
   const object = asset.instantiate();
@@ -50,6 +66,10 @@ export function ghostPart(asset: PartAsset, pose: Pose): PartGhost {
   const owned = ownedMaterials(asset, object);
   const mat = new MeshBasicMaterial({ color: hexNum(ACCENT), transparent: true, opacity: GHOST_OPACITY, depthWrite: false, toneMapped: false });
   object.traverse((o) => {
+    if (ghostSkips(o)) {
+      o.visible = false;
+      return;
+    }
     const m = o as Mesh;
     if (m.isMesh) {
       m.material = mat;

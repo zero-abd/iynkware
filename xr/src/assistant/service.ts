@@ -39,7 +39,24 @@ export interface AssistantServiceImpl extends AssistantService {
   dispose(): void;
 }
 
+/** How each service shows its steps: `app.ts` builds the service headless, the module gives it a body on the bench. */
+const presences = new WeakMap<AssistantService, { current: StepPresence; fallback: StepPresence }>();
+
+/**
+ * Shows the service's next builds through `presence` (the companion on the bench) instead of the one it was built
+ * with; the returned function puts the original back. A build already running keeps the presence it started with.
+ */
+export function attachPresence(service: AssistantService, presence: StepPresence): () => void {
+  const slot = presences.get(service);
+  if (!slot) return () => undefined;
+  slot.current = presence;
+  return () => {
+    if (slot.current === presence) slot.current = slot.fallback;
+  };
+}
+
 export function createAssistantService(host: AssistantHost): AssistantServiceImpl {
+  const slot = { current: host.presence, fallback: host.presence };
   const recipes = host.recipes ?? createRecipes();
   const builders: CoBuilder[] = [scriptedCoBuilder()];
   const session = value<CoBuildSession | null>(null);
@@ -56,7 +73,7 @@ export function createAssistantService(host: AssistantHost): AssistantServiceImp
       guide: host.guide?.() ?? null,
     });
 
-  return {
+  const service: AssistantServiceImpl = {
     session,
     snapshot,
     use(builder) {
@@ -80,7 +97,7 @@ export function createAssistantService(host: AssistantHost): AssistantServiceImp
         recipes,
         snapshot,
         lang: host.lang,
-        presence: host.presence,
+        presence: slot.current,
         auto: opts.auto,
       });
       running = s;
@@ -100,4 +117,6 @@ export function createAssistantService(host: AssistantHost): AssistantServiceImp
       running?.stop();
     },
   };
+  presences.set(service, slot);
+  return service;
 }
