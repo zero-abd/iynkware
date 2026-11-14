@@ -81,12 +81,12 @@ describe('own materials', () => {
 });
 
 describe('preferences', () => {
-  it('read reduced motion and teleport forward-compatibly', () => {
+  it('read reduced motion and teleport from the headset settings', () => {
     const settings = createSettingsStore();
     const app = { settings };
     expect(reducedMotion(app)).toBe(false);
     expect(fadeMs(app, 400)).toBe(400);
-    settings.setXr({ reducedMotion: true } as never);
+    settings.setXr({ reducedMotion: true });
     expect(reducedMotion(app)).toBe(true);
     expect(fadeMs(app, 400)).toBe(150);
     expect(teleportOn(app)).toBe(false);
