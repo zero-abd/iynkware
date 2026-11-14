@@ -489,6 +489,46 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+/* ---------- a lit LED's halo ---------- */
+/**
+ * The halo's flat bands, from the outside in, as the figure's glow discs (bench-kinds.js: a wide disc in the LED's
+ * colour, a warm white core) with an ink rim and a light band added, so a lit LED reads on any ground: a red LED on
+ * a red board (the rim and the light band), a white breadboard (the rim), a black chip (the light bands).
+ *   r      the band's outer edge as a share of the halo's radius (the rim's inner edge is GLOW_RIM_PX inside 1)
+ *   toInk / toWhite   the band's colour: the LED's, taken that far to ink or to white (sRGB, as the figure mixes)
+ *   alpha  its opacity at full level; add  the share of it that is added rather than blended, so it lights a dark
+ *          body as light does (the rim is blended only: it must stay dark)
+ */
+export const GLOW_BANDS = Object.freeze({
+  rim: Object.freeze({ r: 1, toInk: 0.75, alpha: 0.82, add: 0 }),
+  band: Object.freeze({ r: 1, toWhite: 0.12, alpha: 0.5, add: 0.3 }),
+  mid: Object.freeze({ r: 0.62, toWhite: 0.58, alpha: 0.85, add: 0.25 }),
+  core: Object.freeze({ r: 0.32, alpha: 0.97, add: 0.2 }),
+});
+/** The rim's width in pixels at an ink scale of 1. */
+export const GLOW_RIM_PX = 1.6;
+/** A dim LED's halo keeps this share of its opacity (and 0.45 of its radius): opacity x (K0 + (1 - K0) x level). */
+export const GLOW_LEVEL_K0 = 0.35;
+const glf = (x) => Number(x).toFixed(4);
+/** The halo's band colours for an LED colour ('#rrggbb' or [r, g, b] sRGB 0..1): { rim, band, mid, core } sRGB 0..1. */
+export function glowColors(color, { ink = INK, core = '#fffbe8' } = {}) {
+  const c = Array.isArray(color) ? color : hexToRgb(color), k = hexToRgb(ink);
+  const toward = (t, to) => c.map((x, i) => x + ((Array.isArray(to) ? to[i] : to) - x) * t);
+  return { rim: toward(GLOW_BANDS.rim.toInk, k), band: toward(GLOW_BANDS.band.toWhite, 1), mid: toward(GLOW_BANDS.mid.toWhite, 1), core: hexToRgb(core) };
+}
+/**
+ * What one band of the halo makes of a background, sRGB 0..1, as the shader blends it (premultiplied: the band's
+ * colour x a, plus the background x (1 - a x (1 - add)), a = alpha x the level's share).
+ */
+export function glowOver(bg, band, color, level = 1, opts = {}) {
+  const c = glowColors(color, opts)[band], { alpha, add } = GLOW_BANDS[band];
+  const a = alpha * (GLOW_LEVEL_K0 + (1 - GLOW_LEVEL_K0) * clamp01(level));
+  return c.map((x, i) => Math.min(1, x * a + bg[i] * (1 - a * (1 - add))));
+}
+/** WCAG relative luminance of an sRGB colour 0..1, and the contrast ratio of two. */
+export const luminance = (c) => { const [r, g, b] = c.map(srgbToLinear); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+export const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+
 const GLOW_VERT = /* glsl */`
 uniform vec3 uCenter;           // the parent's frame
 uniform float uRadius;          // metres, outer disc at full level
@@ -498,6 +538,7 @@ uniform float uLevel;
 uniform vec2 uResolution;
 uniform float uInkPx;
 varying vec2 vUv;
+varying float vRpx;             // the halo's radius on screen, pixels
 void main() {
   bool persp = projectionMatrix[2][3] != 0.0;
   float s = length(modelMatrix[0].xyz);               // the item's scale: radius and pull are in its metres
@@ -507,7 +548,8 @@ void main() {
   float pull = persp ? min(uPull * s, 0.5 * dist) : uPull * s;
   // one pixel in view-space metres at the centre's depth
   float px = 2.0 / (projectionMatrix[1][1] * uResolution.y) * (persp ? max(-mv.z, 1e-4) : 1.0);
-  float r = max(uRadius * s * (0.45 + 0.55 * uLevel), uMinPx * uInkPx * px);
+  vRpx = max(uRadius * s * (0.45 + 0.55 * uLevel) / px, uMinPx * uInkPx);
+  float r = vRpx * px;
   if (persp) r *= (dist - pull) / dist;               // moved towards the eye, it keeps its drawn size
   mv.xyz += toEye * pull;
   mv.xy += position.xy * r;
@@ -515,22 +557,34 @@ void main() {
   gl_Position = projectionMatrix * mv;
 }`;
 
+// the halo's bands from the outside in (GLOW_BANDS): the rim, the colour band, the light band, the core. Each edge is
+// anti-aliased over one pixel; the rim is GLOW_RIM_PX x the ink scale wide whatever the halo's size.
 const GLOW_FRAG = /* glsl */`
-uniform vec3 uColor;            // linear
+uniform vec3 uRim;              // linear, from glowColors()
+uniform vec3 uBand;
+uniform vec3 uMid;
 uniform vec3 uCore;
 uniform float uLevel;
-uniform float uAdd;
+uniform float uInkPx;
 varying vec2 vUv;
+varying float vRpx;
+float glowLevelK(float level) { return ${glf(GLOW_LEVEL_K0)} + ${glf(1 - GLOW_LEVEL_K0)} * level; }
 void main() {
   float r = length(vUv);
+  float aa = 1.0 / max(vRpx, 1.0);                     // one pixel, as a share of the radius
   if (r >= 1.0) discard;
-  float halo = 0.34 * uLevel * (1.0 - smoothstep(0.35, 1.0, r));
-  float core = 0.8 * uLevel * (1.0 - smoothstep(0.17, 0.3, r));
-  float a = halo + core - halo * core;
+  float rim = clamp(${glf(GLOW_RIM_PX)} * max(uInkPx, 1.0) * aa, 0.06, 0.3);
+  float inBand = 1.0 - smoothstep(1.0 - rim - aa, 1.0 - rim, r);
+  float inMid = 1.0 - smoothstep(${glf(GLOW_BANDS.mid.r)} - aa, ${glf(GLOW_BANDS.mid.r)}, r);
+  float inCore = 1.0 - smoothstep(${glf(GLOW_BANDS.core.r)} - aa, ${glf(GLOW_BANDS.core.r)}, r);
+  vec3 col = mix(mix(mix(uRim, uBand, inBand), uMid, inMid), uCore, inCore);
+  vec2 aw = mix(mix(mix(vec2(${glf(GLOW_BANDS.rim.alpha)}, ${glf(GLOW_BANDS.rim.add)}), vec2(${glf(GLOW_BANDS.band.alpha)}, ${glf(GLOW_BANDS.band.add)}), inBand),
+    vec2(${glf(GLOW_BANDS.mid.alpha)}, ${glf(GLOW_BANDS.mid.add)}), inMid), vec2(${glf(GLOW_BANDS.core.alpha)}, ${glf(GLOW_BANDS.core.add)}), inCore);
+  float a = aw.x * (1.0 - smoothstep(1.0 - aa, 1.0, r)) * glowLevelK(uLevel);
   if (a < 0.002) discard;
-  gl_FragColor = vec4((uColor * halo * (1.0 - core) + uCore * core) / a, 1.0);
+  gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
-  gl_FragColor = vec4(gl_FragColor.rgb * a, a * (1.0 - uAdd));   // premultiplied; uAdd of it is added
+  gl_FragColor = vec4(gl_FragColor.rgb * a, a * (1.0 - aw.y));   // premultiplied; aw.y of it is added
 }`;
 
 /* logarithmic depth, when the app's renderer uses it: every ink shader writes the same depth three's own do */
@@ -854,19 +908,17 @@ export function createShadow(source, { look = {}, root = null, planeY = 0, unifo
 const topOf = (o) => { while (o.parent && !o.parent.isScene) o = o.parent; return o; };
 
 /**
- * A lit LED's halo, the figure's two glow discs (bench-kinds.js: a wide one in the LED's colour at 0.3 x lit, a
- * small warm white core at 0.75 x lit) as one camera-facing quad of 4 vertices, the discs and their radial falloff
- * computed in the fragment shader (no texture). One draw call; hidden (none) while the level is 0.
+ * A lit LED's halo: the figure's glow discs (bench-kinds.js: a wide one in the LED's colour, a small warm white core)
+ * as flat bands with an ink rim (GLOW_BANDS), on one camera-facing quad of 4 vertices, the bands computed in the
+ * fragment shader (no texture). One draw call; hidden (none) while the level is 0.
  *   center: the glow's centre in the parent's frame (the LED node); radius: the outer disc at full level, metres
  *   (it shrinks to 0.45 of that as the level falls, as the figure's does), never under minPx screen pixels x the ink
  *   scale, so a 2 mm SMD LED still reads at arm's length in the headset; pull: metres the quad is moved towards the
  *   eye (default 1.6 x radius) so the board it sits on does not cut its lower half, with its drawn size kept.
- *   add: the additive share. 0 blends the discs over what is behind (the figure's SVG), 1 adds them; between, the
- *   halo lights a dark body as light does and still tints white paper or a breadboard, where pure addition shows
- *   nothing. Premultiplied blending, depth tested, no depth write, drawn last (renderOrder 3).
- * setGlow(mesh, color, level) drives it.
+ *   Premultiplied blending (each band adds a share of itself: GLOW_BANDS add), depth tested, no depth write, drawn
+ *   last (renderOrder 3). setGlow(mesh, color, level) drives it.
  */
-export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#ffffff', level = 0, uniforms = null, look = {}, pull = null, minPx = 7, add = 0.35, core = '#fffbe8' } = {}) {
+export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#ffffff', level = 0, uniforms = null, look = {}, pull = null, minPx = 7, core = '#fffbe8' } = {}) {
   const u = uniforms || createInkUniforms(look);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
@@ -878,7 +930,8 @@ export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#fffff
     uniforms: {
       uResolution: u.uResolution, uInkPx: u.uInkPx,
       uCenter: { value: c }, uRadius: { value: radius }, uPull: { value: pull != null ? pull : 1.6 * radius }, uMinPx: { value: minPx },
-      uColor: { value: linearColor('#ffffff') }, uCore: { value: linearColor(core) }, uLevel: { value: 0 }, uAdd: { value: add },
+      uColor: { value: linearColor('#ffffff') }, uLevel: { value: 0 },
+      uRim: { value: new THREE.Color() }, uBand: { value: new THREE.Color() }, uMid: { value: new THREE.Color() }, uCore: { value: linearColor(core) },
     },
     vertexShader: VS.glow,
     fragmentShader: FS.glow,
@@ -892,6 +945,7 @@ export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#fffff
   });
   m.toneMapped = false;
   m.userData.inkRole = 'glow';
+  m.userData.ink = look.ink || INK;
   const mesh = new THREE.Mesh(g, m);
   mesh.name = 'glow';
   mesh.renderOrder = 3;
@@ -901,11 +955,13 @@ export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#fffff
   setGlow(mesh, color, level);
   return mesh;
 }
-/** A glow's colour ('#rrggbb' sRGB or THREE.Color) and level 0..1; it is drawn only while the level is above 0. */
+/** A glow's colour ('#rrggbb' sRGB, or a THREE.Color, linear) and level 0..1; it is drawn only while the level is above 0. */
 export function setGlow(mesh, color, level) {
   const un = mesh.material.uniforms;
   if (typeof color === 'string') un.uColor.value.copy(linearColor(color));
   else if (color && color.isColor) un.uColor.value.copy(color);
+  const c = un.uColor.value, bands = glowColors([c.r, c.g, c.b].map(linearToSrgb), { ink: mesh.material.userData.ink || INK });
+  for (const [k, u] of [['rim', un.uRim], ['band', un.uBand], ['mid', un.uMid]]) u.value.setRGB(...bands[k].map(srgbToLinear), THREE.LinearSRGBColorSpace);
   un.uLevel.value = clamp01(level);
   mesh.visible = un.uLevel.value > 0.003;
 }

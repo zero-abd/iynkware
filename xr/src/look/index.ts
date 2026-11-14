@@ -14,8 +14,15 @@
  *   icons.ts     ICONS: Phosphor regular glyphs for canvas textures
  *   callout.ts   createCallout(text): ink dot, leader and a cream tag or paper card sized in dmm
  *   stage.ts     the flat page framed like a figure plate
+ *   ink.ts       loadInk(), inkKit(): the converted figures' ink material for what the kit draws; paintBands, drawnBox
+ *   mat.ts       the inked work mat and front rail
+ *   wires.ts     inked jumper wires that draw themselves on
+ *   bench.ts     the bench in the look: mat, rail, wires, and parts dropping in, easing and leaving
+ *   studio.ts    the paper studio: dome, horizon ring, floor disc and an inked table, for the plain VR space
+ *   fx.ts        effectsOf(world): pop and snap rings, spark, heat lines, smoke; one instanced draw per kind
  */
 import type { FeatureModule, XrApp } from '../contracts/app';
+import { mountBenchLook } from './bench';
 import { motionOf, prefersReducedMotion } from './runner';
 import { mountStage } from './stage';
 import { loadFonts } from './type';
@@ -42,10 +49,12 @@ export const lookModule: FeatureModule = {
     const offXr = app.settings.xr.subscribe(sync);
     const offShared = app.settings.shared.subscribe(sync);
     const offStage = mountStage(app);
+    const offBench = mountBenchLook(app);
     return () => {
       offXr();
       offShared();
       offStage();
+      offBench();
     };
   },
 };

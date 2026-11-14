@@ -52,6 +52,7 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 | `src/ai` | The optional AI partner |
 | `src/i18n` | Messages and lesson prose in six languages |
 | `src/cli` | The `iynk` command line |
+| `xr` | The IWSDK/three.js headset app, its shared contracts, services, feature pillars and tests |
 | `figures` | Figure sources and engines, built into `public/figures` |
 | `e2e` | Playwright tests |
 | `deploy` | Dockerfiles, compose and Caddy |
@@ -59,6 +60,29 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 | `xr` | The headset app: its own Vite package on the Immersive Web SDK, importing `src/` and `content/` ([XR_ARCHITECTURE.md](XR_ARCHITECTURE.md)) |
 | `tools/xr-assets` | The asset pipeline's contract: the glTF sidecar schema ([XR_ASSETS.md](XR_ASSETS.md)) |
 | `deploy/cloudflare-xr` | The static deploy of `xr/dist` to Cloudflare ([XR_DEPLOY.md](XR_DEPLOY.md)) |
+
+## The headset demo today
+
+> **Draw-call budget suspended (owner's decision, 2026-11-14).** Build beyond the 100-call budget; no PR fails or waits
+> over draw calls. Performance gets its own pass later, measured on the headset (docs/XR_ARCHITECTURE.md section 7).
+
+What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
+each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
+`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `7e4e62a`.
+
+- **Blink (the default page):** press Enter (or Open on this screen). Uno Blink sits in passthrough on a sage work
+  mat with a mustard rail, drawn from the converted models, with the lesson guide panel beside it: Back, Show me and
+  Next through four steps, with highlights on the bench. Run, Pause, Step (+10 ms), Reset and the speed button take a
+  controller ray and trigger, or a hand point and pinch; Run blinks the LED with its halo, and the lesson's three
+  checks run and pass.
+- **Build it with me:** the pill on the bench starts the co-builder. It proposes each step on a card (Accept, Accept
+  all, Skip, Undo, Stop) and places the part with a ghost and carry.
+- **Drone (`?project=prj_drone-quad5`):** a design panel beside the bench (part plates, numbers, arming rules) and a
+  Fly plate. Fly goes to the room: a five-gate course, A arms, and the controller sticks fly the drone and count gates.
+- **Not yet:** building by hand (shelf, edit, wire and pose are stubs); finishing a lesson (its `edit` and `quiz`
+  gates have no headset UI: #169, #53); home, menu and mode switch (stubs), so other projects open only by
+  `?project=`; hand sticks for flying; scale controls. The bench is anchored where the headset was at entry. The
+  emulator walk's Step check is flaky (#151).
 
 ## What works today
 
@@ -87,12 +111,18 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
 - Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
   glTF in the ink look; every other part is still a placeholder built from its descriptor.
+- A headset voice front end or model-backed co-builder. `xr/src/contracts/assistant.ts` defines the grounded
+  co-builder, reviewable session and voice-command verbs. `createApp` mounts the scripted implementation as
+  `XrApp.assistant`, and the assistant feature gives it a companion, proposal card and "Build it with me" entry. It
+  does not yet expose the existing `BuildGoal` `ask` path through `AssistantService`, connect to a voice transport or
+  stream audio. `quest-voice-backend/` is an isolated experimental service, not that missing integration.
 - Firmware engines in the headset: the worker runs iynk's interpreter, and rapier physics for robot projects (PR #110,
   loaded lazily in the worker); no avr8js or rp2040js yet (#38).
 - Saving projects in the headset: it opens a template each time.
 - Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
   command ([XR_DEPLOY.md](XR_DEPLOY.md)); since 2026-11-14 its production URL serves the headset app built from
   `main`, deployed by hand.
+- Hosting for the experimental voice service: not chosen. There is no deploy configuration and no cloud resource.
 - Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
   removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
   repos, not CI.

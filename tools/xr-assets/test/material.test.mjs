@@ -10,6 +10,7 @@ import {
   bandOf, bandColor, mixHex, matOf, SOFT, SHADES, smoothstep, blendBands, hexToRgb, srgbToLinear, linearToSrgb,
   hullWeight, hull2d, shadowOffset, projectShadow, createInkMaterial, createLineMaterial, createOutline, createShadow,
   createFatLines, createInkUniforms, updateInkLights, shadeOf, createGlow, setGlow, HULL_MAX, HULL_MIN,
+  GLOW_BANDS, glowColors, glowOver, contrast,
 } from '../material/ink.js';
 import { loadXrAsset, clampValue, rotateAngle, spinRate, translateOffset, emissiveOf, nodePose, partWeights, GLOW_K, GLOW_R0, glowRadius } from '../material/xr-asset.js';
 import { buildFixture } from '../viewer/fixture.js';
@@ -363,4 +364,62 @@ test('a lit LED draws one halo: hidden at level 0, one draw call more when lit, 
   assert.equal(g.visible, true);
   assert.deepEqual(g.material.uniforms.uColor.value.toArray(), [0, 1, 0]);
   assert.equal(g.material.uniforms.uLevel.value, 0.5);
+  // its bands: the rim is the LED's colour taken towards ink, the light band towards white
+  const want2 = glowColors([0, 1, 0]);
+  const rim = g.material.uniforms.uRim.value.toArray().map(linearToSrgb);
+  assert.ok(rim.every((v, i) => Math.abs(v - want2.rim[i]) < 1e-6), 'the rim colour');
+  assert.ok(want2.rim[1] < 0.5 && want2.mid[0] > 0.5, 'rim dark, light band light');
+});
+
+test('a lit LED reads on a board of its own colour, on white and on black (#135)', () => {
+  // the LED colours the figures use, on their own colour, the l298n's red board, the Uno's teal, the breadboard's
+  // white, a black chip: at full level some band of the halo stands out from the ground at 3:1 or more, and the rim
+  // and the light band make an edge of 4:1 or more inside it
+  const cases = [
+    ['#e8392e', '#c8282e'], ['#e8392e', '#e8392e'], ['#f2b12e', '#f2b12e'], ['#4cc65a', '#4cc65a'], ['#76a0e2', '#76a0e2'],
+    ['#ffffff', '#ffffff'], ['#e8392e', '#f6f4ea'], ['#f2c23a', '#f6f4ea'], ['#f2b12e', '#2f8f83'], ['#3fbf6a', '#1f1d1b'],
+  ];
+  const bands = Object.keys(GLOW_BANDS);
+  for (const [led, ground] of cases) {
+    const bg = hexToRgb(ground);
+    const best = Math.max(...bands.map((b) => contrast(glowOver(bg, b, led, 1), bg)));
+    assert.ok(best >= 3, `${led} on ${ground}: best band ${best.toFixed(2)}:1`);
+    const edge = contrast(glowOver(bg, 'rim', led, 1), glowOver(bg, 'mid', led, 1));
+    assert.ok(edge >= 4, `${led} on ${ground}: rim against the light band ${edge.toFixed(2)}:1`);
+  }
+  // the figure's old soft glow on the l298n's red: hardly there (why #135 was opened)
+  const soft = (bg, c, a) => c.map((x, i) => x * a + bg[i] * (1 - a));
+  assert.ok(contrast(soft(hexToRgb('#c8282e'), hexToRgb('#e8392e'), 0.3), hexToRgb('#c8282e')) < 1.3);
+  // a dimmer LED, a weaker halo
+  const bg = hexToRgb('#c8282e');
+  assert.ok(contrast(glowOver(bg, 'core', '#e8392e', 0.2), bg) < contrast(glowOver(bg, 'core', '#e8392e', 1), bg));
+});
+
+test('the app\'s way of lighting an LED (its body material\'s uEmissive and uEmissiveLevel) shows the halo', async () => {
+  // xr/src/assets/converted.ts writes the first body material's uniforms, not set(): every body material of the
+  // node and its halo follow
+  const a = await fixtureAsset();
+  const node = a.node('led:L');
+  const bodies = [];
+  node.traverse((o) => { if (o.isMesh && o.material.userData.inkRole === 'body') bodies.push(o.material); });
+  const glow = node.children.find((o) => o.userData.inkRole === 'glow');
+  assert.ok(bodies.length >= 1 && glow);
+  const off = a.drawCalls();
+  const red = new THREE.Color().setRGB(...hexToRgb('#e8392e').map(srgbToLinear));
+  bodies[0].uniforms.uEmissive.value.copy(red);
+  bodies[0].uniforms.uEmissiveLevel.value = 0.8;
+  assert.equal(glow.visible, true);
+  assert.equal(a.drawCalls(), off + 1);
+  assert.equal(glow.material.uniforms.uLevel.value, 0.8);
+  assert.ok(glow.material.uniforms.uColor.value.equals(red), 'the halo takes the colour written before the level');
+  for (const m of bodies) assert.equal(m.uniforms.uEmissiveLevel.value, 0.8);
+  bodies[0].uniforms.uEmissiveLevel.value = 0;
+  assert.equal(glow.visible, false);
+  // set() still drives the same uniforms
+  a.set('led:L', 1);
+  assert.equal(bodies[0].uniforms.uEmissiveLevel.value, 1);
+  assert.equal(glow.visible, true);
+  const staticBody = a.node('static').children.find((o) => o.isMesh);
+  assert.equal(staticBody.material.uniforms.uEmissiveLevel.value, 0, 'nothing else lights');
+  a.dispose();
 });

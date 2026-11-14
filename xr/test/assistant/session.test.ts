@@ -12,9 +12,12 @@ import { createProjectStore, createTemplateSource } from '../../src/project/stor
 const BLINK = 'prj_uno-r3-blink';
 const ORDER = ['place:brd_main', 'place:cmp_bb', 'place:cmp_led1', 'place:cmp_res1', 'wire:wir_1', 'wire:wir_2'];
 
+/** A store without `as(author)`: what the fallback in `actor.ts` is for. The real store offers it since #106. */
+const plainStore = (doc: Project): ProjectStore => new Proxy(createProjectStore(doc), { get: (t, k) => (k === 'as' ? undefined : Reflect.get(t, k)) });
+
 async function setup(presence: StepPresence = instantPresence, store?: ProjectStore) {
   const target = await loadTemplate(BLINK);
-  const project = store ?? createProjectStore(target);
+  const project = store ?? plainStore(target);
   const service = createAssistantService({ project, templates: createTemplateSource(), lang: () => 'en', presence });
   return { target, project, service };
 }
@@ -236,7 +239,7 @@ describe('authoring as the co-builder', () => {
 
   it('without one, the fallback labels its entries and undoes by inverse when it is not on top', async () => {
     const target = await loadTemplate(BLINK);
-    const store = createProjectStore(target);
+    const store = plainStore(target);
     const service = createAssistantService({ project: store, templates: createTemplateSource(), lang: () => 'en', presence: instantPresence });
     const s = await service.buildWithMe(BLINK);
     await s.accept();

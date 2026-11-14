@@ -9,10 +9,14 @@ import {
   headingOf,
   isGrabPress,
   modeOf,
+  newHoldState,
   palmNormal,
   sourceOf,
+  stepButton,
+  stepHold,
   virtualStick,
   type Heading,
+  type MutableButton,
   type PointerKind,
 } from '../src/input/helpers';
 
@@ -157,5 +161,72 @@ describe('virtual stick', () => {
     virtualStick(0, -0.06, left, out);
     expect(out.x).toBeCloseTo(1);
     expect(out.y).toBeCloseTo(0);
+  });
+});
+
+describe('face buttons', () => {
+  it('reports down once, pressed while held, then up once', () => {
+    const b: MutableButton = { pressed: false, down: false, up: false };
+    stepButton(b, true);
+    expect({ ...b }).toEqual({ pressed: true, down: true, up: false });
+    stepButton(b, true);
+    expect({ ...b }).toEqual({ pressed: true, down: false, up: false });
+    stepButton(b, false);
+    expect({ ...b }).toEqual({ pressed: false, down: false, up: true });
+    stepButton(b, false);
+    expect({ ...b }).toEqual({ pressed: false, down: false, up: false });
+  });
+
+  it('stays all false without a press (a hand, an untracked controller)', () => {
+    const b: MutableButton = { pressed: false, down: false, up: false };
+    for (let i = 0; i < 3; i++) stepButton(b, false);
+    expect({ ...b }).toEqual({ pressed: false, down: false, up: false });
+  });
+});
+
+describe('free hold', () => {
+  it('captures start once and follows the position and time of a free pinch', () => {
+    const s = newHoldState();
+    stepHold(s, true, false, 1000, 'pinch', 0, 1, 0);
+    expect(s.free).toBe(true);
+    expect(s.hold.by).toBe('pinch');
+    expect(s.hold.start).toEqual([0, 1, 0]);
+    expect(s.hold.sinceMs).toBe(0);
+    stepHold(s, true, false, 1250, 'pinch', 0.1, 1.2, -0.3);
+    expect(s.hold.start).toEqual([0, 1, 0]);
+    expect(s.hold.position).toEqual([0.1, 1.2, -0.3]);
+    expect(s.hold.sinceMs).toBe(250);
+  });
+
+  it('is not free when the pinch landed on a bound object', () => {
+    const s = newHoldState();
+    stepHold(s, true, true, 0, 'pinch', 0, 0, 0);
+    expect(s.free).toBe(false);
+    stepHold(s, true, false, 16, 'pinch', 0, 0, 0);
+    expect(s.free).toBe(false);
+  });
+
+  it('stops being free when a bound object takes it later, and is fresh on the next hold', () => {
+    const s = newHoldState();
+    stepHold(s, true, false, 0, 'pinch', 0, 0, 0);
+    stepHold(s, true, true, 16, 'pinch', 0, 0, 0);
+    expect(s.free).toBe(false);
+    stepHold(s, true, false, 32, 'pinch', 0, 0, 0);
+    expect(s.free).toBe(false);
+    stepHold(s, false, false, 48, 'pinch', 0, 0, 0);
+    stepHold(s, true, false, 64, 'pinch', 1, 1, 1);
+    expect(s.free).toBe(true);
+    expect(s.hold.start).toEqual([1, 1, 1]);
+    expect(s.hold.sinceMs).toBe(0);
+  });
+
+  it('reports a controller squeeze as a grip and ends on release', () => {
+    const s = newHoldState();
+    stepHold(s, true, false, 0, 'grip', 0, 0, 0);
+    expect(s.free).toBe(true);
+    expect(s.hold.by).toBe('grip');
+    stepHold(s, false, false, 16, 'grip', 0, 0, 0);
+    expect(s.free).toBe(false);
+    expect(s.active).toBe(false);
   });
 });

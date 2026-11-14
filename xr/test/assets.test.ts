@@ -10,6 +10,7 @@ import { builtinRegistry } from '@/parts/builtin';
 import type { Descriptor } from '@/parts/descriptor';
 import type { Anchor, PartAsset } from '../src/contracts/assets';
 import { LED_PART, LIGHT_ANCHOR, MESH, createAssetRegistry, describeFrom, placeholderShape } from '../src/assets/registry';
+import { moverOf } from '../src/assets/placeholder';
 
 const parts = builtinRegistry();
 const assets = createAssetRegistry({ describe: describeFrom(parts) });
@@ -271,6 +272,106 @@ describe('every built-in part', () => {
       const meshes = meshesOf(asset.instantiate());
       expect(meshes.length, ref).toBeGreaterThan(0);
       expect(meshes.length, ref).toBeLessThanOrEqual(2);
+    }
+  });
+});
+
+describe('placeholder channels for what moves', () => {
+  const channelsOf = async (ref: string) => (await assets.get(ref)).sidecar.channels;
+  const KINDS: Record<string, string | undefined> = {
+    'core.servo-sg90': 'servo',
+    'core.dc-motor': 'motor',
+    'core.fan': 'motor',
+    'core.tt-motor': 'motor',
+    'core.stepper-28byj48': 'stepper',
+    'core.nema17': 'stepper',
+    'core.push-button-6mm': 'button',
+    'core.potentiometer-10k': 'knob',
+    'core.slide-switch': 'lever',
+    'core.ssd1306': 'display',
+    'core.led-5mm': undefined,
+    'core.resistor': undefined,
+    'core.uno-r3': undefined,
+    'core.a4988-module': undefined,
+    'core.traffic-light': undefined,
+  };
+
+  it('reads what moves from the descriptor', () => {
+    for (const [ref, kind] of Object.entries(KINDS)) expect(moverOf(desc(ref)), ref).toBe(kind);
+  });
+
+  it('gives a servo a horn that turns in degrees about the shaft', async () => {
+    const asset = await assets.get('core.servo-sg90');
+    const ch = asset.sidecar.channels.find((c) => c.id === 'servo:HORN');
+    expect(ch).toMatchObject({ kind: 'rotate', nodes: ['horn'], axis: [0, 1, 0], value: { unit: 'deg', min: 0, max: 180, rest: 90 } });
+    expect(ch!.scale).toBeCloseTo(Math.PI / 180, 8);
+    // the pivot is on the top of the case, inside its footprint
+    const bodyTop = desc('core.servo-sg90').dimensions!.body!.d / 1000;
+    expect(ch!.pivot![1]).toBeGreaterThan(bodyTop);
+    expect(ch!.pivot![1]).toBeLessThanOrEqual(asset.sidecar.bounds.max[1] + 1e-9);
+    expect(Math.abs(ch!.pivot![0])).toBeLessThan(asset.footprint.w / 2);
+    const horn = asset.instantiate().getObjectByName('horn') as Mesh;
+    expect(horn.isMesh).toBe(true);
+    horn.geometry.computeBoundingBox();
+    expect(horn.geometry.boundingBox!.min.y).toBeGreaterThanOrEqual(bodyTop - 1e-6);
+  });
+
+  it('spins a DC motor in rpm, clockwise from above, and turns a stepper to an angle', async () => {
+    expect(await channelsOf('core.dc-motor')).toEqual([
+      expect.objectContaining({ id: 'motor:HUB', kind: 'spin', nodes: ['hub'], scale: -1, value: expect.objectContaining({ unit: 'rpm', rest: 0 }) }),
+    ]);
+    expect(await channelsOf('core.stepper-28byj48')).toEqual([
+      expect.objectContaining({ id: 'motor:HUB', kind: 'rotate', nodes: ['hub'], value: expect.objectContaining({ unit: 'deg', min: 0, max: 360 }) }),
+    ]);
+  });
+
+  it('moves a button cap down and turns a knob and a switch lever', async () => {
+    const [press] = await channelsOf('core.push-button-6mm');
+    expect(press).toMatchObject({ id: 'press:CAP', kind: 'translate', nodes: ['cap'], axis: [0, -1, 0], value: { unit: 'press', min: 0, max: 1, rest: 0 } });
+    expect(press!.scale).toBeGreaterThan(0);
+    const [knob] = await channelsOf('core.potentiometer-10k');
+    expect(knob).toMatchObject({ id: 'turn:KNOB', kind: 'rotate', nodes: ['knob'], axis: [0, 1, 0], value: { unit: 'deg', rest: 135 } });
+    const [lever] = await channelsOf('core.slide-switch');
+    expect(lever).toMatchObject({ id: 'turn:LEVER', kind: 'rotate', nodes: ['lever'], axis: [0, 0, 1] });
+  });
+
+  it('puts a screen anchor with a pixel rect on a display face, and no moving mesh', async () => {
+    const asset = await assets.get('core.ssd1306');
+    const a = anchorOf(asset, 'screen:DISPLAY');
+    const { min, max } = asset.sidecar.bounds;
+    expect(a.kind).toBe('screen');
+    expect(a.rect!.pixels).toEqual([128, 64]);
+    // 2:1 like the panel, lying flat on the top of the body, inside its footprint
+    expect(a.rect!.u[0] / a.rect!.v[2]).toBeCloseTo(2, 2);
+    expect(a.rect!.origin[1]).toBeCloseTo(max[1], 6);
+    expect(a.rect!.origin[0]).toBeGreaterThanOrEqual(min[0] - 1e-9);
+    expect(a.rect!.origin[0] + a.rect!.u[0]).toBeLessThanOrEqual(max[0] + 1e-9);
+    expect(a.rect!.origin[2] + a.rect!.v[2]).toBeLessThanOrEqual(max[2] + 1e-9);
+    expect(asset.sidecar.channels).toEqual([]);
+    expect(meshesOf(asset.instantiate())).toHaveLength(1);
+  });
+
+  it('adds at most one mesh, with its own material, and nothing to parts that do not move', async () => {
+    for (const [ref, kind] of Object.entries(KINDS)) {
+      const asset = await assets.get(ref);
+      const moving = !!kind && kind !== 'display';
+      if (!moving) {
+        expect(asset.sidecar.channels.filter((c) => c.id !== LIGHT_ANCHOR), ref).toEqual([]);
+        continue;
+      }
+      expect(asset.sidecar.channels, ref).toHaveLength(1);
+      const [ch] = asset.sidecar.channels;
+      const name = ch!.nodes[0]!;
+      expect(meshesOf(asset.instantiate()).map((m) => m.name), ref).toContain(name);
+      expect(meshesOf(asset.instantiate()), ref).toHaveLength(2);
+      const one = asset.instantiate().getObjectByName(name) as Mesh;
+      const two = asset.instantiate().getObjectByName(name) as Mesh;
+      expect(one.geometry).toBe(two.geometry);
+      expect(one.material).not.toBe(two.material);
+      expect(asset.sidecar.stats.drawCalls, ref).toBe(2);
+      expect(asset.sidecar.parts.find((p) => p.nodes?.includes(name))?.id, ref).toBe(ch!.part);
+      expect(ch!.id.endsWith(`:${ch!.part}`), ref).toBe(true);
+      if (ch!.pivot) expect(ch!.pivot.every(Number.isFinite), ref).toBe(true);
     }
   });
 });

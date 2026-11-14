@@ -50,3 +50,16 @@ The AI partner and the builders refuse to help make weapons or other craft built
 4. On a server you run: stop the app and delete the `.iynk-data` folder (or the folder `IYNK_DATA_DIR` names).
 
 The provider keeps its own records under its own terms. Delete the key at the provider if you want it gone there.
+
+## Experimental Quest voice service
+
+The [Quest voice service](QUEST_VOICE_BACKEND.md) is separate from the canonical server and has no headset client or
+deployment yet. In a local experiment, each turn sends a recording plus the lab item, learning objective, learner
+level, current step, last in-world action and locale to Gemini Live. The service returns the input transcript,
+response transcript and generated audio.
+
+It keeps at most six recent turns in process memory for 30 minutes by default and writes none of that material to
+disk. A restart clears the history and its in-memory usage counters. Logs contain request IDs, status and timings,
+not recordings, transcripts, lesson context, API keys, client tokens or upstream exception text. An operator Gemini
+key would live only in the service's secret environment. The identity, durable quota and hosting model must be
+approved before a browser client or public deployment is added.

@@ -122,7 +122,8 @@ confused with iynk's Studio (your own projects).
 
 Both run in the same `immersive-ar` session; the paper room is an opaque dome drawn over passthrough, so switching
 never restarts the session [custom]. Only where `immersive-ar` is refused does the paper room run as the
-architecture's `immersive-vr` fallback, and View hides the switch. The mat is paper in both rooms.
+architecture's `immersive-vr` fallback, and View hides the switch. The mat is the figures' sage cutting mat in both
+rooms (9.3); in passthrough it lies on the real table with no slab or backdrop under it.
 
 ### 2.6 Minimum sizes
 
@@ -258,7 +259,7 @@ controllers keep reporting. Rules [custom]:
 
 Hands have no haptics. For hands every committed event plays its sound and a **pop ring** at the contact point: an
 ink ring growing from 12 to 24 mm while fading out over 180 ms [custom]. With sound off, the pop ring and the ticker
-carry it. Haptics go through `app.input.pulse(hand, intensity, ms)` (one buzz; a two-part pattern is two calls)
+carry it. Under reduced motion the ring keeps one size and fades within 150 ms. Haptics go through `app.input.pulse(hand, intensity, ms)` (one buzz; a two-part pattern is two calls)
 [device?]. Sounds are short, positional at the event [SDK `AudioSource`], and each event has its own. Rings, glows,
 badges and labels on board targets go through `app.overlay` with the pillar as owner (`glow`, `pin`, `label`).
 
@@ -267,7 +268,7 @@ badges and labels on board targets go through `app.overlay` with the pillar as o
 | hover, grabbable | silhouette outline 1.6x wider and accent | none | 0.08 for 8 ms on enter | on within one frame, off over 80 ms |
 | hover, UI | plate lifts 3 dmm, edge turns accent | none | 0.08 for 8 ms | same |
 | hover, cell | ink ring 1 pitch across, 2 dmm stroke, pin name at 18 dmm | none | none | same |
-| snap (ghost finds or changes a fit) | ghost and rings appear | soft tick, at most 12 a second | 0.25 for 12 ms | rings fade in over 60 ms |
+| snap (ghost finds or changes a fit) | ghost and rings appear | soft tick, at most 12 a second | 0.25 for 12 ms | accent ring grows and fades out over 120 ms |
 | seat | part travels to the seat (ease out), legs sink, outline flashes accent | click | 0.6 for 30 ms, then 0.3 for 15 ms at +50 ms | travel 90 ms, flash 150 ms |
 | pull out | legs rise 1 mm | pluck | 0.4 for 20 ms | 80 ms |
 | wire connected | end snaps; every hole and pin of the net gets an accent ring; end label "D13 to row 10" | plug | 0.5 for 25 ms | snap 60 ms, net glow 400 ms, label 1.5 s |
@@ -544,10 +545,10 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
 
 | Token | Bright room | Dim room | Use |
 |---|---|---|---|
-| `paper` | `#f2efe7` | `#e4ddcf` | panels, chips, the mat |
+| `paper` | `#f2efe7` | `#e4ddcf` | panels, chips |
 | `ink` | `#231e16` | same | all text that must be read, outlines |
 | `muted` | `#857d6e` | `#6a6357` | units and decoration only (3.5:1 on paper) |
-| `rule` | `#ddd6c8` | `#cbc2b1` | dividers, the mat grid |
+| `rule` | `#ddd6c8` | `#cbc2b1` | dividers |
 | `shadow` | `#41538f` | same | flat shadows |
 | `accent` | `#e4694e` | same | hover, targets, primary fill; never as text colour |
 | `good`, `bad`, `warn`, `info` | `#1f6b4a`, `#a8402b`, `#7a5a00`, `#1d4fd8` | same | states (5.3 to 5.7:1 on paper) |
@@ -556,6 +557,19 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
 - The overlay's and the guide's `Tone`: `do` is `accent`, `pass` is `good`, `fail` is `bad`, `warn` and `info` as named.
 - Parts use the ink material of the asset contract; UI is flat unlit colour. No PBR, no environment maps.
   Transparency only for ghosts, fades, the ray and smoke.
+- **The bench in the figures' look** (`xr/src/look/bench.ts`, `mat.ts`, `wires.ts`), all in the ink material:
+  - the work mat is the bench figures' cutting mat: bands `#dfe3d2`, `#c6cbb6`, `#9da38c`, 4 mm thick, 18 mm corners,
+    the heavy ink silhouette, a `#a9b096` grid at the figures' 10 mm times the default work scale (40 mm), and ruler ticks
+    every 10 mm along the back and left edges, numbered every 100 mm;
+  - the front rail is a mustard wedge (bands `#f4b829`, `#d49c1f`, `#4e4a18`) under the run cluster, outlined, casting
+    its flat shadow on the mat;
+  - jumper wires are round, banded in their colour, outlined (2.2 ink units) and cast a flat shadow on the mat;
+  - a lit LED's halo (the pipeline's `createGlow`) is drawn 1.8 times the figure's size, so it reads at arm's length;
+  - callout labels stand at least 0.06 m above what they name, so they never cover it or a halo, and overlapping labels
+    climb as seen from about 38 degrees above;
+  - motion: when the bench arrives, items drop 0.05 m in turn (surface, boards, parts; 70 ms apart), squash 6 % and
+    settle, then the wires draw themselves on (400 ms each); a part added later drops in, a moved one eases there
+    in 300 ms, a removed one lifts and shrinks away in 200 ms. Reduced motion jumps.
 - **Rooms:** Menu, then Settings, then "Room light: bright or dim". Dim lowers `paper` and `rule` as the 2D figures do
   on a dark page; ink stays. The 2D dark theme starts XR in dim. There is no camera access, so no automatic switch.
 - **States** always pair colour with an icon and a word: passed tick, failed cross, warning triangle, hot flame,

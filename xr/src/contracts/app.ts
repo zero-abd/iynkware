@@ -6,12 +6,14 @@
 import type { World } from '@iwsdk/core';
 import type { AssetRegistry } from './assets';
 import type { ReadonlyValue, Unsubscribe } from './common';
+import type { FeedbackService } from './feedback';
 import type { InputService } from './input';
 import type { LessonGuide, LessonLauncher, ProgressStore } from './lesson';
 import type { OverlayLayer } from './overlay';
 import type { PartViewRegistry } from './part-view';
 import type { ProjectStore, TemplateSource } from './project';
 import type { ScaleService } from './scale';
+import type { AssistantService } from './assistant';
 import type { SettingsStore } from './settings';
 import type { ShellService } from './shell';
 import type { SimBridge } from './sim';
@@ -28,6 +30,8 @@ export interface XrApp {
   readonly sim: SimBridge;
   readonly assets: AssetRegistry;
   readonly input: InputService;
+  /** The design's feedback table (section 4): haptics, the pop ring for hands and the event sounds. */
+  readonly feedback: FeedbackService;
   readonly bench: BenchSpace;
   readonly views: PartViewRegistry;
   readonly overlay: OverlayLayer;
@@ -41,11 +45,8 @@ export interface XrApp {
   readonly lessons: LessonLauncher;
   /** Work scale, Room size, see-through, explode, current flow, the part inspector and the room (pillar 4). */
   readonly scale: ScaleService;
-  /**
-   * Seam for the AI lab partner with voice (after the seven pillars; nothing is built). It will observe `project`,
-   * `sim`, `guide` and `input.onAny`, and propose ops through `project.apply` with an `ai` author. Stays null.
-   */
-  readonly partner: null;
+  /** The co-builder: "Build it with me", its session and the snapshot it is given (xr/src/assistant). */
+  readonly assistant: AssistantService;
 }
 
 export interface FeatureModule {

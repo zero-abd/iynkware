@@ -1,7 +1,10 @@
-/** Flight range: fly a drone template in the room (stub). */
-import type { FeatureModule } from '../../contracts/app';
+/** Flight range: build a drone on the bench and fly it in the room. Sub-modules, each its own issue. */
+import { composeModules } from '../../compose';
+import { benchModule } from './bench';
+import { crashModule } from './crash';
+import { designModule } from './design';
+import { handsModule } from './hands';
+import { roomModule } from './room';
+import { screenModule } from './screen';
 
-export const flightModule: FeatureModule = {
-  id: 'range/flight',
-  mount: () => () => undefined,
-};
+export const flightModule = composeModules('range/flight', [benchModule, designModule, roomModule, crashModule, handsModule, screenModule]);

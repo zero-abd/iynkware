@@ -5,6 +5,7 @@ import { createSession } from '@/project/session';
 import { computeTouched } from '@/project/touched';
 import { validateValue } from '@/project/validate';
 import { loadTemplate } from '@content/projects';
+import type { AuthoredChannel, CoAuthor } from '../contracts/assistant';
 import type { Unsubscribe } from '../contracts/common';
 import type { DocChange, Descriptor, Op, Project, ProjectStore, Selection, TemplateSource } from '../contracts/project';
 
@@ -70,6 +71,18 @@ export function createProjectStore(doc: Project, parts: PartRegistry = builtinRe
       return version ? parts.get(ref, version) : parts.latest(ref);
     },
     selection,
+    // Reads `session` at call time: `open` replaces it.
+    as: (a: CoAuthor): AuthoredChannel => ({
+      author: a,
+      apply: (ops, opts) =>
+        session.apply(
+          ops,
+          { actor: a.actor, kind: 'ai', ...(a.model ? { model: a.model } : {}), ...(opts?.proposal ? { proposal: opts.proposal } : {}) },
+          opts?.label ? { label: opts.label } : undefined,
+        ),
+      undo: () => session.undo(a.actor),
+      canUndo: () => session.canUndo(a.actor),
+    }),
   };
 }
 

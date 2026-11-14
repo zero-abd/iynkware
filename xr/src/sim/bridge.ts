@@ -23,6 +23,7 @@ import type {
   SimFrame,
   WorldInput,
 } from '../contracts/sim';
+import { mergeWatches } from './analog';
 import { createXrSimHandler, type XrHandlerOptions } from './handler-deps';
 
 export type SimPort = RpcPort<SimReq, SimEv>;
@@ -140,7 +141,10 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
   let netlist: SimNetlist | null = null;
   let lastMech: PhysicsFrame | null = null;
   let speed = 1;
-  let watch: AnalogWatch | null = null;
+  /** Every owner's analog watch, in the order owners first asked. Survives `load`. */
+  const owners = new Map<string, AnalogWatch>();
+  /** What the worker is told: the union of the owners, or null when there are none. */
+  const union = (): AnalogWatch | null => (owners.size > 0 ? mergeWatches(owners.values()) : null);
   let disposed = false;
 
   const frames = listeners<SimFrame>();
@@ -217,7 +221,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
    * end without one and `lastFrame` would lag. Sending the analog watch again makes it send a frame now.
    */
   const refresh = async (id: number) => {
-    if (id === run && loaded()) await call({ t: 'analog.watch', run: id, watch: watch ?? NO_WATCH });
+    if (id === run && loaded()) await call({ t: 'analog.watch', run: id, watch: union() ?? NO_WATCH });
   };
 
   const refuse = (diags: SimDiagnostic[]): LoadResult => {
@@ -253,7 +257,6 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       lastMech = null;
       findings = [];
       netlist = null;
-      watch = null;
       const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
       const program = programOf(doc);
       if (!program) return refuse([...netDiags, simDiag('no-firmware', 'error', {}, { message: 'the project has no code to run' })]);
@@ -273,6 +276,10 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
         if (id !== run) return { ok: !blocking(all), diagnostics: all };
         if (blocking(loadDiags)) return refuse(all);
         netlist = net;
+        // A load forgets the worker's watch; the owners' union is sent again.
+        const w = union();
+        if (w) await call({ t: 'analog.watch', run: id, watch: w }).catch(() => undefined);
+        if (id !== run) return { ok: true, diagnostics: all };
         setState('idle');
         return { ok: true, diagnostics: all };
       } catch (err) {
@@ -310,7 +317,8 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       if (state === 'running') await control('pause');
       // The worker rebuilds the run at t = 0 from the program it loaded, so the next `run` starts from the beginning.
       await control('stop');
-      if (watch && id === run) await call({ t: 'analog.watch', run: id, watch });
+      const w = union();
+      if (w && id === run) await call({ t: 'analog.watch', run: id, watch: w });
     },
 
     async setSpeed(x) {
@@ -323,10 +331,16 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       if (loaded()) await call({ t: 'input', run, input: hostInputOf(i) });
     },
 
-    async watchAnalog(w) {
+    async watchAnalog(w, owner = 'default') {
+      // Kept even while nothing is loaded (the call then rejects): the next load sends it.
+      owners.set(owner, w);
       const id = live();
-      watch = w;
-      await call({ t: 'analog.watch', run: id, watch: w });
+      await call({ t: 'analog.watch', run: id, watch: union() ?? NO_WATCH });
+    },
+
+    async unwatchAnalog(owner) {
+      if (!owners.delete(owner)) return;
+      if (loaded()) await call({ t: 'analog.watch', run, watch: union() ?? NO_WATCH });
     },
 
     async meter(id, settings, probes) {

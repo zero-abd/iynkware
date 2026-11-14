@@ -39,6 +39,9 @@
       ],
       "@dimforge/rapier3d-deterministic-compat": [
         "./node_modules/@dimforge/rapier3d-deterministic-compat"
+      ],
+      "react": [
+        "./node_modules/@types/react"
       ]
     }
   },

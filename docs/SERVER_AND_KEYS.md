@@ -25,6 +25,10 @@ A module that is off answers its routes with "feature disabled", and the app sho
 
 Nobody puts the provider key in the server's environment. Each person brings their own.
 
+The experimental [Quest voice service](QUEST_VOICE_BACKEND.md) is deliberately separate from this canonical server.
+It can use an operator-supplied Gemini key in local development, but it has no WebXR client or deployment. Its
+identity, durable quota, hosting and cost model require zero-abd's decision before that changes.
+
 - In the browser: `localStorage["iynk:keys:v1"]` holds up to three values, the AI key, the search key and the server
   token. They are kept apart from `iynk:v1` (settings and progress), so exporting progress never exports a key.
 - On a request: the AI or search key goes in the header `X-Iynk-Provider-Key`, and the server token in
