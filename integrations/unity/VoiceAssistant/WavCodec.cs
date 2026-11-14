@@ -7,6 +7,33 @@ namespace Iynkware.VoiceAssistant
 {
     public static class WavCodec
     {
+        public static float[] ResampleMono(float[] interleaved, int channels, int sourceRate, int targetRate)
+        {
+            if (interleaved == null) throw new ArgumentNullException(nameof(interleaved));
+            if (channels < 1 || sourceRate < 1 || targetRate < 1) throw new ArgumentOutOfRangeException();
+            int sourceFrames = interleaved.Length / channels;
+            if (sourceFrames == 0) return Array.Empty<float>();
+            int targetFrames = Math.Max(1, Mathf.RoundToInt(sourceFrames * (targetRate / (float)sourceRate)));
+            float[] output = new float[targetFrames];
+
+            float ReadMono(int frame)
+            {
+                float sum = 0f;
+                int offset = frame * channels;
+                for (int channel = 0; channel < channels; channel++) sum += interleaved[offset + channel];
+                return sum / channels;
+            }
+
+            for (int frame = 0; frame < targetFrames; frame++)
+            {
+                float sourcePosition = frame * (sourceRate / (float)targetRate);
+                int left = Math.Min(Mathf.FloorToInt(sourcePosition), sourceFrames - 1);
+                int right = Math.Min(left + 1, sourceFrames - 1);
+                output[frame] = Mathf.Lerp(ReadMono(left), ReadMono(right), sourcePosition - left);
+            }
+            return output;
+        }
+
         public static byte[] EncodePcm16(float[] samples, int channels, int sampleRate)
         {
             const short bitsPerSample = 16;

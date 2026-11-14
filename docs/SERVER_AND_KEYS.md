@@ -25,6 +25,10 @@ A module that is off answers its routes with "feature disabled", and the app sho
 
 Nobody puts the provider key in the server's environment. Each person brings their own.
 
+The optional hackathon [Quest voice companion](QUEST_VOICE_BACKEND.md) is deliberately separate from this canonical
+server. It uses one operator-supplied Gemini key on Render and a replaceable demo token in the native Unity adapter.
+That exception is not the identity or key model for the WebXR app.
+
 - In the browser: `localStorage["iynk:keys:v1"]` holds up to three values, the AI key, the search key and the server
   token. They are kept apart from `iynk:v1` (settings and progress), so exporting progress never exports a key.
 - On a request: the AI or search key goes in the header `X-Iynk-Provider-Key`, and the server token in

@@ -50,3 +50,17 @@ The AI partner and the builders refuse to help make weapons or other craft built
 4. On a server you run: stop the app and delete the `.iynk-data` folder (or the folder `IYNK_DATA_DIR` names).
 
 The provider keeps its own records under its own terms. Delete the key at the provider if you want it gone there.
+
+## Optional Quest voice companion
+
+The hackathon [Quest voice companion](QUEST_VOICE_BACKEND.md) is separate from the canonical server described above.
+For each push-to-talk turn, the native adapter sends the recording plus the scenario, learning objective, learner
+level, current step, last in-world action and locale to the companion over HTTPS. The companion sends that material
+and recent in-memory conversation turns to Gemini Live. It returns the input transcript, response transcript and
+generated audio to the headset.
+
+The companion keeps at most six recent turns in process memory for 30 minutes by default. It does not write audio,
+transcripts or conversation history to disk, and a restart clears them. Its logs contain request IDs, status, timing
+and upstream error categories, not recordings, transcripts, lesson context, API keys or client tokens. The operator's
+Gemini key lives only in the host's secret environment. The native adapter contains a replaceable demo client token;
+it is not production identity and should be rotated after the event.

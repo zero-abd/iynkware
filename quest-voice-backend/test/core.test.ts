@@ -7,14 +7,17 @@ import { RequestGate } from "../src/request-gate.ts";
 import { MemorySessionStore } from "../src/session-store.ts";
 
 test("configuration has safe bounded defaults", () => {
-  const config = readConfig({ GEMINI_API_KEY: "x".repeat(20), CLIENT_TOKEN: "y".repeat(16) });
+  const config = readConfig({ GEMINI_API_KEY: "x".repeat(20), IYNK_VOICE_CLIENT_TOKEN: "y".repeat(32) });
   assert.equal(config.port, 8787);
-  assert.equal(config.maxAudioBytes, 10_000_000);
+  assert.equal(config.maxAudioBytes, 2_000_000);
+  assert.equal(config.maxAudioSeconds, 30);
+  assert.equal(config.maxResponseBytes, 4_000_000);
   assert.equal(config.liveModel, "gemini-3.8-live");
+  assert.equal(config.liveVoice, "Puck");
 });
 
 test("configuration rejects short client tokens", () => {
-  assert.throws(() => readConfig({ GEMINI_API_KEY: "x".repeat(20), CLIENT_TOKEN: "short" }), /CLIENT_TOKEN/);
+  assert.throws(() => readConfig({ GEMINI_API_KEY: "x".repeat(20), IYNK_VOICE_CLIENT_TOKEN: "short" }), /IYNK_VOICE_CLIENT_TOKEN/);
 });
 
 test("session history keeps only the configured turns", () => {
@@ -32,6 +35,23 @@ test("prompt includes lesson state and safety boundary", () => {
   const prompt = buildSystemInstruction({ sessionId: "s", scenario: "chemistry_lab", objective: "Dilution", learnerLevel: "beginner", currentStep: 2, lastAction: "Selected acid", locale: "en-US" }, []);
   assert.match(prompt, /chemistry_lab/);
   assert.match(prompt, /qualified instructor/);
+  assert.match(prompt, /weapons, injury, property damage/);
+  assert.match(prompt, /untrusted data/);
+});
+
+test("voice context rejects unsafe identifiers and oversized optional fields", async () => {
+  const { parseVoiceContext } = await import("../src/types.ts");
+  const invalidSession = new FormData();
+  invalidSession.set("sessionId", "bad/session");
+  assert.throws(() => parseVoiceContext(invalidSession), /sessionId/);
+  const invalidLocale = new FormData();
+  invalidLocale.set("sessionId", "session-ok");
+  invalidLocale.set("locale", "not a locale!");
+  assert.throws(() => parseVoiceContext(invalidLocale), /locale/);
+  const longAction = new FormData();
+  longAction.set("sessionId", "session-ok");
+  longAction.set("lastAction", "x".repeat(501));
+  assert.throws(() => parseVoiceContext(longAction), /lastAction/);
 });
 
 test("Gemini PCM output is wrapped as a Unity-compatible WAV", () => {

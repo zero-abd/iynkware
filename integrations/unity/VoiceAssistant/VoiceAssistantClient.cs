@@ -59,15 +59,15 @@ namespace Iynkware.VoiceAssistant
             if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
             {
                 Permission.RequestUserPermission(Permission.Microphone);
-                onStatus?.Invoke("Allow microphone access, then hold the button again.");
+                onStatus?.Invoke("voice.permission_required");
                 return;
             }
 #endif
-            if (Microphone.devices.Length == 0) { onError?.Invoke("No microphone is available."); return; }
+            if (Microphone.devices.Length == 0) { onError?.Invoke("voice.microphone_unavailable"); return; }
             microphoneDevice = Microphone.devices[0];
             recording = Microphone.Start(microphoneDevice, false, maxRecordingSeconds, sampleRate);
             IsRecording = true;
-            onStatus?.Invoke("Listening…");
+            onStatus?.Invoke("voice.listening");
         }
 
         public void EndRecordingAndSend()
@@ -76,17 +76,18 @@ namespace Iynkware.VoiceAssistant
             int frames = Microphone.GetPosition(microphoneDevice);
             Microphone.End(microphoneDevice);
             IsRecording = false;
-            if (frames <= sampleRate / 4) { onError?.Invoke("Recording was too short."); return; }
+            if (frames <= sampleRate / 4) { onError?.Invoke("voice.recording_too_short"); return; }
             float[] all = new float[recording.samples * recording.channels];
             recording.GetData(all, 0);
             float[] trimmed = new float[frames * recording.channels];
             Array.Copy(all, trimmed, trimmed.Length);
-            StartCoroutine(Send(WavCodec.EncodePcm16(trimmed, recording.channels, sampleRate)));
+            float[] mono16Khz = WavCodec.ResampleMono(trimmed, recording.channels, recording.frequency, sampleRate);
+            StartCoroutine(Send(WavCodec.EncodePcm16(mono16Khz, 1, sampleRate)));
         }
 
         private IEnumerator Send(byte[] wav)
         {
-            IsBusy = true; onStatus?.Invoke("Thinking…");
+            IsBusy = true; onStatus?.Invoke("voice.thinking");
             WWWForm form = new WWWForm();
             form.AddBinaryData("audio", wav, "speech.wav", "audio/wav");
             form.AddField("sessionId", sessionId); form.AddField("scenario", scenario);
@@ -94,13 +95,16 @@ namespace Iynkware.VoiceAssistant
             form.AddField("currentStep", currentStep); form.AddField("lastAction", lastAction);
             form.AddField("locale", locale);
             using UnityWebRequest request = UnityWebRequest.Post(backendBaseUrl.TrimEnd('/') + "/v1/voice/turn", form);
-            request.SetRequestHeader("X-Client-Token", clientToken);
+            request.SetRequestHeader("Authorization", "Bearer " + clientToken);
+            request.SetRequestHeader("Iynk-Client", "iynkware-unity/0.1.0");
+            request.SetRequestHeader("X-Request-Id", "req_" + Guid.NewGuid().ToString("N"));
             request.timeout = requestTimeoutSeconds;
             yield return request.SendWebRequest();
             IsBusy = false;
             if (request.result != UnityWebRequest.Result.Success)
             {
-                onError?.Invoke($"Assistant unavailable ({request.responseCode}).");
+                Debug.LogWarning($"Voice assistant request failed with HTTP {request.responseCode}.");
+                onError?.Invoke("voice.unavailable");
                 yield break;
             }
             try
@@ -108,9 +112,9 @@ namespace Iynkware.VoiceAssistant
                 VoiceTurnResponse result = JsonUtility.FromJson<VoiceTurnResponse>(request.downloadHandler.text);
                 onTranscript?.Invoke(result.transcript); onAssistantText?.Invoke(result.responseText);
                 output.clip = WavCodec.DecodePcm16(Convert.FromBase64String(result.audioBase64));
-                output.Play(); onStatus?.Invoke("AI-generated voice response");
+                output.Play(); onStatus?.Invoke("voice.playing_ai_response");
             }
-            catch (Exception error) { Debug.LogException(error); onError?.Invoke("The response could not be played."); }
+            catch (Exception error) { Debug.LogException(error); onError?.Invoke("voice.playback_failed"); }
         }
     }
 }
