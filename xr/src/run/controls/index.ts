@@ -1,141 +1,206 @@
 /**
- * Run controls: Run and Stop on the bench, the run status label, and the part views fed from sim frames (the views
- * themselves are registered by `../views`). Skeleton scope; grows pause, step, slow motion and the serial monitor.
+ * The run cluster (docs/XR_DESIGN.md 6.1 and section 4): Reset, Step, Run/Pause and Speed on the front rail, the
+ * clock above them, and the ring round each running board. `machine.ts` decides; this file feeds it the bridge's
+ * states and diagnostics, the presses, the clock, the session's visibility and the document's edits, carries out its
+ * effects one after another on `app.sim`, and draws what it says. The part views are fed by `../views/host.ts`.
  */
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
-import type { PartView } from '../../contracts/part-view';
-import type { RunState } from '../../contracts/sim';
-import { textLabel } from '../../ui/text';
+import type { InteractionEvent } from '../../contracts/input';
+// The look kit's reduced motion also follows the browser's own preference.
+import { reducedMotionOf as reducedMotion } from '../../look';
+import { bindPlate } from '../kit/plate';
+import { runFeedback } from '../kit/feedback';
+import { onTick } from '../kit/ticker';
+import { createCluster } from './cluster';
+import {
+  clockSeconds,
+  clockText,
+  dueAt,
+  editKind,
+  initialState,
+  loadReason,
+  next,
+  progressOf,
+  SPEEDS,
+  viewOf,
+  type ClusterEvent,
+  type ClusterState,
+  type Control,
+  type Effect,
+  type Visibility,
+} from './machine';
+import { createBoardRings } from './ring';
+import { controlStrings as S } from './strings';
 
-const BUTTON = { w: 0.1, h: 0.035, d: 0.06 };
-
-function resolveParams(app: XrApp, partId: string): Record<string, unknown> {
-  const doc = app.project.doc;
-  const c = doc.components.find((x) => x.id === partId);
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(c?.params ?? {})) {
-    if (v && typeof v === 'object' && 'param' in v) out[k] = doc.parameters.find((p) => p.id === (v as { param: string }).param)?.value ?? null;
-    else out[k] = v;
-  }
-  return out;
-}
-
-export function makeBenchButton(text: string, colour: number): { group: Group; mesh: Mesh } {
-  const group = new Group();
-  const mesh = new Mesh(new BoxGeometry(BUTTON.w, BUTTON.h, BUTTON.d), new MeshStandardMaterial({ color: colour, roughness: 0.7 }));
-  mesh.position.y = BUTTON.h / 2;
-  mesh.name = `button:${text}`;
-  group.add(mesh);
-  const label = textLabel(BUTTON.w * 0.9, BUTTON.d * 0.6, { bg: '#00000000', fg: '#231e16' });
-  label.set(text, { bg: 'rgba(0,0,0,0)' });
-  label.mesh.rotation.x = -Math.PI / 2;
-  label.mesh.position.set(0, BUTTON.h / 2 + 0.0008, 0);
-  mesh.add(label.mesh);
-  return { group, mesh };
-}
+/** The clock redraws at most 10 times a second (9.2). */
+const CLOCK_MS = 100;
+/** The ring on the Run plate moves in twentieths, so its face redraws at most 20 times a phase. */
+const RING_STEPS = 20;
 
 export const controlsModule: FeatureModule = {
   id: 'run/controls',
-  mount(app) {
-    const controls = new Group();
-    controls.name = 'run-controls';
-    controls.position.set(0.3, 0, 0.22);
-    app.bench.table.add(controls);
-    const run = makeBenchButton('Run', 0x7ccf6b);
-    const stop = makeBenchButton('Stop', 0xe8695a);
-    run.group.position.x = 0;
-    stop.group.position.x = 0.12;
-    controls.add(run.group, stop.group);
+  mount(app: XrApp) {
+    const lang = () => app.settings.lang.value;
+    const cluster = createCluster(app, lang());
+    app.bench.table.add(cluster.group);
+    const layout = () => cluster.place(app.settings.xr.value.posture, app.settings.xr.value.dominantHand);
+    layout();
+    let reduced = reducedMotion(app);
+    const rings = createBoardRings(app, () => reduced);
+    rings.rebuild();
+    const fb = runFeedback(app);
+    const now = () => performance.now();
 
-    const status = textLabel(0.34, 0.05);
-    status.mesh.position.set(0, 0.3, -0.27);
-    app.bench.table.add(status.mesh);
-    const show = (t: string) => status.set(t);
-    show('Stopped');
+    let state: ClusterState = initialState(app.sim.state, now());
+    /** The press that started a load, so the run's start cue buzzes the hand that asked for it. */
+    let asker: InteractionEvent | null = null;
+    let chain: Promise<void> = Promise.resolve();
+    let disposed = false;
 
-    const views = new Map<string, PartView>();
-    const buildViews = () => {
-      for (const v of views.values()) v.dispose();
-      views.clear();
-      const doc = app.project.doc;
-      for (const item of [...doc.components, ...doc.boards]) {
-        const object = app.bench.objectOf(item.id);
-        if (!object) continue;
-        void app.assets.get(item.definition.ref, item.definition.version).then((asset) => {
-          views.set(
-            item.id,
-            app.views.create({
-              partId: item.id,
-              refdes: item.refdes,
-              ref: item.definition.ref,
-              version: item.definition.version,
-              params: resolveParams(app, item.id),
-              asset,
-              object,
-              anchor: (name) => asset.anchors.get(name),
-            }),
-          );
-        });
-      }
+    // The clock: the last frame's time and when it came.
+    let frameNs = app.sim.lastFrame?.atNs ?? 0;
+    let frameAt = now();
+    let drawnCs = -1;
+    let drawnSpeed = -1;
+    let drawnLang = '';
+    let drawnAt = -Infinity;
+    let ring = -1;
+
+    const drawClock = (t: number, force: boolean) => {
+      const seconds = clockSeconds(frameNs, t - frameAt, SPEEDS[state.speed]!, state.phase === 'running');
+      const cs = Math.floor(seconds * 100 + 1e-6);
+      const l = lang();
+      if (cs === drawnCs && state.speed === drawnSpeed && l === drawnLang) return;
+      if (!force && t - drawnAt < CLOCK_MS) return;
+      drawnCs = cs;
+      drawnSpeed = state.speed;
+      drawnLang = l;
+      drawnAt = t;
+      const text = clockText(seconds, state.speed);
+      cluster.clock.set({ lines: [text], lang: l });
+      cluster.group.userData.clock = text;
     };
-    const offLayout = app.bench.onLayout(buildViews);
-    buildViews();
 
-    const offFrame = app.sim.onFrame((f) => {
-      for (const [id, state] of f.parts) views.get(id)?.update(state);
-      show(`Running  ${(f.atNs / 1e9).toFixed(1)} s`);
-    });
-    const offState = app.sim.onState((s: RunState) => {
-      if (s === 'idle' || s === 'unloaded') {
-        for (const v of views.values()) v.reset();
-        show('Stopped');
-      } else if (s === 'error') show('The project did not load');
-      else if (s !== 'running') show(`Run ${s}`);
-    });
+    const drawRing = (t: number) => {
+      const p = progressOf(state, t);
+      const q = p === null ? -1 : Math.round(p * RING_STEPS);
+      if (q === ring) return;
+      ring = q;
+      cluster.plates.run.set({ progress: q < 0 ? null : q / RING_STEPS });
+    };
 
-    const press = async (what: 'run' | 'stop') => {
-      try {
-        if (what === 'run') {
-          if (app.sim.state === 'running') return;
-          if (app.sim.state === 'unloaded' || app.sim.state === 'error') {
-            show('Starting');
+    const draw = () => {
+      const l = lang();
+      const v = viewOf(state);
+      cluster.plates.run.set({
+        icon: v.run.icon,
+        label: S.t(l, v.run.label),
+        lang: l,
+        badge: v.run.badge ? { text: S.t(l, v.run.badge), tone: v.run.tone ?? 'warn' } : null,
+      });
+      cluster.plates.step.set({ label: S.t(l, 'step'), lang: l, disabled: v.stepDisabled });
+      cluster.plates.reset.set({ label: S.t(l, 'reset'), lang: l });
+      cluster.plates.speed.set({ label: v.speedLabel, lang: l });
+      rings.set(v.ring);
+      ring = -2;
+      drawRing(now());
+      drawClock(now(), true);
+      // For scripts and tests: what the cluster shows.
+      cluster.group.userData.state = { phase: v.phase, label: v.run.label, badge: v.run.badge, speed: v.speedLabel, reason: state.reason, restart: state.restart };
+    };
+
+    const exec = async (e: Effect): Promise<void> => {
+      switch (e.t) {
+        case 'load': {
+          let ev: ClusterEvent;
+          try {
             const r = await app.sim.load(app.project.doc);
-            if (!r.ok) return;
+            frameNs = app.sim.lastFrame?.atNs ?? 0;
+            ev = { t: 'loaded', id: e.id, ok: r.ok, ...(r.ok ? {} : { reason: loadReason(r.diagnostics) }) };
+            if (!r.ok) console.warn('[iynkware] the run did not load', r.diagnostics.map((d) => d.id).join(', '));
+          } catch (err) {
+            console.error('[iynkware] load', err);
+            ev = { t: 'loaded', id: e.id, ok: false, reason: 'refused' };
           }
-          await app.sim.run();
-        } else await app.sim.stop();
-      } catch (err) {
-        console.error('[iynkware] run control', err);
-        show('Something went wrong');
+          dispatch(ev);
+          return;
+        }
+        case 'run':
+          return app.sim.run();
+        case 'pause':
+          return app.sim.pause();
+        case 'step':
+          return app.sim.step(e.ms);
+        case 'stop':
+          // Back to t = 0, once the old run's last frames are in.
+          await app.sim.stop();
+          frameNs = 0;
+          frameAt = now();
+          return;
+        case 'speed':
+          return app.sim.setSpeed(e.x);
+        case 'cue':
+          return;
       }
     };
-    const offRun = app.input.bind(run.mesh, { id: 'run', ray: true, poke: true }, (e) => {
-      if (e.type === 'select') void press('run');
-      if (e.type === 'select-start') run.mesh.scale.setScalar(0.94);
-      if (e.type === 'select-end' || e.type === 'hover-end') run.mesh.scale.setScalar(1);
-    });
-    const offStop = app.input.bind(stop.mesh, { id: 'stop', ray: true, poke: true }, (e) => {
-      if (e.type === 'select') void press('stop');
-      if (e.type === 'select-start') stop.mesh.scale.setScalar(0.94);
-      if (e.type === 'select-end' || e.type === 'hover-end') stop.mesh.scale.setScalar(1);
-    });
-    // Editing the circuit while it runs reloads it, as the Studio does.
-    const offDoc = app.project.subscribe(() => {
-      if (app.sim.state === 'running' || app.sim.state === 'paused') void app.sim.load(app.project.doc).then(() => app.sim.run());
-    });
+
+    function dispatch(e: ClusterEvent, from: InteractionEvent | null = null) {
+      if (disposed) return;
+      const r = next(state, e, now());
+      const changed = r.state !== state;
+      const was = state.phase;
+      state = r.state;
+      if (e.t === 'press' && state.phase === 'compiling' && was !== 'compiling') asker = from;
+      for (const fx of r.effects) {
+        if (fx.t === 'cue') {
+          fb.play(fx.cue, cluster.worldOf('run'), from ?? (fx.cue === 'run-start' ? asker : null));
+          if (fx.cue === 'run-start') asker = null;
+          continue;
+        }
+        if (fx.t === 'stop' || fx.t === 'load') {
+          frameNs = 0;
+          frameAt = now();
+        }
+        chain = chain.then(() => exec(fx)).catch((err) => console.error('[iynkware] run control', err));
+      }
+      if (changed) draw();
+    }
+
+    const offs = [
+      ...(['reset', 'step', 'run', 'speed'] as const).map((c: Control) =>
+        bindPlate(app, cluster.plates[c], `run:${c}`, (e) => dispatch({ t: 'press', control: c }, e)),
+      ),
+      app.sim.onState((s) => dispatch({ t: 'bridge', state: s })),
+      app.sim.onDiagnostic((d) => dispatch({ t: 'diagnostic', kind: d.kind })),
+      app.sim.onFrame((f) => {
+        frameNs = f.atNs;
+        frameAt = now();
+      }),
+      app.project.subscribe((change) => dispatch({ t: 'edit', kind: editKind(change), origin: change.origin })),
+      app.world.visibilityState.subscribe((v) => dispatch({ t: 'visibility', state: v as Visibility })),
+      app.settings.lang.subscribe(() => draw()),
+      app.settings.xr.subscribe(() => {
+        layout();
+        reduced = reducedMotion(app);
+      }),
+      app.settings.shared.subscribe(() => (reduced = reducedMotion(app))),
+      app.bench.onLayout(() => rings.rebuild()),
+      onTick(app.world, (dt) => {
+        const t = now();
+        const due = dueAt(state);
+        if (due !== null && t >= due) dispatch({ t: 'tick' });
+        if (ring !== -1) drawRing(t);
+        drawClock(t, false);
+        rings.tick(dt);
+      }),
+    ];
+    draw();
 
     return () => {
-      offLayout();
-      offFrame();
-      offState();
-      offRun();
-      offStop();
-      offDoc();
-      for (const v of views.values()) v.dispose();
-      controls.removeFromParent();
-      status.mesh.removeFromParent();
-      status.dispose();
+      disposed = true;
+      for (const off of offs) off();
+      rings.dispose();
+      cluster.dispose();
     };
   },
 };
