@@ -85,7 +85,7 @@ including the SPA fallback.
 | `Cross-Origin-Resource-Policy` | `same-origin` | Other sites cannot embed these files. |
 | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` | `nosniff`, `DENY`, `strict-origin-when-cross-origin` | The hardening the 2D app sends too; the headset app is never framed, so `DENY` rather than `SAMEORIGIN`. |
 | `X-Robots-Tag` | `noindex` | Keeps the public URL out of search results. Previews get it from Cloudflare as well. |
-| `Cache-Control` on HTML and other unhashed files | `no-cache` | The browser revalidates every time (Cloudflare sends an `ETag`), so a new deploy shows on the next load. |
+| `Cache-Control` on HTML and other unhashed files | `no-cache` | The browser revalidates every time (Cloudflare sends an `ETag`), so a new deploy shows on the next load. This covers files whose names stay the same between builds, such as the `/xr-assets/` models and sidecars in [XR_ASSETS.md](XR_ASSETS.md). |
 | `Cache-Control` on `/assets/*` | `public, max-age=31536000, immutable` | Vite puts a content hash in every file name there, so a name never changes meaning. Anything under `/assets/` must be hashed or versioned. |
 
 No `Cross-Origin-Embedder-Policy`: nothing in the code uses `SharedArrayBuffer`, and the policy would block any
