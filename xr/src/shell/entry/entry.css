@@ -1,0 +1,666 @@
+/*
+  The 2D entry page: iynk's hand-inked language on paper (docs/XR_DESIGN.md 9.3). One loud thing, the bench drawn by
+  iynk's figure engine with its LED blinking; everything else is ink on paper. Heavy ink outlines and flat blue offset
+  shadows only on what you press. No gradients, no translucency. Colours are the look kit's (xr/src/look/palette.ts);
+  text is iynk's Geist from the kit's self-hosted files (xr/public/fonts), the headline a system serif, and Hindi and
+  Chinese the system's own faces. Nothing is fetched from another origin.
+*/
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-latin-ext.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+:root {
+  --paper: #f2efe7;
+  --raised: #f8f6f0;
+  --ink: #231e16;
+  --muted: #857d6e;
+  --rule: #ddd6c8;
+  --cast: #41538f;
+  --accent: #e4694e;
+  --accent-hover: #dc6248;
+  --good: #1f6b4a;
+  --bad: #a8402b;
+  --warn: #7a5a00;
+  --info: #1d4fd8;
+  --sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Noto Serif', 'Droid Serif', serif;
+  --display-weight: 400;
+  --display-leading: 1.06;
+  --body-leading: 1.5;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* the figure pages' paper grain (colorfigures core.js), drawn by the browser, nothing fetched */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .39  0 0 0 0 .33  .16 0 0 0 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");
+  color-scheme: light;
+}
+
+/* A dark room: the dim paper of the figures; ink stays. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #e4ddcf;
+    --raised: #ece6da;
+    --muted: #6a6357;
+    --rule: #cbc2b1;
+  }
+}
+
+/* Hindi and Chinese in the system's own faces; no serif display for them. */
+:root:lang(hi) {
+  --sans: 'Geist', 'Noto Sans Devanagari', 'Nirmala UI', 'Kohinoor Devanagari', 'Devanagari Sangam MN', Mangal, system-ui, sans-serif;
+  --display: var(--sans);
+  --display-weight: 600;
+  --display-leading: 1.32;
+  --body-leading: 1.7;
+}
+:root:lang(zh) {
+  --sans: 'Geist', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Source Han Sans SC', system-ui, sans-serif;
+  --display: var(--sans);
+  --display-weight: 600;
+  --display-leading: 1.28;
+  --body-leading: 1.7;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 100%;
+  line-height: var(--body-leading);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+h1,
+h2,
+p,
+ul,
+figure {
+  margin: 0;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+[hidden] {
+  display: none !important;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- the canvas and the page over it ---------- */
+#scene-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  visibility: hidden;
+}
+html.is-flat #scene-container,
+html.is-immersive #scene-container {
+  visibility: visible;
+}
+#shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background: var(--paper) var(--grain);
+}
+html.is-immersive #shell {
+  display: none;
+}
+
+/* ---------- top bar ---------- */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.mark {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+.brand-name {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Noto Serif', serif;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.lang {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lang > svg {
+  position: absolute;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+.lang select {
+  appearance: none;
+  min-height: 48px;
+  padding: 0 40px 0 40px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--raised)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23231e16' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lang select:hover {
+  background-color: var(--paper);
+}
+
+/* ---------- page ---------- */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+#update-slot:empty {
+  display: none;
+}
+#update-slot {
+  margin-bottom: 24px;
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'intro' 'fig' 'act' 'dev';
+  gap: 24px;
+}
+.intro {
+  grid-area: intro;
+}
+.bench {
+  grid-area: fig;
+}
+.act {
+  grid-area: act;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.device {
+  grid-area: dev;
+}
+
+h1 {
+  font-family: var(--display);
+  font-weight: var(--display-weight);
+  font-size: 2.25rem;
+  line-height: var(--display-leading);
+  letter-spacing: -0.015em;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+:root:lang(hi) h1,
+:root:lang(zh) h1 {
+  letter-spacing: 0;
+  max-width: 20ch;
+}
+:root:lang(zh) h1 {
+  max-width: 10em;
+}
+.lede {
+  margin-top: 16px;
+  font-size: 1.125rem;
+  max-width: 34em;
+  text-wrap: pretty;
+}
+
+/* ---------- the bench ---------- */
+.bench-art {
+  /* bench.webp is 1156 x 1010: the scene (1156 x 862, LED dark) above, the lit patches below it. Each .lit names
+     where its patch goes on the scene (--x, --y, --w, --h) and where it sits in the file (--sx, --sy). */
+  --sw: 1156;
+  --sh: 1010;
+  --ah: 862;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1156 / 862;
+}
+.bench-still {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+.lit {
+  position: absolute;
+  left: calc(var(--x) / var(--sw) * 100%);
+  top: calc(var(--y) / var(--ah) * 100%);
+  width: calc(var(--w) / var(--sw) * 100%);
+  height: calc(var(--h) / var(--ah) * 100%);
+  background-image: url('/entry/bench.webp');
+  background-repeat: no-repeat;
+  background-size: calc(var(--sw) / var(--w) * 100%) calc(var(--sh) / var(--h) * 100%);
+  background-position: calc(var(--sx) / (var(--sw) - var(--w)) * 100%) calc(var(--sy) / (var(--sh) - var(--h)) * 100%);
+  /* Blink: one second on, one second off, as the sketch. */
+  animation: blink 2s steps(1, end) infinite;
+}
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+.bench figcaption {
+  margin-top: 8px;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+/* ---------- buttons ---------- */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: var(--raised);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--cast);
+  transition:
+    transform 140ms var(--ease),
+    box-shadow 140ms var(--ease),
+    background-color 140ms var(--ease);
+}
+.btn:hover {
+  background-color: var(--paper);
+}
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--cast);
+}
+.btn.primary {
+  min-height: 64px;
+  padding: 0 40px;
+  border-width: 2.5px;
+  background: var(--accent);
+  font-size: 1.375rem;
+  font-weight: 700;
+  box-shadow: 5px 5px 0 var(--cast);
+}
+.btn.primary:hover {
+  background: var(--accent-hover);
+}
+.btn.primary:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--cast);
+}
+.btn[disabled] {
+  cursor: progress;
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+.btn > svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+:focus-visible {
+  outline: 3px solid var(--info);
+  outline-offset: 3px;
+}
+.btn:focus-visible {
+  outline-offset: 5px;
+}
+
+/* ---------- status, progress, notices ---------- */
+#status:empty {
+  display: none;
+}
+#status {
+  font-size: 1rem;
+}
+#status strong {
+  display: block;
+  font-weight: 600;
+}
+.progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-width: 360px;
+}
+.progress i {
+  height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--raised);
+}
+.progress i.on {
+  background: var(--accent);
+}
+.note {
+  font-size: 0.9375rem;
+  max-width: 34em;
+}
+
+/* A notice on the page; the update slot (#78) uses the same look. */
+.banner {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: start;
+  max-width: 36em;
+  padding: 14px 16px;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: var(--raised);
+}
+.banner > svg {
+  width: 24px;
+  height: 24px;
+  grid-row: span 2;
+}
+.banner strong {
+  font-weight: 700;
+}
+.banner p {
+  grid-column: 2;
+}
+
+/* ---------- device check ---------- */
+.device h2,
+.can h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.rows {
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--raised);
+}
+.rows li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 12px 16px;
+}
+.rows li + li {
+  border-top: 1px solid var(--rule);
+}
+.rows svg {
+  width: 24px;
+  height: 24px;
+}
+.row-label {
+  font-weight: 600;
+}
+.row-word {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-align: right;
+}
+.row-detail {
+  grid-column: 2 / 4;
+  font-size: 0.9375rem;
+}
+.s-ok .row-word {
+  color: var(--good);
+}
+.s-no .row-word {
+  color: var(--bad);
+}
+.s-warn .row-word {
+  color: var(--warn);
+}
+.s-later .row-word,
+.s-checking .row-word {
+  color: var(--info);
+}
+.s-off .row-word {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- what you can do ---------- */
+.can {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 2px solid var(--ink);
+}
+.can-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.can-list li {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.can-list svg {
+  width: 56px;
+  height: 56px;
+}
+
+/* ---------- narrow screens: full-width buttons, the bench to the edges ---------- */
+@media (max-width: 559px) {
+  html:not(.is-flat) .actions .btn {
+    flex: 1 1 100%;
+    padding: 8px 16px;
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+  }
+  html:not(.is-flat) .btn.primary {
+    font-size: 1.25rem;
+  }
+  .bench {
+    margin: 0 -12px;
+  }
+}
+
+/* ---------- wider screens ---------- */
+@media (min-width: 560px) {
+  .top {
+    padding: 20px 24px 0;
+  }
+  .page {
+    padding: 32px 24px 80px;
+  }
+  h1 {
+    font-size: 3rem;
+  }
+  .can-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+  }
+}
+@media (min-width: 960px) {
+  .top {
+    padding: 24px 40px 0;
+  }
+  .page {
+    padding: 40px 40px 96px;
+  }
+  .hero {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: 'intro fig' 'act fig' 'dev fig';
+    gap: 32px 48px;
+  }
+  .bench {
+    align-self: center;
+    margin: 0 -24px 0 -8px;
+  }
+  h1 {
+    font-size: 3.5rem;
+  }
+  .can {
+    margin-top: 64px;
+  }
+  .can-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .can-list li {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 12px;
+  }
+  .can-list svg {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+/* ---------- the bench on this screen: a slim bar over the canvas ---------- */
+html.is-flat body {
+  overflow: hidden;
+}
+html.is-flat #shell {
+  min-height: 0;
+  background: none;
+  pointer-events: none;
+}
+html.is-flat .top {
+  position: fixed;
+  inset: 0 0 auto;
+  max-width: none;
+  height: 64px;
+  padding: 0 16px;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+  pointer-events: auto;
+}
+html.is-flat .lang,
+html.is-flat .intro,
+html.is-flat .bench,
+html.is-flat .device,
+html.is-flat .can,
+html.is-flat #notice,
+html.is-flat .progress,
+html.is-flat .note,
+html.is-flat #flat,
+html.is-flat #update-slot {
+  display: none !important;
+}
+html.is-flat .actions {
+  position: fixed;
+  top: 0;
+  right: 16px;
+  height: 64px;
+  flex-wrap: nowrap;
+  gap: 12px;
+  pointer-events: auto;
+  z-index: 2;
+}
+html.is-flat .btn,
+html.is-flat .btn.primary {
+  min-height: 48px;
+  padding: 0 18px;
+  font-size: 1rem;
+  border-width: 2px;
+  box-shadow: 3px 3px 0 var(--cast);
+}
+html.is-flat #status {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--raised);
+  pointer-events: auto;
+}
+@media (max-width: 559px) {
+  html.is-flat .brand-name {
+    display: none;
+  }
+  html.is-flat .back {
+    padding: 0 12px;
+  }
+  html.is-flat .back-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lit {
+    animation: none;
+    opacity: 1;
+  }
+  .btn {
+    transition: none;
+  }
+  .btn:active,
+  .btn.primary:active,
+  .btn[disabled] {
+    transform: none;
+  }
+}
