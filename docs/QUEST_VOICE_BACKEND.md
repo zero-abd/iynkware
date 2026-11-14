@@ -5,8 +5,9 @@
 `16 kHz PCM16 WAV upload → Gemini Live WebSocket → 24 kHz PCM16 WAV response`
 
 It is not the canonical collaboration server in `server/`, a shared API contract, or a headset client. iynkware's
-headset app is WebXR in the Quest browser. Its client belongs in `xr/` after the foundation and a small
-`contract-change` PR define the request and response shape. This PR deliberately adds nothing to `xr/`.
+headset app is WebXR in the Quest browser. The foundation now exposes `XrApp.partner` as a `null` seam; a small
+`contract-change` PR must define that service before a voice client is added under `xr/`. This PR deliberately
+changes neither `xr/` nor its shared contracts.
 
 ## Run locally
 
@@ -62,8 +63,8 @@ contain audio, transcripts, lesson context, tokens, or upstream exception text.
 
 Independent requests may run concurrently up to the configured limit. A single response is already one streaming
 Gemini Live generation, so splitting it into parallel text-to-speech segments would add calls and can make a short
-tutor answer less coherent. The next material latency improvement is first-audio streaming in the WebXR contract;
-that belongs with the future browser client rather than being invented in this service PR.
+tutor answer less coherent. The next material latency improvement is first-audio streaming in the future partner
+contract; that belongs with its browser client rather than being invented in this service PR.
 
 `GEMINI_LIVE_MODEL` and `GEMINI_LIVE_VOICE` default to `gemini-3.8-live` and `Puck`. Native audio infers the
 spoken language; the requested locale remains a tutor-prompt constraint. Earlier transcripts are sent as prior

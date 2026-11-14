@@ -52,6 +52,7 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 | `src/ai` | The optional AI partner |
 | `src/i18n` | Messages and lesson prose in six languages |
 | `src/cli` | The `iynk` command line |
+| `xr` | The IWSDK/three.js headset app, its shared contracts, services, feature pillars and tests |
 | `figures` | Figure sources and engines, built into `public/figures` |
 | `e2e` | Playwright tests |
 | `deploy` | Dockerfiles, compose and Caddy |
