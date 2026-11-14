@@ -1,3 +1,7 @@
+> iynk's own handoff, copied with the code on 2026-11-14 and kept for reference. Its paths, services, ports, commit
+> hashes and commit rules belong to iynk. iynkware's process is in [AGENTS.md](AGENTS.md) and
+> [docs/COLLABORATION.md](docs/COLLABORATION.md); the current state is in [docs/STATE.md](docs/STATE.md).
+
 # Continue building iynk
 
 Read this first if you are picking up iynk (a person, Claude Code, Cursor). It says where things stand, how the
