@@ -259,7 +259,7 @@ controllers keep reporting. Rules [custom]:
 
 Hands have no haptics. For hands every committed event plays its sound and a **pop ring** at the contact point: an
 ink ring growing from 12 to 24 mm while fading out over 180 ms [custom]. With sound off, the pop ring and the ticker
-carry it. Haptics go through `app.input.pulse(hand, intensity, ms)` (one buzz; a two-part pattern is two calls)
+carry it. Under reduced motion the ring keeps one size and fades within 150 ms. Haptics go through `app.input.pulse(hand, intensity, ms)` (one buzz; a two-part pattern is two calls)
 [device?]. Sounds are short, positional at the event [SDK `AudioSource`], and each event has its own. Rings, glows,
 badges and labels on board targets go through `app.overlay` with the pillar as owner (`glow`, `pin`, `label`).
 
@@ -268,7 +268,7 @@ badges and labels on board targets go through `app.overlay` with the pillar as o
 | hover, grabbable | silhouette outline 1.6x wider and accent | none | 0.08 for 8 ms on enter | on within one frame, off over 80 ms |
 | hover, UI | plate lifts 3 dmm, edge turns accent | none | 0.08 for 8 ms | same |
 | hover, cell | ink ring 1 pitch across, 2 dmm stroke, pin name at 18 dmm | none | none | same |
-| snap (ghost finds or changes a fit) | ghost and rings appear | soft tick, at most 12 a second | 0.25 for 12 ms | rings fade in over 60 ms |
+| snap (ghost finds or changes a fit) | ghost and rings appear | soft tick, at most 12 a second | 0.25 for 12 ms | accent ring grows and fades out over 120 ms |
 | seat | part travels to the seat (ease out), legs sink, outline flashes accent | click | 0.6 for 30 ms, then 0.3 for 15 ms at +50 ms | travel 90 ms, flash 150 ms |
 | pull out | legs rise 1 mm | pluck | 0.4 for 20 ms | 80 ms |
 | wire connected | end snaps; every hole and pin of the net gets an accent ring; end label "D13 to row 10" | plug | 0.5 for 25 ms | snap 60 ms, net glow 400 ms, label 1.5 s |
