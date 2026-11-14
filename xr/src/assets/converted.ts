@@ -210,10 +210,22 @@ interface InkBody extends Material {
 }
 
 /**
- * Gives an ink body material the surface the LED view drives: `emissive` (a colour) and `emissiveIntensity` blend the
- * bands towards that colour (fully at FULL_GLOW); `color` is accepted and unused (the bands are the figure's).
+ * The halo's size on the bench against the figure's: a lit LED is seen from arm's length, over a breadboard or in
+ * passthrough, where the figure's own disc reads as a speck; this wider halo reads as on (a visual choice, the look's).
  */
-function glowable(m: InkBody): void {
+const HALO_SCALE = 1.8;
+
+/** A lit LED's halo (ink.js `createGlow`): a camera-facing quad under the channel node, drawn only while lit. */
+interface Halo extends Mesh {
+  material: Material & { uniforms: { uColor?: { value: Color }; uLevel?: { value: number } } };
+}
+
+/**
+ * Gives an ink body material the surface the LED view drives: `emissive` (a colour) and `emissiveIntensity` blend the
+ * bands towards that colour (fully at FULL_GLOW), and light the channel node's halos in that colour at that level, as
+ * the pipeline's own `set(channel, level)` does; `color` is accepted and unused (the bands are the figure's).
+ */
+function glowable(m: InkBody, halos: readonly Halo[] = []): void {
   const glow = m.uniforms;
   if (!glow?.uEmissive || !glow.uEmissiveLevel || 'emissiveIntensity' in m) return;
   const emissive = new Color(0, 0, 0);
@@ -225,8 +237,15 @@ function glowable(m: InkBody): void {
       get: () => intensity,
       set: (v: number) => {
         intensity = v;
+        const level = Math.min(1, Math.max(0, v / FULL_GLOW));
         glow.uEmissive!.value.copy(emissive);
-        glow.uEmissiveLevel!.value = Math.min(1, Math.max(0, v / FULL_GLOW));
+        glow.uEmissiveLevel!.value = level;
+        for (const h of halos) {
+          const u = h.material.uniforms;
+          u.uColor?.value.copy(emissive);
+          if (u.uLevel) u.uLevel.value = level;
+          h.visible = level > 0.003;
+        }
       },
     },
   });
@@ -236,10 +255,22 @@ const inkLook =
   (ink: InkModule): Dress =>
   (scene, sidecar) => {
     const { object } = ink.createXrAsset({ scene }, sidecar);
-    for (const m of meshesOf(object, emissiveNodes(sidecar))) {
-      const body = m.material as InkBody;
-      if (body.userData.inkRole === 'body') glowable(body);
-    }
+    const names = emissiveNodes(sidecar);
+    object.traverse((node) => {
+      if (!names.has(node.userData.name as string)) return;
+      const halos: Halo[] = [];
+      node.traverse((c) => {
+        if (c.userData.inkRole !== 'glow') return;
+        const halo = c as Halo;
+        const radius = (halo.material.uniforms as { uRadius?: { value: number } }).uRadius;
+        if (radius) radius.value *= HALO_SCALE;
+        halos.push(halo);
+      });
+      for (const m of meshesOf(node, new Set([node.userData.name as string]))) {
+        const body = m.material as InkBody;
+        if (body.userData.inkRole === 'body') glowable(body, halos);
+      }
+    });
     return object;
   };
 
