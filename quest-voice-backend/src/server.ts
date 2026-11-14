@@ -140,7 +140,8 @@ const server = createServer(async (request, response) => {
     const body = await readBody(request, config.maxAudioBytes + 100_000);
     let form: FormData;
     try {
-      form = await new Response(Uint8Array.from(body), { headers: { "content-type": contentType } }).formData();
+      const bytes = new Uint8Array(body.buffer as ArrayBuffer, body.byteOffset, body.byteLength);
+      form = await new Response(bytes, { headers: { "content-type": contentType } }).formData();
     } catch {
       status = 400;
       return sendError(response, status, "invalid_multipart", "The multipart request is malformed.", id);

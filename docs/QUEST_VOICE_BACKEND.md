@@ -7,8 +7,10 @@
 It is not the canonical collaboration server in `server/`, a shared API contract, or a headset client. iynkware's
 headset app is WebXR in the Quest browser. `xr/src/contracts/assistant.ts` now defines the co-builder's grounded
 `BenchSnapshot`, plans and reviewable `CoBuildSession`; it explicitly places voice in front of that session.
-`XrApp.partner` remains `null`, so a later contract PR still has to mount the assistant and define its voice front
-end. This PR deliberately changes neither `xr/` nor its shared contracts.
+`createApp` now mounts that service as `XrApp.assistant`, and the assistant feature supplies its in-world companion,
+proposal card and "Build it with me" entry. A later contract PR still has to define its voice front end and expose the
+existing `BuildGoal` `ask` path through `AssistantService`; this PR deliberately changes neither `xr/` nor its shared
+contracts.
 
 ## Run locally
 
@@ -70,8 +72,8 @@ contain audio, transcripts, lesson context, tokens, or upstream exception text.
 
 Independent requests may run concurrently up to the configured limit. A single response is already one streaming
 Gemini Live generation, so splitting it into parallel text-to-speech segments would add calls and can make a short
-tutor answer less coherent. The next material latency improvement is first-audio streaming in the future partner
-contract; that belongs with its browser client rather than being invented in this service PR.
+tutor answer less coherent. The next material latency improvement is first-audio streaming in the future voice
+transport contract; that belongs with its browser client rather than being invented in this service PR.
 
 `GEMINI_LIVE_MODEL` and `GEMINI_LIVE_VOICE` default to `gemini-3.8-live` and `Puck`. Native audio infers the
 spoken language; the requested locale remains a tutor-prompt constraint. Earlier transcripts are sent as prior
@@ -80,7 +82,7 @@ user/model turns, not inserted into the system instruction.
 ## Deployment decision is open
 
 This repository contains no deploy definition for the voice service, and no cloud resource has been created. Issue
-#2 must record zero-abd's decisions about where it runs, who pays for Gemini use, and how public clients authenticate.
+#180 records zero-abd's decisions about where it runs, who pays for Gemini use, and how public clients authenticate.
 If a separate service is approved, its exact origin must be added to `connect-src` in
 `deploy/cloudflare-xr/_headers` in its own PR, as [XR_DEPLOY.md](XR_DEPLOY.md) requires.
 

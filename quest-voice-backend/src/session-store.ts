@@ -18,6 +18,7 @@ export class MemorySessionStore {
   }
 
   append(sessionId: string, turn: ConversationTurn): void {
+    if (!turn.user.trim() || !turn.assistant.trim()) return;
     const turns = [...(this.#sessions.get(sessionId)?.turns ?? []), turn].slice(-this.#maxTurns);
     this.#sessions.set(sessionId, { updatedAt: Date.now(), turns });
   }

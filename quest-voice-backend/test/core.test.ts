@@ -32,6 +32,13 @@ test("session history keeps only the configured turns", () => {
   ]);
 });
 
+test("session history ignores incomplete transcription turns", () => {
+  const sessions = new MemorySessionStore(60_000, 2);
+  sessions.append("demo", { user: "", assistant: "answer" });
+  sessions.append("demo", { user: "question", assistant: "   " });
+  assert.deepEqual(sessions.get("demo"), []);
+});
+
 test("prompt uses iynkware lab context and a safety boundary", () => {
   const prompt = buildSystemInstruction({ sessionId: "s", scenario: "pico-w", objective: "Blink an LED", learnerLevel: "beginner", currentStep: 2, lastAction: "Selected LED", locale: "en-US" });
   assert.match(prompt, /pico-w/);
