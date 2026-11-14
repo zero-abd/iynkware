@@ -7,6 +7,7 @@ import { walk } from './walk.mjs';
 import { fitRigid, axisAngle, rotate } from './fit.mjs';
 import { fromPrim, fromPath, fromText, triangulate, newell, add, sub, scale, dot, cross, norm, len } from '../gltf/geom.mjs';
 import { MeshBatch, writeGlb } from '../gltf/glb.mjs';
+import { coplanarLayers, LAYER_STEP } from '../gltf/coplanar.mjs';
 
 export const VERSION = '1.0.0';
 const R2 = (v) => Math.round(v * 100) / 100;
@@ -224,6 +225,8 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
     }
     const batches = [nodeStatic, nodeCover, nodeXray, ...[...chanNodes.values()].map((c) => c.node)];
     for (const b of batches) flush(b);
+    const lifted = batches.reduce((s, b) => s + b.lifted, 0);
+    if (lifted) log(`  ${lifted} coplanar faces lifted over the faces they are drawn on`);
 
     // channels for the sidecar
     const channels = [];
@@ -344,6 +347,16 @@ const round6 = (v) => v.map((x) => +x.toFixed(6) + 0);
 function flush(batch) {
   const pend = batch._pending || [];
   delete batch._pending;
+  // coplanar faces keep the figure's paint order: a face drawn over another in its plane is lifted off it (#132)
+  const all = pend.flatMap((e) => e.fs);
+  const layers = coplanarLayers(all);
+  batch.lifted = 0;
+  all.forEach(({ v, n }, i) => {
+    if (!layers[i]) return;
+    const k = layers[i] * LAYER_STEP;
+    for (const p of v) { p[0] += n[0] * k; p[1] += n[1] * k; p[2] += n[2] * k; }
+    batch.lifted++;
+  });
   // weld by position per part for the outline normal
   const acc = new Map();
   const key = (p, part) => part.index + ':' + Math.round(p[0] * 1e5) + ',' + Math.round(p[1] * 1e5) + ',' + Math.round(p[2] * 1e5);

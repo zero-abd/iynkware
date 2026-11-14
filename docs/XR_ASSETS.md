@@ -131,6 +131,12 @@ material is double-sided, so a plain glTF viewer shows the light band from the v
 A band colour is the figure's own: a material is `{ l, m, d }`, usually `m` 16 % and `d` 42 % of the way to black
 from `l` (`matOf` in the core), and some materials (metal, gold, the board) pick all three by hand.
 
+**Paint order.** A figure paints in order, so a face drawn over another in the same plane (a wheel's spoke gaps on
+its hub, a mounting hole's ring on the board) wins there. In 3D the two would share their depth and z-fight, so the
+converter lifts each such face 0.1 mm along its normal per face it covers (at most 4 layers;
+`tools/xr-assets/gltf/coplanar.mjs`). Planes within 0.05 mm count as one, which takes in the figure's own decal
+offsets of a few hundredths of a millimetre. Within one mesh node only.
+
 ## 4. The sidecar
 
 The full type is in [xr-asset.ts](../tools/xr-assets/schema/xr-asset.ts). In short:
