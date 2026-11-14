@@ -14,6 +14,7 @@ Four people each run a fleet of agents against this repo at once. Read, in this 
 2. [docs/STATE.md](docs/STATE.md): what exists today and what does not.
 3. [CONTRIBUTING.md](CONTRIBUTING.md): strings in six languages, lessons, parts.
 4. `node_modules/next/dist/docs/`: this Next.js differs from the one you remember.
+5. [docs/XR_DESIGN.md](docs/XR_DESIGN.md): the interaction and experience spec every headset feature builds to.
 
 [HANDOFF.md](HANDOFF.md) is iynk's handoff, kept for reference. Its paths, services, ports and commit rules belong to
 iynk's owner, not to this project.
