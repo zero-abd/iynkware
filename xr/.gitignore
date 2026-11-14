@@ -1,0 +1,4 @@
+node_modules
+dist/
+# self-signed dev certificate written by @iwsdk/vite-plugin-dev
+.iwsdk/
