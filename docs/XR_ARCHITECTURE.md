@@ -51,7 +51,8 @@ xr/
     run/                pillar 2, run and stress: controls/ (run cluster, clock) views/ (part views) inputs/ (parts
                         worked by hand) tools/ (meter, scope, serial) findings/ (problems at the part) faults/ (fault lab)
     learn/              pillar 3, learn: lessons/ callouts/, guide.ts, progress.ts
-    scale/              pillar 4, scale and insight: zoom/ insight/ probe/
+    scale/              pillar 4, scale and insight: service.ts (app.scale), kit/, space/ zoom/ room/ insight/ flow/
+                        probe/ controls/
     range/              pillar 5, range: flight/ robots/
     shell/              pillar 6, shell and shipping: menu/, settings.ts
 ```
@@ -105,6 +106,7 @@ pillar's implementation.
 | [part-view.ts](../xr/src/contracts/part-view.ts) | `PartView`, `PartViewFactory`, `PartViewRegistry` | `xr/src/run/views/` |
 | [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
 | [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore` | `xr/src/learn/` (fake guide) |
+| [scale.ts](../xr/src/contracts/scale.ts) | `ScaleService`: work-scale steps, Room size and the stage, see-through and explode, current flow, the part inspector, passthrough or the paper room | `xr/src/scale/service.ts` |
 | [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh), `SettingsStore` | `xr/src/shell/settings.ts` |
 | [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |
 

@@ -10,6 +10,7 @@ import { createInputService } from './input';
 import { createProgressStore } from './learn/progress';
 import { createProjectStore, createTemplateSource } from './project/store';
 import { createPartViewRegistry } from './run/views/registry';
+import { createScaleService } from './scale/service';
 import { createSettingsStore } from './shell/settings';
 import { createSimBridge } from './sim/bridge';
 import { createOverlay } from './ui/overlay';
@@ -49,6 +50,7 @@ export function createApp(world: World, doc: Project): AppHandle {
     settings,
     progress: createProgressStore(),
     guide,
+    scale: createScaleService({ bench, settings, mode }),
     partner: null,
   };
   const teardowns: Array<() => void> = [];
