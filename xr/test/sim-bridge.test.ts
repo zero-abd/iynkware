@@ -423,11 +423,11 @@ describe('scope probes', () => {
     expect(wave?.v.length).toBeGreaterThan(0);
     expect(Math.min(...wave!.v)).toBeGreaterThan(4); // 100 to 200 ms of the new run: high
 
-    // A load clears the probes and the watch.
+    // A load clears the probes but the bridge sends the watch again, so adding the probe again is enough.
     await bridge.load(doc);
     expect(await bridge.addProbe(voltageProbe(net))).toEqual({ id: SCOPE });
     await bridge.step(100);
-    expect(bridge.lastFrame!.analog?.waves).toBeUndefined();
+    expect(bridge.lastFrame!.analog?.waves?.[SCOPE]?.v.length).toBeGreaterThan(0);
     await bridge.dispose();
   });
 });

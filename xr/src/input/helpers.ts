@@ -176,3 +176,81 @@ export function fingersOpen(m: ArrayLike<number>): boolean {
   }
   return true;
 }
+
+/** A button's state, written in place each frame. */
+export interface MutableButton {
+  pressed: boolean;
+  down: boolean;
+  up: boolean;
+}
+
+/** Advances a button by one frame: `down` and `up` are true only on the frame `pressed` changes. */
+export function stepButton(s: MutableButton, pressed: boolean): void {
+  s.down = pressed && !s.pressed;
+  s.up = !pressed && s.pressed;
+  s.pressed = pressed;
+}
+
+/** A hold's report, written in place. Same shape as the contract's `FreeHold`. */
+export interface MutableHold {
+  by: 'pinch' | 'grip';
+  start: [number, number, number];
+  position: [number, number, number];
+  sinceMs: number;
+}
+
+export interface HoldState {
+  /** The pinch or squeeze is down. */
+  active: boolean;
+  /** Active and not taken by a bound object: the hold to report. */
+  free: boolean;
+  startMs: number;
+  readonly hold: MutableHold;
+}
+
+export function newHoldState(): HoldState {
+  return {
+    active: false,
+    free: false,
+    startMs: 0,
+    hold: { by: 'pinch', start: [0, 0, 0], position: [0, 0, 0], sinceMs: 0 },
+  };
+}
+
+/**
+ * Advances a hold by one frame. A hold is free when it is down and no bound object has taken it (`consumed`): judged
+ * on its first frame, and lost for good if a bound object takes it later. `start` is captured once, on that frame.
+ */
+export function stepHold(
+  s: HoldState,
+  active: boolean,
+  consumed: boolean,
+  nowMs: number,
+  by: 'pinch' | 'grip',
+  x: number,
+  y: number,
+  z: number,
+): void {
+  if (!active) {
+    s.active = false;
+    s.free = false;
+    return;
+  }
+  const h = s.hold;
+  if (!s.active) {
+    s.active = true;
+    s.free = !consumed;
+    s.startMs = nowMs;
+    h.by = by;
+    h.start[0] = x;
+    h.start[1] = y;
+    h.start[2] = z;
+  } else if (consumed) {
+    s.free = false;
+  }
+  if (!s.free) return;
+  h.position[0] = x;
+  h.position[1] = y;
+  h.position[2] = z;
+  h.sinceMs = nowMs - s.startMs;
+}

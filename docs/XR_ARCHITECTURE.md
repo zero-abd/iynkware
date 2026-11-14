@@ -22,7 +22,7 @@ behave (the bench, the interaction grammar, feedback, the spatial UI kit) is [XR
   fetches from a CDN at runtime; decoders and controller and hand models are served from `xr/` itself.
 - **Hosting:** a static build in `xr/dist`, deployed to Cloudflare (docs/XR_DEPLOY.md). Later, the same build under
   `/xr/` on the 2D app's origin so both share `localStorage["iynk:v1"]`, then a Horizon Store web app.
-- **The AI lab partner is a seam only:** `XrApp.partner` is `null` and nothing is built.
+- **The co-builder is `XrApp.assistant`** ("Build it with me", scripted today, no model): built in `app.ts` from `xr/src/assistant`. Voice and a model-backed partner are not built.
 
 ## 2. Directory layout
 
@@ -98,18 +98,18 @@ pillar's implementation.
 | File | What it fixes | Implementation today |
 |---|---|---|
 | [common.ts](../xr/src/contracts/common.ts) | `Vec3`, `Unsubscribe`, `ReadonlyValue`, the six languages, `pickText` | |
-| [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch, meter, robot physics (`lastMech`, `onMech`, `onMechState`); `SimFrame`, `RunState`, `PhysicsFrame`, `MechStatus` | `xr/src/sim/bridge.ts` |
+| [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch (merged per owner), meter, robot physics (`lastMech`, `onMech`, `onMechState`); `SimFrame`, `RunState`, `PhysicsFrame`, `MechStatus` | `xr/src/sim/bridge.ts` |
 | [project.ts](../xr/src/contracts/project.ts) | `ProjectStore` (ops, undo, redo, `as(author)` for the co-builder, subscribe), `Selection`, `TemplateSource`, `ProjectRepository` | `xr/src/project/store.ts` |
 | [assets.ts](../xr/src/contracts/assets.ts) | `AssetRegistry`, `PartAsset` with the pipeline's sidecar (imported from `tools/xr-assets/schema/xr-asset.ts`) and `footprint` | `xr/src/assets/registry.ts` |
 | [space.ts](../xr/src/contracts/space.ts) | `BenchSpace`: bench pose and scale, document mm to board frame to world, `worldOf(target)`, `objectOf`, `onLayout` | `xr/src/bench/space.ts` |
-| [input.ts](../xr/src/contracts/input.ts) | `InputService`: `bind`, sources, `pose` (each hand or controller every frame: pinch point or grip, palm normal, pinching, open hand, target ray), stick, pulse, `onAny`; `InteractionEvent` | `xr/src/input/service.ts` |
+| [input.ts](../xr/src/contracts/input.ts) | `InputService`: `bind`, sources, `pose` (each hand or controller every frame: pinch point or grip, palm normal, pinching, open hand, target ray), stick, pulse, `onAny`, `button` (A/X, B/Y, thumbstick click: pressed, down, up), `freeHold` (a pinch or grip that began on no bound target); `InteractionEvent` | `xr/src/input/service.ts` |
 | [part-view.ts](../xr/src/contracts/part-view.ts) | `PartView`, `PartViewFactory`, `PartViewRegistry` | `xr/src/run/views/` |
 | [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
 | [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore`, `LessonLauncher` (catalogue and opening lessons, `app.lessons`) | `xr/src/learn/` (fake guide; `launcher.ts` slot) |
 | [scale.ts](../xr/src/contracts/scale.ts) | `ScaleService`: work-scale steps, Room size and the stage, see-through and explode, current flow, the part inspector, passthrough or the paper room | `xr/src/scale/service.ts` |
 | [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh; the headset's own sound, volumes and mono, reduced motion, room light, text size, high contrast, toggle grab, flight mode, teleport), `SettingsStore` | `xr/src/shell/settings.ts` |
 | [shell.ts](../xr/src/contracts/shell.ts) | `ShellService`: where the person is (`Place`: bench, room size, range) and `go`, the home panel and its entries, the one menu's items, app-level notices | `xr/src/shell/service.ts` |
-| [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |
+| [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, `assistant` (`AssistantService`, the co-builder) | `xr/src/app.ts` |
 
 ### Shared contract files
 

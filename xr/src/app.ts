@@ -1,6 +1,7 @@
 /** Builds the services every feature module receives (contracts/app.ts) around one IWSDK world and one project. */
 import { builtinRegistry } from '@/parts/builtin';
 import type { World } from '@iwsdk/core';
+import { createAssistantService, instantPresence } from './assistant/service';
 import { createAssetRegistry, describeFrom } from './assets/registry';
 import { createBenchSpace } from './bench/space';
 import type { FeatureModule, XrApp, XrMode } from './contracts/app';
@@ -38,12 +39,15 @@ export function createApp(world: World, doc: Project): AppHandle {
   const mode = value<XrMode>('flat');
   const lessons = createLessonSlot();
   const shell = createShellService();
+  const templates = createTemplateSource();
+  const sim = createSimBridge();
+  const assistant = createAssistantService({ project, templates, sim, lang: () => settings.lang.value, guide: () => lessons.guide.value?.state ?? null, presence: instantPresence });
   const app: XrApp = {
     world,
     mode,
     project,
-    templates: createTemplateSource(),
-    sim: createSimBridge(),
+    templates,
+    sim,
     assets,
     input: createInputService(world),
     bench,
@@ -55,7 +59,7 @@ export function createApp(world: World, doc: Project): AppHandle {
     guide: lessons.guide,
     lessons,
     scale: createScaleService({ bench, settings, mode, shell }),
-    partner: null,
+    assistant,
   };
   const teardowns: Array<() => void> = [];
   return {
@@ -67,6 +71,7 @@ export function createApp(world: World, doc: Project): AppHandle {
     },
     async dispose() {
       for (const t of teardowns.reverse()) t();
+      assistant.dispose();
       overlay.dispose();
       bench.dispose();
       await app.sim.dispose();
