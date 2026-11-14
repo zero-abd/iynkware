@@ -1,7 +1,8 @@
 /** Settings keep the chosen language in the 2D site's cookie; Reset progress clears lesson progress and keeps settings. */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createProgressStore } from '../src/learn/progress';
-import { createSettingsStore } from '../src/shell/settings';
+import { DEFAULT_XR_SETTINGS } from '../src/contracts/settings';
+import { createSettingsStore, initialXrSettings } from '../src/shell/settings';
 
 class MemoryStorage {
   private m = new Map<string, string>();
@@ -29,6 +30,40 @@ describe('language', () => {
     expect(g.document!.cookie).toMatch(/^iynk-lang=hi; path=\/; max-age=31536000; SameSite=Lax$/);
     s.setLang('xx' as never);
     expect(s.lang.value).toBe('hi');
+  });
+});
+
+describe('headset settings', () => {
+  it('defaults to 3x, sound on, and every new field present', () => {
+    const s = createSettingsStore().xr.value;
+    expect(s.benchScale).toBe(3);
+    expect(s.sound).toBe(true);
+    expect(s.volumes).toEqual(DEFAULT_XR_SETTINGS.volumes);
+    expect(Object.keys(s).sort()).toEqual(Object.keys(DEFAULT_XR_SETTINGS).sort());
+  });
+
+  it('starts reduced motion and room light from the 2D settings, never sound', () => {
+    const s = initialXrSettings(null, { reduceMotion: true, theme: 'dark', sound: false });
+    expect([s.reducedMotion, s.roomLight, s.sound]).toEqual([true, 'dim', true]);
+    expect(initialXrSettings(null, { theme: 'system' }, true).roomLight).toBe('dim');
+    expect(initialXrSettings(null, { theme: 'system' }, false).roomLight).toBe('bright');
+  });
+
+  it('keeps valid saved fields over the 2D ones and drops invalid ones', () => {
+    const saved = { reducedMotion: false, roomLight: 'bright', benchScale: 4, textScale: 2, flightMode: 3, volumes: { alerts: 0.2, bench: 7 } };
+    const s = initialXrSettings(saved, { reduceMotion: true, theme: 'dark' });
+    expect([s.reducedMotion, s.roomLight, s.benchScale]).toEqual([false, 'bright', 4]);
+    expect([s.textScale, s.flightMode]).toEqual([1, 2]);
+    expect(s.volumes).toEqual({ ...DEFAULT_XR_SETTINGS.volumes, alerts: 0.2 });
+  });
+
+  it('reads iynk:xr:v1 and iynk:v1 from storage and saves a change', () => {
+    g.localStorage!.setItem('iynk:v1', JSON.stringify({ v: 1, settings: { reduceMotion: true } }));
+    g.localStorage!.setItem('iynk:xr:v1', JSON.stringify({ textScale: 1.25 }));
+    const store = createSettingsStore();
+    expect([store.xr.value.reducedMotion, store.xr.value.textScale]).toEqual([true, 1.25]);
+    store.setXr({ highContrast: true });
+    expect(JSON.parse(g.localStorage!.getItem('iynk:xr:v1')!).highContrast).toBe(true);
   });
 });
 

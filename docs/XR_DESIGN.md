@@ -207,7 +207,7 @@ cells, preview and hysteresis, never a loupe (a second camera pass costs too muc
 
 1. **Work scale.** Everything on the mat is drawn at `s` = 3 by default: pitch 7.62 mm, half breadboard 0.25 x 0.17 m,
    Uno R3 0.21 x 0.16 m. At 3x the start project (a Uno beside a half breadboard) fits the seated work zone with 0.08
-   m to spare; at 4x the pair needs 0.60 m of its 0.54. `DEFAULT_XR_SETTINGS.benchScale` is 4 today [contract: 3].
+   m to spare; at 4x the pair needs 0.60 m of its 0.54. `DEFAULT_XR_SETTINGS.benchScale` is 3.
    Steps: 1x (true size), 2x, 3x, 4x, 6x, then Room size (8.1). Building works at every step; below 3x with hands, a
    ghost changing target more than 3 times a second makes the ticker suggest scaling up. Bins always show parts at
    3x; a part taken off the shelf takes the bench's `s` over 150 ms as it enters the mat.
