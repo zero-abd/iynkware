@@ -88,9 +88,10 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
 - Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
   glTF in the ink look; every other part is still a placeholder built from its descriptor.
-- A headset voice client or shared partner-service contract. `XrApp.partner` is a documented `null` seam and
-  `quest-voice-backend/` is an isolated experimental service. A contract PR must define the partner service before
-  client code is added under `xr/`.
+- A headset voice front end or a mounted assistant service. `xr/src/contracts/assistant.ts` defines the grounded
+  co-builder, reviewable session and voice-command verbs, and a scripted implementation exists under
+  `xr/src/assistant/`; `XrApp.partner` remains `null`. `quest-voice-backend/` is an isolated experimental service, not
+  that missing integration.
 - Firmware engines in the headset: the worker runs iynk's interpreter, and rapier physics for robot projects (PR #110,
   loaded lazily in the worker); no avr8js or rp2040js yet (#38).
 - Saving projects in the headset: it opens a template each time.
