@@ -11,6 +11,8 @@
  *   grab     controller grip near the object, or hand pinch near it (a pinch that starts within reach)
  *   drag     a held select or grab that moves; carries the pointer pose every frame
  *   sticks   controller thumbsticks; hands get a virtual stick (pinch and move) from the same call
+ *   buttons  controller A/X, B/Y and thumbstick click through `button`; hands report none
+ *   free     a pinch or grip that began on no bound target, through `freeHold` (the virtual stick still runs)
  */
 import type { Object3D } from '@iwsdk/core';
 import type { ReadonlyValue, Unsubscribe, Vec3 } from './common';
@@ -85,6 +87,31 @@ export interface HandPose {
   readonly ray: { readonly origin: Vec3; readonly direction: Vec3 };
 }
 
+/** A controller's face buttons: `lower` is A (right) or X (left), `upper` is B or Y, `stick` the thumbstick click. */
+export type FaceButton = 'lower' | 'upper' | 'stick';
+
+/** One button this frame. `down` and `up` are true only on the frame the press began or ended. */
+export interface ButtonState {
+  readonly pressed: boolean;
+  readonly down: boolean;
+  readonly up: boolean;
+}
+
+/**
+ * A pinch (hand) or grip (controller) that began on no bound target: the two handed scale gesture, the flight gimbal
+ * ring and the guide flight read it. World frame, metres.
+ */
+export interface FreeHold {
+  /** `pinch` for a hand, `grip` for a controller's squeeze. */
+  readonly by: 'pinch' | 'grip';
+  /** Where the hold began: the pinch point or the grip centre on its first frame. */
+  readonly start: Vec3;
+  /** Where it is now. */
+  readonly position: Vec3;
+  /** Milliseconds since it began. */
+  readonly sinceMs: number;
+}
+
 export interface InputService {
   /**
    * The current pose of each hand or controller, or null when it is untracked (and on the flat page). Updated once a
@@ -101,4 +128,11 @@ export interface InputService {
   pulse(hand: Hand, intensity: number, ms: number): void;
   /** Every event on any bound object, after its own handler (for tutorials, analytics, the AI partner seam). */
   onAny(fn: (e: InteractionEvent) => void): Unsubscribe;
+  /** A controller button this frame; all false for a hand, an untracked controller and the flat page. Same object per hand and button. */
+  button(hand: Hand, which: FaceButton): ButtonState;
+  /**
+   * The hold of this hand that began on no bound target, or null (none, or it began on a bound object). Reported while
+   * held, alongside the virtual stick, which keeps working. The same object is returned per hand: read it, do not keep it.
+   */
+  freeHold(hand: Hand): FreeHold | null;
 }
