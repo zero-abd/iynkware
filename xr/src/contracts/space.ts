@@ -29,7 +29,7 @@ export interface BenchSpace {
    * origin at the bench top centre, +z toward the person.
    */
   readonly table: Object3D;
-  /** World units per board metre. 1 is real size; the bench default is 4 so a hand can reach a 2.54 mm hole. */
+  /** World units per board metre. 1 is real size; the bench default is 3 so a hand can reach a 2.54 mm hole. */
   readonly scale: ReadonlyValue<number>;
   setScale(scale: number, opts?: { animateMs?: number }): void;
   /** World pose of the bench top centre, where `root` is anchored (a table in the room in MR). */
