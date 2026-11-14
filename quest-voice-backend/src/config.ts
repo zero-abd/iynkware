@@ -6,6 +6,8 @@ export type VoiceConfig = {
   maxAudioBytes: number;
   sessionTtlMs: number;
   maxHistoryTurns: number;
+  maxRequestsPerMinute: number;
+  maxConcurrentTurns: number;
   liveModel: string;
   allowedOrigins: string[];
 };
@@ -39,6 +41,8 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): VoiceConfig {
     maxAudioBytes: integer(env, "MAX_AUDIO_BYTES", 10_000_000, 1_024, 25_000_000),
     sessionTtlMs: integer(env, "SESSION_TTL_MINUTES", 30, 1, 1_440) * 60_000,
     maxHistoryTurns: integer(env, "MAX_HISTORY_TURNS", 6, 1, 20),
+    maxRequestsPerMinute: integer(env, "MAX_REQUESTS_PER_MINUTE", 30, 1, 1_000),
+    maxConcurrentTurns: integer(env, "MAX_CONCURRENT_TURNS", 2, 1, 20),
     liveModel: env.GEMINI_LIVE_MODEL?.trim() || "gemini-3.8-live",
     allowedOrigins,
   };

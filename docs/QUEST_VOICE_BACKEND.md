@@ -41,3 +41,5 @@ Do not commit either secret. The demo token is extractable from an APK, so rotat
 - A visible disclosure that voice is AI-generated and the recording is sent to the configured provider
 
 Conversation memory is process-local and expires. Keep one instance for the demo; use a durable store before horizontal scaling.
+
+The demo service also caps each instance at 30 accepted voice turns per minute and two concurrent Gemini Live turns. These are cost and overload guards, not a substitute for per-user authentication in production.
