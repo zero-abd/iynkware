@@ -22,7 +22,7 @@ behave (the bench, the interaction grammar, feedback, the spatial UI kit) is [XR
   fetches from a CDN at runtime; decoders and controller and hand models are served from `xr/` itself.
 - **Hosting:** a static build in `xr/dist`, deployed to Cloudflare (docs/XR_DEPLOY.md). Later, the same build under
   `/xr/` on the 2D app's origin so both share `localStorage["iynk:v1"]`, then a Horizon Store web app.
-- **The AI lab partner is a seam only:** `XrApp.partner` is `null` and nothing is built.
+- **The co-builder is `XrApp.assistant`** ("Build it with me", scripted today, no model): built in `app.ts` from `xr/src/assistant`. Voice and a model-backed partner are not built.
 
 ## 2. Directory layout
 
@@ -109,7 +109,7 @@ pillar's implementation.
 | [scale.ts](../xr/src/contracts/scale.ts) | `ScaleService`: work-scale steps, Room size and the stage, see-through and explode, current flow, the part inspector, passthrough or the paper room | `xr/src/scale/service.ts` |
 | [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh; the headset's own sound, volumes and mono, reduced motion, room light, text size, high contrast, toggle grab, flight mode, teleport), `SettingsStore` | `xr/src/shell/settings.ts` |
 | [shell.ts](../xr/src/contracts/shell.ts) | `ShellService`: where the person is (`Place`: bench, room size, range) and `go`, the home panel and its entries, the one menu's items, app-level notices | `xr/src/shell/service.ts` |
-| [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |
+| [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, `assistant` (`AssistantService`, the co-builder) | `xr/src/app.ts` |
 
 ### Shared contract files
 
