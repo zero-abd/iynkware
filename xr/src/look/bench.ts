@@ -1,6 +1,6 @@
 /**
  * The bench in the figures' look, mounted by the look module: the inked work mat and front rail under everything (sized
- * by posture, rebuilt when it changes), inked wires, and the bench's motion. Parts arrive by dropping onto the mat and
+ * by posture, its grid by the work scale setting, rebuilt when either changes), inked wires, and the bench's motion. Parts arrive by dropping onto the mat and
  * settling with one small squash, move by easing to their new place, and leave by lifting and shrinking away; on the
  * bench's arrival every item drops in turn and then the wires draw themselves on. Reduced motion jumps (the runner's
  * 150 ms cap). Draws and moves only: what the bench lays out, and where, is the bench's (bench/space.ts).
@@ -14,9 +14,10 @@ import { benchInternals, type BenchItem, type BenchPose, type Transition } from 
 import type { Unsubscribe } from '../contracts/common';
 import type { XrApp } from '../contracts/app';
 import { inkKit, loadInk } from './ink';
-import { createWorkMat, type WorkMat } from './mat';
+import { createWorkMat, FIGURE_GRID, type WorkMat } from './mat';
 import { DURATION, easeIynk } from './motion';
 import { motionOf } from './runner';
+import { mountStudio } from './studio';
 import { inkWires } from './wires';
 
 /** How far a part falls on arrival, metres on the bench (it is divided by the board scale in the board frame). */
@@ -145,11 +146,13 @@ export function mountBenchLook(app: XrApp): Unsubscribe {
     const place = () => {
       const xr = app.settings.xr.value;
       const top = benchGeometry(xr.posture, xr.dominantHand).top;
-      const key = `${top.w}x${top.d}`;
+      // The grid follows the work scale setting (not a live pinch-scale, which would repaint the mat every frame).
+      const gridPitch = FIGURE_GRID * (xr.benchScale || 3);
+      const key = `${top.w}x${top.d}@${gridPitch}`;
       if (key === size) return;
       size = key;
       mat?.dispose();
-      mat = createWorkMat(tableKit, top, { anisotropy });
+      mat = createWorkMat(tableKit, top, { anisotropy, gridPitch });
       bench.table.add(mat.group);
     };
     place();
@@ -160,6 +163,8 @@ export function mountBenchLook(app: XrApp): Unsubscribe {
     };
     offs.push(bench.benchTop.subscribe(relight));
     offs.push(() => mat?.dispose());
+    // The paper studio, for the plain VR space and the immersive-vr fallback.
+    offs.push(mountStudio(app, tableKit));
     if (!internals) return;
 
     // The bench's arrival: items drop in turn (surface, boards, parts), then the wires draw on.

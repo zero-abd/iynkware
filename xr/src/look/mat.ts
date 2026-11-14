@@ -32,10 +32,11 @@ export const RAIL = { depth: 0.04, raise: 0.03, tiltRad: (30 * Math.PI) / 180 } 
 /** The mat's thickness, its corner radius, and how far its top sits under y = 0 (so a part's base never fights it). */
 export const MAT = { thickness: 0.004, radius: 0.018, sink: 0.0004 } as const;
 /**
- * The grid pitch on the bench: the figures' 10 mm grid at the default board scale (4x), so a part covers as many cells
- * as in its figure. Ticks along the edges every 10 mm, numbered every 100 mm, as a real cutting mat's ruler.
+ * The figures' grid pitch, in board millimetres: on the bench it is drawn at the work scale (`gridPitch` below), so a
+ * part covers as many cells as in its figure. Ticks along the edges every 10 mm, numbered every 100 mm, as a real
+ * cutting mat's ruler.
  */
-const GRID = 0.04;
+export const FIGURE_GRID = 0.01;
 const TICK = 0.01;
 /** Canvas pixels per millimetre of mat. */
 const PX_PER_MM = 2;
@@ -61,7 +62,7 @@ function roundedRect(w: number, d: number, r: number): Shape {
 }
 
 /** The mat's printed top: the light band, the grid, the ruler ticks and their numbers (canvas top = the mat's back). */
-function paintMatTop(canvas: HTMLCanvasElement, w: number, d: number, bands: Bands) {
+function paintMatTop(canvas: HTMLCanvasElement, w: number, d: number, bands: Bands, pitch: number) {
   const g = canvas.getContext('2d');
   if (!g) return;
   const W = canvas.width, H = canvas.height;
@@ -77,11 +78,11 @@ function paintMatTop(canvas: HTMLCanvasElement, w: number, d: number, bands: Ban
   const toX = (x: number) => (x + w / 2) * 1000 * px;
   const toY = (z: number) => (z + d / 2) * 1000 * px;
   g.beginPath();
-  for (let x = Math.ceil(gx0 / GRID) * GRID; x <= gx1 + 1e-9; x += GRID) {
+  for (let x = Math.ceil(gx0 / pitch) * pitch; x <= gx1 + 1e-9; x += pitch) {
     g.moveTo(toX(x), toY(gz0));
     g.lineTo(toX(x), toY(gz1));
   }
-  for (let z = Math.ceil(gz0 / GRID) * GRID; z <= gz1 + 1e-9; z += GRID) {
+  for (let z = Math.ceil(gz0 / pitch) * pitch; z <= gz1 + 1e-9; z += pitch) {
     g.moveTo(toX(gx0), toY(z));
     g.lineTo(toX(gx1), toY(z));
   }
@@ -161,9 +162,15 @@ function prism(profile: ReadonlyArray<readonly [number, number]>, x0: number, x1
 
 /**
  * The mat `size` wide and deep, with the rail on its front edge, in `kit`'s frame (the table). `anisotropy` is the
- * renderer's, so the grid stays crisp at the shallow angle a seated person sees the back of the mat at.
+ * renderer's, so the grid stays crisp at the shallow angle a seated person sees the back of the mat at; `gridPitch` is
+ * the grid's pitch on the bench (the figures' 10 mm times the work scale; default 3x).
  */
-export function createWorkMat(kit: InkKit, size: { w: number; d: number }, opts: { anisotropy?: number; rail?: boolean } = {}): WorkMat {
+export function createWorkMat(
+  kit: InkKit,
+  size: { w: number; d: number },
+  opts: { anisotropy?: number; rail?: boolean; gridPitch?: number } = {},
+): WorkMat {
+  const grid = Math.max(0.01, opts.gridPitch ?? FIGURE_GRID * 3);
   const group = new Group();
   group.name = 'look:mat';
   const { w, d } = size;
@@ -178,7 +185,7 @@ export function createWorkMat(kit: InkKit, size: { w: number; d: number }, opts:
   smoothOutlineNormals(slab, 1e-4);
   const canvas = makeCanvas(Math.round(w * 1000 * PX_PER_MM), Math.round(d * 1000 * PX_PER_MM));
   const paint = () => {
-    paintMatTop(canvas, w, d, bands);
+    paintMatTop(canvas, w, d, bands, grid);
     texture.needsUpdate = true;
   };
   const texture = new CanvasTexture(canvas);
