@@ -286,7 +286,7 @@ describe('the co-builder seam', () => {
   });
 
   it('lists every action and calls each one by name', () => {
-    expect(ACTIONS.map((a) => a.name)).toEqual(['placePart', 'movePart', 'pullPart', 'turnPart', 'removePart', 'addWire', 'moveWireEnd', 'recolourWire', 'routeWire', 'straightenWire', 'removeWire']);
+    expect(ACTIONS.map((a) => a.name)).toEqual(['placePart', 'seatPart', 'movePart', 'pullPart', 'turnPart', 'removePart', 'addWire', 'moveWireEnd', 'recolourWire', 'routeWire', 'straightenWire', 'removeWire']);
     for (const a of ACTIONS) expect(a.does.length).toBeGreaterThan(10);
     const placed = runAction(store.doc, 'placePart', { ref: 'core.led-5mm', at: hole(store.doc, 'b20') }, env);
     expect(placed.ok && placed.label).toBe('Place D1');
