@@ -1,29 +1,24 @@
 /**
- * The person's preferences the pillar honours, read forward-compatibly: the headset settings fields of issue #17
- * (`reducedMotion`, `teleport`) are not in `XrSettings` yet, so they are read by name when present, and reduced motion
- * falls back to the 2D site's `reduceMotion`. Once #17 lands these become plain field reads.
+ * The person's preferences the pillar honours (`XrSettings`, #145): reduced motion (the look kit's reading, which
+ * starts from the 2D site's and the browser's preference), teleport at Room size and the seated posture.
  */
 import type { XrApp } from '../../contracts/app';
-import type { XrSettings } from '../../contracts/settings';
+import { reducedMotionOf } from '../../look';
 
 type Prefs = Pick<XrApp, 'settings'>;
 
-const field = (app: Prefs, name: string): unknown => (app.settings.xr.value as unknown as Record<string, unknown>)[name];
-
 /** Reduced motion: fades of at most 150 ms replace moves; flowing and pulsing marks become static (design 11.2). */
 export function reducedMotion(app: Prefs): boolean {
-  const own = field(app, 'reducedMotion');
-  if (typeof own === 'boolean') return own;
-  return app.settings.shared.value.reduceMotion === true;
+  return reducedMotionOf(app);
 }
 
 /** Teleport at Room size: off by default (design 8.1). */
 export function teleportOn(app: Prefs): boolean {
-  return field(app, 'teleport') === true;
+  return app.settings.xr.value.teleport === true;
 }
 
 export function setTeleport(app: Prefs, on: boolean): void {
-  app.settings.setXr({ teleport: on } as unknown as Partial<XrSettings>);
+  app.settings.setXr({ teleport: on });
 }
 
 /** Seated posture (`XrSettings.posture`): Room size stays optional and nothing asks the person to stand or walk. */
