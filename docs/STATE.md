@@ -66,8 +66,8 @@ What a person can actually do in the current build of `main`, kept by the integr
 each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
 `http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `f3469c6`.
 
-- **Can do:** press Enter (or Open on this screen); see Uno Blink on a bench in passthrough, drawn from the converted
-  models (Uno R3, breadboard, LED, resistor, wires) with two fixed callouts; point a controller ray and pull the
+- **Can do:** press Enter (or Open on this screen); see Uno Blink in passthrough on a sage work mat with a mustard rail
+  (#152), drawn from the converted models (Uno R3, breadboard, LED, resistor, inked wires) with two fixed callouts; point a controller ray and pull the
   trigger, or point a hand and pinch, on the run cluster: Run (LED blinks every 500 ms, with glow), Pause, Step
   (+10 ms), Reset (t = 0) and the speed button.
 - **Rough:** the bench is anchored where the headset was when the session began (re-enter to move it); parts cannot be
