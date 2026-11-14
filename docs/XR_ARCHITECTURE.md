@@ -3,7 +3,8 @@
 Updated 2026-11-14. The headset app lives in `xr/`. It is a separate Vite package built on Meta's Immersive Web SDK
 (IWSDK) that imports iynk's pure TypeScript (simulation, project document, parts, content) straight from `src/` and
 `content/`. This file is the map every pillar works from: what goes where, which files are shared contracts, how data
-flows, the frames and the performance rules, and how to run it on a desktop and on the Quest 3S.
+flows, the frames and the performance rules, and how to run it on a desktop and on the Quest 3S. How things look and
+behave (the bench, the interaction grammar, feedback, the spatial UI kit) is [XR_DESIGN.md](XR_DESIGN.md).
 
 ## 1. Decisions this rests on
 
@@ -39,24 +40,26 @@ xr/
     main.ts             boot: World.create, createApp, mount FEATURES, Enter button
     app.ts              builds the services in XrApp around one world and one project
     features.ts         the list of pillar modules, in mount order
+    compose.ts          composeModules: one pillar module out of its sub-modules
     contracts/          the shared types every pillar codes against (section 4)
     sim/                worker, handler wiring, SimBridge (shared service)
     assets/             asset registry, placeholders from part descriptors, converted-asset seam (shared service)
     input/              InputService over IWSDK pointers and grabs (shared service)
     project/            ProjectStore over iynk's session, TemplateSource
     ui/                 canvas text labels, the overlay layer, a tiny observable value
-    bench/              pillar 1: BenchSpace (layout, frames) and the bench module
-    run/                pillar 2: Run and Stop, part views (LED first)
-    learn/              pillar 3: lesson guide, progress store
-    scale/              pillar 4: zoom levels and see-through (stub)
-    range/              pillar 5: drones and robots (stub)
-    shell/              pillar 6: settings store, menus, language (stub module)
+    bench/              pillar 1, build: space.ts (BenchSpace), shelf/ wire/ edit/ pose/
+    run/                pillar 2, run and stress: controls/ (Run, Stop, status) views/ (LED) inputs/
+    learn/              pillar 3, learn: lessons/ callouts/, guide.ts, progress.ts
+    scale/              pillar 4, scale and insight: zoom/ insight/ probe/
+    range/              pillar 5, range: flight/ robots/
+    shell/              pillar 6, shell and shipping: menu/, settings.ts
 ```
 
 Pillar 7, the asset pipeline, lives outside `xr/`: `tools/xr-assets/` and docs/XR_ASSETS.md.
 
-Each pillar owns its folder and exports one `FeatureModule` (`mount(app)` returns a teardown). A pillar never edits
-another pillar's folder; it uses the other pillar's services through `XrApp`.
+Each pillar's `index.ts` composes its sub-modules (`composeModules`), and each sub-module folder exports one
+`FeatureModule` (`mount(app)` returns a teardown). An issue owns one or more of those folders; most are stubs today.
+Code never edits a folder another open issue owns; it uses the other pillar's services through `XrApp`.
 
 ## 3. Data flow
 
@@ -110,7 +113,8 @@ These change only in their own small PR, labelled `contract-change` (and `lockfi
 the code that needs the change (AGENTS.md hard rule 3):
 
 - `xr/src/contracts/**`
-- `xr/src/app.ts`, `xr/src/features.ts`, `xr/src/main.ts`, `xr/index.html`
+- `xr/src/app.ts`, `xr/src/features.ts`, `xr/src/compose.ts`, `xr/src/main.ts`, `xr/index.html`
+- each pillar's `xr/src/<pillar>/index.ts` (the list of its sub-modules)
 - `xr/package.json`, `xr/package-lock.json`
 - `xr/vite.config.ts`, `xr/vite.aliases.ts`, `xr/tsconfig.json`, `xr/vitest.config.ts`
 - `tools/xr-assets/schema/**` (owned by the asset pipeline, pillar 7)
@@ -210,7 +214,8 @@ npm run build               # static site in xr/dist (base './', so it works at 
 
 `npm run dev` serves HTTPS with a self-signed certificate made by the IWSDK plugin (`@vitejs/plugin-basic-ssl`); it
 installs nothing into the system's trust store. Plain HTTP on localhost is a secure context, so `dev:http` is the
-normal loop. Only one server can hold port 8081: another worktree runs `npx vite --mode http --port <n>`.
+normal loop. Port 8081 is the default; in an issue's worktree use `npx vite --mode http --port $((23000 + N))` for
+issue `N` (docs/COLLABORATION.md section 4). `strictPort` makes a clash fail instead of moving to another port.
 
 ### Desktop emulator
 
@@ -221,7 +226,7 @@ The dev plugin injects IWER, Meta's WebXR emulator, as a Quest 3 into the page. 
 - From code, `window.IWER_DEVICE.remote.dispatch(method, params)` drives it, for example
   `set_transform {device: 'controller-right', position, orientation}`, `set_select_value {device, value}`,
   `set_input_mode {mode: 'hand'}`. `window.iynkware` exposes the world and the app services.
-- `node scripts/emulator-check.mjs [url]` (with `dev:http` running) does the whole walk headless: enter MR, controller
+- `node scripts/emulator-check.mjs [url] [shot.png]` (with `dev:http` running) does the whole walk headless: enter MR, controller
   ray and trigger on Run, the LED toggling every 500 ms, a hand pinch on Stop, a hand pinch on Run again. It needs a
   Playwright Chromium (`npx playwright install chromium`; that command can delete other cached Playwright builds).
 
@@ -231,7 +236,7 @@ With the Meta Horizon CLI (`metavr`, on the PATH via `export PATH="$HOME/.metavr
 
 ```bash
 metavr device list                              # the Quest 3S shows as a device
-metavr adb reverse tcp:8081 tcp:8081            # headset localhost:8081 -> this Mac
+metavr adb reverse tcp:8081 tcp:8081            # headset localhost:8081 -> this Mac's port (yours if not 8081)
 metavr device wake
 metavr device proximity disable                 # stays awake off-head; undo with: metavr device proximity enable
 metavr device browser http://localhost:8081     # Quest Browser opens the page
@@ -246,8 +251,11 @@ metavr capture screenshot -o shot.png           # wait about 3 s after entering
 - Browser and OpenXR logs: `metavr log -n 3000 | grep -E "chromium|cr_|OpenXR_(Session|Passthrough)|XR_SESSION_STATE"`.
 - Quest Browser starts at 72 Hz; the app asks for 90. `local-floor` is anchored where the headset was when the session
   began.
-- A Meta system consent dialog can appear on the first immersive entry on a device. A person handles it; an agent never
-  accepts it.
+- Quest Browser asks once per origin, in an infobar over the page, to "open immersive experiences that use hand and
+  body tracking". Until a person allows it for `http://localhost:8081`, Enter MR does nothing. Keep the headset on
+  that one origin (map it to any Mac port with `adb reverse`) so the answer is given once.
+- A Meta system consent dialog can appear on the first immersive entry on a device. A person handles both; an agent
+  never accepts either.
 - Any page reload, including a Vite full reload after editing `main.ts`, ends the session.
 - Reverse and forward mappings go away when USB or adb reconnects; run them again.
 

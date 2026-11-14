@@ -96,6 +96,7 @@ Each copy needs its own port and its own Next build folder. This is what the rep
 | `NEXT_DIST_DIR` | `next.config.ts` (`distDir`), and `playwright.config.ts` for its build | `.next`; Playwright uses `.next-e2e` |
 | `E2E_PORT`, `E2E_SERVER_PORT`, `E2E_DEAD_PORT` | `playwright.config.ts` | random, 40000 to 49999, never 3000 or 43117 |
 | `IYNK_PORT` | the collaboration server in `server/` | 8787 |
+| `--port` | the headset app's Vite server in `xr/` (`strictPort`) | 8081 |
 
 The build folder is relative to the worktree, so each worktree already has its own `.next`. `scripts/ci-local.sh`
 builds into `.next-ci` and Playwright into `.next-e2e`, so neither touches your dev copy. Set `NEXT_DIST_DIR` only
@@ -116,6 +117,9 @@ NEXT_DIST_DIR=.next-wt PORT=$((21000 + N)) npx next start
 
 # the collaboration server, only for Together, rooms and buddies (setup in SELF_HOSTING.md):
 IYNK_PORT=$((22000 + N))
+
+# the headset app, from xr/ (plain HTTP; IWER emulator injected):
+npx vite --mode http --port $((23000 + N))            # http://localhost:23042
 ```
 
 - Set `NEXT_DIST_DIR` on the command, never with `export`. Playwright builds into `NEXT_DIST_DIR` when it is set, so an
@@ -228,18 +232,47 @@ other command.
 
 ## 7. Headset testing
 
-- The target is a Meta Quest 3S, with both controllers and hand tracking.
+- The target is a Meta Quest 3S, with both controllers and hand tracking. There is one headset: say in your PR or
+  issue when you used it, and do not leave a session running for someone else to find.
 - WebXR needs a secure context. `http://localhost` is one; a LAN address over plain http is not. So the headset either
-  opens localhost forwarded over USB to your dev port, or an HTTPS address. `next dev --experimental-https` serves a
-  self signed certificate; whether the Quest browser accepts it has not been tried.
+  opens localhost forwarded over USB to your dev port, or an HTTPS address.
+- **Emulator first.** `cd xr && npx vite --mode http --port $((23000 + N))` injects IWER, Meta's WebXR emulator, as a
+  Quest 3: Enter MR works in a desktop browser, and IWER's overlay moves the headset, controllers and hands.
+  `node scripts/emulator-check.mjs http://localhost:$((23000 + N))/` walks the skeleton headless (enter, controller
+  ray and trigger on Run, LED blinking, hand pinch on Stop). Details: [XR_ARCHITECTURE.md](XR_ARCHITECTURE.md)
+  section 10.
+- **Quest 3S over USB**, with the Meta Horizon CLI (`export PATH="$HOME/.metavr/bin:$PATH"`):
+
+  ```bash
+  P=$((23000 + N))                            # your dev server on the Mac
+  metavr device list                          # the Quest 3S shows as a device
+  metavr adb reverse tcp:8081 tcp:$P          # headset localhost:8081 -> your dev server
+  metavr device wake
+  metavr device browser http://localhost:8081 # Quest Browser opens the page
+  metavr ui dump                              # the DOM "Enter MR" button and its coordinates
+  metavr ui tap --coords <x>,<y>              # enters the session
+  metavr capture screenshot -o shot.png       # about 3 s after entering
+  ```
+
+  The headset always opens `http://localhost:8081`, whatever your Mac port: Quest Browser keeps its permissions per
+  origin, and the first immersive session on an origin shows an infobar, "Allow http://localhost:8081 to open
+  immersive experiences that use hand and body tracking?". A person allows it once for 8081; agents never press Allow.
+  While it is up it covers the bottom of the page and the session does not start (`metavr ui dump` lists `Allow` and
+  `Don't allow`).
+
+  `metavr device proximity disable` keeps it awake off-head; run `metavr device proximity enable` when you are done.
+  The page console is read with `metavr adb forward tcp:9223 localabstract:chrome_devtools_remote` and
+  `node xr/scripts/cdp.mjs logs 3`. Any page reload ends the session.
+- A Meta system consent dialog can appear on the first immersive entry on a device. A person handles it; an agent never
+  accepts it, nor any other licence, terms or system prompt on the headset.
+- No local root certificate. `npm run dev` in `xr/` serves HTTPS with a self-signed certificate that changes no system
+  trust; plain HTTP over adb reverse is the normal loop. Do not install mkcert or anything that needs sudo.
 - For a cable-free HTTPS address, deploy the static headset build to Cloudflare: `npm run deploy` or, per branch,
   `npm run preview` in `deploy/cloudflare-xr/` ([XR_DEPLOY.md](XR_DEPLOY.md)). The URL is public.
-- The USB setup with the Meta Horizon CLI and the recipe for a desktop emulator will be in `docs/XR_ARCHITECTURE.md`
-  when the foundation lands.
-- Today every page sends a Permissions-Policy that refuses `xr-spatial-tracking` and `microphone` (`next.config.ts`,
-  asserted by `e2e/headers.spec.ts`), so an immersive session cannot start until the foundation changes it.
-- Until headset testing is set up, a PR that could not be tried in a headset or an emulator says so in the template
-  and carries the label: `gh pr edit <pr> --add-label needs-headset-test`.
+- The 2D app's pages send a Permissions-Policy that refuses `xr-spatial-tracking` (`next.config.ts`, asserted by
+  `e2e/headers.spec.ts`); that matters only once the headset app moves under `/xr/` on the same origin.
+- A PR that changes XR behaviour says in the template what was tried: the emulator check's output or a screenshot, and
+  the headset if used. Not tried at all: `gh pr edit <pr> --add-label needs-headset-test`.
 
 ## 8. Commits and PRs
 

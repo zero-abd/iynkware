@@ -1,7 +1,5 @@
-/** Pillar 6, Shell: spatial home menu, settings, mode switch (MR, VR), recentre. The 2D launcher lives in the Next app. */
-import type { FeatureModule } from '../contracts/app';
+/** Pillar 6, Shell: menus and settings in the headset. The 2D launcher lives in the Next app. */
+import { composeModules } from '../compose';
+import { menuModule } from './menu';
 
-export const shellModule: FeatureModule = {
-  id: 'shell',
-  mount: () => () => undefined,
-};
+export const shellModule = composeModules('shell', [menuModule]);
