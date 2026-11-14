@@ -1,10 +1,12 @@
+import { VoiceInputError } from "./errors.ts";
+
 function fourCc(bytes: Buffer, offset: number): string {
   return bytes.toString("ascii", offset, offset + 4);
 }
 
 export function extractPcm16Mono(wav: Buffer): Buffer {
   if (wav.length < 44 || fourCc(wav, 0) !== "RIFF" || fourCc(wav, 8) !== "WAVE") {
-    throw new Error("Audio must be a PCM WAV file.");
+    throw new VoiceInputError("invalid_audio_format", "Audio must be a PCM WAV file.");
   }
   let channels = 0;
   let sampleRate = 0;
@@ -15,7 +17,7 @@ export function extractPcm16Mono(wav: Buffer): Buffer {
     const id = fourCc(wav, offset);
     const size = wav.readUInt32LE(offset + 4);
     const start = offset + 8;
-    if (start + size > wav.length) throw new Error("WAV chunk exceeds the file size.");
+    if (start + size > wav.length) throw new VoiceInputError("invalid_audio_format", "WAV chunk exceeds the file size.");
     if (id === "fmt " && size >= 16) {
       format = wav.readUInt16LE(start);
       channels = wav.readUInt16LE(start + 2);
@@ -25,9 +27,9 @@ export function extractPcm16Mono(wav: Buffer): Buffer {
     offset = start + size + (size % 2);
   }
   if (format !== 1 || bitsPerSample !== 16 || channels < 1 || !data) {
-    throw new Error("Only PCM16 WAV input is supported.");
+    throw new VoiceInputError("invalid_audio_format", "Only PCM16 WAV input is supported.");
   }
-  if (sampleRate !== 16_000) throw new Error("Voice input must be recorded at 16 kHz.");
+  if (sampleRate !== 16_000) throw new VoiceInputError("invalid_audio_rate", "Voice input must be recorded at 16 kHz.");
   if (channels === 1) return Buffer.from(data);
   const frames = Math.floor(data.length / (channels * 2));
   const mono = Buffer.alloc(frames * 2);

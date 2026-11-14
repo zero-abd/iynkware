@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
 import { after, before, test } from "node:test";
+import { encodePcm16Wav } from "../src/audio.ts";
 
 const port = 30_000 + (process.pid % 10_000);
 const origin = `http://127.0.0.1:${port}`;
@@ -89,5 +90,34 @@ test("session deletion validates path identifiers", async () => {
   });
   assert.equal(response.status, 400);
   const body = await response.json() as { error: { code: string } };
-  assert.equal(body.error.code, "bad_request");
+  assert.equal(body.error.code, "invalid_session_id");
+});
+
+test("invalid audio is a specific 400 and never an upstream outage", async () => {
+  const form = new FormData();
+  form.set("audio", new Blob([Uint8Array.from(encodePcm16Wav(Buffer.alloc(44_100 * 2), 44_100))], { type: "audio/wav" }), "speech.wav");
+  form.set("sessionId", "session-ok");
+  const response = await fetch(`${origin}/v1/voice/turn`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: form,
+  });
+  assert.equal(response.status, 400);
+  const body = await response.json() as { error: { code: string } };
+  assert.equal(body.error.code, "invalid_audio_rate");
+});
+
+test("invalid lesson context has its own 400 code", async () => {
+  const form = new FormData();
+  form.set("audio", new Blob([Uint8Array.from(encodePcm16Wav(Buffer.alloc(16_000 * 2), 16_000))], { type: "audio/wav" }), "speech.wav");
+  form.set("sessionId", "session-ok");
+  form.set("currentStep", "not-a-number");
+  const response = await fetch(`${origin}/v1/voice/turn`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: form,
+  });
+  assert.equal(response.status, 400);
+  const body = await response.json() as { error: { code: string } };
+  assert.equal(body.error.code, "invalid_context");
 });

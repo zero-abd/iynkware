@@ -97,6 +97,7 @@ Each copy needs its own port and its own Next build folder. This is what the rep
 | `E2E_PORT`, `E2E_SERVER_PORT`, `E2E_DEAD_PORT` | `playwright.config.ts` | random, 40000 to 49999, never 3000 or 43117 |
 | `IYNK_PORT` | the collaboration server in `server/` | 8787 |
 | `--port` | the headset app's Vite server in `xr/` (`strictPort`) | 8081 |
+| `IYNK_VOICE_PORT` (or host `PORT`) | the experimental service in `quest-voice-backend/` | 8790 |
 
 The build folder is relative to the worktree, so each worktree already has its own `.next`. `scripts/ci-local.sh`
 builds into `.next-ci` and Playwright into `.next-e2e`, so neither touches your dev copy. Set `NEXT_DIST_DIR` only

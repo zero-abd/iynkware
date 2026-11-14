@@ -4,6 +4,6 @@ WORKDIR /app
 COPY --chown=node:node package.json ./
 COPY --chown=node:node src ./src
 USER node
-EXPOSE 8787
+EXPOSE 8790
 STOPSIGNAL SIGTERM
 CMD ["node", "--enable-source-maps", "src/server.ts"]
