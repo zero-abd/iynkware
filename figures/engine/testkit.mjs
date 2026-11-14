@@ -52,7 +52,7 @@ export async function loadFigure(html, { path = '/figures/robotics/fixture.html'
     },
   });
   const win = dom.window;
-  for (let i = 0; i < 100 && !(win.SL && ((win.SL.bench && win.SL.bench.st) || (win.SL.drone && win.SL.drone.report && win.SL.drone.report()))); i++) {
+  for (let i = 0; i < 100 && !(win.SL && ((win.SL.bench && win.SL.bench.st) || (win.SL.lab && win.SL.lab.st) || (win.SL.drone && win.SL.drone.report && win.SL.drone.report()))); i++) {
     await new Promise((r) => setTimeout(r, 20));
   }
   const notes = () => (win.document.documentElement.dataset.errors || '').split(';').map((s) => s.trim()).filter(Boolean);
@@ -61,5 +61,5 @@ export async function loadFigure(html, { path = '/figures/robotics/fixture.html'
     Object.defineProperties(ev, { data: { value: { source: 'iynk', v: 1, ...msg } }, origin: { value: win.location.origin }, source: { value: parent } });
     win.dispatchEvent(ev);
   };
-  return { win, bench: win.SL && win.SL.bench, drone: win.SL && win.SL.drone, errors, notes, sent, post, close: () => win.close() };
+  return { win, bench: win.SL && win.SL.bench, drone: win.SL && win.SL.drone, lab: win.SL && win.SL.lab, errors, notes, sent, post, close: () => win.close() };
 }

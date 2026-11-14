@@ -5,6 +5,9 @@ built into `public/figures/<kind>/<id>.html`. The React host embeds the page in 
 postMessage bridge. This file covers the layout, the build and shoot commands, the bridge protocol and the rules
 every figure follows. Background reading is `docs/research/colorfigures-guide.md`, cited below as "guide §n".
 
+Lab equipment (beakers, burners, a bench power supply: the kind `lab`) is built the same way; its format, its tutor
+notes and its recipe are in [FIGURES-LAB.md](FIGURES-LAB.md).
+
 ## Layout
 
 ```
@@ -15,6 +18,7 @@ figures/
   tools/cfbuild.py       builder                                                                       [platform]
   tools/cfshoot.py       shots + checks                                                                [platform]
   boards/<id>.js  parts/<id>.js  modules/<id>.js  robotics/<id>.js  drones/<id>.js                    [item agents]
+  lab/<id>.js            lab equipment (docs/FIGURES-LAB.md); lab/catalogue.json is generated         [item agents]
   prompts/<id>.md        the Colorfigures prompt of every figure                                       [item agents]
   _smoke/smoke.js        platform smoke test: one box, one button
   _smoke/plain.js        platform smoke test for a page without mountFigure (CF_BRIDGE.plain)
