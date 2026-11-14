@@ -110,12 +110,16 @@ each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, 
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
 - Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
   glTF in the ink look; every other part is still a placeholder built from its descriptor.
+- A headset voice client or shared partner-service contract. `XrApp.partner` is a documented `null` seam and
+  `quest-voice-backend/` is an isolated experimental service. A contract PR must define the partner service before
+  client code is added under `xr/`.
 - Firmware engines in the headset: the worker runs iynk's interpreter, and rapier physics for robot projects (PR #110,
   loaded lazily in the worker); no avr8js or rp2040js yet (#38).
 - Saving projects in the headset: it opens a template each time.
 - Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
   command ([XR_DEPLOY.md](XR_DEPLOY.md)); since 2026-11-14 its production URL serves the headset app built from
   `main`, deployed by hand.
+- Hosting for the experimental voice service: not chosen. There is no deploy configuration and no cloud resource.
 - Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
   removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
   repos, not CI.

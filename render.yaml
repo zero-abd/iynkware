@@ -6,24 +6,30 @@ services:
     region: oregon
     dockerfilePath: ./quest-voice-backend/Dockerfile
     dockerContext: ./quest-voice-backend
-    healthCheckPath: /health
-    autoDeployTrigger: checksPass
+    healthCheckPath: /healthz
+    autoDeployTrigger: "off"
     envVars:
       - key: GEMINI_API_KEY
         sync: false
-      - key: CLIENT_TOKEN
+      - key: IYNK_VOICE_CLIENT_TOKEN
         generateValue: true
-      - key: HOST
+      - key: IYNK_VOICE_HOST
         value: 0.0.0.0
-      - key: MAX_AUDIO_BYTES
-        value: 10000000
-      - key: SESSION_TTL_MINUTES
+      - key: IYNK_VOICE_MAX_AUDIO_BYTES
+        value: 2000000
+      - key: IYNK_VOICE_MAX_AUDIO_SECONDS
         value: 30
-      - key: MAX_HISTORY_TURNS
+      - key: IYNK_VOICE_MAX_RESPONSE_BYTES
+        value: 4000000
+      - key: IYNK_VOICE_SESSION_TTL_MINUTES
+        value: 30
+      - key: IYNK_VOICE_MAX_HISTORY_TURNS
         value: 6
-      - key: MAX_REQUESTS_PER_MINUTE
+      - key: IYNK_VOICE_MAX_REQUESTS_PER_MINUTE
         value: 30
-      - key: MAX_CONCURRENT_TURNS
+      - key: IYNK_VOICE_MAX_CONCURRENT_TURNS
         value: 2
       - key: GEMINI_LIVE_MODEL
         value: gemini-3.8-live
+      - key: GEMINI_LIVE_VOICE
+        value: Puck

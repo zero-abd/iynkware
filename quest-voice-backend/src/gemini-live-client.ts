@@ -12,13 +12,14 @@ type GeminiMessage = {
   };
 };
 
-export function runGeminiLive(config: VoiceConfig, pcm: Buffer, context: VoiceContext, history: ConversationTurn[]): Promise<{ transcript: string; responseText: string; pcm: Buffer }> {
+export function runGeminiLive(config: VoiceConfig, pcm: Buffer, context: VoiceContext, history: ConversationTurn[], signal?: AbortSignal): Promise<{ transcript: string; responseText: string; pcm: Buffer }> {
   return new Promise((resolve, reject) => {
     const endpoint = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(config.apiKey)}`;
     const socket = new WebSocket(endpoint);
     const audio: Buffer[] = [];
     let transcript = "";
     let responseText = "";
+    let audioBytes = 0;
     let settled = false;
     const timeout = setTimeout(() => finish(new Error("Gemini Live timed out.")), 45_000);
 
@@ -26,20 +27,31 @@ export function runGeminiLive(config: VoiceConfig, pcm: Buffer, context: VoiceCo
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      signal?.removeEventListener("abort", abort);
       socket.close();
       if (error) reject(error);
       else if (audio.length === 0) reject(new Error("Gemini Live returned no audio."));
       else resolve({ transcript: transcript.trim(), responseText: responseText.trim(), pcm: Buffer.concat(audio) });
     }
 
+    function abort(): void {
+      finish(new Error("Gemini Live request was cancelled."));
+    }
+    if (signal?.aborted) return abort();
+    signal?.addEventListener("abort", abort, { once: true });
+
     socket.addEventListener("open", () => {
       socket.send(JSON.stringify({
         setup: {
           model: `models/${config.liveModel}`,
-          generationConfig: { responseModalities: ["AUDIO"] },
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: config.liveVoice } } },
+          },
           systemInstruction: { parts: [{ text: buildSystemInstruction(context, history) }] },
-          inputAudioTranscription: { languageCodes: [context.locale] },
-          outputAudioTranscription: { languageCodes: [context.locale] },
+          // Native-audio models infer language; the lesson locale remains a prompt constraint.
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
         },
       }));
     });
@@ -59,7 +71,15 @@ export function runGeminiLive(config: VoiceConfig, pcm: Buffer, context: VoiceCo
         if (content.inputTranscription?.text) transcript += content.inputTranscription.text;
         if (content.outputTranscription?.text) responseText += content.outputTranscription.text;
         for (const part of content.modelTurn?.parts ?? []) {
-          if (part.inlineData?.data) audio.push(Buffer.from(part.inlineData.data, "base64"));
+          if (part.inlineData?.data) {
+            if (part.inlineData.mimeType && part.inlineData.mimeType !== "audio/pcm;rate=24000") {
+              return finish(new Error("Gemini Live returned an unsupported audio format."));
+            }
+            const chunk = Buffer.from(part.inlineData.data, "base64");
+            audioBytes += chunk.length;
+            if (audioBytes > config.maxResponseBytes) return finish(new Error("Gemini Live audio exceeded the response limit."));
+            audio.push(chunk);
+          }
         }
         if (content.turnComplete) finish();
       } catch (error) {
