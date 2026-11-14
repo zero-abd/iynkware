@@ -98,6 +98,35 @@ const CF_CSS = `
   h.lang = CF_LANG === 'zh' ? 'zh-Hans' : CF_LANG; }
 """
 
+# P8: capture mode for tools/xr-assets (docs/XR_ASSETS.md), inserted after the iynk block. Nothing in it runs unless
+# window.CF_CAPTURE is an object before the core loads, which only tools/xr-assets/capture does.
+CAPTURE_BLOCK = r"""// P8 capture mode (tools/xr-assets, docs/XR_ASSETS.md): off unless window.CF_CAPTURE is an object before the core
+// runs. Then vis() is always true (every face is drawn), tone/toneI remember the material behind each colour, pd()
+// remembers the 3D points behind each path, txM() the 3D frame of each text, and the 3D primitives record their
+// arguments in CF_CAP.prims and wrap their SVG in <g data-cfp="index">. A normal page never takes these branches.
+const CF_CAP = typeof window !== 'undefined' && window.CF_CAPTURE && typeof window.CF_CAPTURE === 'object' ? window.CF_CAPTURE : null;
+const CF_CAPMAT = m => m && typeof m === 'object' && typeof m.l === 'string' ? { l: m.l, m: m.m, d: m.d }
+  : typeof m === 'string' && /^#[0-9a-f]{6}$/i.test(m) ? matOf(m) : null;
+if (CF_CAP){
+  CF_CAP.reset = () => { CF_CAP.prims = []; CF_CAP.paths = new Map(); CF_CAP.texts = new Map(); CF_CAP.depth = 0; CF_CAP.last = null; CF_CAP.strips = null; };
+  CF_CAP.shades = new Map(); CF_CAP.txn = 0; CF_CAP.pr = { a: [], i: 0 }; CF_CAP.dr = { a: [], i: 0 }; CF_CAP.reset(); }
+// the last 256 results of P() and Dv() with their 3D inputs, so txM() can find the 3D point and directions it was given
+const CF_RING = (g, r, v) => { g.a[g.i] = [r[0], r[1], v]; g.i = (g.i + 1) & 255; };
+const CF_FIND = (g, r) => { for (let k = 1; k <= 256; k++){ const e = g.a[(g.i - k) & 255]; if (e && e[0] === r[0] && e[1] === r[1]) return e[2]; } return null; };
+const CF_SHADE = (c, n, m, cls) => { if (CF_CAP){ CF_CAP.last = { n: [n[0], n[1], n[2]], m: CF_CAPMAT(m), cls, c };
+  if (typeof c === 'string' && !CF_CAP.shades.has(c)) CF_CAP.shades.set(c, CF_CAP.last); } return c; };
+const CF_PD = (pts, close, d) => { if (CF_CAP && !CF_CAP.depth) CF_CAP.paths.set(d, { pts: pts.map(p => [p[0], p[1], p[2]]), close }); return d; };
+const CF_REC = (rec, fn) => {
+  CF_CAP.depth++; if (rec.t === 'loft') CF_CAP.strips = rec.strips; let s;
+  try { s = fn(); } finally { CF_CAP.depth--; CF_CAP.strips = null; }
+  if ('m' in rec) rec.m = CF_CAPMAT(rec.m) || CF_CAPMAT(DARK);
+  if ('shade' in rec){ rec.cls = rec.shade === tone ? 'sun' : rec.shade === toneI ? 'fixed' : CF_CAP.last ? CF_CAP.last.cls : 'fixed'; delete rec.shade; }
+  const id = CF_CAP.prims.length; CF_CAP.prims.push(JSON.parse(JSON.stringify(rec)));
+  return `<g data-cfp="${id}">${s}</g>`; };
+const CF_TXM = (o, U, V) => { const t = CF_TXM0(o, U, V) + ' cfT' + (++CF_CAP.txn);
+  CF_CAP.texts.set(t, { o: CF_FIND(CF_CAP.pr, o), U: CF_FIND(CF_CAP.dr, U), V: CF_FIND(CF_CAP.dr, V) }); return t; };
+"""
+
 PATCHES = [
     # (id, old, new)
     ('P0 iynk block', "const SHADOW = '#41538f';\n", "const SHADOW = '#41538f';\n" + IYNK_BLOCK),
@@ -173,6 +202,54 @@ PATCHES = [
     ('P6 callout columns',
      '  let top = { [-1]: fs, [1]: fs + 30*k };\n  if (btn && svgEl.getScreenCTM()){ const r = btn.getBoundingClientRect(), q = new DOMPoint(r.right, r.bottom + 50).matrixTransform(svgEl.getScreenCTM().inverse());\n    if (q.y > 0) top[-1] = q.y + hgt; }\n  for (const [col, side] of [[L, -1], [R, 1]]){\n    col.sort((a, b) => a.Y - b.Y);\n    let y = -1e9; for (const c of col){ c.py = Math.max(c.Y, y + gap, top[side]); y = c.py; }\n    const shift = col.length ? Math.max(0, col.reduce((a, c) => a + c.py - c.Y, 0) / col.length) : 0;\n    const room = col.length ? col[0].py - top[side] : 0; for (const c of col) c.py -= Math.min(shift, room);\n',
      "  let top = { [-1]: fs, [1]: fs + 30*k }, tight = null, under = null;\n  if (btn && svgEl.getScreenCTM()){ const r = btn.getBoundingClientRect(), inv = svgEl.getScreenCTM().inverse(), q = new DOMPoint(r.right, r.bottom + 50).matrixTransform(inv);\n    if (q.y > 0){ top[-1] = q.y + hgt; tight = new DOMPoint(r.right, r.bottom + 6).matrixTransform(inv).y + hgt/2; } }\n  // the right column starts under the stats panel (status, rails, counters) where that panel sits over the drawing\n  const sts = document.getElementById('stats');\n  if (sts && svgEl.getScreenCTM()){ const r = sts.getBoundingClientRect(), sr = svgEl.getBoundingClientRect();\n    if (r.height && r.bottom > sr.top && r.top < sr.bottom && r.right > sr.left && r.left < sr.right){\n      under = new DOMPoint(r.left, r.bottom + 6).matrixTransform(svgEl.getScreenCTM().inverse()).y + hgt/2; top[1] = Math.max(top[1], under); } }\n  const stack = (col, side) => {\n    col.sort((a, b) => a.Y - b.Y);\n    let y = -1e9; for (const c of col){ c.py = Math.max(c.Y, y + gap, top[side]); y = c.py; }\n    const shift = col.length ? Math.max(0, col.reduce((a, c) => a + c.py - c.Y, 0) / col.length) : 0;\n    const room = col.length ? col[0].py - top[side] : 0; for (const c of col) c.py -= Math.min(shift, room);\n  };\n  stack(L, -1); stack(R, 1);\n  // a tall button column pushes the left labels down: first they close up under the buttons, then the ones that would\n  // still leave the frame move to the right column (clamped inside the frame even when the drawing leaves no room there)\n  const bottom = vb.y + vb.height - hgt/2 - 2*k;\n  if (tight != null && L.some(c => c.py > bottom)){ top[-1] = Math.min(top[-1], tight); stack(L, -1); }\n  if (L.some(c => c.py > bottom)){ while (L.length && L[L.length - 1].py > bottom) R.push(L.pop()); stack(L, -1); stack(R, 1); }\n  // a right column too long to fit under the stats panel starts at the top after all\n  if (under != null && R.some(c => c.py > bottom)){ top[1] = fs + 30*k; stack(R, 1); }\n  for (const [col, side] of [[L, -1], [R, 1]]){\n"),
+] + [
+    # P8 capture mode for tools/xr-assets (docs/XR_ASSETS.md). Off unless window.CF_CAPTURE is an object before the core
+    # runs, so a normal page draws exactly as before. When on, every face counts as visible and each 3D primitive records
+    # its arguments; its SVG is wrapped in <g data-cfp="n"> so the converter can tell which part (data-act group) drew it.
+    # Cast shadows, silhouette ink, label pills and callouts are only recorded (the 3D look draws its own).
+    ('P8 capture block', "  h.lang = CF_LANG === 'zh' ? 'zh-Hans' : CF_LANG; }\n",
+     "  h.lang = CF_LANG === 'zh' ? 'zh-Hans' : CF_LANG; }\n" + CAPTURE_BLOCK),
+    ('P8 vis', "const vis = n => { const r = rotV(n);", "const vis = n => { if (CF_CAP) return true; const r = rotV(n);"),
+    ('P8 tone', "const tone  = (n,m) => step3(dot(rotV(n),L),   -.15, -.45, m);",
+     "const tone  = (n,m) => CF_SHADE(step3(dot(rotV(n),L),   -.15, -.45, m), n, m, 'sun');"),
+    ('P8 toneI', "const toneI = (n,m) => step3(dot(rotV(n),LIN),  .6,   .05, m);",
+     "const toneI = (n,m) => CF_SHADE(step3(dot(rotV(n),LIN),  .6,   .05, m), n, m, 'fixed');"),
+    ('P8 P', "  return [CAM_K*camDot(q,CAM_R) + (RC[0]-RC[1])*C + OX, CAM_K*camDot(q,CAM_D) + (RC[0]+RC[1])*S - RCZ + OY]; };",
+     "  const r = [CAM_K*camDot(q,CAM_R) + (RC[0]-RC[1])*C + OX, CAM_K*camDot(q,CAM_D) + (RC[0]+RC[1])*S - RCZ + OY]; if (CF_CAP) CF_RING(CF_CAP.pr, r, [x,y,z]); return r; };"),
+    ('P8 Dv', "const Dv = (x,y,z) => [CAM_K*camDot([x,y,z],CAM_R), CAM_K*camDot([x,y,z],CAM_D)];",
+     "const Dv = (x,y,z) => { const r = [CAM_K*camDot([x,y,z],CAM_R), CAM_K*camDot([x,y,z],CAM_D)]; if (CF_CAP) CF_RING(CF_CAP.dr, r, [x,y,z]); return r; };"),
+    ('P8 pd', "const pd = (pts, close=true) => 'M' + pts.map(p => { const q = P(p[0],p[1],p[2]); return f(q[0])+' '+f(q[1]); }).join('L') + (close ? 'Z' : '');",
+     "const pd = (pts, close=true) => CF_PD(pts, close, 'M' + pts.map(p => { const q = P(p[0],p[1],p[2]); return f(q[0])+' '+f(q[1]); }).join('L') + (close ? 'Z' : ''));"),
+    ('P8 shape', "const shape = (pts,c,w=.9) => fill(pd(pts),c) + (w ? ink(pd(pts),w) : '');",
+     "const shape = (pts,c,w=.9) => CF_CAP && !CF_CAP.depth ? CF_REC({ t:'shape', pts, c, w, hint: CF_CAP.last }, () => shape(pts,c,w)) : fill(pd(pts),c) + (w ? ink(pd(pts),w) : '');"),
+    ('P8 line', "const line  = (pts,w=.9) => ink(pd(pts,false),w);",
+     "const line  = (pts,w=.9) => CF_CAP && !CF_CAP.depth ? CF_REC({ t:'line', pts, w }, () => line(pts,w)) : ink(pd(pts,false),w);"),
+    ('P8 loft', "function loft(A, B, colour, flip=false){\n",
+     "function loft(A, B, colour, flip=false){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'loft', strips: [] }, () => loft(A, B, colour, flip));\n"),
+    ('P8 loft strips', "    if (vis(nr)) s += face(pd([a0,a1,b1,b0]), colour(nr));",
+     "    if (vis(nr)){ const cc = colour(nr); if (CF_CAP && CF_CAP.strips) CF_CAP.strips.push({ q: [a0,a1,b1,b0], n: nr, c: cc, s: CF_CAP.last }); s += face(pd([a0,a1,b1,b0]), cc); }"),
+    ('P8 hullInk', "const hullInk = (pts3, w=1.4) => { const h = hull(pts3.map(p=>P(...p)));",
+     "const hullInk = (pts3, w=1.4) => { if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'skip', why:'hullInk' }, () => ''); const h = hull(pts3.map(p=>P(...p)));"),
+    ('P8 box', "function box(x0,y0,z0,x1,y1,z1,m,shade=toneI,w=.9){\n",
+     "function box(x0,y0,z0,x1,y1,z1,m,shade=toneI,w=.9){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'box', a:[x0,y0,z0,x1,y1,z1], m, shade, w }, () => box(x0,y0,z0,x1,y1,z1,m,shade,w));\n"),
+    ('P8 extrude', "function extrude(profileUV, x0, x1, m, shade=tone){ return",
+     "function extrude(profileUV, x0, x1, m, shade=tone){ if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'extrude', profile: profileUV, x0, x1, m, shade }, () => extrude(profileUV, x0, x1, m, shade)); return"),
+    ('P8 cyl', "function cyl(x,y,z0,z1,r,m,shade=toneI,w=1.2,n=24){\n",
+     "function cyl(x,y,z0,z1,r,m,shade=toneI,w=1.2,n=24){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'cyl', a:[x,y,z0,z1,r], m, shade, w, n }, () => cyl(x,y,z0,z1,r,m,shade,w,n));\n"),
+    ('P8 cylX', "function cylX(x0,x1,y,z,r,m,shade=toneI,w=1.1,n=20){\n",
+     "function cylX(x0,x1,y,z,r,m,shade=toneI,w=1.1,n=20){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'cylX', a:[x0,x1,y,z,r], m, shade, w, n }, () => cylX(x0,x1,y,z,r,m,shade,w,n));\n"),
+    ('P8 rod', "function rod(a, b, r, m, shade=toneI, w=1, r1=r, n=16){\n",
+     "function rod(a, b, r, m, shade=toneI, w=1, r1=r, n=16){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'rod', a, b, r, r1, m, shade, w, n }, () => rod(a, b, r, m, shade, w, r1, n));\n"),
+    ('P8 txM', "const txM = (o, U, V) => (U[0]*V[1]",
+     "const txM = (o, U, V) => CF_CAP ? CF_TXM(o, U, V) : CF_TXM0(o, U, V);\nconst CF_TXM0 = (o, U, V) => (U[0]*V[1]"),
+    ('P8 castShadow', "const castShadow = (pts3, z0=0, clip=null) => { const k",
+     "const castShadow = (pts3, z0=0, clip=null) => { if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'skip', why:'shadow' }, () => ''); const k"),
+    ('P8 board', "function board(x0,y0,x1,y1,h=3,r=5,m=BOARD){\n",
+     "function board(x0,y0,x1,y1,h=3,r=5,m=BOARD){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'board', a:[x0,y0,x1,y1,h,r], m }, () => board(x0,y0,x1,y1,h,r,m));\n"),
+    ('P8 tag', "function tag(p3, dx, dy, text, on=false){\n",
+     "function tag(p3, dx, dy, text, on=false){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'tag', p: p3, text }, () => '');\n"),
+    ('P8 callouts', "function xrCallouts(items, B){\n",
+     "function xrCallouts(items, B){\n  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'callouts', items: (items || []).map(c => ({ at: c.at, text: c.text })) }, () => '');\n"),
 ]
 
 
