@@ -10,7 +10,9 @@ import type { Project } from '@/project/generated/types';
 import type { Finding } from '@/sim/faults/types';
 import type { HostInput, PartInput, PartState, SimDiagnostic, SimNetlist } from '@/sim/engine';
 import type { AnalogFrame, AnalogWatch, WaveSamples } from '@/sim-host/analog-protocol';
-import type { PinLevel, SimRunState } from '@/sim-host/protocol';
+import type { PinLevel, SimEv, SimRunState } from '@/sim-host/protocol';
+import type { PhysicsFrame } from '@/core/robot-report';
+import type { MechRefusal } from '@/sim-host/mech';
 import type { MeterProbes } from '@/sim/probe/meter';
 import type { ProbeSpec, Reading } from '@/sim/probe/tap';
 import type { Unsubscribe } from './common';
@@ -28,6 +30,7 @@ export type {
   MeterProbes,
   ProbeSpec,
   SimNetlist,
+  PhysicsFrame,
 };
 
 /** The worker's run states plus the two the bridge adds: `unloaded` (nothing loaded) and `error` (load refused). */
@@ -49,6 +52,20 @@ export interface SimFrame {
   /** Volts, amps, watts and part latches (`ok`/`hot`/`burnt`/`reversed`), only after `watchAnalog`. */
   readonly analog?: AnalogFrame;
 }
+
+/** Why the physics of a robot run failed: a refused load (`MechRefusal`) or a halt in the run (`mech_halt`). */
+export type MechFailure = MechRefusal['code'] | Extract<SimEv, { t: 'mech_halt' }>['code'];
+
+/**
+ * Where the physics engine of a robot run is. Only a robot project (`needsPhysics`) has one: a board project never
+ * posts any of these. A refused load arrives as one `failed` with its code; a halt in the run as `failed` with the
+ * halt's code and the body that faulted, after its last good frame.
+ */
+export type MechStatus =
+  /** The engine is being brought into the worker (once per worker); `wireBytes` when it is downloaded. */
+  | { readonly state: 'loading-physics'; readonly wireBytes?: number }
+  | { readonly state: 'ready' }
+  | { readonly state: 'failed'; readonly reason: string; readonly code: MechFailure; readonly body?: string };
 
 export interface LoadResult {
   ok: boolean;
@@ -79,8 +96,17 @@ export interface SimBridge {
    * `onState` reports `idle`; null while a load is in flight and after a refused one, so a later load replaces it.
    */
   readonly netlist: SimNetlist | null;
+  /**
+   * The last physics frame of the current robot run (bodies by id: position in m, yaw in rad), or null before the first
+   * one and for a board project. Frames come at most 30 per simulated second, plus one at load, stop and the end. The
+   * object is the worker's message as it arrived, never copied or kept by the bridge: read it, do not change it.
+   */
+  readonly lastMech: PhysicsFrame | null;
 
-  /** Builds the netlist from the document and loads its firmware. Replaces any earlier run. */
+  /**
+   * Builds the netlist from the document and loads its firmware. Replaces any earlier run. A robot project
+   * (`needsPhysics`) also loads the physics engine first; a refused robot is a failed load with `onMechState` `failed`.
+   */
   load(doc: Project): Promise<LoadResult>;
   /** Starts or resumes, paced against the wall clock at the current speed. */
   run(): Promise<void>;
@@ -131,6 +157,9 @@ export interface SimBridge {
   onState(fn: (state: RunState) => void): Unsubscribe;
   onFindings(fn: (findings: readonly Finding[]) => void): Unsubscribe;
   onDiagnostic(fn: (d: { kind: string; message: string; atNs: number }) => void): Unsubscribe;
+  /** Each physics frame of the current run, the same object as `lastMech`. */
+  onMech(fn: (frame: PhysicsFrame) => void): Unsubscribe;
+  onMechState(fn: (status: MechStatus) => void): Unsubscribe;
 
   /** Ends the worker. Calls after this reject. */
   dispose(): Promise<void>;
