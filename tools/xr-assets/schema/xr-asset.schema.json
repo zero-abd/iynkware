@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iynkware.local/schemas/xr-asset-1.json",
+  "title": "iynkware XR asset sidecar, version 1",
+  "description": "The JSON next to each item's binary glTF. Same shape as tools/xr-assets/schema/xr-asset.ts; docs/XR_ASSETS.md explains every field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "kind", "name", "glb", "source", "generator", "frame", "bounds", "stats", "look", "parts", "anchors", "channels", "layers", "texts", "warnings"],
+  "properties": {
+    "schema": { "const": "iynkware.xr-asset/1" },
+    "id": { "type": "string", "pattern": "^(boards|parts|modules|robotics|drones|flight)/[a-z0-9][a-z0-9-]*$" },
+    "kind": { "$ref": "#/$defs/itemKind" },
+    "name": { "type": "string", "minLength": 1 },
+    "glb": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*\\.glb$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure", "engine", "pageSha256"],
+      "properties": {
+        "figure": { "type": "string", "pattern": "^figures/.+\\.js$" },
+        "engine": { "enum": ["bench", "drone", "flight"] },
+        "pageSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "descriptor": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version"],
+      "properties": { "tool": { "const": "tools/xr-assets" }, "version": { "type": "string" } }
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["units", "up", "front", "handedness", "origin", "source", "fromSource"],
+      "properties": {
+        "units": { "const": "m" },
+        "up": { "const": "+Y" },
+        "front": { "const": "+Z" },
+        "handedness": { "const": "right" },
+        "origin": { "enum": ["footprint-centre", "craft-centre", "range-origin"] },
+        "source": { "enum": ["board-mm", "flu-mm", "range-m"] },
+        "fromSource": { "type": "array", "items": { "type": "number" }, "minItems": 16, "maxItems": 16 }
+      }
+    },
+    "bounds": { "$ref": "#/$defs/box" },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triangles", "trianglesXray", "drawCalls", "lineSegments", "nodes", "bytes"],
+      "properties": {
+        "triangles": { "$ref": "#/$defs/count" },
+        "trianglesXray": { "$ref": "#/$defs/count" },
+        "drawCalls": { "$ref": "#/$defs/count" },
+        "lineSegments": { "$ref": "#/$defs/count" },
+        "nodes": { "$ref": "#/$defs/count" },
+        "bytes": { "$ref": "#/$defs/count" }
+      }
+    },
+    "look": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ink", "paper", "shadow", "sun", "fixedLight", "defaultView", "shadowLength"],
+      "properties": {
+        "ink": { "$ref": "#/$defs/hex" },
+        "paper": { "$ref": "#/$defs/hex" },
+        "shadow": { "$ref": "#/$defs/hex" },
+        "sun": { "$ref": "#/$defs/vec3" },
+        "fixedLight": { "$ref": "#/$defs/vec3" },
+        "defaultView": { "$ref": "#/$defs/vec3" },
+        "shadowLength": { "type": "number", "minimum": 0 }
+      }
+    },
+    "parts": { "type": "array", "items": { "$ref": "#/$defs/part" } },
+    "anchors": { "type": "array", "items": { "$ref": "#/$defs/anchor" } },
+    "channels": { "type": "array", "items": { "$ref": "#/$defs/channel" } },
+    "layers": { "type": "array", "items": { "$ref": "#/$defs/layer" } },
+    "texts": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "extras": { "type": "object" }
+  },
+  "$defs": {
+    "itemKind": { "enum": ["board", "part", "module", "bench", "drone", "flight"] },
+    "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+    "hex": { "type": "string", "pattern": "^#[0-9a-f]{6}$" },
+    "count": { "type": "integer", "minimum": 0 },
+    "box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": { "min": { "$ref": "#/$defs/vec3" }, "max": { "$ref": "#/$defs/vec3" } }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "index", "name", "parent", "role", "explode"],
+      "properties": {
+        "id": { "type": "string" },
+        "index": { "$ref": "#/$defs/count" },
+        "name": { "type": "string" },
+        "parent": { "type": "string" },
+        "role": { "enum": ["item", "board", "module", "part", "connector", "led", "control", "motor", "prop", "wire", "frame", "cover"] },
+        "nodes": { "type": "array", "items": { "type": "string" } },
+        "bounds": { "$ref": "#/$defs/box" },
+        "explode": { "$ref": "#/$defs/vec3" },
+        "cover": { "type": "boolean" },
+        "group": { "type": "string" },
+        "after": { "type": "array", "items": { "type": "string" } },
+        "extras": { "type": "object" }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "part", "position", "normal"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["pin", "hole", "header", "strip", "rail", "led", "control", "motor", "prop", "label", "screen", "port"] },
+        "part": { "type": "string" },
+        "position": { "$ref": "#/$defs/vec3" },
+        "normal": { "$ref": "#/$defs/vec3" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "depth": { "type": "number", "minimum": 0 },
+        "members": { "type": "array", "items": { "type": "string" } },
+        "text": { "type": "string" },
+        "up": { "$ref": "#/$defs/vec3" },
+        "layer": { "enum": ["base", "xray"] },
+        "rect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin", "u", "v", "pixels"],
+          "properties": {
+            "origin": { "$ref": "#/$defs/vec3" },
+            "u": { "$ref": "#/$defs/vec3" },
+            "v": { "$ref": "#/$defs/vec3" },
+            "pixels": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2 }
+          }
+        },
+        "dir": { "enum": ["CW", "CCW"] },
+        "channel": { "type": "string" },
+        "extras": { "type": "object" }
+      }
+    },
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "part", "nodes", "value"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^(led|servo|prop|motor|press|turn):.+$" },
+        "kind": { "enum": ["emissive", "rotate", "spin", "translate"] },
+        "part": { "type": "string" },
+        "nodes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unit", "min", "max", "rest"],
+          "properties": {
+            "unit": { "enum": ["level", "rgb", "deg", "rpm", "press"] },
+            "min": { "type": "number" },
+            "max": { "type": "number" },
+            "rest": { "type": "number" }
+          }
+        },
+        "color": { "$ref": "#/$defs/hex" },
+        "axis": { "$ref": "#/$defs/vec3" },
+        "pivot": { "$ref": "#/$defs/vec3" },
+        "scale": { "type": "number" },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "key"],
+          "properties": {
+            "source": { "enum": ["net", "rail", "serial", "param", "press", "motor", "pin"] },
+            "key": { "type": "string", "minLength": 1 }
+          }
+        },
+        "extras": { "type": "object" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "enum": ["rotate", "spin"] } } }, "then": { "properties": { "axis": true, "pivot": true, "scale": true }, "required": ["axis", "pivot", "scale"] } },
+        { "if": { "properties": { "kind": { "const": "translate" } } }, "then": { "properties": { "axis": true, "scale": true }, "required": ["axis", "scale"] } }
+      ]
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nodes", "opacity"],
+      "properties": {
+        "id": { "enum": ["base", "cover", "xray"] },
+        "nodes": { "type": "array", "items": { "type": "string" } },
+        "opacity": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 2, "maxItems": 2 }
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["part", "text", "position", "normal", "up", "size", "color", "weight", "layer"],
+      "properties": {
+        "part": { "type": "string" },
+        "text": { "type": "string" },
+        "position": { "$ref": "#/$defs/vec3" },
+        "normal": { "$ref": "#/$defs/vec3" },
+        "up": { "$ref": "#/$defs/vec3" },
+        "size": { "type": "number", "exclusiveMinimum": 0 },
+        "color": { "$ref": "#/$defs/hex" },
+        "weight": { "type": "number" },
+        "layer": { "enum": ["base", "xray"] }
+      }
+    }
+  }
+}
