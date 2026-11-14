@@ -166,6 +166,10 @@ pin anchors, and modules are plain boxes.
 
 ## 7. Performance rules (Quest 3S)
 
+> **Draw-call budget suspended (owner's decision, 2026-11-14).** The "under 100 draw calls" rule below does not apply
+> for now: build beyond it, and do not fail or hold a PR over draw calls. Performance gets its own pass later, measured
+> on the headset. The other rules here still hold.
+
 - **72 fps is the floor, 90 the target.** The app asks for 90 (`XrSettings.refresh`) through `updateTargetFrameRate`
   when the browser offers it. The frame budget at 90 is 11.1 ms for CPU and GPU together.
 - **Under 100 draw calls** with a full bench in view. The skeleton bench draws 17 in the flat view and 48 for both

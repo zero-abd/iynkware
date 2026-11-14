@@ -62,6 +62,9 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 
 ## The headset demo today
 
+> **Draw-call budget suspended (owner's decision, 2026-11-14).** Build beyond the 100-call budget; no PR fails or waits
+> over draw calls. Performance gets its own pass later, measured on the headset (docs/XR_ARCHITECTURE.md section 7).
+
 What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
 each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
 `http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `f3469c6`.
