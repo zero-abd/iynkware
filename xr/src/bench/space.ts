@@ -39,7 +39,7 @@
  *                  every running transition. Transitions start after the layout pass, so the hook sees it whole.
  *   restore        sends an item's object back to its target as a `move` (a hand moved it, the edit changed nothing).
  *   settled        resolves when the newest change is laid out.
- * `objectOf`, `partOf`, `worldOf` and `onLayout` follow the contract; `worldOf`, `anchorBoard` and wires read target
+ * `objectOf`, `partOf`, `worldOf`, `wirePath` and `onLayout` follow the contract; `worldOf`, `anchorBoard` and wires read target
  * poses, not where a running transition has an object.
  */
 import {
@@ -221,6 +221,16 @@ function disposeOwned(asset: PartAsset, object: Object3D) {
   for (const m of seen) m.dispose();
 }
 
+/** Segments of a wire's arch, so a drawn path has `WIRE_SEGMENTS + 1` points (at most 32, as `wirePath` promises). */
+const WIRE_SEGMENTS = 20;
+
+/** The arch a wire is drawn along, from end `a` to end `b` (board frame): up from the mid point by a fifth of its span. */
+function wireArch(a: Vector3, b: Vector3): QuadraticBezierCurve3 {
+  const ctrl = a.clone().add(b).multiplyScalar(0.5);
+  ctrl.y = Math.max(a.y, b.y) + 0.007 + a.distanceTo(b) * 0.18;
+  return new QuadraticBezierCurve3(a.clone(), ctrl, b.clone());
+}
+
 /** Today's wires: one tube per wire arching between its ends, one shared material per colour. */
 function tubeRenderer(root: Object3D): WireRenderer {
   const meshes = new Map<string, Mesh>();
@@ -237,15 +247,11 @@ function tubeRenderer(root: Object3D): WireRenderer {
   return {
     draw(w, from, to) {
       if (!from || !to) return erase(w.id);
-      const a = from.clone();
-      const b = to.clone();
-      const ctrl = a.clone().add(b).multiplyScalar(0.5);
-      ctrl.y = Math.max(a.y, b.y) + 0.007 + a.distanceTo(b) * 0.18;
-      const curve = new QuadraticBezierCurve3(a, ctrl, b);
+      const curve = wireArch(from, to);
       const colour = WIRE_COLOURS[w.color ?? ''] ?? WIRE_COLOURS.orange!;
       let material = materials.get(colour);
       if (!material) materials.set(colour, (material = new MeshStandardMaterial({ color: new Color(colour), roughness: 0.6 })));
-      const geometry = new TubeGeometry(curve, 20, 0.0009, 6, false);
+      const geometry = new TubeGeometry(curve, WIRE_SEGMENTS, 0.0009, 6, false);
       let mesh = meshes.get(w.id);
       if (mesh) {
         mesh.geometry.dispose();
@@ -291,6 +297,8 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
   const running = new Map<Rec, TransitionKind>();
   /** The wire objects last drawn, by id. */
   const drawnWires = new Map<string, BenchWire>();
+  /** The path of each drawn wire in the board frame, the points of the arch the tube follows. */
+  const wirePaths = new Map<string, readonly Vec3[]>();
   let wires: WireRenderer = tubeRenderer(root);
   let transition: Transition | null = null;
   const centre = new Vector3();
@@ -327,6 +335,15 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
     if (end.kind === 'pin') return anchorBoard(end.c, end.p, out);
     if (end.kind === 'hole') return anchorBoard(end.surface, end.hole, out);
     return null;
+  };
+
+  /** Draws one wire and keeps its path: the arch the default tube follows, sampled at the tube's segments. */
+  const drawWire = (w: BenchWire) => {
+    const from = endBoard(w.from, _a);
+    const to = endBoard(w.to, _b);
+    if (from && to) wirePaths.set(w.id, wireArch(from, to).getPoints(WIRE_SEGMENTS).map((p): Vec3 => [p.x, p.y, p.z]));
+    else wirePaths.delete(w.id);
+    wires.draw(w, from, to);
   };
 
   /** Target poses for every placement of the view whose asset is known. */
@@ -493,11 +510,12 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       now.add(w.id);
       if (drawnWires.get(w.id) === w && !changed.has(endPart(w.from)) && !changed.has(endPart(w.to))) continue;
       drawnWires.set(w.id, w);
-      wires.draw(w, endBoard(w.from, _a), endBoard(w.to, _b));
+      drawWire(w);
     }
     for (const id of [...drawnWires.keys()]) {
       if (now.has(id)) continue;
       drawnWires.delete(id);
+      wirePaths.delete(id);
       wires.erase(id);
     }
 
@@ -603,6 +621,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
           return wires.pointOf(target.wire, v) ? toWorld(v) : null;
       }
     },
+    wirePath: (wire) => wirePaths.get(wire) ?? null,
     objectOf: (id) => items.get(id)?.object,
     partOf(object) {
       for (let o: Object3D | null = object; o; o = o.parent) if (typeof o.userData.partId === 'string') return o.userData.partId;
@@ -623,6 +642,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       }
       for (const rec of items.values()) disposeOwned(rec.asset, rec.object);
       wires.dispose();
+      wirePaths.clear();
       root.removeFromParent();
       table.removeFromParent();
     },
@@ -644,7 +664,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
     setWireRenderer(renderer) {
       wires.dispose();
       wires = renderer ?? tubeRenderer(root);
-      for (const w of drawnWires.values()) wires.draw(w, endBoard(w.from, _a), endBoard(w.to, _b));
+      for (const w of drawnWires.values()) drawWire(w);
     },
     setTransition(hook) {
       for (const [rec, kind] of [...running]) {
