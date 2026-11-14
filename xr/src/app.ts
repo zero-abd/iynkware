@@ -4,9 +4,9 @@ import type { World } from '@iwsdk/core';
 import { createAssetRegistry, describeFrom } from './assets/registry';
 import { createBenchSpace } from './bench/space';
 import type { FeatureModule, XrApp, XrMode } from './contracts/app';
-import type { LessonGuide } from './contracts/lesson';
 import type { Project } from './contracts/project';
 import { createInputService } from './input';
+import { createLessonSlot } from './learn/launcher';
 import { createProgressStore } from './learn/progress';
 import { createProjectStore, createTemplateSource } from './project/store';
 import { createPartViewRegistry } from './run/views/registry';
@@ -36,7 +36,7 @@ export function createApp(world: World, doc: Project): AppHandle {
   world.createTransformEntity(bench.root);
   const overlay = createOverlay(bench, bench.table);
   const mode = value<XrMode>('flat');
-  const guide = value<LessonGuide | null>(null);
+  const lessons = createLessonSlot();
   const shell = createShellService();
   const app: XrApp = {
     world,
@@ -52,7 +52,8 @@ export function createApp(world: World, doc: Project): AppHandle {
     settings,
     shell,
     progress: createProgressStore(),
-    guide,
+    guide: lessons.guide,
+    lessons,
     scale: createScaleService({ bench, settings, mode, shell }),
     partner: null,
   };

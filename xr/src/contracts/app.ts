@@ -7,7 +7,7 @@ import type { World } from '@iwsdk/core';
 import type { AssetRegistry } from './assets';
 import type { ReadonlyValue, Unsubscribe } from './common';
 import type { InputService } from './input';
-import type { LessonGuide, ProgressStore } from './lesson';
+import type { LessonGuide, LessonLauncher, ProgressStore } from './lesson';
 import type { OverlayLayer } from './overlay';
 import type { PartViewRegistry } from './part-view';
 import type { ProjectStore, TemplateSource } from './project';
@@ -37,6 +37,8 @@ export interface XrApp {
   readonly progress: ProgressStore;
   /** Set while a lesson is open. */
   readonly guide: ReadonlyValue<LessonGuide | null>;
+  /** Opens lessons and the catalogue (the learn pillar fills it when it mounts). */
+  readonly lessons: LessonLauncher;
   /** Work scale, Room size, see-through, explode, current flow, the part inspector and the room (pillar 4). */
   readonly scale: ScaleService;
   /**
