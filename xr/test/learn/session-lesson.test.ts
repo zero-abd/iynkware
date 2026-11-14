@@ -325,16 +325,15 @@ describe('lesson launcher', () => {
     detach();
   });
 
-  it('keeps a fork that is already open and reloads a stopped simulation after an edit', async () => {
+  it('keeps a fork that is already open as it is', async () => {
     const fork = forkLesson(blink);
     const { app, sim } = rig(fork);
     const detach = attachLessons(app);
     const slot = lessonSlot(app);
     await vi.waitFor(() => expect(slot.session.value).not.toBeNull());
     expect(app.project.doc).toBe(fork);
-    await sim.load(fork);
-    editSource(app, 'delay(500);', 'delay(300);');
-    await vi.waitFor(() => expect(sim.calls.filter((c) => c === `load:${fork.id}`)).toHaveLength(2));
+    expect(slot.session.value?.state.value.projectId).toBe(fork.id);
+    expect(sim.calls).toEqual([]);
     detach();
     expect(slot.session.value).toBeNull();
   });

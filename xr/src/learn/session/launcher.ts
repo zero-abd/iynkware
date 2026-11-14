@@ -12,40 +12,15 @@ import { lessonSlot } from '../launcher';
 import type { LessonSession } from '../types';
 import { createLessonSession } from './session';
 
-/** How long a burst of edits settles before the stopped simulation takes the edited document. */
-const RELOAD_DELAY_MS = 300;
-const STOPPED = new Set(['idle', 'done', 'halted', 'limit']);
-
-/**
- * While a lesson is open, a stopped simulation follows the document: the run controls load the document only when
- * nothing is loaded and reload it only while running, so Run after an edit made while stopped would run the old code.
- * Local adapter until the run controls reload on Run (reported to the run pillar).
- */
-function keepSimCurrent(app: XrApp, projectId: string): Unsubscribe {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const off = app.project.subscribe((change) => {
-    if (change.origin === 'load' || app.project.doc.id !== projectId) return;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (STOPPED.has(app.sim.state)) void app.sim.load(app.project.doc).catch(() => undefined);
-    }, RELOAD_DELAY_MS);
-  });
-  return () => {
-    clearTimeout(timer);
-    off();
-  };
-}
-
 export function attachLessons(app: XrApp): Unsubscribe {
   const slot = lessonSlot(app);
-  let current: { session: LessonSession; off: Unsubscribe } | null = null;
+  let current: LessonSession | null = null;
   let opening = 0;
 
   const close = () => {
     opening++;
     if (!current) return;
-    current.off();
-    current.session.dispose();
+    current.dispose();
     current = null;
     slot.session.set(null);
     slot.guide.set(null);
@@ -53,7 +28,7 @@ export function attachLessons(app: XrApp): Unsubscribe {
 
   const start = (templateId: string, template: Project) => {
     const session = createLessonSession(app, { templateId, template });
-    current = { session, off: keepSimCurrent(app, app.project.doc.id) };
+    current = session;
     slot.session.set(session);
     slot.guide.set(session.guide);
     slot.lastValue.set({ templateId, title: session.state.value.title });
