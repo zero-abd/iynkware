@@ -43,6 +43,9 @@ import type { Entity, Intersection, Object3D, Quaternion, World } from '@iwsdk/c
 import type { Unsubscribe } from '../contracts/common';
 import type {
   BindOptions,
+  ButtonState,
+  FaceButton,
+  FreeHold,
   Hand,
   HandPose,
   InputService,
@@ -54,6 +57,8 @@ import type {
 import {
   type GrabFlags,
   type Heading,
+  type HoldState,
+  type MutableButton,
   type PointerKind,
   type Stick,
   POSE_JOINTS,
@@ -63,8 +68,11 @@ import {
   headingOf,
   isGrabPress,
   modeOf,
+  newHoldState,
   palmNormal,
   sourceOf,
+  stepButton,
+  stepHold,
   virtualStick,
 } from './helpers';
 
@@ -302,6 +310,9 @@ export function createInputService(world: World): InputService {
   const handPresses: Record<Hand, number> = { left: 0, right: 0 };
   /** Grabs in flight per side, from a hand or a controller. */
   const grabPresses: Record<Hand, number> = { left: 0, right: 0 };
+  /** Presses in flight from a tracked hand or controller (select or grab), per side: a hold they cover is not free. */
+  const sidePresses: Record<Hand, number> = { left: 0, right: 0 };
+  const fromSide = (press: Press) => press.hand !== null && (press.source === 'hand' || press.source === 'controller');
 
   const capturedWithin = (pointerId: number, root: Object3D): boolean => {
     let o: Object3D | null = pointerById(pointerId)?.getPointerCapture()?.object ?? null;
@@ -376,6 +387,7 @@ export function createInputService(world: World): InputService {
     pressing.add(b);
     if (press.source === 'hand' && press.hand) handPresses[press.hand]++;
     if (press.grab && press.hand) grabPresses[press.hand]++;
+    if (press.hand && fromSide(press)) sidePresses[press.hand]++;
     emit(b, makeEvent(grab ? 'grab-start' : 'select-start', b, copyPointer(pointer), e));
   };
 
@@ -384,6 +396,7 @@ export function createInputService(world: World): InputService {
     if (b.presses.size === 0) pressing.delete(b);
     if (press.source === 'hand' && press.hand) handPresses[press.hand] = Math.max(0, handPresses[press.hand] - 1);
     if (press.grab && press.hand) grabPresses[press.hand] = Math.max(0, grabPresses[press.hand] - 1);
+    if (press.hand && fromSide(press)) sidePresses[press.hand] = Math.max(0, sidePresses[press.hand] - 1);
   };
 
   /** `e` is the pointerup (completed), the pointercancel or pointerleave, or null when the capture vanished. */
@@ -810,6 +823,42 @@ export function createInputService(world: World): InputService {
     }
   };
 
+  // ---- per frame: face buttons and free holds ---------------------------------------------------------------------
+
+  const BUTTON_IDS: Record<Hand, Record<FaceButton, string>> = {
+    left: { lower: InputComponent.X_Button, upper: InputComponent.Y_Button, stick: InputComponent.Thumbstick },
+    right: { lower: InputComponent.A_Button, upper: InputComponent.B_Button, stick: InputComponent.Thumbstick },
+  };
+  const FACE_BUTTONS: readonly FaceButton[] = ['lower', 'upper', 'stick'];
+  const newButtons = (): Record<FaceButton, MutableButton> => ({
+    lower: { pressed: false, down: false, up: false },
+    upper: { pressed: false, down: false, up: false },
+    stick: { pressed: false, down: false, up: false },
+  });
+  const buttons: Record<Hand, Record<FaceButton, MutableButton>> = { left: newButtons(), right: newButtons() };
+  const holds: Record<Hand, HoldState> = { left: newHoldState(), right: newHoldState() };
+
+  const updateButtons = (hand: Hand, source: PointerSource | null) => {
+    const gp = source === 'controller' ? xr.gamepads[hand] : undefined;
+    for (const which of FACE_BUTTONS) {
+      stepButton(buttons[hand][which], gp ? gp.getButtonPressed(BUTTON_IDS[hand][which]) : false);
+    }
+  };
+
+  /** After the poses, and after this frame's pointer events (InputSystem runs first), so presses are already counted. */
+  const updateHold = (hand: Hand, source: PointerSource | null, nowMs: number) => {
+    const state = holds[hand];
+    if (source !== 'hand' && source !== 'controller') {
+      stepHold(state, false, false, nowMs, 'pinch', 0, 0, 0);
+      return;
+    }
+    const isHand = source === 'hand';
+    const down = isHand ? xr.getSelectState(hand).active : !!xr.gamepads[hand]?.getButtonPressed(InputComponent.Squeeze);
+    const consumed = sidePresses[hand] > 0 || (isHand && pinches[hand].consumed);
+    const p = poses[hand].position;
+    stepHold(state, down, consumed, nowMs, isHand ? 'pinch' : 'grip', p[0], p[1], p[2]);
+  };
+
   const tick = (time: number) => {
     const left = sourceNow('left');
     const right = sourceNow('right');
@@ -819,6 +868,10 @@ export function createInputService(world: World): InputService {
     updatePose('right', right);
     updateStick('left', left);
     updateStick('right', right);
+    updateButtons('left', left);
+    updateButtons('right', right);
+    updateHold('left', left, time * 1000);
+    updateHold('right', right, time * 1000);
     routeEvent.timeStamp = time * 1000;
     routeGrip('left', left);
     routeGrip('right', right);
@@ -869,6 +922,12 @@ export function createInputService(world: World): InputService {
       } catch {
         // A runtime without haptics: a pulse is only a nicety.
       }
+    },
+    button(hand, which): ButtonState {
+      return buttons[hand][which];
+    },
+    freeHold(hand): FreeHold | null {
+      return holds[hand].free ? holds[hand].hold : null;
     },
     onAny(fn) {
       anyFns.add(fn);
