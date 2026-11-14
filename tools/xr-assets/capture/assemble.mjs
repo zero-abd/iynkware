@@ -4,7 +4,7 @@
 // into the asset frame and writes the files.
 import { buildPage, loadPage } from './page.mjs';
 import { walk } from './walk.mjs';
-import { fitRigid, axisAngle } from './fit.mjs';
+import { fitRigid, axisAngle, rotate } from './fit.mjs';
 import { fromPrim, fromPath, fromText, triangulate, newell, add, sub, scale, dot, cross, norm, len } from '../gltf/geom.mjs';
 import { MeshBatch, writeGlb } from '../gltf/glb.mjs';
 
@@ -112,8 +112,7 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
         const gone = minus(R, A, 'geo'), came = minus(A, R, 'geo');
         moved = gone;
         if (!ch.axis && gone.length && gone.length === came.length) {
-          const P = [], Q = [];
-          for (let i = 0; i < gone.length; i++) { const a = verts(gone[i]), b = verts(came[i]); if (a.length !== b.length) continue; P.push(...a); Q.push(...b); }
+          const { P, Q } = pairMoved(gone, came);
           if (P.length >= 3) {
             const fit = fitRigid(P, Q);
             if (ch.kind === 'translate') { const tl = len(fit.t); ch.fitAxis = tl > 1e-6 ? norm(fit.t) : null; ch.fitAmount = tl; }
@@ -309,6 +308,37 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
 }
 
 const centroid = (ps) => scale(ps.reduce((s, p) => add(s, p), [0, 0, 0]), 1 / ps.length);
+
+/**
+ * Pair the draws a motion moved (rest `gone`, moved `came`) for one rigid fit. Draw order is not reliable (a figure
+ * may draw its pieces in depth order, which a turn changes), so the largest piece is matched by shape to each of its
+ * best few look-alikes, every other piece follows that motion to its nearest same-sized counterpart, and the pairing
+ * whose whole fit is tightest wins. Returns the paired points { P, Q }.
+ */
+export function pairMoved(gone, came) {
+  const G = gone.map((d) => verts(d)).filter((v) => v.length), C = came.map((d) => verts(d)).filter((v) => v.length);
+  if (!G.length || !C.length) return { P: [], Q: [] };
+  const anchor = G.reduce((a, b) => (b.length > a.length ? b : a));
+  const cands = C.filter((c) => c.length === anchor.length).map((c) => fitRigid(anchor, c)).sort((a, b) => a.rms - b.rms).slice(0, 8);
+  let best = { P: [], Q: [], rms: Infinity };
+  for (const m of cands) {
+    const used = new Set(), P = [], Q = [];
+    for (const g of G) {
+      const at = add(rotate(m.q, centroid(g)), m.t);
+      let bj = -1, bd = Infinity;
+      for (let j = 0; j < C.length; j++) {
+        if (used.has(j) || C[j].length !== g.length) continue;
+        const dd = len(sub(centroid(C[j]), at));
+        if (dd < bd) { bd = dd; bj = j; }
+      }
+      if (bj >= 0) { used.add(bj); P.push(...g); Q.push(...C[bj]); }
+    }
+    if (P.length < 3) continue;
+    const { rms } = fitRigid(P, Q);
+    if (rms < best.rms) best = { P, Q, rms };
+  }
+  return best;
+}
 const round6 = (v) => v.map((x) => +x.toFixed(6) + 0);
 
 function flush(batch) {

@@ -1,0 +1,214 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "parts/resistor",
+ "kind": "part",
+ "name": "Resistor",
+ "glb": "resistor.glb",
+ "source": {
+  "figure": "figures/parts/resistor.js",
+  "engine": "bench",
+  "pageSha256": "94f9de125b1ba90233418b2bb4ab393499222ab72ba3a3107f97cbd5fe3195a9",
+  "descriptor": "resistor"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "footprint-centre",
+  "source": "board-mm",
+  "fromSource": [
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -0.001,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   -0.01284,
+   -0.0029,
+   0.03138,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.0053,
+   0,
+   -0.0012
+  ],
+  "max": [
+   0.0053,
+   0.0038,
+   0.0012
+  ]
+ },
+ "stats": {
+  "triangles": 540,
+  "trianglesXray": 0,
+  "drawCalls": 2,
+  "lineSegments": 288,
+  "nodes": 2,
+  "bytes": 64484
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   -0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   -0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "Resistor",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "R1",
+   "index": 1,
+   "name": "Resistor R1",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "min": [
+     -0.0053,
+     0,
+     -0.0012
+    ],
+    "max": [
+     0.0053,
+     0.0038,
+     0.0012
+    ]
+   }
+  }
+ ],
+ "anchors": [
+  {
+   "id": "P1",
+   "kind": "pin",
+   "part": "R1",
+   "position": [
+    -0.00508,
+    0,
+    0
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "aliases": [
+    "1"
+   ],
+   "extras": {
+    "leg": "1",
+    "hole": "a3"
+   }
+  },
+  {
+   "id": "P2",
+   "kind": "pin",
+   "part": "R1",
+   "position": [
+    0.00508,
+    0,
+    0
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "aliases": [
+    "2"
+   ],
+   "extras": {
+    "leg": "2",
+    "hole": "a7"
+   }
+  },
+  {
+   "id": "label:R1",
+   "kind": "label",
+   "part": "R1",
+   "position": [
+    0,
+    0.008983,
+    -0.001524
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "R1 · 220 Ω",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  }
+ ],
+ "channels": [],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  }
+ ],
+ "texts": [],
+ "warnings": [
+  "2 screen-space path elements (glows, halos, 2D marks) have no 3D and were left out"
+ ],
+ "extras": {
+  "bench": {
+   "partPage": {
+    "instance": "R1"
+   }
+  }
+ }
+}

@@ -1,22 +1,29 @@
 // Rigid fits between two captures of the same pieces (rest and moved): the rotation and translation that carry one
-// point set onto the other (Horn's quaternion method), and the rotation's axis and pivot.
+// point set onto the other (Horn's quaternion method, with a cyclic Jacobi eigensolver: power iteration stalls on thin
+// point sets such as a two-blade prop, where the two largest eigenvalues nearly meet), and the rotation's axis and pivot.
 import { add, cross, dot, len, norm, scale, sub } from '../gltf/geom.mjs';
 
 const mean = (ps) => { const s = [0, 0, 0]; for (const p of ps) { s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; } return scale(s, 1 / ps.length); };
 
-function largestEigen4(N) {
-  let shift = 0;
-  for (const row of N) for (const v of row) shift += Math.abs(v);
-  let v = [1, 0.1, 0.1, 0.1];
-  for (let it = 0; it < 500; it++) {
-    const w = [0, 1, 2, 3].map((i) => N[i][0] * v[0] + N[i][1] * v[1] + N[i][2] * v[2] + N[i][3] * v[3] + shift * v[i]);
-    const l = Math.hypot(...w) || 1;
-    const nv = w.map((x) => x / l);
-    const d = Math.hypot(nv[0] - v[0], nv[1] - v[1], nv[2] - v[2], nv[3] - v[3]);
-    v = nv;
-    if (d < 1e-13) break;
+/** Eigenvector of the largest eigenvalue of a symmetric 4x4 (cyclic Jacobi). */
+function topEigen4(N) {
+  const a = N.map((r) => r.slice()), v = [0, 1, 2, 3].map((i) => [0, 1, 2, 3].map((j) => (i === j ? 1 : 0)));
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let off = 0;
+    for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) off += a[p][q] * a[p][q];
+    if (off < 1e-30) break;
+    for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) {
+      if (Math.abs(a[p][q]) < 1e-300) continue;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < 4; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
+      for (let k = 0; k < 4; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+      for (let k = 0; k < 4; k++) { const vkp = v[k][p], vkq = v[k][q]; v[k][p] = c * vkp - s * vkq; v[k][q] = s * vkp + c * vkq; }
+    }
   }
-  return v;
+  let best = 0;
+  for (let i = 1; i < 4; i++) if (a[i][i] > a[best][best]) best = i;
+  return [v[0][best], v[1][best], v[2][best], v[3][best]];
 }
 
 export const rotate = (q, p) => {   // q = [w, x, y, z]
@@ -39,8 +46,10 @@ export function fitRigid(A, B) {
     [zx - xz, xy + yx, -xx + yy - zz, yz + zy],
     [xy - yx, zx + xz, yz + zy, -xx - yy + zz],
   ];
-  let q = largestEigen4(N);
-  if (q[0] < 0) q = q.map((v) => -v);
+  let q = topEigen4(N);
+  const l = Math.hypot(...q) || 1;
+  q = q.map((x) => x / l);
+  if (q[0] < 0) q = q.map((x) => -x);
   const t = sub(cb, rotate(q, ca));
   let e = 0;
   for (let i = 0; i < A.length; i++) { const d = sub(add(rotate(q, A[i]), t), B[i]); e += dot(d, d); }

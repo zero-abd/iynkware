@@ -15,7 +15,9 @@ import { ROOT, TOOL, buildPage } from './capture/page.mjs';
 import { adapterFor } from './capture/adapters.mjs';
 
 export const DIRS = ['boards', 'parts', 'modules', 'robotics', 'drones', 'flight'];
-export const SAMPLES = ['boards/uno-r3', 'parts/breadboard', 'robotics/l298n', 'drones/quad5'];
+// the Blink scene (an Uno, a half breadboard, an LED, a resistor, a wire) and one drone, committed so the app can load
+// real assets without running the converter
+export const SAMPLES = ['boards/uno-r3', 'parts/breadboard', 'parts/led', 'parts/resistor', 'parts/wire', 'drones/quad5'];
 const BUDGET = { part: [12000, 12], board: [40000, 32], module: [40000, 32], bench: [150000, 96], drone: [80000, 64], flight: [60000, 24] };
 
 /** Every figure item: figures/<dir>/<id>.js for the six item folders. */
