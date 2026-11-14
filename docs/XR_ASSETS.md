@@ -71,7 +71,10 @@ breadboard, one bench and one drone, so tests and the viewer work without a buil
   mirror image of the craft data**: motor M1 of a Betaflight quad sits rear-right in the data and reads as rear-left
   in the 2D figure. The converter undoes each engine's own mapping and writes the data's true geometry: Uno pin D13
   is on the digital header to the left of D12 seen from the front, and M1 is rear-right (-X, -Z) on every Betaflight
-  quad. Tests check both (section 8). The 2D figures are left as they are.
+  quad. Tests check both (section 8). The 2D figures are left as they are, so **a drone asset looks like the mirror of
+  its 2D figure** (the nose camera, the XT60 lead and a tricopter's tail servo swap sides). That is correct, not a
+  bug. The figure's motor-test arrow is mirrored too: on screen, a CW motor's arrow turns counter-clockwise. The asset
+  follows the data.
 
 ## 3. glTF
 
@@ -89,6 +92,10 @@ decoder worker). Indices are 16-bit when a primitive has fewer than 65,536 verti
 
 Inside a mesh node, geometry is merged by material, so a mesh has at most one triangle primitive per shading class and
 one line primitive. Each channel node has its own glTF materials, so lighting one LED never lights another.
+
+**Names.** three.js's GLTFLoader sanitises node names (it strips `.`, `:`, `/`, `[` and `]`, so `static.cover`
+arrives as `staticcover` and `led:L` as `ledL`) and keeps the glTF name in `userData.name`. Look nodes up by
+`userData.name`, never by `getObjectByName` with a sidecar id.
 
 **Materials** are named for their shading class and carry it in `extras.iynkInk.shade`:
 
@@ -195,7 +202,7 @@ A channel is a transform or a material parameter driven by one value. It never c
 
 | Kind | Value | Effect |
 |---|---|---|
-| `emissive` | `level` 0..1, or `rgb` [r, g, b] | the node's ink bands blend towards `color` (rgb: red, green, blue) |
+| `emissive` | `level` 0..1, or `rgb` [r, g, b] | the node's ink bands blend towards `color` by `level`; for `rgb` (an RGB LED, no `color`) each of r, g, b is 0..1 for one die, the bands blend towards (r, g, b) scaled so its largest component is 1, by that largest component |
 | `rotate` | `deg` | the node turns `scale x (value - rest)` radians about `axis` through `pivot` |
 | `spin` | `rpm` | the node turns continuously at `scale x rpm x 2pi / 60` rad/s about `axis` through `pivot`; `scale` is +1 or -1 |
 | `translate` | `press` 0..1 | the node moves `scale x value` metres along `axis` |
@@ -218,13 +225,13 @@ const d13 = uno.anchor('D13');               // { id, kind, position: THREE.Vect
 renderer.setAnimationLoop((t) => { uno.update(clock.getDelta()); renderer.render(scene, camera); });
 ```
 
-Without the helper, a channel is a node by name and a uniform or a transform:
+Without the helper, a channel is a node by its glTF name (`userData.name`, section 3) and a uniform or a transform:
 
 ```js
 const gltf = await new GLTFLoader().loadAsync('/xr-assets/drones/quad5.glb');
 const side = await (await fetch('/xr-assets/drones/quad5.json')).json();
 const ch = side.channels.find((c) => c.id === 'prop:M1');
-const prop = gltf.scene.getObjectByName(ch.nodes[0]);
+let prop; gltf.scene.traverse((o) => { if (o.userData.name === ch.nodes[0]) prop = o; });
 const axis = new THREE.Vector3(...ch.axis), q = new THREE.Quaternion();
 let angle = 0;                                    // each frame:
 angle += ch.scale * rpm * 2 * Math.PI / 60 * dt;  // the pivot is the node's own origin at rest
@@ -238,7 +245,9 @@ A channel node is a direct child of the root with no rest rotation or scale; its
 ## 8. Budgets and checks
 
 Budgets are per item at rest, base and cover layers, before the outline and shadow passes. The converter warns when
-an item is over; the build table shows every item's numbers.
+an item is over; the build table shows every item's numbers. A draw call here is one glTF primitive. The ink material
+adds one silhouette per mesh node (its triangle primitives merged) and one shadow per static node and per moving
+channel node, so on screen a mesh node costs its primitives plus up to two.
 
 | Item | Triangles | Draw calls |
 |---|---|---|
