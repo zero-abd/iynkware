@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The one gate. The GitHub workflow runs this file, so the local and hosted checks cannot drift.
+# The one gate. There is no hosted CI: this file is run by hand before a PR is marked ready (docs/COLLABORATION.md, section 6).
 #
 #   bash scripts/ci-local.sh [--list] [--only a,b] [--skip a,b]
 #

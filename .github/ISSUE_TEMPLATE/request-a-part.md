@@ -9,7 +9,7 @@ labels: ["part-request"]
 Name, maker and part number.
 
 **Where can we read about it?**
-Link to the datasheet or the maker's page. Numbers in iynk come from sources like these.
+Link to the datasheet or the maker's page. Numbers in iynkware come from sources like these.
 
 **What would you want to do with it?**
 For example: wire it to an UNO, run a lesson, see it inside a drone.

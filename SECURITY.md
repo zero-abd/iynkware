@@ -2,15 +2,16 @@
 
 ## Reporting a problem
 
-Please report a vulnerability privately, through GitHub's private vulnerability reporting: open the repository's
-Security tab and choose "Report a vulnerability". Please do not open a public issue or pull request for it.
+iynkware is a private repository, and GitHub's private vulnerability reporting is not available on it. Report a
+vulnerability to zero-abd privately, not in an issue or a pull request: every collaborator can read those.
 
-Include what you found, the steps to reproduce it, and which version or commit you tested. Do not include anyone
-else's data or a working key.
+Include what you found, the steps to reproduce it, and which commit you tested. Do not include anyone else's data or a
+working key.
 
 ## What is in scope
 
-- The iynk app and server code in this repository.
+- The code in this repository: the 2D app and the server inherited from iynk, and the headset app in `xr/` as it
+  lands.
 - Handling of the keys a person pastes into Settings: a way to read them back, log them, send them to a third party,
   or store them where they should not be kept.
 - The server token check and the rules that decide who may call the AI and search routes.
@@ -22,12 +23,14 @@ else's data or a working key.
 
 - Findings that need a modified browser, or access to the machine running the app.
 - Missing hardening headers with no demonstrated effect.
-- Problems in a third-party package with no way to reach it from iynk. Report those upstream.
-- Any hosted copy of iynk run by someone else. Tell its operator.
+- Problems in a third-party package with no way to reach it from this code. Report those upstream.
+- Any hosted copy run by someone else. Tell its operator.
+
+If the problem is in code inherited from iynk, say so in the report: iynk may have it too.
 
 ## What to expect
 
-A maintainer reads each report, replies to say whether it is accepted, and tells you when a fix lands. This is a small
-open-source project, so no response time is promised.
+A maintainer reads each report, replies to say whether it is accepted, and says when a fix lands. No response time is
+promised.
 
-How a copy handles data is described in [docs/DATA_HANDLING.md](docs/DATA_HANDLING.md).
+How the 2D app handles data is described in [docs/DATA_HANDLING.md](docs/DATA_HANDLING.md).

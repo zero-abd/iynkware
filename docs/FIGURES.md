@@ -18,7 +18,7 @@ figures/
   prompts/<id>.md        the Colorfigures prompt of every figure                                       [item agents]
   _smoke/smoke.js        platform smoke test: one box, one button
   _smoke/plain.js        platform smoke test for a page without mountFigure (CF_BRIDGE.plain)
-public/figures/<kind>/<id>.html   build output; commit it (Vercel does not run Python)
+public/figures/<kind>/<id>.html   build output; commit it (iynk's Vercel build does not run Python)
 ```
 
 ## Writing a figure

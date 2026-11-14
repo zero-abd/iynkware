@@ -824,7 +824,7 @@ back.
 
 ## 14. Verification checklist (per figure)
 
-Run these from `/Users/amar/Codes/ak/simlab`, look at every picture yourself, and fix what is wrong before you
+Run these from the root of your checkout, look at every picture yourself, and fix what is wrong before you
 report. A figure is done when every line holds.
 
 **Facts and data**

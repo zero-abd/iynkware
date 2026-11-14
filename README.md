@@ -1,145 +1,121 @@
-# iynk
+# iynkware
 
-**A free hardware lab in your browser.** Wire, code, break and fly boards, robots and drones that are modelled on real
-ones, without buying a single part, in six languages.
+iynkware is the headset version of [iynk](https://iynk.tech), a free hardware lab in the browser. The aim: on a Meta
+Quest 3S, with controllers or hand tracking, a person builds hardware projects on a spatial workbench, runs and stress
+tests them in an immersive scene, and learns along the way.
 
-![The iynk landing page](docs/media/landing.jpg)
+None of the headset app is merged yet. Today this repository holds the 2D iynk app, copied from iynk on 2026-11-14 with
+no shared history. [docs/STATE.md](docs/STATE.md) is the record of what exists and what does not; where this page and
+it disagree, it wins.
 
-## What it is, and what it is not
+## What exists today
 
-iynk teaches how parts behave. It runs your code in its own interpreter, not on a real chip. It does not replace a
-bench, a compiler or a datasheet.
+The full 2D iynk product (Next.js 16, React 19, TypeScript), with all of its simulation in the browser:
 
-- Three labs hold <!--count:items-->38<!--/count--> catalogue items modelled on real boards, kits and drones:
-  <!--count:boards-->12<!--/count--> boards, <!--count:robotics-->13<!--/count--> robotics benches and
-  <!--count:drones-->13<!--/count--> drones. Each is a hand-inked 3D figure you can turn round, see through and take apart.
-- You write code in a teaching subset of Arduino C++, MicroPython and Python, or Verilog on the FPGA boards. By default a
-  built-in interpreter runs it on a virtual clock, so a program written for a real toolchain may not run. In the Studio,
-  Firmware mode can instead run a compiled file on an emulated chip: a `.hex` on the Uno's AVR or a `.uf2` on the Pico.
-- Lessons and bench tasks are marked done when your run meets their checks. The checks run in your browser.
-- Breadboard faults are decided by a small DC circuit solver. Bench faults follow per-bench rules. Numbers such as the
-  current through a burnt LED come from a simple pin model and are there to show the idea.
-- The flight sim re-runs your flight in slow motion. A wiring mistake on the drone causes a scripted flip.
+- **Labs:** <!--count:items-->38<!--/count--> catalogue items modelled on real hardware:
+  <!--count:boards-->12<!--/count--> boards with lessons, <!--count:robotics-->13<!--/count--> robotics benches and
+  <!--count:drones-->13<!--/count--> drones with a flight sim. Each has a hand-inked figure you can turn round, see
+  through and take apart.
+- **Studio:** your own projects on a canvas, with breadboard, schematic and board views of one circuit, a circuit
+  solver that runs while you edit, Firmware mode (a `.hex` on the Uno's AVR, a `.uf2` on the Pico), Wokwi import,
+  KiCad netlist and SPICE export, and sharing a project as a link.
+- **Simulation:** interpreters for a teaching subset of Arduino C++, MicroPython, Python and Verilog, a DC circuit
+  solver, a drone calculator, a flight model, and an engine host for avr8js, rp2040js, yosys and rapier physics.
+- **Server, optional:** the collaboration server in `server/` (identity, rooms, buddies, stored shares) and the AI,
+  search and MCP routes, which stay off unless the person running it turns them on.
+- **Also:** six languages (en, de, es, fr, hi, zh) for the UI and the lesson prose, the `iynk` command line, Docker
+  files for running your own copy, Vitest and Playwright tests, and the local gate `scripts/ci-local.sh`.
 
-![A Board Lab lesson: Blink on the Arduino Uno R3](docs/media/lab.jpg)
+It teaches how parts behave. By default code runs in iynk's own interpreter on a virtual clock, not on a real chip, so
+a program written for a real toolchain may not run. Numbers such as the current through a burnt LED come from a simple
+model and are there to show the idea. It does not replace a bench, a compiler or a datasheet.
 
-## Run it
+![A Board Lab lesson in the 2D app: Blink on the Arduino Uno R3](docs/media/lab.jpg)
 
-You need Node 24 (the version in `.nvmrc`), npm and Python 3.
+## What is being built
+
+| Piece | Where | Its doc (being written) |
+|---|---|---|
+| The headset app, on the Meta Immersive Web SDK and three.js, built with Vite | `xr/` | `docs/XR_ARCHITECTURE.md` |
+| 3D assets generated from the figure sources in `figures/` | `tools/xr-assets/` | `docs/XR_ASSETS.md` |
+| Deployment of the headset app to Cloudflare | `deploy/cloudflare-xr/` | `docs/XR_DEPLOY.md` |
+
+The headset app is to reuse the 2D app's simulation, project, content and i18n code; `docs/XR_ARCHITECTURE.md` sets
+the folder layout and the shared contract files. What in the 2D app refuses WebXR today (the Permissions-Policy and the
+content security policy) is under open items in docs/STATE.md. No headset test setup or hosted copy exists yet.
+
+## Run the 2D app
+
+The repository is private; zero-abd adds collaborators. You need Node 24 (from `.nvmrc`), npm and Python 3.
 
 ```bash
-git clone https://github.com/kushwahaamar-dev/iynk.git
-cd iynk && npm ci
+git clone https://github.com/zero-abd/iynkware.git
+cd iynkware
+nvm use
+npm ci
 npm run dev
 ```
 
 Open the address `next dev` prints (http://localhost:3000 by default). The labs, the figures, the interpreters and the
-flight sim work with no key and no setup, in a current Chromium browser (Firefox and Safari are not tested yet).
+flight sim work with no key and no setup. When several copies run on one machine, give each its own port and build
+folder as [docs/COLLABORATION.md](docs/COLLABORATION.md) section 4 shows.
 
-## AI and search
+Every setting is optional and named in `.env.example`; `.env.local` is never committed. The AI partner and search stay
+off until the person running the server turns them on; each person then pastes their own key in Settings, where it
+stays in the browser. [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md), [docs/SERVER_AND_KEYS.md](docs/SERVER_AND_KEYS.md)
+and [docs/DATA_HANDLING.md](docs/DATA_HANDLING.md) explain it, though they still name the older `/api/*` routes: the
+routes now live in `server/`.
 
-The AI lab partner and search (parts prices, nearby places, events, videos) are off until the person running the server
-turns them on, and each person brings their own key. You do not put these keys in an environment file.
-
-1. The operator sets `IYNK_AI_ENABLE=1` and `IYNK_SEARCH_ENABLE=1` and a server token. See
-   [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md).
-2. In the app, open Settings, Keys and usage, and paste your provider key and the server token. They stay in your
-   browser and travel only in the request headers.
-3. The app shows what your key has used against the daily and monthly caps.
-
-With no key, a feature says it is not set up and nothing is sent anywhere. What is stored and what leaves your device is
-in [docs/DATA_HANDLING.md](docs/DATA_HANDLING.md). How the keys, the caps and `/config.json` work is in
-[docs/SERVER_AND_KEYS.md](docs/SERVER_AND_KEYS.md).
-
-Server settings, all optional, names only (values and defaults are in `.env.example` and the self-hosting page):
-
-| Name | Turns on |
-|---|---|
-| `IYNK_AI_ENABLE` | the AI partner, translation and voice |
-| `IYNK_SEARCH_ENABLE` | search, parts prices, nearby places |
-| `IYNK_SERVER_TOKEN` | the routes that spend the provider's quota |
-| `NEXT_PUBLIC_REALTIME_URL` | rooms across devices (without it, rooms work between tabs of one browser) |
-
-## How it works
-
-```mermaid
-flowchart LR
-  B["Browser<br/>Next.js app, figures,<br/>interpreters, flight sim"] -->|"/api/ai, /api/search,<br/>/api/mcp, /config.json"| N["Next.js server<br/>(yours)"]
-  B <-->|WebSocket| R["Room relay<br/>Node + ws"]
-  N --> P["AI provider<br/>(Meta or Gemini)"]
-  N --> S["Search provider<br/>(SerpApi)"]
-```
-
-- **Frontend:** Next.js 16 (App Router), React, TypeScript, Tailwind CSS, CodeMirror. Figures are SVG drawn with
-  [Colorfigures](figures/vendor/colorfigures/LICENSE), with our own engines for boards, benches and drones
-  ([figures](docs/FIGURES.md), [bench engine](docs/FIGURES-BENCH.md), [drone engine](docs/FIGURES-DRONE.md)).
-- **Simulation:** interpreters for a subset of Arduino C++, MicroPython, Python and Verilog, a circuit solver, a drone
-  calculator and a flight model. All of it runs in the browser.
-- **Server:** the same Next.js app serves the AI and search routes. They take the caller's own key, rate-limit calls per
-  server instance and count spend per key.
-- **Realtime and buddies:** the self-hosted collaboration server in `server`.
-- **MCP:** AI assistants can search the catalogue and run the drone calculator through `/api/mcp`. Its parts price tool
-  answers "not set up", because an MCP call carries no search key.
-
-## Status
-
-The Studio is where you build your own projects: a breadboard, schematic and board view of one circuit, a circuit solver
-that runs while you edit, firmware engines, and import and export ([docs/INTEROP.md](docs/INTEROP.md)). Share a project
-as a link from the Project menu: with no server the link carries the whole project, opens read only, and the person who
-opens it can make their own copy.
-
-Rooms share a bench by link, for up to eight people. Anyone with the link can join, so share it with people you trust.
-Rooms between devices need the relay to be running. Buddies and stored shares need the collaboration server in `server`,
-which the Docker kit in `deploy` runs next to the app ([docs/SELF_HOSTING.md](docs/SELF_HOSTING.md)).
-
-The lab partner sees your code, check results, pin states and part readouts as text, not the wiring.
-
-## Tests
+There is no hosted CI: checks run on your machine, and the PR description is the record. Every PR runs the fast set
+below. The full gate is `bash scripts/ci-local.sh` with no options; when it is required, and the traps, are in
+[docs/COLLABORATION.md](docs/COLLABORATION.md) section 6.
 
 ```bash
-npm run typecheck   # TypeScript
-npm run lint        # ESLint
-npm test            # Vitest
-npm run e2e         # Playwright end-to-end tests with axe checks on the app pages
+NODE_OPTIONS=--max-old-space-size=4096 bash scripts/ci-local.sh --only content,typecheck,lint,ui,no-only,copy
 ```
 
-`bash scripts/ci-local.sh` runs the same steps CI runs. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to add a string
-in six languages, a lesson or a part.
+## Working here
+
+- [AGENTS.md](AGENTS.md): read first; the hard rules and the loop from issue to merged PR.
+- [docs/COLLABORATION.md](docs/COLLABORATION.md): claiming issues, branches and worktrees, ports, checks, PRs.
+- [CONTRIBUTING.md](CONTRIBUTING.md): adding a string in six languages, a lesson or a part.
+- [HANDOFF.md](HANDOFF.md): iynk's handoff, kept for reference. Its paths, services, ports and commit rules are iynk's.
+- [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Project layout
 
 ```
-src/app            pages and API routes (one page per lab item, in six languages)
-src/components     lab UIs, Studio, the dock (partner, rooms, parts), shell, landing page
-src/content        boards, benches and drones: lessons, steps, faults, checks
-src/project        the project document: schema, storage, files, lab items as projects
-src/studio         the Studio canvas, its overlays, link sharing and assignments
-src/sim            the circuit solver and part models
-src/sim-host       the engine host: AVR and RP2040 emulators, Verilog synthesis, physics
-src/parts          the parts registry
-src/export         Wokwi import, KiCad and SPICE export
-src/collab         rooms, buddies and server shares on the client side
-src/lib            interpreters, drone calculator, flight model, settings, AI, search
-src/i18n           messages and lesson prose in six languages
-figures            figure sources and engines (built into public/figures)
-server             the collaboration server (identity, buddies, shares)
-deploy             Dockerfiles, compose and Caddy for running your own copy
-e2e                Playwright tests
-docs/facts         sourced fact sheets for every board and drone
+xr/                      the headset app (being built)
+tools/xr-assets/         3D assets from the figure sources (being built)
+deploy/cloudflare-xr/    the headset app's Cloudflare deployment (being built)
+src/app                  pages and API routes of the 2D app, one page per lab item, in six languages
+src/components           lab UIs, Studio, the shell, the landing page, shared ui
+src/content              boards, benches and drones: lessons, steps, faults, checks
+src/project              the project document: schema, storage, files, lab items as projects
+src/core, src/protocol   shared cores, imported as #core/* and #protocol/*
+src/sim, src/sim-host    the circuit solver, part models and the engine host
+src/parts                the parts registry
+src/lib                  interpreters, drone calculator, flight model, settings, CSP
+src/i18n                 messages and lesson prose in six languages
+figures                  figure sources and engines, built into public/figures
+server                   the collaboration server, with the AI, search and MCP routes
+deploy                   Dockerfiles, compose and Caddy for running your own copy of the 2D app
+e2e                      Playwright tests
+docs                     design notes per area; sourced fact sheets in docs/facts
 ```
 
-## More
+## Licence
 
-- [HANDOFF.md](HANDOFF.md): where the build stands, how a change ships, and what is open, for whoever continues it
-- [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [LICENSE-PENDING.md](LICENSE-PENDING.md): no licence has been chosen yet
-- [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md), [docs/DATA_HANDLING.md](docs/DATA_HANDLING.md),
-  [docs/SERVER_AND_KEYS.md](docs/SERVER_AND_KEYS.md), [docs/PROVENANCE.md](docs/PROVENANCE.md)
+No licence has been chosen for iynk, and iynkware carries the same position: see
+[LICENSE-PENDING.md](LICENSE-PENDING.md). No file grants a right to copy, change or redistribute the code. Describe
+iynk and iynkware as free, and use no licence term for either. Third-party code keeps its own licence: Colorfigures is
+MIT, and the licences of the npm packages are reproduced in `NOTICE`.
 
 ## Credits
 
+- [iynk](https://iynk.tech) by Amar Kushwaha: the 2D app this repository starts from.
 - [Colorfigures](figures/vendor/colorfigures/LICENSE) by April Zhu (MIT), built on iso-glow by April Zhu and
-  iso-figure by Tolga Cohce. Our changes are in `figures/vendor/colorfigures/PATCHES.md`.
+  iso-figure by Tolga Cohce. iynk's changes are in `figures/vendor/colorfigures/PATCHES.md`.
 - Three teaching sites inspired iynk: Learn Arduino by Dilum Sanjaya, Robotics Engineer and Drone Engineer. Some
   constants, reference tables and the lesson structure follow them. [docs/PROVENANCE.md](docs/PROVENANCE.md) records
   where, and which rows are still open.
