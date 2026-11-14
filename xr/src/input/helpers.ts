@@ -115,3 +115,64 @@ export function virtualStick(dx: number, dz: number, heading: Heading, out: Stic
 export function clampUnit(v: number): number {
   return v < -1 ? -1 : v > 1 ? 1 : v;
 }
+
+/** Joints read for a hand pose, in this order, from a packed `Float32Array` of 4x4 column-major poses. */
+export const POSE_JOINTS = [
+  'wrist',
+  'index-finger-phalanx-proximal',
+  'middle-finger-phalanx-proximal',
+  'ring-finger-phalanx-proximal',
+  'pinky-finger-phalanx-proximal',
+  'index-finger-tip',
+  'middle-finger-tip',
+  'ring-finger-tip',
+  'pinky-finger-tip',
+] as const;
+const WRIST = 0;
+const KNUCKLE = 1;
+const TIP = 5;
+
+/** A finger counts as stretched out when its tip is this many times further from the wrist than its knuckle. */
+export const OPEN_RATIO = 1.5;
+
+const at = (m: ArrayLike<number>, joint: number, axis: number) => m[joint * 16 + 12 + axis]!;
+const dist2 = (m: ArrayLike<number>, a: number, b: number) => {
+  const dx = at(m, a, 0) - at(m, b, 0);
+  const dy = at(m, a, 1) - at(m, b, 1);
+  const dz = at(m, a, 2) - at(m, b, 2);
+  return dx * dx + dy * dy + dz * dz;
+};
+
+/**
+ * The palm normal (out of the palm) from packed joint poses in {@link POSE_JOINTS} order, any frame: the cross product
+ * of wrist to index knuckle and wrist to little-finger knuckle, which points out of the palm for a right hand and
+ * into it for a left one. Writes a unit vector into `out` (unchanged when the joints are degenerate).
+ */
+export function palmNormal(m: ArrayLike<number>, hand: 'left' | 'right', out: [number, number, number]): [number, number, number] {
+  const ax = at(m, KNUCKLE, 0) - at(m, WRIST, 0);
+  const ay = at(m, KNUCKLE, 1) - at(m, WRIST, 1);
+  const az = at(m, KNUCKLE, 2) - at(m, WRIST, 2);
+  const bx = at(m, KNUCKLE + 3, 0) - at(m, WRIST, 0);
+  const by = at(m, KNUCKLE + 3, 1) - at(m, WRIST, 1);
+  const bz = at(m, KNUCKLE + 3, 2) - at(m, WRIST, 2);
+  const sign = hand === 'right' ? 1 : -1;
+  const x = sign * (ay * bz - az * by);
+  const y = sign * (az * bx - ax * bz);
+  const z = sign * (ax * by - ay * bx);
+  const len = Math.hypot(x, y, z);
+  if (len > 1e-9) {
+    out[0] = x / len;
+    out[1] = y / len;
+    out[2] = z / len;
+  }
+  return out;
+}
+
+/** Whether the index, middle, ring and little fingers are all stretched out, from packed joint poses. */
+export function fingersOpen(m: ArrayLike<number>): boolean {
+  const k = OPEN_RATIO * OPEN_RATIO;
+  for (let f = 0; f < 4; f++) {
+    if (dist2(m, TIP + f, WRIST) < k * dist2(m, KNUCKLE + f, WRIST)) return false;
+  }
+  return true;
+}

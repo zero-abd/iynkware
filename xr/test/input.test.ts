@@ -1,17 +1,47 @@
 /** The input service's pure parts: which press grabs, which selects, and the hand's virtual stick. */
 import { describe, expect, it } from 'vitest';
 import {
+  POSE_JOINTS,
   VIRTUAL_STICK_DEADZONE,
   VIRTUAL_STICK_FULL_M,
+  fingersOpen,
   grabFlags,
   headingOf,
   isGrabPress,
   modeOf,
+  palmNormal,
   sourceOf,
   virtualStick,
   type Heading,
   type PointerKind,
 } from '../src/input/helpers';
+
+/**
+ * Packed joint poses for a hand lying palm down, fingers pointing -Z, wrist at the origin. `side` +1 puts the thumb
+ * side at -X (a right hand), -1 at +X (a left hand). `reach` is how far the fingertips are from the wrist.
+ */
+function handJoints(side: 1 | -1, reach: number): Float32Array {
+  const m = new Float32Array(POSE_JOINTS.length * 16);
+  const put = (i: number, x: number, y: number, z: number) => m.set([x, y, z], i * 16 + 12);
+  const xs = [-0.03, -0.01, 0.01, 0.03].map((x) => x * side);
+  put(0, 0, 0, 0);
+  xs.forEach((x, f) => put(1 + f, x, 0, -0.09));
+  xs.forEach((x, f) => put(5 + f, x, 0, -reach));
+  return m;
+}
+
+describe('hand pose helpers', () => {
+  it('points the palm normal out of the palm for either hand', () => {
+    const out: [number, number, number] = [0, 0, 0];
+    expect(palmNormal(handJoints(1, 0.18), 'right', out).map((v) => Math.round(v * 1000) / 1000 + 0)).toEqual([0, -1, 0]);
+    expect(palmNormal(handJoints(-1, 0.18), 'left', out).map((v) => Math.round(v * 1000) / 1000 + 0)).toEqual([0, -1, 0]);
+  });
+
+  it('tells an open hand from a fist', () => {
+    expect(fingersOpen(handJoints(1, 0.18))).toBe(true);
+    expect(fingersOpen(handJoints(1, 0.08))).toBe(false);
+  });
+});
 
 const KINDS: PointerKind[] = ['ray', 'grab', 'touch', 'gaze', 'mouse'];
 

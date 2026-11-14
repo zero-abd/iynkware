@@ -69,6 +69,11 @@ const inXr = await page.evaluate(() => ({
   shell: getComputedStyle(document.getElementById('shell')).display,
 }));
 check('immersive session, controllers, shell hidden', inXr.sources.right === 'controller' && inXr.shell === 'none', inXr);
+const ctlPose = await page.evaluate(() => {
+  const p = window.iynkware.app.input.pose('right');
+  return p && { source: p.source, position: p.position.map((v) => +v.toFixed(3)), dir: Math.hypot(...p.ray.direction), open: p.open };
+});
+check('controller pose each frame', ctlPose?.source === 'controller' && Math.abs(ctlPose.dir - 1) < 1e-3 && ctlPose.open === false, ctlPose);
 
 // Presses a plate of the run cluster (`run:<name>`) with a ray: identity orientation points -Z, so start `back`
 // metres in front of the plate at its height. Trigger for a controller, pinch for a hand.
@@ -114,6 +119,13 @@ const p1 = await sim();
 await sleep(700);
 const p2 = await sim();
 check('hand pinch on Pause -> select, paused, LED holds', ev.includes('select:run:run:hand/ray') && p1[0] === 'paused' && p1[3] === 'paused' && p1[1] === p2[1] && p1[2] === p2[2], { ev, p1, p2, sources: await page.evaluate(() => window.iynkware.app.input.sources.value) });
+
+// Poses every frame, touching nothing: a tracked hand has a pinch point, a unit palm normal and an aim ray.
+const handPose = await page.evaluate(() => {
+  const p = window.iynkware.app.input.pose('right');
+  return p && { source: p.source, position: p.position.map((v) => +v.toFixed(3)), n: Math.hypot(...p.normal), dir: Math.hypot(...p.ray.direction), open: p.open, pinching: p.pinching };
+});
+check('hand pose each frame', handPose?.source === 'hand' && Math.abs(handPose.n - 1) < 1e-3 && Math.abs(handPose.dir - 1) < 1e-3, handPose);
 
 // Hand pinch on Run again: resumes where it was, without compiling again.
 await press('hand-right', 'run', 0.35);
