@@ -9,6 +9,7 @@ import type { Op, Project } from '@/project/generated/types';
 import type { ApplyResult } from '@/project/session';
 import type { DocChange } from '@/project/touched';
 import type { Descriptor } from '@/parts/descriptor';
+import type { AuthoredChannel, CoAuthor } from './assistant';
 import type { Unsubscribe } from './common';
 
 export type { ApplyResult, DocChange, Op, Project, Descriptor };
@@ -29,6 +30,11 @@ export interface ProjectStore {
   /** Part descriptor lookup (`ref@version`), from iynk's built in registry. */
   describe(ref: string, version?: string): Descriptor | undefined;
   readonly selection: Selection;
+  /**
+   * Ops authored as another actor (the co-builder), on that actor's own undo stack, so undoing it never undoes the
+   * person and the reverse. Its changes arrive with `DocChange.origin` `ai`. `open` forgets every actor's stacks.
+   */
+  as(author: CoAuthor): AuthoredChannel;
 }
 
 /** Entity ids (`cmp_*`, `brd_*`, `wir_*`, `net_*`) the person has selected. */
