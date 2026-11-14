@@ -25,6 +25,10 @@ the collaboration server on 8787. `GET /healthz` and `GET /readyz` are public; `
 `sessionId`, `scenario`, `objective`, `learnerLevel`, `currentStep`, `lastAction`, and `locale`. Here
 `scenario` is an iynkware lab item such as a board, robotics bench, or drone.
 
+The future partner adapter must derive that context from the existing `XrApp` services instead of keeping a second
+lesson state: the project and `guide.state` supply the lab, lesson and current step, while `input.onAny` supplies the
+last in-world interaction. The eventual contract decides the exact mapping.
+
 ```bash
 curl -X POST http://127.0.0.1:8790/v1/voice/turn \
   -H "Authorization: Bearer $IYNK_VOICE_CLIENT_TOKEN" \
