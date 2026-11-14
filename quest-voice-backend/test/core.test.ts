@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { readConfig } from "../src/config.ts";
 import { encodePcm16Wav, extractPcm16Mono } from "../src/audio.ts";
 import { buildSystemInstruction } from "../src/prompts.ts";
+import { RequestGate } from "../src/request-gate.ts";
 import { MemorySessionStore } from "../src/session-store.ts";
 
 test("configuration has safe bounded defaults", () => {
@@ -38,4 +39,17 @@ test("Gemini PCM output is wrapped as a Unity-compatible WAV", () => {
   const wav = encodePcm16Wav(pcm, 16_000);
   assert.equal(wav.toString("ascii", 0, 4), "RIFF");
   assert.deepEqual(extractPcm16Mono(wav), pcm);
+});
+
+test("request gate bounds Gemini cost and concurrent work", () => {
+  const gate = new RequestGate(2, 1);
+  const first = gate.admit(1_000);
+  assert.equal(first.ok, true);
+  assert.deepEqual(gate.admit(1_001), { ok: false, reason: "too_many_concurrent_turns" });
+  if (first.ok) first.release();
+  const second = gate.admit(1_002);
+  assert.equal(second.ok, true);
+  if (second.ok) second.release();
+  assert.deepEqual(gate.admit(1_003), { ok: false, reason: "rate_limited" });
+  assert.equal(gate.admit(61_001).ok, true);
 });

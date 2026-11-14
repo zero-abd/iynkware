@@ -3,11 +3,13 @@ import { timingSafeEqual } from "node:crypto";
 import { encodePcm16Wav, extractPcm16Mono } from "./audio.ts";
 import { readConfig } from "./config.ts";
 import { runGeminiLive } from "./gemini-live-client.ts";
+import { RequestGate } from "./request-gate.ts";
 import { MemorySessionStore } from "./session-store.ts";
 import { parseVoiceContext } from "./types.ts";
 
 const config = readConfig();
 const sessions = new MemorySessionStore(config.sessionTtlMs, config.maxHistoryTurns);
+const requestGate = new RequestGate(config.maxRequestsPerMinute, config.maxConcurrentTurns);
 
 function sendJson(response: ServerResponse, status: number, body: unknown): void {
   const bytes = Buffer.from(JSON.stringify(body));
@@ -63,6 +65,12 @@ const server = createServer(async (request, response) => {
     if (request.method !== "POST" || url.pathname !== "/v1/voice/turn") {
       return sendJson(response, 404, { error: "not_found" });
     }
+    const admission = requestGate.admit();
+    if (!admission.ok) {
+      response.setHeader("retry-after", "60");
+      return sendJson(response, 429, { error: admission.reason });
+    }
+    response.once("close", admission.release);
     const contentType = request.headers["content-type"] ?? "";
     if (!contentType.startsWith("multipart/form-data;")) return sendJson(response, 415, { error: "multipart_required" });
     const body = await readBody(request, config.maxAudioBytes + 100_000);
@@ -74,6 +82,7 @@ const server = createServer(async (request, response) => {
     const context = parseVoiceContext(form);
     const pcm = extractPcm16Mono(Buffer.from(await audio.arrayBuffer()));
     const spoken = await runGeminiLive(config, pcm, context, sessions.get(context.sessionId));
+    admission.release();
     sessions.append(context.sessionId, { user: spoken.transcript, assistant: spoken.responseText });
     const wav = encodePcm16Wav(spoken.pcm);
     return sendJson(response, 200, {
