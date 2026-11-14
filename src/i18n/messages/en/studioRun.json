@@ -1,0 +1,111 @@
+{
+  "bar": {
+    "label": "Run controls",
+    "run": "Run",
+    "restart": "Restart",
+    "stop": "Stop",
+    "reset": "Reset",
+    "time": "Simulated time",
+    "behind": "Running slower than real time",
+    "stale": "The project changed after this run started. Restart to use the change."
+  },
+  "phase": {
+    "idle": "Ready",
+    "starting": "Starting",
+    "running": "Running",
+    "paused": "Paused",
+    "stopped": "Stopped",
+    "done": "Finished",
+    "error": "Could not run",
+    "limit": "Stopped at a limit",
+    "killed": "Simulator restarted"
+  },
+  "limit": {
+    "statements": "The code ran too many steps without finishing a pass. Look for a loop that never ends.",
+    "operations": "One expression needed too many operations. Check the numbers it works on.",
+    "memory": "The code used more memory than the simulator allows.",
+    "time": "The run took too long and was stopped."
+  },
+  "killed": "The simulator stopped answering, so it was restarted. Your project is unchanged.",
+  "noDetail": "The code could not be started.",
+  "diag": {
+    "unknown-ground": "The circuit has no usable ground. Connect a part to GND and run again.",
+    "duplicate-part": "Two parts share one id. Remove one of them and add it again.",
+    "missing-net": "A part pin points at a wire that does not exist. Reconnect that pin.",
+    "unknown-part": "A part in this project is not in the parts library.",
+    "ambiguous-input-pin": "An input is wired to two board pins at once. Connect it to one pin.",
+    "netlist-too-large": "The circuit has more parts than the simulator can run (2,000 at most).",
+    "no-time-progress": "The code ran without time moving forward. Look for a loop that never waits.",
+    "event-queue-overflow": "The circuit produced too many events at once, so the run stopped.",
+    "output-contention": "Two outputs drive one wire to opposite levels. Disconnect one of them.",
+    "numeric-fault": "The circuit solver hit a number it cannot use. Check the part values for zero or huge numbers.",
+    "no-convergence": "The circuit solver could not settle on a result. Check the wiring for a short or a loop.",
+    "invalid-device-params": "A part has a value its model cannot use. Check its settings."
+  },
+  "problems": {
+    "one": "1 problem",
+    "other": "{count} problems"
+  },
+  "serial": {
+    "title": "Serial output",
+    "lines": "Serial lines",
+    "empty": "Nothing printed yet. Run the project to see what the code sends.",
+    "clear": "Clear",
+    "copy": "Copy",
+    "copied": "Copied to the clipboard",
+    "copyFailed": "The browser did not allow copying.",
+    "input": "Text to send",
+    "placeholder": "Type a line and press Enter",
+    "send": "Send",
+    "dropped": {
+      "one": "1 older line dropped",
+      "other": "{count} older lines dropped"
+    },
+    "newLines": {
+      "one": "1 new line",
+      "other": "{count} new lines"
+    }
+  },
+  "overlay": {
+    "on": "on",
+    "off": "off",
+    "duty": "duty {percent}%",
+    "pressed": "pressed",
+    "released": "released",
+    "tone": "{hz} Hz",
+    "silent": "silent",
+    "position": "{percent}%",
+    "notModelled": "not modelled yet",
+    "servo": "{deg}°",
+    "motor": "{rpm} rpm",
+    "stepper": "{deg}° · {steps} steps",
+    "reading": "{label} {value} {unit}",
+    "stalled": "stalled",
+    "unpowered": "no power"
+  },
+  "flow": {
+    "toggle": "Flow",
+    "hint": "Wire colour shows volts. Dots show which way the current runs and how much.",
+    "hintStill": "Wire colour shows volts. Arrows show which way the current runs.",
+    "legend": "Volts",
+    "state": {
+      "hot": "hot",
+      "reversed": "reversed",
+      "burnt": "burnt"
+    },
+    "readout": {
+      "part": "{name}",
+      "net": "Net {name}",
+      "pin": "{part} {name}",
+      "volts": "Voltage",
+      "amps": "Current",
+      "watts": "Power",
+      "none": "Point at a wire or a part to read it."
+    }
+  },
+  "commands": {
+    "run": "Run the project",
+    "stop": "Stop the run",
+    "reset": "Reset the run"
+  }
+}

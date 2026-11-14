@@ -1,0 +1,210 @@
+{
+  "brand": {
+    "home": "iynk, zur Übersicht"
+  },
+  "nav": {
+    "label": "Labore",
+    "dashboard": "Übersicht",
+    "studio": "Studio",
+    "boards": "Board-Labor",
+    "robotics": "Robotik-Labor",
+    "drones": "Drohnen-Labor",
+    "together": "Gemeinsam",
+    "about": "Über iynk",
+    "menu": "Menü",
+    "closeMenu": "Menü schließen",
+    "search": "Suchen",
+    "searchHint": "Seiten, Boards, Lektionen und Aktionen suchen"
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "theme": {
+    "label": "Darstellung",
+    "system": "Wie das System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "settings": {
+    "label": "Einstellungen"
+  },
+  "footer": {
+    "privacy": "Keine Konten, keine Werbung, keine Analyse. Dein Fortschritt und deine Einstellungen bleiben in diesem Browser.",
+    "figures": "Gezeichnet mit Colorfigures",
+    "pages": "Seiten der Website",
+    "privacyLink": "Datenschutz",
+    "licenceLink": "Lizenzstatus",
+    "licence": "Lizenz: noch nicht gewählt. Figuren: MIT, von April Zhu.",
+    "selfHostLink": "Eigene Kopie betreiben"
+  },
+  "ui": {
+    "progress": "{done}/{total}",
+    "progressLabel": "{label}: {done} von {total} erledigt"
+  },
+  "dashboard": {
+    "continue": {
+      "title": "Weitermachen, wo du aufgehört hast",
+      "empty": "Noch nichts abgeschlossen. Der Uno R3 ist der beste Einstieg: sechzehn kurze Lektionen, von den Teilen des Boards bis zur Einparkhilfe.",
+      "last": "Zuletzt abgeschlossen",
+      "resume": "Weitermachen",
+      "begin": "Erste Lektion starten",
+      "entry": "{kind}: {name}",
+      "kinds": {
+        "lesson": "Lektion",
+        "assembly": "Aufbau",
+        "step": "Bauschritt",
+        "task": "Übungsaufgabe",
+        "quiz": "Quiz",
+        "build": "Bau",
+        "test": "Sicherheitstest",
+        "course": "Flugparcours"
+      }
+    },
+    "overall": "Gesamtfortschritt",
+    "board": {
+      "progress": "Lektionen und Aufbauten"
+    },
+    "robotics": {
+      "progress": "Schritte, Aufgaben und Quiz"
+    },
+    "drones": {
+      "progress": "Bauten, Tests und Parcours"
+    }
+  },
+  "about": {
+    "metaTitle": "Über iynk und Credits",
+    "metaDescription": "Was iynk ist, wie es funktioniert und die Credits und Lizenzen dahinter.",
+    "title": "Über iynk",
+    "lede": "iynk ist ein Hardware-Labor, das du im Browser öffnest. Jedes Board, Modul und jede Drohne ist eine von Hand getuschte 3D-Figur, die du drehen, öffnen und bedienen kannst, verbunden mit Lektionen, Code, der wirklich läuft, und Fehlern, die du absichtlich auslösen kannst.",
+    "howTitle": "So funktioniert es",
+    "howHeads": {
+      "figures": "Figuren zum Bedienen",
+      "code": "Code, der läuft",
+      "privacy": "Bleibt im Browser"
+    },
+    "how": {
+      "figures": "Jede Figur ist eine eigenständige Seite, gezeichnet mit der Colorfigures-Engine: echte 3D-Körper in flachen hellen, mittleren und dunklen Tönen mit Tuschekonturen. Die Seite spricht über eine kleine Nachrichtenbrücke mit der Figur: Ein Druck auf einen Knopf in der Lektion bewegt das Teil in der Figur und umgekehrt.",
+      "code": "Programme laufen in einem Simulator in deinem Browser, auf einer virtuellen Uhr: eine Teilmenge von Arduino-C++ mit der richtigen Integerbreite für jeden Chip, eine Teilmenge von MicroPython und eine Teilmenge von Verilog für die beiden FPGA-Boards.",
+      "privacy": "Fortschritt und Einstellungen werden im lokalen Speicher dieses Browsers gespeichert. Es gibt keine Konten. iynk führt ein lokales Protokoll darüber, was in den Laboren passiert. Es bleibt in diesem Browser, und du kannst es unter Schlüssel und Nutzung lesen, kopieren oder löschen. Uns wird nichts gesendet."
+    },
+    "originalsTitle": "Die drei Originale",
+    "originalsLede": "iynk wurde von drei Lern-Websites inspiriert. Es ist ein eigenes Projekt mit eigenem Code.",
+    "originals": {
+      "arduino": {
+        "name": "Learn Arduino",
+        "text": "Sechzehn Bauteil-Lektionen zum Arduino Uno, mit Live-Code-Fenster, seriellem Monitor und Schaltplanansicht."
+      },
+      "robotics": {
+        "name": "Robotics Engineer",
+        "text": "Dreizehn interaktive Aufbauten: Boards, Motortreiber, Sensoren und Spannungsversorgungen, mit Bauablauf, Fehlern und Quiz."
+      },
+      "drones": {
+        "name": "Drone Engineer",
+        "text": "Dreizehn Drohnen mit Bau Teil für Teil, Live-Berechnungen, Sicherheitstests und einem Flugplatz."
+      }
+    },
+    "visit": "{name} besuchen",
+    "licenceTitle": "Lizenzen",
+    "licenceText": "Die Figuren sind mit Colorfigures von April Zhu gezeichnet, derselben Engine, mit der auch die Websites Robotics Engineer und Drone Engineer gezeichnet sind. Colorfigures baut auf ISO-GLOW von April Zhu und iso-figure von Tolga Cohce auf und steht unter der unten abgedruckten MIT-Lizenz.",
+    "licenceNote": "Die Lizenz ist im englischen Original wiedergegeben.",
+    "builtWithTitle": "Gebaut mit",
+    "builtWith": "Next.js, React und Tailwind CSS (alle unter MIT-Lizenz) sowie der Colorfigures-Engine für jede Figur.",
+    "colorfigures": "Seite des Colorfigures-Skills"
+  },
+  "command": {
+    "title": "Befehlsmenü",
+    "placeholder": "Seiten, Boards, Lektionen und Aktionen suchen",
+    "empty": "Nichts passt. Versuche den Namen eines Labors oder einer Einstellung.",
+    "groups": {
+      "pages": "Seiten",
+      "actions": "Aktionen",
+      "theme": "Darstellung",
+      "language": "Sprache",
+      "boards": "Boards",
+      "lessons": "Lektionen",
+      "robotics": "Robotik-Aufbauten",
+      "drones": "Drohnen",
+      "studio": "Studio-Beispiele"
+    },
+    "open": "Suchen",
+    "sound": {
+      "on": "Ton einschalten",
+      "off": "Ton ausschalten"
+    },
+    "motion": {
+      "on": "Bewegung reduzieren",
+      "off": "Bewegung zulassen"
+    },
+    "keys": "Schlüssel und Nutzung",
+    "hint": "{key} öffnet dieses Menü"
+  },
+  "privacy": {
+    "metaTitle": "Datenschutz",
+    "metaDescription": "Was iynk in deinem Browser speichert, was es sendet und was es nie tut.",
+    "title": "Datenschutz",
+    "lede": "iynk hat keine Konten, keine Werbung und keine Analyse. Das ist eine kurze Notiz dazu, was die App speichert und sendet. Sie ist keine Rechtsberatung.",
+    "stays": {
+      "title": "Was in deinem Browser bleibt",
+      "text": "Dein Fortschritt und deine Einstellungen werden im lokalen Speicher dieses Browsers unter iynk:v1 gespeichert. Die gewählte Sprache merkt sich ein Cookie namens iynk-lang. Wenn du einen KI- oder Suchschlüssel hinzufügst, liegt er unter iynk:keys:v1. Ein lokales Protokoll darüber, was in den Laboren passiert, liegt unter iynk:log:v1. Du kannst es unter Schlüssel und Nutzung lesen, kopieren oder löschen."
+    },
+    "leaves": {
+      "title": "Was deinen Browser verlässt",
+      "text": "Nichts, außer du nutzt einen Raum oder fügst einen Schlüssel hinzu. Ein Raum sendet deinen Namen, deinen Cursor und deine Chatnachrichten, auch den Text einer Sprachnachricht, an das Raum-Relay. Ein Schlüssel, den du hinzufügst, geht bei jedem KI- oder Suchaufruf an deinen eigenen iynk-Server, und eine Sprachaufnahme wird dorthin zur Transkription gesendet. Der Server speichert den Schlüssel nicht."
+    },
+    "never": {
+      "title": "Was wir nicht tun",
+      "text": "Es gibt keine Konten, keine Werbung und keine Analyse. Die Nutzungszahlen sind ein lokales Protokoll in deinem Browser. Du kannst es jederzeit lesen und löschen."
+    }
+  },
+  "offline": {
+    "metaTitle": "Offline",
+    "title": "Du bist offline",
+    "lede": "Diese Seite ist nicht auf diesem Gerät gespeichert, und es gibt keine Verbindung, um sie zu laden. Seiten, die du schon geöffnet hast, laden auch offline.",
+    "home": "Zurück zur Übersicht",
+    "studio": "Studio öffnen"
+  },
+  "selfHost": {
+    "metaTitle": "Eine eigene Kopie betreiben",
+    "metaDescription": "Wie eine Kopie von iynk mit eigenem Server läuft, damit Freunde Räume teilen, sich als Freunde verbinden und den KI-Partner nutzen.",
+    "eyebrow": "Selbst hosten",
+    "title": "Eine eigene Kopie betreiben",
+    "lede": "iynk.tech ist das Labor für sich allein. Eine Kopie, die du oder ein Freund betreibt, bringt einen Server mit, und auf diesem Server leben Räume, Freunde, der KI-Partner und die Preisprüfung.",
+    "private": {
+      "title": "Der Code öffnet mit der öffentlichen Version",
+      "text": "Das Repository ist vorerst privat. Diese Seite zeigt, wie eine Kopie läuft, damit du einen Rechner vorbereiten kannst. Der Link zum Code kommt hierher, sobald er offen ist."
+    },
+    "adds": {
+      "title": "Was deine Kopie dazubringt",
+      "rooms": {
+        "title": "Räume",
+        "text": "Alle in einem Raum sehen dieselbe Werkbank und denselben Lauf. Eine Person tippt, dann gibt sie die Tastatur weiter."
+      },
+      "buddies": {
+        "title": "Freunde",
+        "text": "Verbinde dich mit einem Freund, indem du einen kurzen Code vorliest. Es gibt keine E-Mail und kein Passwort."
+      },
+      "ai": {
+        "title": "KI-Partner und Preisprüfung",
+        "text": "Schalte sie einmal auf dem Server mit deinen eigenen Schlüsseln ein, dann können alle auf deiner Kopie sie nutzen."
+      }
+    },
+    "need": {
+      "title": "Was du brauchst",
+      "text": "Docker mit dem Compose-Plugin, oder Node 24 für einen Betrieb ohne Docker, und einen Domainnamen, der auf den Rechner zeigt. Auf einem einzelnen Computer reicht localhost zum Ausprobieren."
+    },
+    "steps": {
+      "title": "Starten",
+      "settings": "Kopiere die Einstellungsdatei und setze IYNK_DOMAIN in deploy/.env auf deine Domain oder auf localhost.",
+      "start": "Starte die Web-App, den Server und Caddy, das sich das HTTPS-Zertifikat selbst holt.",
+      "init": "Bereite den Server vor. Er gibt den ersten Einladungslink und einen Code mit 12 Zeichen aus.",
+      "friend": "Erstelle für jeden Freund einen Link und einen Code. Ein Code gilt einmal und läuft nach 24 Stunden ab.",
+      "label": "Befehle für Schritt {n}",
+      "copy": "Befehle kopieren",
+      "copied": "Kopiert"
+    },
+    "join": {
+      "title": "Freunde dazuholen",
+      "text": "Öffne deine Kopie, geh zu Einstellungen, Serveradresse, und gib den Code aus dem ersten Start ein. Wer zuerst beitritt, besitzt den Server. Freunde machen dasselbe mit ihrem eigenen Code, dann verbindet ihr euch auf der Seite Gemeinsam."
+    }
+  }
+}

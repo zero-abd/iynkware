@@ -1,0 +1,1034 @@
+[
+  {
+    "id": "board-power:esp32-devkitc@1",
+    "name": "ESP32 DevKitC",
+    "source": "figures/boards/esp32-devkitc.js:138-150",
+    "sources": [
+      {
+        "id": "usb",
+        "nominalV": 5,
+        "dropV": 0.35,
+        "limitA": 0.5
+      },
+      {
+        "id": "pin5",
+        "nominalV": 5,
+        "minV": 4.75,
+        "maxV": 5.25
+      },
+      {
+        "id": "pin3v3",
+        "nominalV": 3.3,
+        "minV": 3,
+        "maxV": 3.6
+      }
+    ],
+    "regulator": {
+      "kind": "linear",
+      "voutVolts": 3.3,
+      "dropoutVolts": 1.1
+    },
+    "mcu": {
+      "part": "U3",
+      "rail": "3V3",
+      "minV": 2.43,
+      "requires": [
+        "U3",
+        "R11"
+      ]
+    },
+    "brownout": {
+      "thresholdVolts": 2.43,
+      "hysteresisVolts": 0.1,
+      "minDwellNs": 10000000,
+      "resetNs": 1000000
+    },
+    "protection": [
+      {
+        "source": "pin5",
+        "present": false
+      },
+      {
+        "source": "usb",
+        "present": true
+      }
+    ],
+    "notModelled": [
+      "regulator current limit",
+      "quiescent current",
+      "thermal shutdown"
+    ],
+    "parameterSources": [
+      {
+        "param": "usb nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:140",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb drop through J1 and D3",
+        "value": 0.35,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:146",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:140",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range min",
+        "value": 4.75,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:141",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range max",
+        "value": 5.25,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:141",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:141",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin3v3 nominal",
+        "value": 3.3,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:142",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin3v3 range min",
+        "value": 3,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:142",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin3v3 range max",
+        "value": 3.6,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:142",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "regulator output",
+        "value": 3.3,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:147",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "regulator dropout",
+        "value": 1.1,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:147",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "mcu minimum",
+        "value": 2.43,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:149",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "brown-out threshold",
+        "value": 2.43,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-devkitc.js:149",
+        "note": "taken from the MCU minimum in the figure"
+      },
+      {
+        "param": "brown-out hysteresis",
+        "value": 0.1,
+        "unit": "V",
+        "type": "assumption",
+        "note": "assumed; the ESP32 datasheet is not cited yet"
+      },
+      {
+        "param": "brown-out minimum dwell",
+        "value": 10000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; matches the 0.01 s dwell of rule:brownout-threshold@1"
+      },
+      {
+        "param": "brown-out reset time",
+        "value": 1000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; the ESP32 datasheet is not cited yet"
+      }
+    ]
+  },
+  {
+    "id": "board-power:uno-r3@1",
+    "name": "Arduino Uno R3",
+    "source": "figures/boards/uno-r3.js:118-136",
+    "sources": [
+      {
+        "id": "usb",
+        "nominalV": 5,
+        "limitA": 0.5
+      },
+      {
+        "id": "jack",
+        "nominalV": 9,
+        "minV": 7,
+        "maxV": 12
+      },
+      {
+        "id": "vin",
+        "nominalV": 9,
+        "minV": 7,
+        "maxV": 12
+      },
+      {
+        "id": "pin5",
+        "nominalV": 5,
+        "minV": 4.75,
+        "maxV": 5.25
+      }
+    ],
+    "regulator": {
+      "kind": "linear",
+      "voutVolts": 5,
+      "dropoutVolts": 1.2
+    },
+    "mcu": {
+      "part": "ZU4",
+      "rail": "5V",
+      "minV": 2.7,
+      "requires": [
+        "ZU4",
+        "SK1",
+        "Y2",
+        "RN1"
+      ]
+    },
+    "brownout": {
+      "thresholdVolts": 2.7,
+      "hysteresisVolts": 0.05,
+      "minDwellNs": 2000,
+      "resetNs": 65000000
+    },
+    "protection": [
+      {
+        "source": "usb",
+        "present": true
+      },
+      {
+        "source": "jack",
+        "present": true
+      },
+      {
+        "source": "vin",
+        "present": false
+      },
+      {
+        "source": "pin5",
+        "present": false
+      }
+    ],
+    "notModelled": [
+      "regulator current limit",
+      "quiescent current",
+      "thermal shutdown",
+      "dropout rising with load current and temperature",
+      "the LP2985 3.3 V regulator behind the 5 V rail"
+    ],
+    "parameterSources": [
+      {
+        "param": "regulator output",
+        "value": 5,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "onsemi NCP1117/D, 1.0 A Low-Dropout Positive Fixed and Adjustable Voltage Regulators, Rev. 31 (Aug 2021), https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf",
+        "page": "Electrical Characteristics, 5.0 V fixed version",
+        "note": "NCP1117ST50T3G is the Eagle value of U1 (docs/facts/uno-r3.md section 3.2); production boards may carry an SPX1117M3-L-5 with the same pinout"
+      },
+      {
+        "param": "regulator dropout",
+        "value": 1.2,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "onsemi NCP1117/D, 1.0 A Low-Dropout Positive Fixed and Adjustable Voltage Regulators, Rev. 31 (Aug 2021), https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf",
+        "page": "3, Electrical Characteristics, Dropout Voltage",
+        "note": "the maximum at 800 mA, 1.07 V typ; 1.10 V max at 100 mA. The worst case is used because the rail check is a worst case"
+      },
+      {
+        "param": "regulator input maximum",
+        "value": 20,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "onsemi NCP1117/D, 1.0 A Low-Dropout Positive Fixed and Adjustable Voltage Regulators, Rev. 31 (Aug 2021), https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf",
+        "page": "2, Maximum Ratings",
+        "note": "not used by the model; it bounds the vin and jack range stated in the figure"
+      },
+      {
+        "param": "usb nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:120",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:120",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "jack nominal",
+        "value": 9,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:121",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "jack range min",
+        "value": 7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:121",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "jack range max",
+        "value": 12,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:121",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin nominal",
+        "value": 9,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:122",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin range min",
+        "value": 7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:122",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin range max",
+        "value": 12,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:122",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:123",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range min",
+        "value": 4.75,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:123",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range max",
+        "value": 5.25,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:123",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "brown-out threshold",
+        "value": 2.7,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11 and BODLEVEL fuse table: BODLEVEL 101 is 2.7 V typ, 2.5 to 2.9 V",
+        "note": "fuse extended byte 0xFD (docs/facts/uno-r3.md section 10)"
+      },
+      {
+        "param": "brown-out hysteresis",
+        "value": 0.05,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11, System and Reset Characteristics (p. 314): VHYST 50 mV typ"
+      },
+      {
+        "param": "brown-out minimum dwell",
+        "value": 2000,
+        "unit": "ns",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11, System and Reset Characteristics (p. 314): tBOD 2 us"
+      },
+      {
+        "param": "brown-out reset time",
+        "value": 65000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed from the 65 ms start-up delay the 0xFF low fuse selects; the start-up table of the datasheet was not read"
+      },
+      {
+        "param": "mcu minimum",
+        "value": 2.7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/uno-r3.js:134",
+        "note": "the figure uses the brown-out threshold as the MCU minimum"
+      }
+    ]
+  },
+  {
+    "id": "board-power:nano@1",
+    "name": "Arduino Nano",
+    "source": "figures/boards/nano.js:109-126",
+    "sources": [
+      {
+        "id": "usb",
+        "nominalV": 5,
+        "limitA": 0.5
+      },
+      {
+        "id": "vin",
+        "nominalV": 9,
+        "minV": 7,
+        "maxV": 12
+      },
+      {
+        "id": "pin5",
+        "nominalV": 5,
+        "minV": 4.75,
+        "maxV": 5.25
+      }
+    ],
+    "regulator": {
+      "kind": "linear",
+      "voutVolts": 5,
+      "dropoutVolts": 1.2
+    },
+    "mcu": {
+      "part": "IC3",
+      "rail": "5V",
+      "minV": 2.7,
+      "requires": [
+        "IC3",
+        "Y1"
+      ]
+    },
+    "brownout": {
+      "thresholdVolts": 2.7,
+      "hysteresisVolts": 0.05,
+      "minDwellNs": 2000,
+      "resetNs": 65000000
+    },
+    "protection": [
+      {
+        "source": "usb",
+        "present": true
+      },
+      {
+        "source": "vin",
+        "present": false
+      },
+      {
+        "source": "pin5",
+        "present": false
+      }
+    ],
+    "notModelled": [
+      "regulator current limit",
+      "quiescent current",
+      "thermal shutdown",
+      "dropout rising with load current and temperature",
+      "the FT232RL 3.3 V output"
+    ],
+    "parameterSources": [
+      {
+        "param": "regulator output",
+        "value": 5,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Texas Instruments LM1117 800-mA Low-Dropout Linear Regulator (SNOS412), https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+        "page": "Electrical Characteristics, LM1117-5.0",
+        "note": "IC2 is an LM1117IMPX-5.0 in the Eagle file; production boards show an ST LD1117S50 (docs/facts/nano.md section 4), about 1.1 V dropout per ST, which was not opened"
+      },
+      {
+        "param": "regulator dropout",
+        "value": 1.2,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Texas Instruments LM1117 800-mA Low-Dropout Linear Regulator (SNOS412), https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+        "page": "Electrical Characteristics, Dropout voltage, IOUT = 800 mA",
+        "note": "1.2 V typ at 25 C and 1.3 V max over temperature; 1.1 V typ and 1.2 V max at 100 mA. The typical value at the rated current is used, the same number as the Uno's NCP1117 maximum"
+      },
+      {
+        "param": "usb nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:111",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:111",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin nominal",
+        "value": 9,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:112",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin range min",
+        "value": 7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:112",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vin range max",
+        "value": 12,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:112",
+        "note": "stated in the figure; the LD1117 on production boards has an absolute maximum of 15 V"
+      },
+      {
+        "param": "pin5 nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:113",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range min",
+        "value": 4.75,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:113",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range max",
+        "value": 5.25,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:113",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "brown-out threshold",
+        "value": 2.7,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11 and BODLEVEL fuse table: BODLEVEL 101 is 2.7 V typ, 2.5 to 2.9 V",
+        "note": "the Nano's boards.txt sets extended fuse 0xFD like the Uno (docs/facts/nano.md); not re-read"
+      },
+      {
+        "param": "brown-out hysteresis",
+        "value": 0.05,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11, System and Reset Characteristics (p. 314): VHYST 50 mV typ"
+      },
+      {
+        "param": "brown-out minimum dwell",
+        "value": 2000,
+        "unit": "ns",
+        "type": "datasheet",
+        "ref": "Microchip ATmega48A/PA/88A/PA/168A/PA/328/P datasheet DS40002061B (2020), https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega48A-PA-88A-PA-168A-PA-328-P-DS-DS40002061B.pdf",
+        "page": "Table 29-11, System and Reset Characteristics (p. 314): tBOD 2 us"
+      },
+      {
+        "param": "brown-out reset time",
+        "value": 65000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed from the 65 ms start-up delay the 0xFF low fuse selects; the start-up table of the datasheet was not read"
+      },
+      {
+        "param": "mcu minimum",
+        "value": 2.7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/nano.js:124",
+        "note": "the figure uses the brown-out threshold as the MCU minimum"
+      }
+    ]
+  },
+  {
+    "id": "board-power:pico@1",
+    "name": "Raspberry Pi Pico",
+    "source": "figures/boards/pico.js:159-191",
+    "sources": [
+      {
+        "id": "usb",
+        "nominalV": 5,
+        "limitA": 0.5
+      },
+      {
+        "id": "vbus",
+        "nominalV": 5,
+        "minV": 4.5,
+        "maxV": 5.5
+      },
+      {
+        "id": "vsys",
+        "nominalV": 3.7,
+        "minV": 1.8,
+        "maxV": 5.5
+      }
+    ],
+    "regulator": {
+      "kind": "buck-boost",
+      "voutVolts": 3.3,
+      "minInVolts": 1.8,
+      "maxInVolts": 5.5
+    },
+    "mcu": {
+      "part": "U1",
+      "rail": "3V3",
+      "minV": 1.62,
+      "requires": [
+        "U1",
+        "U3",
+        "X1"
+      ]
+    },
+    "brownout": {
+      "thresholdVolts": 1.62,
+      "hysteresisVolts": 0.1,
+      "minDwellNs": 10000000,
+      "resetNs": 1000000
+    },
+    "protection": [
+      {
+        "source": "usb",
+        "present": true
+      },
+      {
+        "source": "vbus",
+        "present": true
+      },
+      {
+        "source": "vsys",
+        "present": false
+      }
+    ],
+    "notModelled": [
+      "VSYS under-voltage lock-out: 1.65 V typ rising, 1.4 to 1.55 V falling; the model cuts the output at the 1.8 V minimum input",
+      "output current capability falling with input voltage",
+      "quiescent current",
+      "thermal shutdown"
+    ],
+    "parameterSources": [
+      {
+        "param": "regulator output",
+        "value": 3.3,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Richtek DS6150A/B-06 (Jul 2018), RT6150A/RT6150B Current Mode Buck-Boost Converter, https://www.richtek.com/assets/product_file/RT6150A=RT6150B/DS6150AB-06.pdf",
+        "page": "Ordering information, output voltage code 33; Output Voltage vs. Input Voltage plot",
+        "note": "RT6150B-33GQW is U2 on the Pico (docs/facts/pico.md section 5)"
+      },
+      {
+        "param": "regulator input minimum",
+        "value": 1.8,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Richtek DS6150A/B-06 (Jul 2018), RT6150A/RT6150B Current Mode Buck-Boost Converter, https://www.richtek.com/assets/product_file/RT6150A=RT6150B/DS6150AB-06.pdf",
+        "page": "Recommended Operating Conditions: supply input voltage 1.8 V to 5.5 V; Output Voltage vs. Input Voltage plot holds 3.3 V across it"
+      },
+      {
+        "param": "regulator input maximum",
+        "value": 5.5,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "Richtek DS6150A/B-06 (Jul 2018), RT6150A/RT6150B Current Mode Buck-Boost Converter, https://www.richtek.com/assets/product_file/RT6150A=RT6150B/DS6150AB-06.pdf",
+        "page": "Recommended Operating Conditions"
+      },
+      {
+        "param": "regulator output current",
+        "value": 0.8,
+        "unit": "A",
+        "type": "datasheet",
+        "ref": "Richtek DS6150A/B-06 (Jul 2018), RT6150A/RT6150B Current Mode Buck-Boost Converter, https://www.richtek.com/assets/product_file/RT6150A=RT6150B/DS6150AB-06.pdf",
+        "page": "Features: up to 800 mA continuous output current",
+        "note": "not used by the model; the Pico datasheet advises keeping the 3V3 load under 300 mA"
+      },
+      {
+        "param": "usb nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:181",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:181",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vbus nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:182",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vbus range min",
+        "value": 4.5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:182",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vbus range max",
+        "value": 5.5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:182",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "vsys nominal",
+        "value": 3.7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:183",
+        "note": "stated in the figure for a lithium cell, not cited to a datasheet"
+      },
+      {
+        "param": "vsys range min",
+        "value": 1.8,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:183",
+        "note": "stated in the figure and equal to the regulator's minimum input"
+      },
+      {
+        "param": "vsys range max",
+        "value": 5.5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:183",
+        "note": "stated in the figure and equal to the regulator's maximum input"
+      },
+      {
+        "param": "mcu minimum",
+        "value": 1.62,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:189",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "brown-out threshold",
+        "value": 1.62,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/pico.js:189",
+        "note": "taken from the MCU minimum in the figure; the real reset comes from the VSYS lock-out of the regulator, which is not modelled"
+      },
+      {
+        "param": "brown-out hysteresis",
+        "value": 0.1,
+        "unit": "V",
+        "type": "assumption",
+        "note": "assumed; the RP2040 datasheet is not cited yet"
+      },
+      {
+        "param": "brown-out minimum dwell",
+        "value": 10000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; matches the 0.01 s dwell of rule:brownout-threshold@1"
+      },
+      {
+        "param": "brown-out reset time",
+        "value": 1000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; the RP2040 datasheet is not cited yet"
+      }
+    ]
+  },
+  {
+    "id": "board-power:esp32-s3-devkitc-1@1",
+    "name": "ESP32-S3-DevKitC-1",
+    "source": "figures/boards/esp32-s3-devkitc-1.js:196-215",
+    "sources": [
+      {
+        "id": "uart",
+        "nominalV": 5,
+        "limitA": 0.5
+      },
+      {
+        "id": "usb",
+        "nominalV": 5,
+        "limitA": 0.5
+      },
+      {
+        "id": "pin5",
+        "nominalV": 5,
+        "minV": 4.75,
+        "maxV": 5.25
+      },
+      {
+        "id": "pin3v3",
+        "nominalV": 3.3,
+        "minV": 3,
+        "maxV": 3.6
+      }
+    ],
+    "regulator": {
+      "kind": "linear",
+      "voutVolts": 3.3,
+      "dropoutVolts": 0.45
+    },
+    "mcu": {
+      "part": "U4",
+      "rail": "3V3",
+      "minV": 2.7,
+      "requires": [
+        "U4",
+        "R5"
+      ]
+    },
+    "brownout": {
+      "thresholdVolts": 2.7,
+      "hysteresisVolts": 0.1,
+      "minDwellNs": 10000000,
+      "resetNs": 1000000
+    },
+    "protection": [
+      {
+        "source": "uart",
+        "present": true
+      },
+      {
+        "source": "usb",
+        "present": true
+      },
+      {
+        "source": "pin5",
+        "present": false
+      },
+      {
+        "source": "pin3v3",
+        "present": false
+      }
+    ],
+    "notModelled": [
+      "regulator current limit",
+      "quiescent current",
+      "thermal shutdown",
+      "dropout rising with load current and temperature"
+    ],
+    "parameterSources": [
+      {
+        "param": "regulator output",
+        "value": 3.3,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "SG Micro SGM2212 800mA Low Noise, Low Quiescent Current, High PSRR, Low Dropout Linear Regulator, Rev. A.2 (distributor copy https://www.endrich.com/Datenbl%C3%A4tter/Aktive%20Komponenten/1690103353.pdf)",
+        "page": "Ordering Information: SGM2212-3.3XKC3G/TR, SOT-223-3",
+        "note": "U2 on board revision v1.1 (docs/facts/esp32-s3-devkitc-1.md, schematic dated 2022-11-30); earlier revisions used other LDOs"
+      },
+      {
+        "param": "regulator dropout",
+        "value": 0.45,
+        "unit": "V",
+        "type": "datasheet",
+        "ref": "SG Micro SGM2212 800mA Low Noise, Low Quiescent Current, High PSRR, Low Dropout Linear Regulator, Rev. A.2 (distributor copy https://www.endrich.com/Datenbl%C3%A4tter/Aktive%20Komponenten/1690103353.pdf)",
+        "page": "Electrical Characteristics (continued), Dropout Voltage (VOUT = 3.3 V), IOUT = 800 mA",
+        "note": "450 mV max at 25 C, 390 mV typ; 610 mV max over -40 to +125 C; 280 mV max at 500 mA. The figure's 0.42 V is the older advance-datasheet value"
+      },
+      {
+        "param": "regulator current limit",
+        "value": 0.81,
+        "unit": "A",
+        "type": "datasheet",
+        "ref": "SG Micro SGM2212 800mA Low Noise, Low Quiescent Current, High PSRR, Low Dropout Linear Regulator, Rev. A.2 (distributor copy https://www.endrich.com/Datenbl%C3%A4tter/Aktive%20Komponenten/1690103353.pdf)",
+        "page": "Electrical Characteristics (continued), Output Current Limit",
+        "note": "810 mA min, 1100 mA typ; not used by the model"
+      },
+      {
+        "param": "uart nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:198",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "uart current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:198",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:199",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "usb current limit",
+        "value": 0.5,
+        "unit": "A",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:199",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 nominal",
+        "value": 5,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:200",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range min",
+        "value": 4.75,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:200",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin5 range max",
+        "value": 5.25,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:200",
+        "note": "stated in the figure; the LDO itself takes 2.7 to 20 V in"
+      },
+      {
+        "param": "pin3v3 nominal",
+        "value": 3.3,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:201",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin3v3 range min",
+        "value": 3,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:201",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "pin3v3 range max",
+        "value": 3.6,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:201",
+        "note": "stated in the figure, not cited to a datasheet"
+      },
+      {
+        "param": "mcu minimum",
+        "value": 2.7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:213",
+        "note": "stated in the figure; the module datasheet gives 3.0 to 3.6 V as its operating supply, not read in this pass"
+      },
+      {
+        "param": "brown-out threshold",
+        "value": 2.7,
+        "unit": "V",
+        "type": "assumption",
+        "ref": "figures/boards/esp32-s3-devkitc-1.js:213",
+        "note": "taken from the MCU minimum in the figure; the default level of the ESP-IDF detector is unverified (docs/facts/esp32-s3-devkitc-1.md section 10)"
+      },
+      {
+        "param": "brown-out hysteresis",
+        "value": 0.1,
+        "unit": "V",
+        "type": "assumption",
+        "note": "assumed; the ESP32-S3 datasheet is not cited yet"
+      },
+      {
+        "param": "brown-out minimum dwell",
+        "value": 10000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; matches the 0.01 s dwell of rule:brownout-threshold@1"
+      },
+      {
+        "param": "brown-out reset time",
+        "value": 1000000,
+        "unit": "ns",
+        "type": "assumption",
+        "note": "assumed; the ESP32-S3 datasheet is not cited yet"
+      }
+    ]
+  }
+]

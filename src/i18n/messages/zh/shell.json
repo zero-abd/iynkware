@@ -1,0 +1,210 @@
+{
+  "brand": {
+    "home": "iynk，返回总览"
+  },
+  "nav": {
+    "label": "实验室",
+    "dashboard": "总览",
+    "studio": "Studio",
+    "boards": "开发板实验室",
+    "robotics": "机器人实验室",
+    "drones": "无人机实验室",
+    "together": "一起",
+    "about": "关于",
+    "menu": "菜单",
+    "closeMenu": "关闭菜单",
+    "search": "搜索",
+    "searchHint": "搜索页面、开发板、课程和操作"
+  },
+  "language": {
+    "label": "语言"
+  },
+  "theme": {
+    "label": "主题",
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "settings": {
+    "label": "设置"
+  },
+  "footer": {
+    "privacy": "没有账号，没有广告，没有分析。你的进度和设置只保存在这个浏览器里。",
+    "figures": "用 Colorfigures 绘制",
+    "pages": "网站页面",
+    "privacyLink": "隐私",
+    "licenceLink": "许可证状态",
+    "licence": "许可证：尚未选定。图形：MIT，作者 April Zhu。",
+    "selfHostLink": "运行自己的副本"
+  },
+  "ui": {
+    "progress": "{done}/{total}",
+    "progressLabel": "{label}：已完成 {done}/{total}"
+  },
+  "dashboard": {
+    "continue": {
+      "title": "从上次停下的地方继续",
+      "empty": "还没有完成任何内容。Uno R3 是最好的起点：十六节短课，从开发板的各个部件一直讲到倒车雷达。",
+      "last": "最近完成",
+      "resume": "继续",
+      "begin": "开始第一课",
+      "entry": "{kind}：{name}",
+      "kinds": {
+        "lesson": "课程",
+        "assembly": "组装",
+        "step": "组装步骤",
+        "task": "练习任务",
+        "quiz": "测验",
+        "build": "组装",
+        "test": "安全测试",
+        "course": "飞行航线"
+      }
+    },
+    "overall": "总进度",
+    "board": {
+      "progress": "课程与组装"
+    },
+    "robotics": {
+      "progress": "步骤、任务与测验"
+    },
+    "drones": {
+      "progress": "组装、测试与航线"
+    }
+  },
+  "about": {
+    "metaTitle": "关于与致谢",
+    "metaDescription": "iynk 是什么、如何运作，以及背后的致谢与许可证。",
+    "title": "关于 iynk",
+    "lede": "iynk 是一个在浏览器里打开的硬件实验室。每块开发板、每个模块、每架无人机都是一个手绘墨线的 3D 模型，你可以转动、拆开和操作它，它们连着课程、真正能运行的代码，以及你可以故意触发的故障。",
+    "howTitle": "工作原理",
+    "howHeads": {
+      "figures": "可以操作的模型",
+      "code": "真正运行的代码",
+      "privacy": "数据留在浏览器里"
+    },
+    "how": {
+      "figures": "每个模型都是一个独立页面，由 Colorfigures 引擎绘制：真实的 3D 形体，用亮、中、暗三档平涂上色，再加墨线轮廓。页面通过一个小小的消息桥与模型通信，所以在课程里按下一个按钮，模型里的零件就会动起来，反过来也一样。",
+      "code": "程序在你浏览器里的模拟器中运行，使用虚拟时钟：一个 Arduino C++ 子集（每种芯片的整数位宽都正确）、一个 MicroPython 子集，以及供两块 FPGA 开发板使用的 Verilog 子集。",
+      "privacy": "进度和设置保存在这个浏览器的本地存储中。没有账号。iynk 会在本地记录实验室里发生的事。记录只留在这个浏览器里，你可以在“密钥与用量”中查看、复制或清除。不会有任何内容发送给我们。"
+    },
+    "originalsTitle": "三个原版网站",
+    "originalsLede": "iynk 受三个教学网站启发。它是一个独立项目，代码均为自己编写。",
+    "originals": {
+      "arduino": {
+        "name": "Learn Arduino",
+        "text": "围绕 Arduino Uno 的十六节元件课程，带实时代码面板、串口监视器和原理图视图。"
+      },
+      "robotics": {
+        "name": "Robotics Engineer",
+        "text": "十三个交互式实验台：开发板、电机驱动、传感器和电源模块，带组装流程、故障和测验。"
+      },
+      "drones": {
+        "name": "Drone Engineer",
+        "text": "十三架无人机，带逐个零件的组装、实时计算、安全测试和飞行场。"
+      }
+    },
+    "visit": "访问 {name}",
+    "licenceTitle": "许可证",
+    "licenceText": "这些模型由 April Zhu 的 Colorfigures 绘制，Robotics Engineer 和 Drone Engineer 网站也是用这个引擎绘制的。Colorfigures 基于 April Zhu 的 ISO-GLOW 和 Tolga Cohce 的 iso-figure，并以下方的 MIT 许可证发布。",
+    "licenceNote": "许可证按英文原文转载。",
+    "builtWithTitle": "技术栈",
+    "builtWith": "Next.js、React 和 Tailwind CSS（均为 MIT 许可证），每个模型都使用 Colorfigures 引擎。",
+    "colorfigures": "Colorfigures 技能页面"
+  },
+  "command": {
+    "title": "命令菜单",
+    "placeholder": "搜索页面、开发板、课程和操作",
+    "empty": "没有匹配项。试试实验室名称或某项设置。",
+    "groups": {
+      "pages": "页面",
+      "actions": "操作",
+      "theme": "主题",
+      "language": "语言",
+      "boards": "开发板",
+      "lessons": "课程",
+      "robotics": "机器人工作台",
+      "drones": "无人机",
+      "studio": "Studio 示例"
+    },
+    "open": "搜索",
+    "sound": {
+      "on": "开启声音",
+      "off": "关闭声音"
+    },
+    "motion": {
+      "on": "减少动效",
+      "off": "允许动效"
+    },
+    "keys": "密钥与用量",
+    "hint": "{key} 打开此菜单"
+  },
+  "privacy": {
+    "metaTitle": "隐私",
+    "metaDescription": "iynk 在你的浏览器里保存什么、发送什么，以及绝不会做什么。",
+    "title": "隐私",
+    "lede": "iynk 没有账号、广告和分析。这是一份简短的说明，讲这个应用保存和发送什么。它不是法律意见。",
+    "stays": {
+      "title": "留在你浏览器里的内容",
+      "text": "你的进度和设置保存在这个浏览器的本地存储中，键名为 iynk:v1。你选择的语言记在名为 iynk-lang 的 cookie 里。如果你添加了 AI 或搜索密钥，它保存在 iynk:keys:v1 下。实验室里发生的事记录在本地日志 iynk:log:v1 中。你可以在“密钥与用量”中查看、复制或清除它。"
+    },
+    "leaves": {
+      "title": "离开你浏览器的内容",
+      "text": "没有，除非你使用房间或添加密钥。房间会把你的名字、光标和聊天消息（包括语音消息转成的文字）发送到房间中继。你添加的密钥会在每次 AI 或搜索调用时发送到你自己的 iynk 服务器，语音录音也会发到那里转写。服务器不会保存密钥。"
+    },
+    "never": {
+      "title": "我们不会做的事",
+      "text": "没有账号，没有广告，没有分析。使用计数只是你浏览器里的一份本地日志，你可以随时查看和清除。"
+    }
+  },
+  "offline": {
+    "metaTitle": "离线",
+    "title": "你已离线",
+    "lede": "这个页面没有保存在此设备上,也没有网络可以获取它。你之前打开过的页面在离线时仍能加载。",
+    "home": "返回总览",
+    "studio": "打开 Studio"
+  },
+  "selfHost": {
+    "metaTitle": "运行你自己的副本",
+    "metaDescription": "一份 iynk 副本如何带着自己的服务器运行，让朋友们共享房间、结为好友并使用 AI 搭档。",
+    "eyebrow": "自行托管",
+    "title": "运行你自己的副本",
+    "lede": "iynk.tech 只有实验室本身。你或朋友运行的副本会多出一台服务器，房间、好友、AI 搭档和价格查询都在这台服务器上。",
+    "private": {
+      "title": "代码将随公开版本开放",
+      "text": "代码仓库目前是私有的。本页说明副本如何运行，方便你先准备好机器。代码开放后，链接会放在这里。"
+    },
+    "adds": {
+      "title": "你的副本多了什么",
+      "rooms": {
+        "title": "房间",
+        "text": "房间里的每个人看到同一个工作台和同一次运行。一次只有一个人打字，然后把键盘交给下一个人。"
+      },
+      "buddies": {
+        "title": "好友",
+        "text": "把一个短码念给朋友听，就能结为好友。不需要邮箱，也不需要密码。"
+      },
+      "ai": {
+        "title": "AI 搭档和价格查询",
+        "text": "在服务器上用你自己的密钥开启一次，你副本上的每个人就都能使用。"
+      }
+    },
+    "need": {
+      "title": "你需要什么",
+      "text": "带 compose 插件的 Docker，或者不用 Docker 时的 Node 24，以及一个指向这台机器的域名。只在一台电脑上试用的话，localhost 就够了。"
+    },
+    "steps": {
+      "title": "启动它",
+      "settings": "复制设置文件，然后把 deploy/.env 里的 IYNK_DOMAIN 设为你的域名或 localhost。",
+      "start": "启动网页应用、服务器和 Caddy，Caddy 会自己获取 HTTPS 证书。",
+      "init": "准备服务器。它会打印第一个注册链接和一个 12 位的代码。",
+      "friend": "为每位朋友生成一个链接和代码。代码只能用一次，24 小时后失效。",
+      "label": "第 {n} 步的命令",
+      "copy": "复制命令",
+      "copied": "已复制"
+    },
+    "join": {
+      "title": "邀请朋友加入",
+      "text": "打开你的副本，进入设置、服务器地址，输入首次运行得到的代码。第一个加入的人是服务器的所有者。朋友们用各自的代码做同样的事，然后你们在“一起”页面结为好友。"
+    }
+  }
+}

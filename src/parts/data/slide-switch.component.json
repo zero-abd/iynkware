@@ -1,0 +1,263 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.slide-switch",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "generic",
+    "model": "SPDT slide switch, 3 legs",
+    "generic": true,
+    "refdes_prefix": "SW",
+    "kind": "discrete",
+    "category": "mechanical",
+    "description": {
+      "i18n_key": "parts.slide-switch.description",
+      "en": "A slide switch with three legs in a row. The middle leg is the common; sliding the knob joins it to one end leg or the other."
+    },
+    "primary_source": "own",
+    "legacy_ids": [],
+    "tags": [
+      "switch",
+      "slide",
+      "input",
+      "breadboard"
+    ]
+  },
+  "sources": [
+    {
+      "id": "own",
+      "kind": "own-estimate",
+      "title": "Generic breadboard SPDT slide switch, 3 legs at 2.54 mm",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "A shape and a behaviour, not one maker's part. The solver joins the common to the end leg the knob is on, with 1 milliohm, and leaves the other open."
+    }
+  ],
+  "pins": [
+    {
+      "id": "A",
+      "designator": "A",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Joined to the common while the knob is toward this leg."
+      }
+    },
+    {
+      "id": "COM",
+      "designator": "COM",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 2.54,
+        "y": 0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "The common leg, in the middle."
+      }
+    },
+    {
+      "id": "B",
+      "designator": "B",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 5.08,
+        "y": 0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Joined to the common while the knob is toward this leg."
+      }
+    }
+  ],
+  "groups": [],
+  "connectors": [
+    {
+      "id": "legs",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pitch": 2.54,
+      "pins": [
+        "A",
+        "COM",
+        "B"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "SPDT slide, 3 legs at 2.54 mm",
+    "body": {
+      "w": 8.6,
+      "h": 3.6,
+      "d": 8
+    },
+    "accuracy": 1,
+    "source": {
+      "src": "own",
+      "loc": "typical 1P2T mini slide switch"
+    }
+  },
+  "ratings": {},
+  "parameters": [
+    {
+      "id": "closed",
+      "name": {
+        "en": "Knob position"
+      },
+      "kind": "setting",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "unit": "1",
+      "affects": [
+        "contact_a",
+        "contact_b"
+      ]
+    }
+  ],
+  "behaviour": {
+    "summary": {
+      "en": "A switch with one common and two ends. The knob joins the common to one end."
+    },
+    "layers": [
+      {
+        "id": "contact_a",
+        "domain": "analog",
+        "reads": [
+          "COM",
+          "A",
+          "closed"
+        ],
+        "summary": {
+          "en": "Joins COM and A while the knob is on A, and leaves them open otherwise."
+        },
+        "model": {
+          "kind": "element",
+          "element": "res",
+          "terminals": {
+            "a": "COM",
+            "b": "A"
+          },
+          "params": {
+            "ohms": {
+              "value": 0.001,
+              "unit": "ohm",
+              "source": {
+                "src": "own"
+              },
+              "rationale": {
+                "en": "A closed contact is about a milliohm. The page sets the state, not a part setting."
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "contact_b",
+        "domain": "analog",
+        "reads": [
+          "COM",
+          "B",
+          "closed"
+        ],
+        "summary": {
+          "en": "Joins COM and B while the knob is on B, and leaves them open otherwise."
+        },
+        "model": {
+          "kind": "element",
+          "element": "res",
+          "terminals": {
+            "a": "COM",
+            "b": "B"
+          },
+          "params": {
+            "ohms": {
+              "value": 0.001,
+              "unit": "ohm",
+              "source": {
+                "src": "own"
+              },
+              "rationale": {
+                "en": "A closed contact is about a milliohm. The page sets the state, not a part setting."
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "simulation": {
+    "tier": "T1",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "The common joined to one end leg at a time, set by the knob while the run is going."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "Contact bounce, contact resistance beyond a milliohm and the contact ratings."
+      }
+    ],
+    "known_gaps": [],
+    "solver_requires": [
+      "res"
+    ],
+    "tests": [
+      {
+        "id": "knob_joins_one_end",
+        "kind": "golden-trace",
+        "file": "src/sim/analog/part-input.test.ts",
+        "state": "present",
+        "note": "The knob joins the common to one end leg and the other end stays open, set while the run is going."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "schematic": {
+      "symbol": "switch"
+    },
+    "fallback": {
+      "renderer": "generic-box",
+      "label": "Slide switch",
+      "body_colour": "#4a4f57",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-11-10",
+    "third_party_content": false,
+    "review": {
+      "status": "unreviewed"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-11-10",
+        "note": "First descriptor, for the run-time input of the canvas.",
+        "behaviour_change": false
+      }
+    ]
+  }
+}

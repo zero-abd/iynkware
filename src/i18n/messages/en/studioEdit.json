@@ -1,0 +1,57 @@
+{
+  "edit": {
+    "place": {
+      "quota": "This project has reached its size limit. Remove something before adding more.",
+      "unknownDefinition": "That part is not in the library, so it was not placed.",
+      "boardView": "The Board tab shows the board on its own. Parts go on the Breadboard or Schematic tab.",
+      "readOnly": "This project is open read only, so parts cannot be added.",
+      "placed": "Placed {refdes}.",
+      "placedLoose": "Placed {refdes} on the canvas. Drag it onto the breadboard to seat it, or wire its pins.",
+      "placedLooseChip": "Placed {refdes} on the canvas. A chip seats across the centre channel of the breadboard: drag it there with pin 1 on the lower side of the channel, or wire its pins.",
+      "cancelled": "Placing cancelled.",
+      "armed": "{name} is ready. Tap the canvas to place it.",
+      "zoomed": "Zoomed in. Tap again to place it."
+    },
+    "seat": {
+      "unseated": "{refdes} is off the breadboard, so its legs are no longer connected.",
+      "rotateBlocked": "{refdes} did not turn: the turned legs would not land on free holes. Move it first, or free the holes it needs."
+    }
+  },
+  "palette": {
+    "title": "Parts",
+    "search": "Search parts",
+    "results": {
+      "one": "{count} part",
+      "other": "{count} parts"
+    },
+    "empty": "No part matches {query}.",
+    "emptyHelp": "Try a shorter word, or a kind such as passive or display.",
+    "armed": "{name} is ready. Click or tap to place it: over the breadboard it snaps into the holes. Press Enter to place it in the middle of the view.",
+    "place": "Place {name}",
+    "modelLabel": "Model",
+    "model": {
+      "modelled": "Modelled",
+      "partly-modelled": "Partly modelled",
+      "not-modelled-yet": "Not modelled yet",
+      "mechanical": "Mechanical part"
+    },
+    "category": {
+      "microcontroller": "Microcontroller",
+      "dev-board": "Dev board",
+      "passive": "Passive",
+      "semiconductor": "Semiconductor",
+      "sensor": "Sensor",
+      "actuator": "Actuator",
+      "motor-driver": "Motor driver",
+      "power": "Power",
+      "display": "Display",
+      "communication": "Communication",
+      "mechanical": "Mechanical",
+      "robotics": "Robotics",
+      "drone": "Drone",
+      "fpga": "FPGA",
+      "instrument": "Instrument",
+      "virtual": "Virtual"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "edit": {
+    "place": {
+      "quota": "Este proyecto ha llegado a su límite de tamaño. Quita algo antes de añadir más.",
+      "unknownDefinition": "Esa pieza no está en la biblioteca, así que no se colocó.",
+      "boardView": "La pestaña Placa muestra solo la placa. Las piezas van en la pestaña Protoboard o Esquema.",
+      "readOnly": "Este proyecto está abierto en solo lectura, así que no se pueden añadir piezas.",
+      "placed": "Se colocó {refdes}.",
+      "placedLoose": "Se colocó {refdes} en el lienzo. Arrástrala a la protoboard para encajarla, o conecta sus patas con cables.",
+      "placedLooseChip": "Se colocó {refdes} en el lienzo. Un chip encaja a caballo del canal central de la protoboard: arrástralo allí con la pata 1 en el lado inferior del canal, o conecta sus patas con cables.",
+      "cancelled": "Colocación cancelada.",
+      "armed": "{name} está lista. Toca el lienzo para colocarla.",
+      "zoomed": "Vista acercada. Toca de nuevo para colocarla."
+    },
+    "seat": {
+      "unseated": "{refdes} ya no está en la protoboard, así que sus patas dejan de estar conectadas.",
+      "rotateBlocked": "{refdes} no se giró: las patas giradas no caerían en agujeros libres. Muévela primero o libera los agujeros que necesita."
+    }
+  },
+  "palette": {
+    "title": "Piezas",
+    "search": "Buscar piezas",
+    "results": {
+      "one": "{count} pieza",
+      "other": "{count} piezas"
+    },
+    "empty": "Ninguna pieza coincide con {query}.",
+    "emptyHelp": "Prueba con una palabra más corta o con un tipo, como pasivo o pantalla.",
+    "armed": "{name} está lista. Haz clic o toca para colocarla: sobre la protoboard encaja en los agujeros. Pulsa Intro para colocarla en el centro de la vista.",
+    "place": "Colocar {name}",
+    "modelLabel": "Modelo",
+    "model": {
+      "modelled": "Modelada",
+      "partly-modelled": "Modelada en parte",
+      "not-modelled-yet": "Aún sin modelar",
+      "mechanical": "Pieza mecánica"
+    },
+    "category": {
+      "microcontroller": "Microcontrolador",
+      "dev-board": "Placa de desarrollo",
+      "passive": "Pasivo",
+      "semiconductor": "Semiconductor",
+      "sensor": "Sensor",
+      "actuator": "Actuador",
+      "motor-driver": "Driver de motor",
+      "power": "Alimentación",
+      "display": "Pantalla",
+      "communication": "Comunicación",
+      "mechanical": "Mecánico",
+      "robotics": "Robótica",
+      "drone": "Dron",
+      "fpga": "FPGA",
+      "instrument": "Instrumento",
+      "virtual": "Virtual"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "rp2040js",
+  "version": "1.4.1",
+  "source": { "npm": "rp2040js", "entry": "dist/esm/index.js" },
+  "files": [],
+  "requires": {},
+  "license": { "spdx": "MIT", "reviewed": false },
+  "budget": { "wireBytes": 32981, "rawBytes": 129484 }
+}

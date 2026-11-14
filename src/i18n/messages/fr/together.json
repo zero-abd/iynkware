@@ -1,0 +1,241 @@
+{
+  "panel": {
+    "title": "Ensemble",
+    "intro": "Construisez-le entre amis. Tout le monde voit le même établi, et le chat est traduit dans la langue de chacun.",
+    "introPlain": "Construisez-le entre amis. Tout le monde voit le même établi, et une seule personne tape à la fois.",
+    "start": "Ouvrir un salon",
+    "joinLabel": "Code du salon ou lien d'invitation",
+    "joinPlaceholder": "p. ex. k7m2qx",
+    "join": "Rejoindre",
+    "badCode": "Ce n'est pas un code de salon. Les codes comptent 6 lettres et chiffres.",
+    "unavailable": "Ce navigateur ne peut pas ouvrir de salon. Essayez une version récente de Chrome, Firefox, Safari ou Edge.",
+    "localOnly": "Ce déploiement n'a pas de serveur relais : les salons ne fonctionnent qu'entre les onglets de ce navigateur.",
+    "connecting": "Connexion au salon {code}…",
+    "syncing": "Réception de l'établi de l'hôte…",
+    "reconnecting": "Connexion perdue. Reconnexion… Vos modifications seront synchronisées à votre retour.",
+    "ended": {
+      "left": "Vous avez quitté le salon.",
+      "removed": "L'hôte vous a retiré du salon.",
+      "full": "Ce salon est complet. Un salon accueille 8 personnes.",
+      "wrong-item": "Ce salon construit autre chose. Ouvrez son lien d'invitation pour le rejoindre.",
+      "error": "Le salon s'est fermé."
+    },
+    "again": "Ouvrir un nouveau salon"
+  },
+  "identity": {
+    "title": "Qui êtes-vous ?",
+    "hint": "Les personnes du salon voient ce nom. Il reste sur cet appareil.",
+    "name": "Votre nom",
+    "missing": "Tapez le nom que verront les personnes du salon.",
+    "color": "Votre couleur",
+    "save": "Entrer dans le salon",
+    "saveOnly": "Enregistrer",
+    "rename": "Changer de nom",
+    "cancel": "Annuler",
+    "colors": {
+      "tomato": "Tomate",
+      "mustard": "Moutarde",
+      "mint": "Menthe",
+      "cobalt": "Cobalt",
+      "blush": "Rose poudré"
+    }
+  },
+  "bar": {
+    "label": "Salon {code}",
+    "invite": "Inviter",
+    "inviteTitle": "Inviter des personnes dans le salon {code}",
+    "inviteHint": "Toute personne qui a ce lien ou ce QR code peut entrer. Aucun compte n'est nécessaire.",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "copyFailed": "Copie impossible. Sélectionnez le lien et copiez-le vous-même.",
+    "share": "Partager",
+    "shareText": "Construis avec moi sur iynk, salon {code}",
+    "qr": "QR code du lien d'invitation au salon {code}",
+    "qrError": "Impossible de dessiner le QR code. Copiez plutôt le lien.",
+    "close": "Fermer",
+    "people": {
+      "one": "{count} personne ici",
+      "other": "{count} personnes ici"
+    },
+    "you": "vous",
+    "host": "hôte",
+    "role": "Votre rôle",
+    "roles": {
+      "none": "Aucun rôle",
+      "wirer": "Câblage",
+      "coder": "Code",
+      "pilot": "Pilote",
+      "watcher": "Observateur"
+    },
+    "keyboardYou": "Vous avez le clavier",
+    "keyboardOther": "{name} a le clavier",
+    "passTo": "Passer le clavier à",
+    "pass": "Passer",
+    "ask": "Demander le clavier",
+    "take": "Prendre le clavier",
+    "asked": "{name} veut le clavier",
+    "denied": "{name} a le clavier. Demandez-le pour modifier le code.",
+    "leave": "Quitter le salon",
+    "remove": "Retirer {name}",
+    "removeConfirm": "Retirer {name} du salon ?",
+    "removeYes": "Retirer",
+    "status": {
+      "ws": "En direct",
+      "broadcast": "Ce navigateur seulement",
+      "connecting": "Connexion",
+      "syncing": "Synchronisation",
+      "reconnecting": "Reconnexion",
+      "ended": "Fermé"
+    },
+    "peerLanguage": "Parle {lang}"
+  },
+  "chat": {
+    "title": "Chat du salon",
+    "empty": "Pas encore de message. Dites bonjour ou demandez de l'aide pour une pièce.",
+    "label": "Message",
+    "placeholder": "Écrire un message",
+    "send": "Envoyer",
+    "count": "{count}/{max}",
+    "translatedFrom": "Traduit depuis : {lang}",
+    "showOriginal": "Voir l'original",
+    "showTranslation": "Voir la traduction",
+    "translating": "Traduction…",
+    "translateOff": "La traduction n'est pas configurée sur ce déploiement : les messages s'affichent tels qu'ils ont été écrits.",
+    "offBoth": "La traduction et les messages vocaux ne sont pas configurés sur ce déploiement : les messages s'affichent tels qu'ils ont été écrits.",
+    "translateFailed": "Impossible de traduire ce message.",
+    "sending": "Envoi…",
+    "kind": {
+      "voice": "Voix",
+      "ai": "Partenaire de labo"
+    },
+    "voice": {
+      "start": "Enregistrer un message vocal",
+      "stop": "Arrêter et envoyer",
+      "recording": "Enregistrement… {seconds} s",
+      "transcribing": "Transcription de votre voix…",
+      "off": "Les messages vocaux ne sont pas configurés sur ce déploiement.",
+      "denied": "iynk ne peut pas utiliser le micro. Autorisez-le dans le navigateur pour envoyer des messages vocaux.",
+      "failed": "Transcription impossible. Réessayez ou écrivez-le.",
+      "unsupported": "Ce navigateur ne peut pas enregistrer de son.",
+      "tooLong": "Les messages vocaux s'arrêtent après 60 secondes."
+    },
+    "system": {
+      "join": "{name} est arrivé",
+      "leave": "{name} est parti",
+      "host": "{name} est maintenant l'hôte",
+      "removed": "{name} a été retiré par l'hôte",
+      "baton": "{by} a passé le clavier à {name}",
+      "batonRequest": "{name} a demandé le clavier"
+    },
+    "someone": "Quelqu'un"
+  },
+  "cursors": {
+    "label": "Ce que montrent les autres",
+    "point": "Montrer sur la figure",
+    "stop": "Arrêter de montrer",
+    "surface": "Zone de pointage. Déplacez-vous sur la figure pour montrer aux autres ce que vous désignez. Les flèches déplacent le pointeur, Échap arrête."
+  },
+  "languages": {
+    "en": "anglais",
+    "es": "espagnol",
+    "fr": "français",
+    "de": "allemand",
+    "zh": "chinois",
+    "hi": "hindi"
+  },
+  "labs": {
+    "board": "Cartes",
+    "robotics": "Robotique",
+    "drone": "Drones"
+  },
+  "lobby": {
+    "metaTitle": "Construire ensemble",
+    "metaDescription": "Ouvrez un salon de construction en direct sur n'importe quelle carte, robot ou drone et construisez-le ensemble.",
+    "eyebrow": "iynk Ensemble",
+    "title": "Personne ne construit seul",
+    "lede": "Ouvrez un salon sur n'importe quelle carte, robot ou drone et envoyez le lien. Tout le monde voit le même établi, une seule personne tape à la fois, et le chat affiche chaque message dans votre langue.",
+    "ledePlain": "Ouvrez un salon sur n'importe quelle carte, robot ou drone et envoyez le lien. Tout le monde voit le même établi, et une seule personne tape à la fois."
+  },
+  "rooms": {
+    "title": "Salles",
+    "ready": {
+      "body": "Ouvrez un projet dans le Studio, choisissez Salle dans la barre d'outils et envoyez le lien d'invitation. Tout le monde voit le même établi.",
+      "open": "Ouvrir le Studio"
+    },
+    "selfHost": {
+      "title": "Les salles tournent sur votre propre copie d'iynk",
+      "body": "iynk.tech n'a pas de serveur pour les salles. Sur une copie que vous ou un ami faites tourner, tout le monde dans une salle voit le même banc et la même exécution, et les amis s'associent avec un code court plutôt qu'un compte.",
+      "points": {
+        "bench": "Le même banc et la même exécution, en direct",
+        "keyboard": "Un seul clavier, qui passe de main en main",
+        "code": "S'associer avec un code, sans compte"
+      },
+      "guide": "Comment une copie fonctionne"
+    }
+  },
+  "buddies": {
+    "title": "Amis",
+    "insecure": {
+      "title": "Cette page demande une connexion sécurisée",
+      "body": "Votre navigateur ne crée des clés d'appareil que sur les pages https ou sur localhost. Ouvrez iynk en https et réessayez."
+    },
+    "empty": {
+      "title": "Pas encore d'amis",
+      "add": "Se jumeler avec un ami",
+      "enter": "Saisir un code"
+    },
+    "list": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "asOf": "Vu pour la dernière fois {time}",
+      "inRoom": "Dans la salle {code}",
+      "rename": "Renommer",
+      "remove": "Retirer l'ami",
+      "block": "Bloquer",
+      "removeConfirm": "Retirer {name} de vos amis ? Vous pourrez vous jumeler de nouveau plus tard.",
+      "blockConfirm": "Bloquer {name} ? Cette personne sera retirée et ne pourra plus se jumeler avec vous.",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "enrol": {
+      "title": "Rejoindre ce serveur",
+      "code": "Code d'inscription",
+      "name": "Votre nom",
+      "submit": "Rejoindre",
+      "closed": "Ce serveur n'accepte pas de nouvelles personnes pour le moment.",
+      "wrongCode": "Ce code n'a pas fonctionné. Vérifiez-le ou demandez-en un nouveau à la personne qui gère le serveur.",
+      "help": "La personne qui gère le serveur vous donne un code. Il ne marche qu'une fois."
+    },
+    "pair": {
+      "title": "Se jumeler avec un ami",
+      "code": "Code de jumelage",
+      "link": "Lien de jumelage",
+      "qr": "QR code du lien de jumelage",
+      "copy": "Copier le lien",
+      "copied": "Lien copié",
+      "expires": "Expire {time}",
+      "cancel": "Annuler le jumelage",
+      "enterCode": "Saisir un code de jumelage",
+      "enterLabel": "Code ou lien de votre ami",
+      "peekFrom": "{name} veut se jumeler avec vous.",
+      "accept": "Accepter",
+      "wrong": "Ce code n'a pas fonctionné. Vérifiez-le et réessayez.",
+      "tooMany": "Trop d'essais. Attendez une minute et réessayez.",
+      "already": "Vous êtes déjà amis.",
+      "full": "L'un de vous a atteint la limite d'amis.",
+      "show": "Afficher un code",
+      "joined": "{name} vous a rejoint.",
+      "fingerprint": "Clé {fingerprint}"
+    },
+    "joined": "Vous avez rejoint le serveur sous le nom {name}.",
+    "unknown": {
+      "title": "Ce serveur n'est pas connu ici",
+      "body": "Ce navigateur n'a pas de clé pour ce serveur. Rejoignez-le d'abord avec un code d'inscription."
+    },
+    "unreachable": "Impossible de joindre le serveur. Vérifiez qu'il tourne et réessayez.",
+    "errors": {
+      "generic": "Une erreur s'est produite. Réessayez."
+    },
+    "selfHost": "Les amis vivent sur le même serveur que les salles. Sur votre propre copie, c'est ici que vous vous associez avec un code."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-11-10T06:46:17.885Z",
+  "node": "v24.8.0",
+  "machine": {
+    "cpus": 14,
+    "load1": 9.47
+  },
+  "metrics": {
+    "landing.js.gzipTransferred": {
+      "baseline": 225125,
+      "unit": "bytes",
+      "proposedBudget": 409600,
+      "enforced": false
+    },
+    "lesson.js.gzipTransferred": {
+      "baseline": 388917,
+      "unit": "bytes",
+      "proposedBudget": 409600,
+      "enforced": false
+    },
+    "idle.landing.mainThreadPct": {
+      "baseline": 3.2,
+      "unit": "percent",
+      "proposedBudget": 5,
+      "enforced": false
+    },
+    "idle.lesson.mainThreadPct": {
+      "baseline": 4.8,
+      "unit": "percent",
+      "proposedBudget": 5,
+      "enforced": false
+    },
+    "idle.bench.mainThreadPct": {
+      "baseline": 3.9,
+      "unit": "percent",
+      "proposedBudget": 5,
+      "enforced": false
+    },
+    "run.blink.startMs.cpu4x": {
+      "baseline": 163,
+      "unit": "ms",
+      "proposedBudget": 4000,
+      "enforced": false
+    }
+  }
+}

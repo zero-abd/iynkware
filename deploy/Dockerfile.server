@@ -1,0 +1,28 @@
+# iynk collaboration server. Build context: the repository root (compose.yaml sets it). The server runs its
+# TypeScript directly on Node 24, so the image has no compiler and only the run-time dependencies of server/package.json.
+FROM node:24.22.1-alpine
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./server/
+RUN cd server && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY server/src ./server/src
+COPY server/bin ./server/bin
+COPY server/migrations ./server/migrations
+COPY src/core ./src/core
+COPY src/project ./src/project
+COPY src/protocol ./src/protocol
+COPY src/lib/search ./src/lib/search
+COPY src/lib/zod ./src/lib/zod
+COPY src/i18n/package.json src/i18n/config.ts ./src/i18n/
+# The shared src files import zod too, and Node looks for it from their folder up, so give /app the server's packages.
+RUN ln -s server/node_modules /app/node_modules
+
+# A fresh named volume takes the owner and mode of this directory, so node can write it and config's 0700 check passes.
+RUN mkdir -m 700 /data && chown node:node /data
+
+USER node
+EXPOSE 8787
+STOPSIGNAL SIGTERM
+CMD ["node", "server/src/main.ts"]

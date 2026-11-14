@@ -1,0 +1,210 @@
+{
+  "brand": {
+    "home": "iynk, go to the dashboard"
+  },
+  "nav": {
+    "label": "Labs",
+    "dashboard": "Dashboard",
+    "studio": "Studio",
+    "boards": "Board lab",
+    "robotics": "Robotics lab",
+    "drones": "Drone lab",
+    "together": "Together",
+    "about": "About",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "search": "Search",
+    "searchHint": "Search pages, boards, lessons and actions"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "Match system",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "settings": {
+    "label": "Settings"
+  },
+  "footer": {
+    "privacy": "No accounts, no ads, no analytics. Your progress and settings stay in this browser.",
+    "figures": "Drawn with Colorfigures",
+    "pages": "Site pages",
+    "privacyLink": "Privacy",
+    "licenceLink": "Licence status",
+    "licence": "Licence: not chosen yet. Figures: MIT, by April Zhu.",
+    "selfHostLink": "Run your own copy"
+  },
+  "ui": {
+    "progress": "{done}/{total}",
+    "progressLabel": "{label}: {done} of {total} done"
+  },
+  "dashboard": {
+    "continue": {
+      "title": "Continue where you left off",
+      "empty": "Nothing finished yet. The Uno R3 is the best place to begin: sixteen short lessons, from the parts of the board to a parking sensor.",
+      "last": "Last finished",
+      "resume": "Carry on",
+      "begin": "Begin the first lesson",
+      "entry": "{kind}: {name}",
+      "kinds": {
+        "lesson": "Lesson",
+        "assembly": "Assembly",
+        "step": "Build step",
+        "task": "Practice task",
+        "quiz": "Quiz",
+        "build": "Build",
+        "test": "Safety test",
+        "course": "Flight course"
+      }
+    },
+    "overall": "Overall progress",
+    "board": {
+      "progress": "Lessons and assemblies"
+    },
+    "robotics": {
+      "progress": "Steps, tasks and quizzes"
+    },
+    "drones": {
+      "progress": "Builds, tests and courses"
+    }
+  },
+  "about": {
+    "metaTitle": "About and credits",
+    "metaDescription": "What iynk is, how it works, and the credits and licences behind it.",
+    "title": "About iynk",
+    "lede": "iynk is a hardware lab you open in a browser. Every board, module and drone is a hand drawn 3D figure you can turn, open up and operate, wired to lessons, code that really runs, and failures you can trigger on purpose.",
+    "howTitle": "How it works",
+    "howHeads": {
+      "figures": "Figures you operate",
+      "code": "Code that runs",
+      "privacy": "Stays in your browser"
+    },
+    "how": {
+      "figures": "Each figure is a page of its own, drawn with the Colorfigures engine: real 3D bodies in flat light, mid and dark bands with ink outlines. The page talks to the figure through a small message bridge, so pressing a button in the lesson moves the part in the figure and the other way round.",
+      "code": "Sketches run in a simulator in your browser on a virtual clock: an Arduino C++ subset with the right integer widths for each chip, a MicroPython subset, and a Verilog subset for the two FPGA boards.",
+      "privacy": "Progress and settings are saved in this browser's local storage. There are no accounts. iynk keeps a local log of what happens in the labs. It stays in this browser, and you can read, copy or clear it under Keys and usage. Nothing is sent to us."
+    },
+    "originalsTitle": "The three originals",
+    "originalsLede": "iynk was inspired by three teaching sites. It is a separate project with its own code.",
+    "originals": {
+      "arduino": {
+        "name": "Learn Arduino",
+        "text": "Sixteen component lessons on the Arduino Uno, with a live code panel, a serial monitor and a schematic view."
+      },
+      "robotics": {
+        "name": "Robotics Engineer",
+        "text": "Thirteen interactive benches: boards, motor drivers, sensors and power stages, with a build flow, faults and quizzes."
+      },
+      "drones": {
+        "name": "Drone Engineer",
+        "text": "Thirteen drones with builds part by part, live calculations, safety tests and a flying range."
+      }
+    },
+    "visit": "Visit {name}",
+    "licenceTitle": "Licences",
+    "licenceText": "The figures are drawn with Colorfigures by April Zhu, the engine the Robotics Engineer and Drone Engineer sites are drawn with too. Colorfigures builds on isometric figure work by April Zhu and Tolga Cohce, and is released under the MIT licence below.",
+    "licenceNote": "The licence is reproduced in its original English.",
+    "builtWithTitle": "Built with",
+    "builtWith": "Next.js, React and Tailwind CSS (all MIT licensed), plus the Colorfigures engine for every figure.",
+    "colorfigures": "Colorfigures skill page"
+  },
+  "command": {
+    "title": "Command menu",
+    "placeholder": "Search pages, boards, lessons and actions",
+    "empty": "Nothing matches. Try a lab name or a setting.",
+    "groups": {
+      "pages": "Pages",
+      "actions": "Actions",
+      "theme": "Theme",
+      "language": "Language",
+      "boards": "Boards",
+      "lessons": "Lessons",
+      "robotics": "Robotics benches",
+      "drones": "Drones",
+      "studio": "Studio examples"
+    },
+    "open": "Search",
+    "sound": {
+      "on": "Turn sound on",
+      "off": "Turn sound off"
+    },
+    "motion": {
+      "on": "Reduce motion",
+      "off": "Allow motion"
+    },
+    "keys": "Keys and usage",
+    "hint": "{key} opens this menu"
+  },
+  "privacy": {
+    "metaTitle": "Privacy",
+    "metaDescription": "What iynk stores in your browser, what it sends and what it never does.",
+    "title": "Privacy",
+    "lede": "iynk has no accounts, no ads and no analytics. This is a short note on what the app stores and sends. It is not legal advice.",
+    "stays": {
+      "title": "What stays in your browser",
+      "text": "Your progress and settings are saved in this browser's local storage under iynk:v1. The language you pick is remembered in a cookie. If you add an AI or search key, it is kept under iynk:keys:v1. A local log of what happens in the labs is kept under iynk:log:v1. You can read, copy or clear it under Keys and usage."
+    },
+    "leaves": {
+      "title": "What leaves your browser",
+      "text": "Nothing, unless you use a room or add a key. A room sends your name, cursor and chat messages, including the text of a voice message, to the room relay. A key you add is sent to your own iynk server with each AI or search call, and a voice recording is sent there to be transcribed. The server does not store the key."
+    },
+    "never": {
+      "title": "What we do not do",
+      "text": "There are no accounts, no ads and no analytics. The usage counts are a local log in your browser. You can read it and clear it at any time."
+    }
+  },
+  "offline": {
+    "metaTitle": "Offline",
+    "title": "You are offline",
+    "lede": "This page is not saved on this device, and there is no connection to fetch it. Pages you have opened before still load offline.",
+    "home": "Back to the dashboard",
+    "studio": "Open Studio"
+  },
+  "selfHost": {
+    "metaTitle": "Run your own copy",
+    "metaDescription": "How a copy of iynk runs with its own server, so friends can share rooms, pair as buddies and use the AI partner.",
+    "eyebrow": "Your own copy",
+    "title": "Run your own copy",
+    "lede": "iynk.tech is the lab on its own. A copy that you or a friend runs adds a server, and rooms, buddies, the AI partner and price checks live on that server.",
+    "private": {
+      "title": "The code opens with the public release",
+      "text": "The repository is private for now. This page shows how a copy runs, so you can get a machine ready. The link to the code goes here when it opens."
+    },
+    "adds": {
+      "title": "What your copy adds",
+      "rooms": {
+        "title": "Rooms",
+        "text": "Everyone in a room sees the same bench and the same run. One person types at a time and hands the keyboard on."
+      },
+      "buddies": {
+        "title": "Buddies",
+        "text": "Pair with a friend by reading out a short code. There is no email and no password."
+      },
+      "ai": {
+        "title": "AI partner and price checks",
+        "text": "Switch them on once on the server with your own keys, and everyone on your copy can use them."
+      }
+    },
+    "need": {
+      "title": "What you need",
+      "text": "Docker with the compose plugin, or Node 24 for a run without Docker, and a domain name that points at the machine. On one computer, localhost is enough to try it."
+    },
+    "steps": {
+      "title": "Start it",
+      "settings": "Copy the settings file, then set IYNK_DOMAIN in deploy/.env to your domain, or to localhost.",
+      "start": "Start the web app, the server and Caddy, which gets the HTTPS certificate by itself.",
+      "init": "Prepare the server. It prints the first enrolment link and a 12-character code.",
+      "friend": "Make a link and a code for each friend. A code works once and runs out after 24 hours.",
+      "label": "Commands for step {n}",
+      "copy": "Copy the commands",
+      "copied": "Copied"
+    },
+    "join": {
+      "title": "Bring your friends in",
+      "text": "Open your copy, go to Settings, Server address, and type the code from the first run. The first person in owns the server. Friends do the same with their own codes, then you pair on the Together page."
+    }
+  }
+}

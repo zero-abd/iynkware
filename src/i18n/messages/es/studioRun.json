@@ -1,0 +1,111 @@
+{
+  "bar": {
+    "label": "Controles de ejecución",
+    "run": "Ejecutar",
+    "restart": "Reiniciar",
+    "stop": "Detener",
+    "reset": "Restablecer",
+    "time": "Tiempo simulado",
+    "behind": "Va más lento que el tiempo real",
+    "stale": "El proyecto cambió después de iniciar esta ejecución. Reinicia para usar el cambio."
+  },
+  "phase": {
+    "idle": "Listo",
+    "starting": "Iniciando",
+    "running": "En marcha",
+    "paused": "En pausa",
+    "stopped": "Detenido",
+    "done": "Terminado",
+    "error": "No se pudo ejecutar",
+    "limit": "Detenido por un límite",
+    "killed": "Simulador reiniciado"
+  },
+  "limit": {
+    "statements": "El código ejecutó demasiados pasos sin terminar una vuelta. Busca un bucle que no acaba.",
+    "operations": "Una expresión necesitó demasiadas operaciones. Revisa los números con los que trabaja.",
+    "memory": "El código usó más memoria de la que permite el simulador.",
+    "time": "La ejecución tardó demasiado y se detuvo."
+  },
+  "killed": "El simulador dejó de responder y se reinició. Tu proyecto no cambió.",
+  "noDetail": "No se pudo iniciar el código.",
+  "diag": {
+    "unknown-ground": "El circuito no tiene una masa utilizable. Conecta una pieza a GND y vuelve a ejecutar.",
+    "duplicate-part": "Dos piezas comparten el mismo id. Quita una y vuelve a añadirla.",
+    "missing-net": "El pin de una pieza apunta a un cable que no existe. Vuelve a conectar ese pin.",
+    "unknown-part": "Una pieza de este proyecto no está en la biblioteca de piezas.",
+    "ambiguous-input-pin": "Una entrada está cableada a dos pines de la placa a la vez. Conéctala a un solo pin.",
+    "netlist-too-large": "El circuito tiene más piezas de las que el simulador puede ejecutar (2000 como máximo).",
+    "no-time-progress": "El código se ejecutó sin que el tiempo avanzara. Busca un bucle que nunca espera.",
+    "event-queue-overflow": "El circuito produjo demasiados eventos a la vez y la ejecución se detuvo.",
+    "output-contention": "Dos salidas llevan un mismo cable a niveles opuestos. Desconecta una de ellas.",
+    "numeric-fault": "El solucionador del circuito encontró un número que no puede usar. Revisa si hay valores cero o enormes en las piezas.",
+    "no-convergence": "El solucionador del circuito no logró llegar a un resultado. Revisa el cableado por si hay un cortocircuito o un bucle.",
+    "invalid-device-params": "Una pieza tiene un valor que su modelo no puede usar. Revisa sus ajustes."
+  },
+  "problems": {
+    "one": "1 problema",
+    "other": "{count} problemas"
+  },
+  "serial": {
+    "title": "Salida serie",
+    "lines": "Líneas serie",
+    "empty": "Aún no se ha impreso nada. Ejecuta el proyecto para ver lo que envía el código.",
+    "clear": "Borrar",
+    "copy": "Copiar",
+    "copied": "Copiado al portapapeles",
+    "copyFailed": "El navegador no permitió copiar.",
+    "input": "Texto para enviar",
+    "placeholder": "Escribe una línea y pulsa Intro",
+    "send": "Enviar",
+    "dropped": {
+      "one": "1 línea anterior descartada",
+      "other": "{count} líneas anteriores descartadas"
+    },
+    "newLines": {
+      "one": "1 línea nueva",
+      "other": "{count} líneas nuevas"
+    }
+  },
+  "overlay": {
+    "on": "encendido",
+    "off": "apagado",
+    "duty": "ciclo {percent} %",
+    "pressed": "pulsado",
+    "released": "suelto",
+    "tone": "{hz} Hz",
+    "silent": "en silencio",
+    "position": "{percent} %",
+    "notModelled": "aún sin modelo",
+    "servo": "{deg}°",
+    "motor": "{rpm} rpm",
+    "stepper": "{deg}° · {steps} pasos",
+    "reading": "{label} {value} {unit}",
+    "stalled": "bloqueado",
+    "unpowered": "sin energía"
+  },
+  "flow": {
+    "toggle": "Flujo",
+    "hint": "El color del cable muestra los voltios. Los puntos muestran hacia dónde va la corriente y cuánta hay.",
+    "hintStill": "El color del cable muestra los voltios. Las flechas muestran hacia dónde va la corriente.",
+    "legend": "Voltios",
+    "state": {
+      "hot": "caliente",
+      "reversed": "invertido",
+      "burnt": "quemado"
+    },
+    "readout": {
+      "part": "{name}",
+      "net": "Red {name}",
+      "pin": "{part} {name}",
+      "volts": "Tensión",
+      "amps": "Corriente",
+      "watts": "Potencia",
+      "none": "Apunta a un cable o a una pieza para leerlo."
+    }
+  },
+  "commands": {
+    "run": "Ejecutar el proyecto",
+    "stop": "Detener la ejecución",
+    "reset": "Restablecer la ejecución"
+  }
+}

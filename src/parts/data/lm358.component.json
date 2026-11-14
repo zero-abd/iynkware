@@ -1,0 +1,827 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.lm358",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "Texas Instruments",
+    "model": "LM358 dual op-amp",
+    "generic": true,
+    "refdes_prefix": "U",
+    "kind": "ic",
+    "category": "semiconductor",
+    "description": {
+      "en": "Two operational amplifiers in an 8-pin DIP that run from a single supply of 3 V to 32 V. The inputs reach down to ground; the output cannot reach the positive supply."
+    },
+    "tags": [
+      "opamp",
+      "amplifier",
+      "lm358",
+      "dip-8",
+      "breadboard"
+    ],
+    "legacy_ids": [
+      "lm358"
+    ],
+    "mpn": "LM358",
+    "chip": {
+      "manufacturer": "Texas Instruments",
+      "model": "LM358",
+      "package": "PDIP-8"
+    }
+  },
+  "sources": [
+    {
+      "id": "datasheet",
+      "kind": "datasheet",
+      "title": "LM158, LM258, LM358, LM2904 dual operational amplifiers (SLOS068)",
+      "publisher": "Texas Instruments",
+      "revision": "SLOS068",
+      "url": "https://www.ti.com/lit/ds/symlink/lm358.pdf",
+      "retrieved": "2026-11-10",
+      "reliability": "primary",
+      "note": "Absolute maximum ratings, the LM358 electrical table and the pinout, read from the PDF."
+    },
+    {
+      "id": "factsheet",
+      "kind": "fact-sheet",
+      "title": "Analog parts fact sheet",
+      "publisher": "iynk",
+      "revision": "2026-11-10",
+      "reliability": "secondary",
+      "note": "docs/facts/analog-parts.md. Quotes the maker sheets it names; a figure marked own estimate there is not on any sheet."
+    },
+    {
+      "id": "figurejs",
+      "kind": "own-estimate",
+      "title": "figures/parts/lm358.js: header comment and elec()",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "Constants in the figure code."
+    }
+  ],
+  "pins": [
+    {
+      "id": "OUT1",
+      "name": {
+        "en": "Output 1"
+      },
+      "designator": "1",
+      "type": "analog_out",
+      "class": "analog",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "connector": "legs"
+    },
+    {
+      "id": "IN1N",
+      "name": {
+        "en": "Inverting input 1"
+      },
+      "designator": "2",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 2.54,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Marked IN1- on the sheet."
+      }
+    },
+    {
+      "id": "IN1P",
+      "name": {
+        "en": "Non-inverting input 1"
+      },
+      "designator": "3",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 5.08,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Marked IN1+ on the sheet."
+      }
+    },
+    {
+      "id": "VEE",
+      "name": {
+        "en": "Negative supply"
+      },
+      "designator": "4",
+      "type": "ground",
+      "class": "ground",
+      "position": {
+        "x": 7.62,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Ground on a single supply. Marked V- on the sheet."
+      },
+      "polarity": "negative"
+    },
+    {
+      "id": "IN2P",
+      "name": {
+        "en": "Non-inverting input 2"
+      },
+      "designator": "5",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 7.62,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Marked IN2+ on the sheet."
+      }
+    },
+    {
+      "id": "IN2N",
+      "name": {
+        "en": "Inverting input 2"
+      },
+      "designator": "6",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 5.08,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Marked IN2- on the sheet."
+      }
+    },
+    {
+      "id": "OUT2",
+      "name": {
+        "en": "Output 2"
+      },
+      "designator": "7",
+      "type": "analog_out",
+      "class": "analog",
+      "position": {
+        "x": 2.54,
+        "y": 7.62
+      },
+      "connector": "legs"
+    },
+    {
+      "id": "VCC",
+      "name": {
+        "en": "Positive supply"
+      },
+      "designator": "8",
+      "type": "power_in",
+      "class": "power",
+      "position": {
+        "x": 0.0,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Marked V+ on the sheet."
+      },
+      "polarity": "positive"
+    }
+  ],
+  "connectors": [
+    {
+      "id": "legs",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pitch": 2.54,
+      "pins": [
+        "OUT1",
+        "IN1N",
+        "IN1P",
+        "VEE",
+        "IN2P",
+        "IN2N",
+        "OUT2",
+        "VCC"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "PDIP-8",
+    "body": {
+      "w": 9.8,
+      "h": 6.35,
+      "d": 3.3
+    },
+    "accuracy": 0.3,
+    "source": {
+      "src": "datasheet",
+      "loc": "package information, P (PDIP, 8) 9.81 mm x 9.43 mm"
+    }
+  },
+  "ratings": {
+    "supply_voltage_max": {
+      "measure": "voltage",
+      "role": "abs_max",
+      "description": {
+        "en": "Highest supply voltage between V+ and V-."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "V",
+        "value": 32,
+        "source": {
+          "src": "datasheet",
+          "loc": "absolute maximum ratings, supply voltage, LM358"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      },
+      "primary": true
+    },
+    "supply_voltage_min": {
+      "measure": "voltage",
+      "role": "abs_min",
+      "description": {
+        "en": "Lowest supply voltage the part works from."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "V",
+        "value": 3,
+        "source": {
+          "src": "datasheet",
+          "loc": "recommended operating conditions"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      }
+    },
+    "open_loop_gain": {
+      "measure": "ratio",
+      "role": "characteristic",
+      "description": {
+        "en": "Open-loop voltage gain at 15 V supply, 100 V/mV typical."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "1",
+        "typ": 100000,
+        "min": 25000,
+        "conditions": "VS 15 V, VO 1 V to 11 V, RL 2 kohm",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, AOL"
+        }
+      },
+      "scope": {
+        "part": true
+      },
+      "primary": true
+    },
+    "gain_bandwidth": {
+      "measure": "frequency",
+      "role": "characteristic",
+      "description": {
+        "en": "Gain-bandwidth product."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "Hz",
+        "typ": 700000,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, GBW"
+        }
+      },
+      "scope": {
+        "part": true
+      },
+      "primary": true
+    },
+    "slew_rate": {
+      "measure": "rate",
+      "role": "characteristic",
+      "description": {
+        "en": "Slew rate at unity gain, in volts per microsecond."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "1",
+        "typ": 0.3,
+        "conditions": "G +1",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, SR, 0.3 V/us"
+        }
+      },
+      "scope": {
+        "part": true
+      },
+      "primary": true
+    },
+    "output_headroom": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "How close the output gets to the positive rail at 5 V and 2 kohm: up to 1.5 V away. The negative side reaches within 20 mV."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "V",
+        "max": 1.5,
+        "conditions": "VS 5 V, RL 2 kohm, positive rail",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, voltage output swing from rail"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT1",
+          "OUT2"
+        ]
+      },
+      "primary": true
+    },
+    "input_common_mode_headroom": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "How far below the positive supply the inputs stop working: at most 2 V. The inputs reach down to ground."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "V",
+        "typ": 1.5,
+        "max": 2,
+        "conditions": "VCC 5 V to 30 V, 25 C",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, common-mode input voltage range, VCC minus 1.5 V typical and VCC minus 2 V over temperature"
+        }
+      },
+      "scope": {
+        "pins": [
+          "IN1P",
+          "IN1N",
+          "IN2P",
+          "IN2N"
+        ]
+      }
+    },
+    "output_headroom_low": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "How close the output gets to the negative rail (ground on a single supply) at 5 V: within 20 mV with no load."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "V",
+        "max": 0.02,
+        "conditions": "VS 5 V, no load, negative rail",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, output swing, low level"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT1",
+          "OUT2"
+        ]
+      }
+    },
+    "output_resistance": {
+      "measure": "resistance",
+      "role": "characteristic",
+      "description": {
+        "en": "Open-loop output resistance."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "ohm",
+        "value": 50,
+        "rationale": {
+          "en": "The sheet gives no output impedance; 50 ohm is a typical figure for the class A/B output of this part."
+        },
+        "confidence": "low"
+      },
+      "scope": {
+        "pins": [
+          "OUT1",
+          "OUT2"
+        ]
+      }
+    },
+    "output_short_current": {
+      "measure": "current",
+      "role": "abs_max",
+      "description": {
+        "en": "Short circuit current of one output, 40 mA typical."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "A",
+        "typ": 0.04,
+        "max": 0.06,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, ISC"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT1",
+          "OUT2"
+        ]
+      }
+    },
+    "quiescent_current": {
+      "measure": "current",
+      "role": "consumption",
+      "description": {
+        "en": "Supply current per amplifier, 350 uA typical."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "A",
+        "typ": 0.00035,
+        "max": 0.0006,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, IQ"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      }
+    }
+  },
+  "behaviour": {
+    "summary": {
+      "en": "Two op-amps in one package sharing the supply pins. Each has very high gain, a 0.7 MHz bandwidth and an output that cannot reach the positive supply."
+    },
+    "layers": [
+      {
+        "id": "amp1",
+        "domain": "analog",
+        "reads": [
+          "IN1P",
+          "IN1N",
+          "OUT1",
+          "VCC",
+          "VEE"
+        ],
+        "summary": {
+          "en": "Amplifier 1: gain AOL with one pole at GBW/AOL, slew limited, output held off the rails."
+        },
+        "model": {
+          "kind": "element",
+          "element": "opamp",
+          "terminals": {
+            "inp": "IN1P",
+            "inn": "IN1N",
+            "out": "OUT1",
+            "vcc": "VCC",
+            "vee": "VEE"
+          },
+          "params": {
+            "open_loop_gain": {
+              "from_rating": "open_loop_gain",
+              "pick": "typ"
+            },
+            "gbw_hz": {
+              "from_rating": "gain_bandwidth",
+              "pick": "typ"
+            },
+            "slew_v_per_us": {
+              "from_rating": "slew_rate",
+              "pick": "typ"
+            },
+            "r_out_ohms": {
+              "from_rating": "output_resistance",
+              "pick": "value"
+            },
+            "headroom_volts": {
+              "from_rating": "output_headroom",
+              "pick": "max"
+            },
+            "headroom_low_volts": {
+              "from_rating": "output_headroom_low",
+              "pick": "max"
+            },
+            "supply_max_volts": {
+              "from_rating": "supply_voltage_max",
+              "pick": "value"
+            },
+            "output_max_amps": {
+              "from_rating": "output_short_current",
+              "pick": "max"
+            }
+          }
+        }
+      },
+      {
+        "id": "amp2",
+        "domain": "analog",
+        "reads": [
+          "IN2P",
+          "IN2N",
+          "OUT2",
+          "VCC",
+          "VEE"
+        ],
+        "summary": {
+          "en": "Amplifier 2: gain AOL with one pole at GBW/AOL, slew limited, output held off the rails."
+        },
+        "model": {
+          "kind": "element",
+          "element": "opamp",
+          "terminals": {
+            "inp": "IN2P",
+            "inn": "IN2N",
+            "out": "OUT2",
+            "vcc": "VCC",
+            "vee": "VEE"
+          },
+          "params": {
+            "open_loop_gain": {
+              "from_rating": "open_loop_gain",
+              "pick": "typ"
+            },
+            "gbw_hz": {
+              "from_rating": "gain_bandwidth",
+              "pick": "typ"
+            },
+            "slew_v_per_us": {
+              "from_rating": "slew_rate",
+              "pick": "typ"
+            },
+            "r_out_ohms": {
+              "from_rating": "output_resistance",
+              "pick": "value"
+            },
+            "headroom_volts": {
+              "from_rating": "output_headroom",
+              "pick": "max"
+            },
+            "headroom_low_volts": {
+              "from_rating": "output_headroom_low",
+              "pick": "max"
+            },
+            "supply_max_volts": {
+              "from_rating": "supply_voltage_max",
+              "pick": "value"
+            },
+            "output_max_amps": {
+              "from_rating": "output_short_current",
+              "pick": "max"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "failure_modes": [
+    {
+      "id": "supply_over",
+      "name": {
+        "en": "Burned out by too high a supply"
+      },
+      "cause_id": "x-opamp-overvoltage",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "pin_voltage",
+          "target": "VCC",
+          "op": ">",
+          "threshold": {
+            "rating": "supply_voltage_max",
+            "pick": "value"
+          }
+        }
+      ],
+      "effect": {
+        "state": "burnt",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "Above 32 V between the supply pins the sheet allows no operation and the part can be destroyed."
+      },
+      "basis": "manufacturer",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "datasheet",
+        "loc": "absolute maximum ratings"
+      }
+    },
+    {
+      "id": "output_short",
+      "name": {
+        "en": "Burned out by an output short"
+      },
+      "cause_id": "x-opamp-output-short",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "pin_current_peak",
+          "target": "OUT1",
+          "op": ">",
+          "threshold": {
+            "rating": "output_short_current",
+            "pick": "max"
+          }
+        }
+      ],
+      "effect": {
+        "state": "burnt",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "An output asked for more than its 60 mA maximum short circuit current overheats the output stage."
+      },
+      "basis": "manufacturer",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "datasheet",
+        "loc": "electrical characteristics, ISC"
+      }
+    }
+  ],
+  "injectable_faults": [
+    {
+      "id": "supply_reversed",
+      "kind": "reversed_part",
+      "target": {
+        "pins": [
+          "VCC",
+          "VEE"
+        ]
+      },
+      "cause_id": "swapped-pins",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "description": {
+        "en": "Swap the supply wires, so V+ sits on ground and V- on the positive rail."
+      }
+    }
+  ],
+  "simulation": {
+    "tier": "T0",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "Two amplifiers with 100 000 gain, a 0.7 MHz gain-bandwidth, a 0.3 V per microsecond slew rate and an output 1.5 V inside the supply."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "Input offset, bias current and common-mode range: the inputs are ideal."
+      },
+      {
+        "en": "Crossover distortion of the output stage and the low-side swing to 20 mV of the negative rail."
+      },
+      {
+        "en": "Channel separation and supply rejection."
+      },
+      {
+        "en": "The output current limit near 40 mA: a short to ground draws what the output resistance allows, and above 60 mA for 100 ms the part is marked burnt, where the sheet allows a short to ground at 15 V or less."
+      }
+    ],
+    "validity": [
+      {
+        "measure": "supply voltage",
+        "min": 3,
+        "max": 32,
+        "unit": "V"
+      }
+    ],
+    "known_gaps": [
+      {
+        "id": "ideal_inputs",
+        "text": {
+          "en": "No input bias or offset, so a circuit near ground reads cleaner than the real part."
+        }
+      }
+    ],
+    "solver_requires": [
+      "opamp"
+    ],
+    "tests": [
+      {
+        "id": "lm358_conformance",
+        "kind": "conformance",
+        "file": "src/parts/data/tests/lm358.conformance.json",
+        "note": "Layers, terminals and ratings only."
+      },
+      {
+        "id": "live_starters",
+        "kind": "golden-trace",
+        "file": "src/studio/starters/analog-live.test.ts",
+        "note": "The starters run on the live solver and the test reads their nets: the RC charge, the 555 blink, the op amp gain of 2, the rectifier peak and the Zener hold."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "breadboard": {
+      "figure": {
+        "kind": "part",
+        "id": "lm358",
+        "path": "public/figures/parts/lm358.html",
+        "sha256": "31d5842adc946c2ac065d99aa0843dd3d6185ef9e463d5ad58c8935a0142902e",
+        "engine": "colorfigures-bench"
+      },
+      "legs": [
+        "OUT1",
+        "IN1N",
+        "IN1P",
+        "VEE",
+        "IN2P",
+        "IN2N",
+        "OUT2",
+        "VCC"
+      ],
+      "span": [
+        3,
+        3
+      ]
+    },
+    "schematic": {
+      "symbol": "ic-box",
+      "pin_sides": {
+        "IN1P": "left",
+        "IN1N": "left",
+        "IN2P": "left",
+        "IN2N": "left",
+        "VCC": "top",
+        "VEE": "bottom",
+        "OUT1": "right",
+        "OUT2": "right"
+      }
+    },
+    "fallback": {
+      "renderer": "generic-dip",
+      "label": "LM358",
+      "body_colour": "#34312e",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [
+      {
+        "text": "Drawing engine: Colorfigures, MIT license (figures/vendor/colorfigures/LICENSE)."
+      },
+      {
+        "text": "Ratings after the Texas Instruments LM158 to LM2904 sheet (SLOS068), docs/facts/analog-parts.md section 3."
+      }
+    ],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-11-10",
+    "third_party_content": true,
+    "review": {
+      "status": "ci-checked"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-11-10",
+        "note": "First descriptor, from figures/parts/lm358.js and the Texas Instruments LM358 sheet.",
+        "behaviour_change": false
+      }
+    ]
+  }
+}

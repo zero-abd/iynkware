@@ -1,0 +1,210 @@
+{
+  "brand": {
+    "home": "iynk, ir al panel"
+  },
+  "nav": {
+    "label": "Laboratorios",
+    "dashboard": "Panel",
+    "studio": "Studio",
+    "boards": "Laboratorio de placas",
+    "robotics": "Laboratorio de robótica",
+    "drones": "Laboratorio de drones",
+    "together": "Juntos",
+    "about": "Acerca de",
+    "menu": "Menú",
+    "closeMenu": "Cerrar el menú",
+    "search": "Buscar",
+    "searchHint": "Buscar páginas, placas, lecciones y acciones"
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "theme": {
+    "label": "Tema",
+    "system": "Como el sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "settings": {
+    "label": "Ajustes"
+  },
+  "footer": {
+    "privacy": "Sin cuentas, sin anuncios, sin analítica. Tu progreso y tus ajustes se quedan en este navegador.",
+    "figures": "Dibujado con Colorfigures",
+    "pages": "Páginas del sitio",
+    "privacyLink": "Privacidad",
+    "licenceLink": "Estado de la licencia",
+    "licence": "Licencia: aún sin elegir. Figuras: MIT, de April Zhu.",
+    "selfHostLink": "Ejecuta tu propia copia"
+  },
+  "ui": {
+    "progress": "{done}/{total}",
+    "progressLabel": "{label}: {done} de {total} completados"
+  },
+  "dashboard": {
+    "continue": {
+      "title": "Sigue donde lo dejaste",
+      "empty": "Aún no has terminado nada. El Uno R3 es el mejor punto de partida: dieciséis lecciones cortas, desde las partes de la placa hasta un sensor de aparcamiento.",
+      "last": "Lo último que terminaste",
+      "resume": "Continuar",
+      "begin": "Empezar la primera lección",
+      "entry": "{kind}: {name}",
+      "kinds": {
+        "lesson": "Lección",
+        "assembly": "Montaje",
+        "step": "Paso de montaje",
+        "task": "Tarea práctica",
+        "quiz": "Cuestionario",
+        "build": "Montaje",
+        "test": "Prueba de seguridad",
+        "course": "Circuito de vuelo"
+      }
+    },
+    "overall": "Progreso total",
+    "board": {
+      "progress": "Lecciones y montajes"
+    },
+    "robotics": {
+      "progress": "Pasos, tareas y cuestionarios"
+    },
+    "drones": {
+      "progress": "Montajes, pruebas y circuitos"
+    }
+  },
+  "about": {
+    "metaTitle": "Acerca de y créditos",
+    "metaDescription": "Qué es iynk, cómo funciona y los créditos y licencias que hay detrás.",
+    "title": "Acerca de iynk",
+    "lede": "iynk es un laboratorio de hardware que se abre en el navegador. Cada placa, módulo y dron es una figura 3D entintada a mano que puedes girar, abrir y manejar, conectada a lecciones, a código que se ejecuta de verdad y a fallos que puedes provocar a propósito.",
+    "howTitle": "Cómo funciona",
+    "howHeads": {
+      "figures": "Figuras que manejas",
+      "code": "Código que se ejecuta",
+      "privacy": "Se queda en tu navegador"
+    },
+    "how": {
+      "figures": "Cada figura es una página autónoma dibujada con el motor Colorfigures: cuerpos 3D reales en franjas planas de luz, medio tono y sombra, con contornos a tinta. La página habla con la figura a través de un pequeño puente de mensajes, así que pulsar un botón en la lección mueve la pieza en la figura, y al revés.",
+      "code": "Los programas se ejecutan en un simulador dentro de tu navegador, con un reloj virtual: un subconjunto de Arduino C++ con el ancho de enteros correcto para cada chip, un subconjunto de MicroPython y un subconjunto de Verilog para las dos placas FPGA.",
+      "privacy": "El progreso y los ajustes se guardan en el almacenamiento local de este navegador. No hay cuentas. iynk guarda un registro local de lo que pasa en los laboratorios. Se queda en este navegador, y puedes leerlo, copiarlo o borrarlo en Claves y uso. No se nos envía nada."
+    },
+    "originalsTitle": "Los tres originales",
+    "originalsLede": "iynk se inspiró en tres webs didácticas. Es un proyecto aparte, con su propio código.",
+    "originals": {
+      "arduino": {
+        "name": "Learn Arduino",
+        "text": "Dieciséis lecciones por componente sobre el Arduino Uno, con un panel de código en vivo, un monitor serie y una vista de esquema."
+      },
+      "robotics": {
+        "name": "Robotics Engineer",
+        "text": "Trece bancos interactivos: placas, drivers de motores, sensores y etapas de alimentación, con flujo de montaje, averías y cuestionarios."
+      },
+      "drones": {
+        "name": "Drone Engineer",
+        "text": "Trece drones con montaje pieza a pieza, cálculos en vivo, pruebas de seguridad y un campo de vuelo."
+      }
+    },
+    "visit": "Visitar {name}",
+    "licenceTitle": "Licencias",
+    "licenceText": "Las figuras están dibujadas con Colorfigures, de April Zhu, el mismo motor con el que se dibujan las webs Robotics Engineer y Drone Engineer. Colorfigures se basa en ISO-GLOW, de April Zhu, y en iso-figure, de Tolga Cohce, y se publica con la licencia MIT que aparece abajo.",
+    "licenceNote": "La licencia se reproduce en su inglés original.",
+    "builtWithTitle": "Hecho con",
+    "builtWith": "Next.js, React y Tailwind CSS (todos con licencia MIT), más el motor Colorfigures para cada figura.",
+    "colorfigures": "Página de la skill Colorfigures"
+  },
+  "command": {
+    "title": "Menú de comandos",
+    "placeholder": "Buscar páginas, placas, lecciones y acciones",
+    "empty": "Nada coincide. Prueba con el nombre de un laboratorio o un ajuste.",
+    "groups": {
+      "pages": "Páginas",
+      "actions": "Acciones",
+      "theme": "Tema",
+      "language": "Idioma",
+      "boards": "Placas",
+      "lessons": "Lecciones",
+      "robotics": "Bancos de robótica",
+      "drones": "Drones",
+      "studio": "Ejemplos del Studio"
+    },
+    "open": "Buscar",
+    "sound": {
+      "on": "Activar el sonido",
+      "off": "Desactivar el sonido"
+    },
+    "motion": {
+      "on": "Reducir el movimiento",
+      "off": "Permitir el movimiento"
+    },
+    "keys": "Claves y uso",
+    "hint": "{key} abre este menú"
+  },
+  "privacy": {
+    "metaTitle": "Privacidad",
+    "metaDescription": "Qué guarda iynk en tu navegador, qué envía y qué nunca hace.",
+    "title": "Privacidad",
+    "lede": "iynk no tiene cuentas, anuncios ni analítica. Esta es una nota breve sobre lo que la app guarda y envía. No es asesoramiento legal.",
+    "stays": {
+      "title": "Lo que se queda en tu navegador",
+      "text": "Tu progreso y tus ajustes se guardan en el almacenamiento local de este navegador, bajo iynk:v1. El idioma que eliges se recuerda en una cookie llamada iynk-lang. Si añades una clave de IA o de búsqueda, se guarda bajo iynk:keys:v1. Un registro local de lo que pasa en los laboratorios se guarda bajo iynk:log:v1. Puedes leerlo, copiarlo o borrarlo en Claves y uso."
+    },
+    "leaves": {
+      "title": "Lo que sale de tu navegador",
+      "text": "Nada, salvo que uses una sala o añadas una clave. Una sala envía tu nombre, tu cursor y tus mensajes de chat, incluido el texto de un mensaje de voz, al relé de la sala. Una clave que añadas se envía a tu propio servidor de iynk con cada llamada de IA o de búsqueda, y una grabación de voz se envía allí para transcribirla. El servidor no guarda la clave."
+    },
+    "never": {
+      "title": "Lo que no hacemos",
+      "text": "No hay cuentas, anuncios ni analítica. Los recuentos de uso son un registro local en tu navegador. Puedes leerlo y borrarlo cuando quieras."
+    }
+  },
+  "offline": {
+    "metaTitle": "Sin conexión",
+    "title": "Estás sin conexión",
+    "lede": "Esta página no está guardada en este dispositivo y no hay conexión para descargarla. Las páginas que ya abriste siguen cargando sin conexión.",
+    "home": "Volver al panel",
+    "studio": "Abrir el Studio"
+  },
+  "selfHost": {
+    "metaTitle": "Ejecuta tu propia copia",
+    "metaDescription": "Cómo funciona una copia de iynk con su propio servidor, para que tus amigos compartan salas, se emparejen como amigos y usen el compañero de IA.",
+    "eyebrow": "Alojamiento propio",
+    "title": "Ejecuta tu propia copia",
+    "lede": "iynk.tech es el laboratorio por sí solo. Una copia que ejecutas tú o un amigo añade un servidor, y en ese servidor viven las salas, los amigos, el compañero de IA y la consulta de precios.",
+    "private": {
+      "title": "El código se abre con la versión pública",
+      "text": "Por ahora el repositorio es privado. Esta página muestra cómo funciona una copia, para que puedas preparar una máquina. El enlace al código aparecerá aquí cuando se abra."
+    },
+    "adds": {
+      "title": "Lo que añade tu copia",
+      "rooms": {
+        "title": "Salas",
+        "text": "Todos en una sala ven el mismo banco y la misma ejecución. Una persona escribe a la vez y luego pasa el teclado."
+      },
+      "buddies": {
+        "title": "Amigos",
+        "text": "Empareja con un amigo leyéndole un código corto. No hay correo ni contraseña."
+      },
+      "ai": {
+        "title": "Compañero de IA y consulta de precios",
+        "text": "Actívalos una vez en el servidor con tus propias claves y todos en tu copia podrán usarlos."
+      }
+    },
+    "need": {
+      "title": "Lo que necesitas",
+      "text": "Docker con el complemento compose, o Node 24 para ejecutarlo sin Docker, y un nombre de dominio que apunte a la máquina. En un solo ordenador, localhost basta para probarlo."
+    },
+    "steps": {
+      "title": "Ponlo en marcha",
+      "settings": "Copia el archivo de ajustes y pon en IYNK_DOMAIN de deploy/.env tu dominio, o localhost.",
+      "start": "Arranca la aplicación web, el servidor y Caddy, que obtiene el certificado HTTPS por sí mismo.",
+      "init": "Prepara el servidor. Muestra el primer enlace de alta y un código de 12 caracteres.",
+      "friend": "Crea un enlace y un código para cada amigo. Un código sirve una vez y caduca a las 24 horas.",
+      "label": "Comandos del paso {n}",
+      "copy": "Copiar los comandos",
+      "copied": "Copiado"
+    },
+    "join": {
+      "title": "Trae a tus amigos",
+      "text": "Abre tu copia, ve a Ajustes, Dirección del servidor, y escribe el código del primer arranque. La primera persona que entra es la dueña del servidor. Tus amigos hacen lo mismo con su propio código y luego os emparejáis en la página Juntos."
+    }
+  }
+}

@@ -1,0 +1,175 @@
+import type { ParseError } from "@/sim/mcu/hex";
+import type { CheckJob, CheckOutcome } from "@/lib/interp";
+import type { SimTime } from "@/sim/core/clock";
+import type {
+  HostInput,
+  InputEntry,
+  PartState,
+  ProgramImage,
+  SimDiagnostic,
+  SimNetlist,
+  SimRunOptions,
+  StepUnit,
+} from "@/sim/engine";
+import type { MechReport, PhysicsFrame } from "@/core/robot-report";
+import type { Project } from "@/project/generated/types";
+import type { Finding } from "@/sim/faults/types";
+import type { MeterProbes } from "@/sim/probe/meter";
+import type { ProbeHandle, ProbeSpec, Reading, TraceChunk } from "@/sim/probe/tap";
+import type { MechRefusal, MechState, RobotReport } from "./mech";
+import type { AnalogFrame, AnalogWatch, InstrumentSource } from "./analog-protocol";
+
+export type ControlOp = "run" | "pause" | "stop" | "reset" | "cancel";
+
+export type PinLevel = 0 | 1 | "Z" | "X";
+
+/** SIM A.4. A run has one runtime, so every op names the engine id it is for in the request. */
+export type DebugOp =
+  | { op: "set-breakpoints"; file: string; lines: number[] }
+  | { op: "continue" }
+  | { op: "pause" }
+  | { op: "step"; unit: "line" | "over" | "out" }
+  | { op: "inspect"; frame: number }
+  | { op: "watch"; addr: number; len: number }
+  | { op: "unwatch"; addr: number };
+
+export type SimRunState = "idle" | "running" | "paused" | "halted" | "done" | "limit";
+
+/** The port adds `v: 1` and the call id on the way out and the handler never sees them. `run` is the run id (R-041). */
+export type SimReq =
+  /** `robot` is the document of a robot project; the physics engine is fetched only when it needs one (`needsPhysics`). */
+  | { t: "load"; run: number; net: SimNetlist; opts: SimRunOptions; program: ProgramImage; robot?: Project }
+  | { t: "control"; run: number; op: ControlOp }
+  /** Only `ns` and `event` run; the other units ack with the diagnostic `step-unit-unsupported`. A running run refuses with `not_paused`. */
+  | { t: "step"; run: number; unit: StepUnit; n: number }
+  /** Simulated seconds per wall second, 0.01 to 100, or 0 for as fast as the slice budget allows. Engines are never told. */
+  | { t: "speed"; run: number; x: number }
+  | { t: "input"; run: number; input: HostInput }
+  | { t: "check"; job: CheckJob; budgetMs?: number }
+  /** Runs the fault rules over a netlist. `sources` is path to text; the code rules read it when it is not empty. */
+  | { t: "static-check"; net: SimNetlist; sources: Record<string, string> }
+  /** Checks an imported hex, and its ELF if there is one, against the flash of the board. Imports never parse outside this worker. */
+  | { t: "parse-firmware"; hex: string; elf?: Uint8Array }
+  /** Checks an imported UF2 file against the flash of a Pico. */
+  | { t: "parse-uf2"; bytes: Uint8Array }
+  /** Probes belong to the run: a load or a reset clears them, and the UI adds them again. At most 64. */
+  | { t: "probe.add"; run: number; spec: ProbeSpec }
+  /** These name the probe in `probe`: `id` belongs to the call itself, and the port overwrites it. */
+  | { t: "probe.remove"; run: number; probe: string }
+  | { t: "probe.read"; run: number; probe: string }
+  /** Streams the samples of a probe from `from` on, as `probe.chunk` events. */
+  | { t: "probe.sub"; run: number; probe: string; from: SimTime }
+  /** `runtime` is the id of the engine the op is for. `inspect`, `watch` and `unwatch` answer `not-yet`. */
+  | { t: "debug"; run: number; runtime: string; op: DebugOp }
+  /** The run never simulates past `tNs`, and a `reached` event follows once it is there; null lifts the clamp. */
+  | { t: "horizon"; run: number; tNs: SimTime | null }
+  /** A room input stamped by the runner. It is injected once the run has reached the instant just before `at`, so it is the first thing at `at`. */
+  | { t: "input.stamped"; run: number; entry: InputEntry }
+  /** Chooses what the frames of the run carry in `analog`. Cleared by a load or a reset, like probes. */
+  | { t: "analog.watch"; run: number; watch: AnalogWatch }
+  /** Puts a function generator or a bench supply between two nets. `instrument` names it, not `id`: the port overwrites `id`. Answered with `InstrumentReply`. */
+  | { t: "instrument.set"; run: number; instrument: string; source: InstrumentSource }
+  | { t: "instrument.clear"; run: number; instrument: string }
+  /** One reading of a meter, made now: `settings` are the instrument's, `probes` where its leads sit. Answered with a `Reading`. */
+  | { t: "meter.read"; run: number; meter: string; settings: Record<string, unknown>; probes: MeterProbes }
+  /** Answered only when the run is at `tNs`. */
+  | { t: "hashes.request"; run: number; tNs: SimTime }
+  /** Probes 0x08 to 0x77 on a restored copy of the run; the run itself is not stepped. Answered with `ScannedReply`. */
+  | { t: "i2c-scan"; run: number; bus?: string }
+  /** Runs the robot validator and checks over a document, with no run and no engine download. Answered with `RobotReport`. */
+  | { t: "robot_validate"; doc: Project }
+  /** Busy-loops for ever so the watchdog can be tested; answered only by a worker created with `diag`. */
+  | { t: "diag"; op: "stall" };
+
+export type SimEv =
+  | {
+      t: "frame";
+      run: number;
+      at: SimTime;
+      pins: Record<string, PinLevel>;
+      parts: PartState[];
+      serial: Array<{ at: SimTime; text: string }>;
+      /** Only when the page asked with `analog.watch` and something it watches changed. */
+      analog?: AnalogFrame;
+    }
+  | { t: "state"; run: number; state: SimRunState; at: SimTime; limit?: { kind: string; message: string } }
+  /** What the last second of a running run achieved, and whether that is short of the speed asked for. */
+  /** Names the probe in `probe`, not `id`: the port strips `id` from every event. */
+  | { t: "probe.reading"; run: number; probe: string; reading: Reading }
+  | { t: "probe.chunk"; run: number; chunk: TraceChunk }
+  /** The run is sitting on the horizon it was given, at `at`. */
+  | { t: "reached"; run: number; at: SimTime }
+  | { t: "speed.report"; run: number; achieved: number; behind: boolean }
+  /** The physics engine on its way in. `wireBytes` comes with `loading-physics`; a refusal carries its code and, for a bad pin, both hashes. */
+  | { t: "mech_status"; run: number; state: MechState; wireBytes?: number; reason?: string; refusal?: Omit<MechRefusal, "problems"> }
+  | { t: "mech_frame"; run: number; frame: PhysicsFrame }
+  /** The robot validator's list for the run, posted once after a successful load. */
+  | ({ t: "robot_problems"; run: number } & RobotReport)
+  /** The engine stopped on a numeric fault or a diverged body; `frame` is the last good state. */
+  | { t: "mech_halt"; run: number; code: "numeric-fault" | "physics-diverged"; body: string; at: SimTime; frame: PhysicsFrame }
+  | { t: "mech_report"; run: number; report: MechReport }
+  | {
+      t: "event";
+      run: number;
+      event:
+        | { kind: "diagnostic" | "output-contention" | "no-time-progress"; message: string; at: SimTime }
+        | {
+            kind: "paused";
+            runtime: string;
+            reason: "breakpoint" | "step" | "watch";
+            file: string;
+            line: number;
+            atNs: SimTime;
+            bound?: Array<{ file: string; line: number }>;
+          }
+        /** Posted when a run ends and when it pauses. */
+        | { kind: "findings"; findings: Finding[] };
+    };
+
+/** The ack of `debug` `step`: whether the step ran, and the state the run is in. */
+export interface DebugStepReply {
+  state: SimRunState;
+}
+
+/** The ack of `load` and `step`. */
+export interface DiagnosticsReply {
+  diagnostics: SimDiagnostic[];
+}
+
+/** The ack of `static-check`. */
+export interface StaticCheckReply {
+  findings: Finding[];
+  /** Rule id, then the reason a check was skipped, then how many times. */
+  skipped: Record<string, Record<string, number>>;
+  errors: Array<{ ruleId: string; message: string }>;
+}
+
+/** The ack of `parse-firmware` and `parse-uf2`. */
+export type ParseFirmwareReply = { ok: true; bytes: number } | { ok: false; error: ParseError };
+
+/** A request for a run the worker no longer has is acked with this and does nothing. */
+export interface IgnoredReply {
+  ignored: true;
+}
+
+/** The ack of `probe.add`. */
+export interface ProbeAddReply {
+  error?: NonNullable<ProbeHandle["error"]>;
+}
+
+/** The ack of `i2c-scan`: the pins the scan used, how many addresses it probed and the ones that answered, ascending. */
+export interface ScannedReply {
+  t: "scanned";
+  bus: string;
+  sda: string;
+  scl: string;
+  probed: number;
+  found: number[];
+}
+
+/** The ack of `hashes.request`: the two class hashes of the run at `tNs`. */
+export interface HashesReply {
+  tNs: SimTime;
+  hb: string;
+  hd: string;
+}

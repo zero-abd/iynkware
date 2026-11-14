@@ -1,0 +1,210 @@
+{
+  "panel": {
+    "title": "Laborpartner",
+    "intro": "Frag nach deiner Verkabelung, deinem Code oder einem Fehler. Ich gebe Tipps vor Antworten, und wenn jemand in deinem Raum diese Lektion schon gemacht hat, frage ich zuerst diese Person.",
+    "inputLabel": "Frag deinen Laborpartner",
+    "placeholder": "Frag etwas zum Aufbau …",
+    "thinking": "Denke nach …",
+    "you": "Du",
+    "partner": "Partner",
+    "stopped": "Gestoppt.",
+    "code": "Code",
+    "transcript": "Unterhaltung mit deinem Laborpartner"
+  },
+  "tools": {
+    "copy": "Kopieren",
+    "copied": "Kopiert"
+  },
+  "errors": {
+    "not_configured": "Der Laborpartner ist in dieser Installation nicht eingerichtet.",
+    "rate_limited": "Gerade kommen viele Fragen. Warte ein paar Sekunden und versuche es dann erneut.",
+    "bad_input": "Das konnte nicht gesendet werden. Versuche eine kürzere Frage.",
+    "upstream": "Der Partner hat diesmal nicht geantwortet. Versuche es erneut.",
+    "offline": "Du bist offline. Das Labor funktioniert weiter; der Partner braucht eine Verbindung.",
+    "no_key": "Trage deinen KI-Schlüssel in den Einstellungen ein, um den Laborpartner zu nutzen.",
+    "aborted": "Gestoppt."
+  },
+  "status": {
+    "loading": "Dein Laborpartner wird geweckt …",
+    "what": "Der KI-Partner",
+    "unreachable": "Der Server ist nicht erreichbar, um den Partner zu prüfen.",
+    "check": "Erneut prüfen"
+  },
+  "partner": {
+    "state": {
+      "notSetUp": "Füge deinen eigenen KI-Schlüssel hinzu, dann ist der KI-Partner bereit. Der Schlüssel bleibt in diesem Browser. Öffne die Einstellungen, um ihn hinzuzufügen.",
+      "needsKey": "Dieser Anbieter braucht einen Schlüssel. Trage ihn in den Einstellungen ein.",
+      "capped": "Das Tageslimit ist erreicht. Erhöhe es in den Einstellungen.",
+      "offline": "Du bist offline. Das Labor funktioniert weiter; der Partner braucht eine Verbindung.",
+      "busy": "Der Partner antwortet …"
+    },
+    "mode": {
+      "label": "Wie der Partner hilft",
+      "direct": {
+        "name": "Direkt",
+        "hint": "Kurze, klare Antworten."
+      },
+      "debugging": {
+        "name": "Fehlersuche",
+        "hint": "Sucht die Ursache eines Fehlers Schritt für Schritt."
+      },
+      "beginner": {
+        "name": "Einsteiger",
+        "hint": "Einfache Worte, kleine Schritte, am Ende eine Frage."
+      }
+    },
+    "send": "Senden",
+    "stop": "Stopp",
+    "counter": "{count} von {max}",
+    "keyRemoved": "Ein Wert, der wie ein Schlüssel aussah, wurde aus deiner Nachricht entfernt.",
+    "error": {
+      "not_configured": "Richte in den Einstellungen einen KI-Anbieter ein.",
+      "no_key": "Dieser Anbieter braucht einen Schlüssel.",
+      "auth": "Der Anbieter hat diesen Schlüssel nicht akzeptiert.",
+      "bad_model": "Dieses Modell ist mit deinem Schlüssel nicht verfügbar.",
+      "context_too_long": "Dieses Projekt ist für dieses Modell zu groß. Wähle ein Teil aus oder ein größeres Modell.",
+      "quota": "Auf deinem Anbieterkonto ist kein Guthaben mehr.",
+      "capped": "Das Tageslimit ist erreicht. Erhöhe es in den Einstellungen.",
+      "network": "Der Anbieter war nicht erreichbar. Falls der Browser das blockiert, schalte das Relay ein.",
+      "relay_denied": "Dein Server hat das nicht erlaubt.",
+      "upstream_busy": "Der Anbieter ist ausgelastet. Versuche es erneut.",
+      "upstream_timeout": "Der Anbieter hat zu lange gebraucht. Versuche es erneut.",
+      "upstream_failed": "Beim Anbieter ist ein Fehler aufgetreten. Versuche es erneut.",
+      "filtered": "Der Anbieter hat die Antwort abgelehnt. Formuliere die Frage anders."
+    },
+    "hint": {
+      "relay": "Läuft über deinen eigenen Server, nicht direkt aus diesem Browser.",
+      "selectPart": "Wähle ein Teil aus, damit der Partner einen kleineren, schärferen Ausschnitt sieht."
+    },
+    "tool": {
+      "args": "Argumente",
+      "result": "Ergebnis",
+      "showAll": "Alle {count} Zeilen zeigen",
+      "showLess": "Weniger Zeilen zeigen",
+      "ok": "Fertig",
+      "failed": "Fehlgeschlagen",
+      "noArgs": "Keine Argumente",
+      "noResult": "Kein Ergebnis"
+    },
+    "unverified": "Nicht überprüfter Verweis"
+  },
+  "proposal": {
+    "title": {
+      "fix": "Vorgeschlagene Korrektur",
+      "scaffold": "Vorgeschlagene Startschaltung",
+      "explore": "Etwas zum Ausprobieren"
+    },
+    "base": "Erstellt aus Revision {rev}",
+    "changedSince": "Das Projekt hat sich bei Revision {rev} geändert",
+    "step": "Schritt {n}: {label}",
+    "risk": {
+      "0": "Nur Layout",
+      "1": "Fügt hinzu oder ändert",
+      "2": "Entfernt oder ersetzt"
+    },
+    "confirmStep": "Ich verstehe, dass dies {components} Bauteile und {wires} Leitungen entfernt und {pins} Pins löst",
+    "accept": "Alles annehmen",
+    "acceptSome": "Gewählte Schritte annehmen",
+    "acceptAnyway": "Trotzdem annehmen",
+    "reject": "Ablehnen",
+    "undo": "Diesen Vorschlag rückgängig machen",
+    "accepted": "Angenommen",
+    "rejected": "Abgelehnt",
+    "stale": "Dieser Vorschlag ist veraltet. Teile des Projekts, die er ändert, wurden nach seiner Erstellung bearbeitet.",
+    "redo": "Bitte den Partner, das auf dem aktuellen Projekt neu zu machen",
+    "refreshed": "Die Vorschau hat sich geändert. Prüfe sie und drücke dann erneut Annehmen.",
+    "failing": "Prüfungen schlagen nach dieser Änderung fehl",
+    "checks": {
+      "rules": "Regelprüfung",
+      "compile": "Kompilieren",
+      "tests": "Tests",
+      "run": "Kurzer Lauf"
+    },
+    "skipped": "Nicht ausgeführt: {reason}",
+    "netLine": "{net}: {change}",
+    "fileLine": "{path}: +{added} −{removed}",
+    "taint": "Erstellt nach dem Lesen von: {sources}",
+    "tainted": "Dieser Zug hat Text von außerhalb deines Projekts gelesen. Vorschlag anzeigen?",
+    "show": "Vorschlag anzeigen",
+    "explainOnly": "Ich konnte keine gültige Änderung erstellen. Das würde ich versuchen:",
+    "forbidden": "Diese Änderung kann der Partner nicht vorschlagen.",
+    "list": "Vorschläge",
+    "empty": "Noch keine Vorschläge.",
+    "ready": "Vorschlag bereit: {title}",
+    "model": "{model}, Modus {mode}",
+    "tier": "Genauigkeit neuer Bauteile: {tier}",
+    "announce": {
+      "open": "Ein Vorschlag ist zur Prüfung bereit.",
+      "accepted": "Vorschlag angenommen. Ein Rückgängig macht ihn rückgängig.",
+      "rejected": "Vorschlag abgelehnt.",
+      "stale": "Der Vorschlag ist veraltet."
+    },
+    "diff": {
+      "steps": "Schritte",
+      "checks": "Prüfungen",
+      "pass": "Bestanden",
+      "fail": "Fehlgeschlagen",
+      "parts": "Bauteile",
+      "nets": "Netze",
+      "wires": "Leitungen",
+      "files": "Dateien",
+      "tests": "Tests",
+      "faults": "Fehler",
+      "params": "Parameter",
+      "cascade": "Betrifft auch",
+      "added": "Hinzugefügt",
+      "removed": "Entfernt",
+      "changed": "Geändert",
+      "unchanged": "{count} unveränderte Zeilen",
+      "wireCounts": "{added} hinzugefügt, {removed} entfernt",
+      "paramChange": "{id}: {from} zu {to}",
+      "cascadeCounts": "{components} Bauteile, {wires} Leitungen, {pins} Pins, {sources} Dateien",
+      "bigFile": "Diese Datei hat sich zu stark geändert für einen Zeilenvergleich. Sie wird als entfernt und dann hinzugefügt gezeigt.",
+      "noChange": "Keine Änderungen"
+    }
+  },
+  "mode": {
+    "label": "Modus",
+    "socratic": "Sokratisch",
+    "beginner": "Anfänger",
+    "direct": "Direkt",
+    "debugging": "Fehlersuche",
+    "advanced": "Fortgeschritten",
+    "hint": {
+      "socratic": "Fragen und Tipps, keine Antwort, bis du danach fragst",
+      "beginner": "Begriffe erklärt, ein Gedanke nach dem anderen",
+      "direct": "Zuerst die Antwort oder die Änderung",
+      "debugging": "Geht von den Belegen aus, dann die kleinste Korrektur",
+      "advanced": "Abwägungen, Spielräume und Annahmen"
+    },
+    "switched": "Der Modus ist ab der nächsten Nachricht {mode}"
+  },
+  "ladder": {
+    "label": "Tipps",
+    "another": "Noch ein Tipp",
+    "show": "Zeig es mir",
+    "fixIt": "Behebe es",
+    "apply": "Anwenden",
+    "level": "Tipp-Stufe {level} von 3",
+    "holdMe": "Vor „Zeig es mir“ um Bestätigung bitten",
+    "confirmShow": "Ursache und Korrektur jetzt zeigen?",
+    "codeWithheld": "Code zurückgehalten. Frage nach „Zeig es mir“, um ihn zu sehen."
+  },
+  "scaffold": {
+    "prompt": "Beschreibe die Schaltung, die du willst",
+    "tier": "Neue Bauteile werden auf Stufe {tier} modelliert",
+    "checks": "Hat die Regelprüfung bestanden, bevor du es gesehen hast"
+  },
+  "draft": {
+    "title": "Nachrichtenentwurf an einen Kumpel",
+    "buddy": "An",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "addLink": "Freigabelink hinzufügen",
+    "noLink": "Freigabelinks brauchen deinen Server.",
+    "use": "Diesen Entwurf verwenden",
+    "dismiss": "Verwerfen",
+    "sentByYou": "Es wird nichts gesendet, bis du auf Senden drückst.",
+    "noBuddies": "Du hast noch keine Kumpel. Kopiere den Text und schick ihn auf deinem Weg."
+  }
+}

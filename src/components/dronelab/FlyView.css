@@ -1,0 +1,5 @@
+/* The fly page from lg: the range takes the whole screen under the header, no gaps and no frame. */
+@media (width >= 64rem) {
+  .fly-frame > .ws { gap: 0; padding: 0; }
+  .fly-frame > .ws > .ws-bar { padding: 0.25rem var(--frame-pad); }
+}

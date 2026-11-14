@@ -1,0 +1,219 @@
+{
+  "dock": {
+    "title": "Messgeräte",
+    "add": "Messgerät hinzufügen",
+    "remove": "Entfernen",
+    "empty": "Noch keine Messgeräte",
+    "targetMissing": "Ziel fehlt",
+    "viewerOnly": "Zuschauer können Messgeräte nicht ändern.",
+    "pickKind": "Messgerätetyp",
+    "pickPoint": "Messpunkt",
+    "groupNets": "Netze",
+    "searchPoints": "Punkte suchen",
+    "noPoint": "Kein Punkt passt",
+    "pickOutput": "Ausgangspunkt"
+  },
+  "kind": {
+    "multimeter": "Multimeter",
+    "oscilloscope": "Oszilloskop",
+    "logicAnalyser": "Logikanalysator",
+    "serialPlotter": "Serieller Plotter",
+    "voltmeter": "Voltmeter",
+    "ammeter": "Amperemeter",
+    "serialMonitor": "Serieller Monitor",
+    "functionGenerator": "Funktionsgenerator",
+    "powerSupply": "Netzteil"
+  },
+  "meter": {
+    "red": "Rote Messspitze",
+    "black": "Schwarze Messspitze",
+    "loading": "Belastung durch das Messgerät (10 Megaohm)",
+    "burden": "Bürde des Messgeräts (Ohm)",
+    "open": "Offener Stromkreis",
+    "connected": "Verbunden, unter {ohms} Ohm",
+    "notConnected": "Nicht verbunden",
+    "reading": "Messwert",
+    "mode": {
+      "dcVolts": "Gleichspannung",
+      "dcAmps": "Gleichstrom",
+      "resistance": "Widerstand",
+      "continuity": "Durchgang",
+      "diode": "Diodentest",
+      "frequency": "Frequenz",
+      "duty": "Tastgrad"
+    },
+    "notBuilt": "{mode} ist noch nicht abgebildet",
+    "cond": {
+      "ideal": "Ideales Messgerät, keine Belastung",
+      "powerOff": "Ohne Spannung, Übergänge gelten auf Prüfebene als offen",
+      "loaded": "Messgerätebelastung 10 Megaohm"
+    }
+  },
+  "scope": {
+    "timeBase": "Zeitbasis",
+    "trigger": "Trigger",
+    "cursor": "Cursor",
+    "table": "Tabellenansicht",
+    "export": "CSV exportieren",
+    "summary": "{n} Flanken, letzte bei {t} ms",
+    "rising": "Steigende Flanke",
+    "falling": "Fallende Flanke",
+    "level": "Pegel",
+    "pwm": "{duty} Prozent Tastverhältnis, {hz} Hz",
+    "delta": "Differenz: {dt} ms",
+    "timePerDiv": "Zeit pro Teilung",
+    "voltsPerDiv": "Volt pro Teilung",
+    "auto": "Auto",
+    "mode": "Triggermodus",
+    "modeAuto": "Auto",
+    "modeNormal": "Normal",
+    "modeSingle": "Einzeln",
+    "edge": "Flanke",
+    "arm": "Scharf schalten",
+    "waiting": "Warte auf einen Trigger.",
+    "held": "Aufgenommen. Mit Scharf schalten folgt die nächste Aufnahme.",
+    "channel2": "Punkt für Kanal 2",
+    "none": "Keiner",
+    "measure": "Messwerte",
+    "freq": "Frequenz",
+    "fewPoints": "Ein Generator läuft mit {hz}. Bei dieser Abtastrate von {rate} wird eine Kurve oberhalb von {limit} aus wenigen Punkten gezeichnet, daher können ihre Form und die hier gemessene Frequenz falsch sein.",
+    "vpp": "Vss",
+    "vrms": "Veff",
+    "duty": "Tastgrad",
+    "noValue": "kein Signal",
+    "deltaV": "Differenz V: {dv}"
+  },
+  "cap": "{kept} Messwerte behalten, {dropped} verworfen",
+  "staircase": "Keine Kurve zwischen den Ereignissen: als Stufen dargestellt",
+  "costModel": "Flankenzeiten folgen dem Kostenmodell der Anweisungen",
+  "plotter": {
+    "empty": "Gib Zahlen in einer Zeile aus, um sie zu zeichnen",
+    "window": "Fenster",
+    "clear": "Leeren",
+    "columnsIgnored": "Es werden nur die ersten 8 Spalten gezeichnet. Weitere Spalten werden ignoriert.",
+    "legend": "Legende",
+    "latest": "Aktuell: {value}",
+    "col": "Sp{n}",
+    "dropped": "{n} Zeilen verworfen"
+  },
+  "tolerance": {
+    "label": "Bauteiltoleranz",
+    "nominal": "Nennwert",
+    "seeded": "Reproduzierbare Streuung",
+    "runActive": "Beende den gemeinsamen Lauf, um die Bauteiltoleranz zu ändern."
+  },
+  "speed": {
+    "label": "Geschwindigkeit",
+    "max": "So schnell wie möglich",
+    "behind": "Läuft auf diesem Gerät mit dem {x}-Fachen der Echtzeit.",
+    "preset": "{x}x"
+  },
+  "run": {
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "step": "Schritt",
+    "stepUnit": "Schrittweite",
+    "stepNotYet": "noch nicht verfügbar",
+    "cycleNeedsFirmware": "benötigt den Firmware-Modus",
+    "unit": {
+      "ns": "ms",
+      "event": "Ereignis",
+      "statement": "Anweisung",
+      "line": "Zeile",
+      "cycle": "Takt"
+    },
+    "notPaused": "Pausiere zuerst den Lauf, um schrittweise vorzugehen."
+  },
+  "band": {
+    "corners": "Bereich aus den Toleranzgrenzen der Bauteile",
+    "monteCarlo": "Bereich aus {n} Zufallsziehungen",
+    "noTolerance": "{part} hat keine Toleranzangaben und wird mit dem Nennwert verwendet"
+  },
+  "channel": "Kanal {n}",
+  "capSet": "Messwertgrenze",
+  "column": {
+    "time": "Zeit"
+  },
+  "value": {
+    "empty": "Gib einen Wert ein.",
+    "nan": "Das ist keine Zahl. Versuche 1k, 2.5 oder 500m.",
+    "range": "Nutze einen Wert von {min} bis {max}.",
+    "unit": "Diese Einheit passt hier nicht."
+  },
+  "bench": {
+    "output": "Ausgang",
+    "returnLead": "Rückleitung",
+    "ground": "Masse",
+    "preview": "Vorschau der Kurvenform",
+    "status": {
+      "idle": "Starte den Lauf, um die Schaltung zu speisen.",
+      "on": "Ausgang an.",
+      "off": "Ausgang aus.",
+      "notModelled": "Dieser Lauf kann diese Quelle nicht speisen. Beende ihn und starte neu.",
+      "unknownNet": "Dieser Punkt liegt nicht in der Schaltung.",
+      "noGround": "Die Schaltung hat keine Masse. Wähle eine Rückleitung.",
+      "tooMany": "Ein Lauf nimmt höchstens 8 Quellen.",
+      "sameNet": "Beide Anschlüsse liegen im selben Netz."
+    }
+  },
+  "fgen": {
+    "shape": "Kurvenform",
+    "shapes": {
+      "sine": "Sinus",
+      "square": "Rechteck",
+      "triangle": "Dreieck",
+      "pulse": "Puls"
+    },
+    "hz": "Frequenz",
+    "amplitude": "Amplitude, Spitze",
+    "offset": "Offset",
+    "duty": "Tastgrad (Prozent)",
+    "sampleRate": "Abtastrate {rate}",
+    "coarse": "Oberhalb von {limit} wird die Kurve aus wenigen Punkten gezeichnet ({points} pro Periode bei {hz})."
+  },
+  "psu": {
+    "volts": "Spannung",
+    "limit": "Strombegrenzung",
+    "outV": "Ausgangsspannung",
+    "outA": "Ausgangsstrom",
+    "cv": "CV",
+    "cc": "CC",
+    "cvLong": "Konstantspannung",
+    "ccLong": "Konstantstrom",
+    "noReading": "Noch kein Messwert"
+  },
+  "logic": {
+    "export": "VCD exportieren"
+  },
+  "decode": {
+    "label": "Decoder",
+    "off": "Aus",
+    "uart": "UART",
+    "i2c": "I2C",
+    "spi": "SPI",
+    "baud": "Baudrate",
+    "parityLabel": "Parität",
+    "parityNone": "Keine",
+    "parityEven": "Gerade",
+    "parityOdd": "Ungerade",
+    "parityError": "Paritätsfehler",
+    "spiMode": "SPI-Modus",
+    "mode": "Modus {n}",
+    "pick": "Punkt für {role}",
+    "noLine": "Keiner",
+    "start": "Start",
+    "stop": "Stopp",
+    "ack": "Bestätigung",
+    "nack": "Keine Bestätigung",
+    "framing": "Rahmenfehler",
+    "write": "Schreiben",
+    "read": "Lesen",
+    "table": "Dekodierte Daten",
+    "empty": "In diesem Fenster wurde nichts dekodiert.",
+    "kind": "Art",
+    "value": "Wert",
+    "data": "Daten",
+    "address": "Adresse",
+    "lane": "Leitung"
+  }
+}

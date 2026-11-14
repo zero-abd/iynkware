@@ -1,0 +1,219 @@
+{
+  "dock": {
+    "title": "Instruments",
+    "add": "Add instrument",
+    "remove": "Remove",
+    "empty": "No instruments yet",
+    "targetMissing": "target missing",
+    "viewerOnly": "Viewers cannot change instruments.",
+    "pickKind": "Instrument type",
+    "pickPoint": "Probe point",
+    "groupNets": "Nets",
+    "searchPoints": "Search points",
+    "noPoint": "No point matches",
+    "pickOutput": "Output point"
+  },
+  "kind": {
+    "multimeter": "Multimeter",
+    "oscilloscope": "Oscilloscope",
+    "logicAnalyser": "Logic analyser",
+    "serialPlotter": "Serial plotter",
+    "voltmeter": "Voltmeter",
+    "ammeter": "Ammeter",
+    "serialMonitor": "Serial monitor",
+    "functionGenerator": "Function generator",
+    "powerSupply": "Power supply"
+  },
+  "meter": {
+    "red": "Red probe",
+    "black": "Black probe",
+    "loading": "Meter loading (10 megohm)",
+    "burden": "Meter burden (ohms)",
+    "open": "Open circuit",
+    "connected": "Connected, below {ohms} ohms",
+    "notConnected": "Not connected",
+    "reading": "Reading",
+    "mode": {
+      "dcVolts": "DC volts",
+      "dcAmps": "DC amps",
+      "resistance": "Resistance",
+      "continuity": "Continuity",
+      "diode": "Diode test",
+      "frequency": "Frequency",
+      "duty": "Duty"
+    },
+    "notBuilt": "{mode} is not modelled yet",
+    "cond": {
+      "ideal": "Ideal meter, no loading",
+      "powerOff": "Power off, junctions read as open at the test level",
+      "loaded": "Meter loading 10 megohm"
+    }
+  },
+  "scope": {
+    "timeBase": "Time base",
+    "trigger": "Trigger",
+    "cursor": "Cursor",
+    "table": "Table view",
+    "export": "Export CSV",
+    "summary": "{n} edges, last at {t} ms",
+    "rising": "Rising edge",
+    "falling": "Falling edge",
+    "level": "Level",
+    "pwm": "{duty} percent duty, {hz} Hz",
+    "delta": "Delta: {dt} ms",
+    "timePerDiv": "Time per division",
+    "voltsPerDiv": "Volts per division",
+    "auto": "Auto",
+    "mode": "Trigger mode",
+    "modeAuto": "Auto",
+    "modeNormal": "Normal",
+    "modeSingle": "Single",
+    "edge": "Edge",
+    "arm": "Arm",
+    "waiting": "Waiting for a trigger.",
+    "held": "Captured. Press Arm for another.",
+    "channel2": "Channel 2 point",
+    "none": "None",
+    "measure": "Measurements",
+    "freq": "Frequency",
+    "fewPoints": "A generator runs at {hz}. At this sample rate of {rate}, a wave above {limit} is drawn from few points, so its shape and the frequency measured here can be wrong.",
+    "vpp": "Vpp",
+    "vrms": "Vrms",
+    "duty": "Duty",
+    "noValue": "no signal",
+    "deltaV": "Delta V: {dv}"
+  },
+  "cap": "{kept} samples kept, {dropped} dropped",
+  "staircase": "No waveform between events: shown as steps",
+  "costModel": "Edge times follow the statement cost model",
+  "plotter": {
+    "empty": "Print numbers on a line to plot them",
+    "window": "Window",
+    "clear": "Clear",
+    "columnsIgnored": "Only the first 8 columns are drawn. Further columns are ignored.",
+    "legend": "Legend",
+    "latest": "Latest: {value}",
+    "col": "col{n}",
+    "dropped": "{n} rows dropped"
+  },
+  "tolerance": {
+    "label": "Part tolerance",
+    "nominal": "Nominal",
+    "seeded": "Seeded spread",
+    "runActive": "Stop the shared run to change part tolerance."
+  },
+  "speed": {
+    "label": "Speed",
+    "max": "As fast as possible",
+    "behind": "Running at {x} times real time on this device.",
+    "preset": "{x}x"
+  },
+  "run": {
+    "pause": "Pause",
+    "resume": "Resume",
+    "step": "Step",
+    "stepUnit": "Step by",
+    "stepNotYet": "not available yet",
+    "cycleNeedsFirmware": "needs firmware mode",
+    "unit": {
+      "ns": "ms",
+      "event": "Event",
+      "statement": "Statement",
+      "line": "Line",
+      "cycle": "Cycle"
+    },
+    "notPaused": "Pause the run first to step."
+  },
+  "band": {
+    "corners": "Range from part tolerance corners",
+    "monteCarlo": "Range from {n} random draws",
+    "noTolerance": "{part} has no tolerance data and is used at its nominal value"
+  },
+  "channel": "Channel {n}",
+  "capSet": "Sample limit",
+  "column": {
+    "time": "Time"
+  },
+  "value": {
+    "empty": "Type a value.",
+    "nan": "That is not a number. Try 1k, 2.5 or 500m.",
+    "range": "Use a value from {min} to {max}.",
+    "unit": "That unit does not fit here."
+  },
+  "bench": {
+    "output": "Output",
+    "returnLead": "Return lead",
+    "ground": "Ground",
+    "preview": "Waveform preview",
+    "status": {
+      "idle": "Start the run to drive the circuit.",
+      "on": "Output on.",
+      "off": "Output off.",
+      "notModelled": "This run cannot drive this source. Stop it and run again.",
+      "unknownNet": "That point is not in the circuit.",
+      "noGround": "The circuit has no ground. Pick a return lead.",
+      "tooMany": "A run takes at most 8 sources.",
+      "sameNet": "Both leads are on the same net."
+    }
+  },
+  "fgen": {
+    "shape": "Waveform",
+    "shapes": {
+      "sine": "Sine",
+      "square": "Square",
+      "triangle": "Triangle",
+      "pulse": "Pulse"
+    },
+    "hz": "Frequency",
+    "amplitude": "Amplitude, peak",
+    "offset": "Offset",
+    "duty": "Duty (percent)",
+    "sampleRate": "Sample rate {rate}",
+    "coarse": "Above {limit} the wave is drawn from few points ({points} per period at {hz})."
+  },
+  "psu": {
+    "volts": "Voltage",
+    "limit": "Current limit",
+    "outV": "Output voltage",
+    "outA": "Output current",
+    "cv": "CV",
+    "cc": "CC",
+    "cvLong": "Constant voltage",
+    "ccLong": "Constant current",
+    "noReading": "No reading yet"
+  },
+  "logic": {
+    "export": "Export VCD"
+  },
+  "decode": {
+    "label": "Decoder",
+    "off": "Off",
+    "uart": "UART",
+    "i2c": "I2C",
+    "spi": "SPI",
+    "baud": "Baud rate",
+    "parityLabel": "Parity",
+    "parityNone": "None",
+    "parityEven": "Even",
+    "parityOdd": "Odd",
+    "parityError": "Parity error",
+    "spiMode": "SPI mode",
+    "mode": "Mode {n}",
+    "pick": "{role} point",
+    "noLine": "None",
+    "start": "Start",
+    "stop": "Stop",
+    "ack": "Acknowledge",
+    "nack": "No acknowledge",
+    "framing": "Framing error",
+    "write": "write",
+    "read": "read",
+    "table": "Decoded data",
+    "empty": "Nothing decoded in this window.",
+    "kind": "Kind",
+    "value": "Value",
+    "data": "Data",
+    "address": "Address",
+    "lane": "Line"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "usage": {
+    "heading": "用法",
+    "check": "运行电路规则、无浏览器的仿真和项目自己的检查。任何一项失败时以 1 退出。",
+    "run": "运行一个项目，并打印它的串口输出和引脚事件。",
+    "export": "写出项目的 Arduino 草图文件夹（ino）或元件清单（bom）。",
+    "options": "选项",
+    "json": "打印 JSON，而不是易读的报告。",
+    "junit": "把 JUnit XML 报告写入文件（用 - 表示标准输出）。",
+    "strict": "警告和错误一样算失败。",
+    "for": "仿真多久，例如 5s 或 500ms。默认：项目的时长。",
+    "test": "使用这个测试的输入脚本。",
+    "format": "ino 或 bom。",
+    "out": "写到哪里：ino 是文件夹，bom 是文件（不指定时 bom 打印到标准输出）。",
+    "lang": "消息语言：en、de、es、fr、hi 或 zh。",
+    "assignment": "按这份作业（教师制作的 .iynk）批改提交文件。提交文件像项目一样交给 check。"
+  },
+  "error": {
+    "unknownCommand": "未知命令“{name}”。请运行 iynk help。",
+    "badOption": "这个选项在这里不能用：{detail}",
+    "noFiles": "没有项目文件匹配 {patterns}。",
+    "oneFile": "{command} 需要恰好一个项目文件。",
+    "badDuration": "“{value}”不是时长。请用 5s、500ms 或毫秒数。",
+    "badFormat": "用 --format 选一种格式：ino 或 bom。",
+    "badLang": "未知语言“{value}”。请用 en、de、es、fr、hi 或 zh。",
+    "noBoard": "这个项目没有带 Arduino 固件、可导出的开发板。",
+    "unknownTest": "这个项目没有名为“{id}”的测试。",
+    "noCode": "这个项目没有可运行的代码。",
+    "unsupportedRun": "这块开发板的代码不能在无浏览器仿真器里运行。",
+    "load": {
+      "unsupported": "{file} 不是 iynk 项目。请使用 .iynk 文件、.iynkz 文件或项目 .json。",
+      "unreadable": "无法读取 {file}：{detail}",
+      "invalid": "{file} 不是有效的项目：{detail}",
+      "submission": "{file} 是学生的提交文件。请用 --assignment 指定教师的作业。"
+    },
+    "badAssignment": "{file} 不是作业：{detail}"
+  },
+  "count": {
+    "error": {
+      "one": "{count} 个错误",
+      "other": "{count} 个错误"
+    },
+    "warning": {
+      "one": "{count} 个警告",
+      "other": "{count} 个警告"
+    },
+    "note": {
+      "one": "{count} 条提示",
+      "other": "{count} 条提示"
+    }
+  },
+  "check": {
+    "pass": "通过",
+    "fail": "失败",
+    "circuit": "电路规则",
+    "circuitClean": "没有发现问题",
+    "run": "仿真",
+    "runOk": "已仿真 {seconds} s，没有出错",
+    "runError": "已仿真 {seconds} s，在第 {line} 行停止：{message}",
+    "runErrorNoLine": "已仿真 {seconds} s，已停止：{message}",
+    "runLimit": "还没跑到结尾就超时了",
+    "runSkipped": "未运行：{reason}",
+    "checks": "项目检查",
+    "checksCount": "{total} 项中通过 {passed} 项",
+    "mark": {
+      "ok": "通过",
+      "fail": "失败",
+      "skip": "跳过"
+    },
+    "skip": {
+      "needs-analog": "需要模拟求解器，命令行不运行它",
+      "no-source": "开发板没有代码",
+      "no-board": "项目没有开发板",
+      "unsupported-language": "这块开发板的语言在无浏览器运行中读不到引脚"
+    },
+    "ruleFailed": "有一条规则无法运行（{rule}）：{message}",
+    "summary": {
+      "one": "{count} 个项目中通过 {passed} 个",
+      "other": "{count} 个项目中通过 {passed} 个"
+    },
+    "noTests": "没有写检查",
+    "severity": {
+      "error": "错误",
+      "warning": "警告",
+      "note": "提示"
+    },
+    "imported": "已导入",
+    "fix": "修复：",
+    "graded": "{student}：提交了“{assignment}”",
+    "otherAssignment": "这份提交属于另一份作业。",
+    "edited": "文件在学生生成之后被改动过。",
+    "lockedLost": "被锁定的零件被移除或修改：{parts}",
+    "mismatch": "与学生设备给出的结果不同"
+  },
+  "run": {
+    "heading": "已仿真 {seconds} s",
+    "serial": "串口输出",
+    "pins": "引脚事件",
+    "noSerial": "没有打印任何内容。",
+    "noPins": "没有引脚变化。"
+  },
+  "export": {
+    "wrote": "已写入 {file}"
+  }
+}

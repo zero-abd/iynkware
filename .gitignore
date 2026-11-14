@@ -1,0 +1,85 @@
+# Files that stay on this machine.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# next.js (agents build into .next-<label>/ with NEXT_DIST_DIR)
+/.next/
+.next-*/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Python bytecode from the figure tools
+__pycache__/
+
+# Internal notes and agent working files: kept locally, not published.
+# HANDOFF.md is tracked while the repository is private; decide on it before the code goes public.
+/CLAUDE.md
+/AGENTS.md
+/.audit/
+/docs/handoff/
+/docs/hacktx/
+/docs/audit/
+/docs/requests/
+/docs/verify/
+/docs/research/
+/docs/design/
+/docs/ARCHITECTURE.md
+/docs/DECISIONS.md
+/docs/SPEC.md
+/scripts/workflows/
+/scripts/handoff-status.sh
+/.iynk-data/
+
+# Output of npm run corpus
+/.corpus/
+
+# Tool installs inside the master plan docs (schema checks, spikes)
+docs/MASTER_PLAN/**/node_modules/
+
+# Local screenshot baselines and shots of the visual spec
+/e2e/visual.spec.ts-snapshots/
+/test-results/ui-shots/
+
+# Frame-time results of e2e/studio-perf.spec.ts
+.perf/
+
+# the server's bundled catalogue tools
+/server/dist/
+
+# Engine files built from node_modules by scripts/build-engines.mjs
+public/engines/

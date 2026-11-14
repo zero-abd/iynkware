@@ -1,0 +1,102 @@
+{
+  "id": "failure:opamp-overstress@1",
+  "version": "1.0.0",
+  "kind": "failure-model",
+  "title": "Op-amp burns out above its supply rating or when its output carries more than its short-circuit rating",
+  "tier": "T1",
+  "layers": [
+    "L4"
+  ],
+  "implements": [
+    {
+      "id": "rule",
+      "text": "The amplifier latches burnt when the voltage between its supply pins passes the absolute maximum, or when its output carries more than the maximum short-circuit current for 100 ms"
+    }
+  ],
+  "mocked": [
+    {
+      "id": "latch",
+      "text": "Once the rule fires the part stays burnt until it is repaired; the real part may survive or fail more slowly"
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "thermal",
+      "text": "Thermal history and ageing; only the thresholds and the dwell are checked"
+    },
+    {
+      "id": "partial",
+      "text": "Partial damage and drift"
+    }
+  ],
+  "parameterSources": [
+    {
+      "param": "supply_voltage_max",
+      "value": 32,
+      "unit": "V",
+      "type": "datasheet",
+      "ref": "src/parts/data/lm358.component.json",
+      "note": "absolute maximum ratings, supply voltage, LM358"
+    },
+    {
+      "param": "output_short_current",
+      "value": 0.06,
+      "unit": "A",
+      "type": "datasheet",
+      "ref": "src/parts/data/lm358.component.json",
+      "note": "electrical characteristics, ISC, 60 mA maximum"
+    },
+    {
+      "param": "overload dwell",
+      "value": 0.1,
+      "unit": "s",
+      "type": "assumption",
+      "ref": "src/sim/analog/states.ts",
+      "note": "no source; chosen so the inrush into a capacitor behind the output does not burn the part"
+    }
+  ],
+  "validation": [
+    {
+      "id": "live-health-tests",
+      "kind": "self-consistency",
+      "dataset": "src/sim/analog/live-health.test.ts: an op-amp and a 555 in the live solver",
+      "result": {
+        "n": 4,
+        "passed": 4,
+        "metric": "tests",
+        "worst": 0,
+        "unit": "count"
+      },
+      "date": "2026-11-10",
+      "engineVersion": "engine:mna-newton@1.0.0",
+      "status": "pass"
+    }
+  ],
+  "errorMetrics": [],
+  "operatingRange": [
+    {
+      "quantity": "voltage_V",
+      "min": 0,
+      "max": 64,
+      "unit": "V",
+      "evidence": "twice the 32 V supply rating of the LM358"
+    },
+    {
+      "quantity": "current_A",
+      "min": 0,
+      "max": 0.12,
+      "unit": "A",
+      "evidence": "twice the 60 mA short-circuit rating of the LM358"
+    }
+  ],
+  "knownFailureCases": [
+    "The model has no output current limit, so a hard short to ground reads 70 mA at 5 V and burns the part; the real LM358 limits near 40 mA and survives a short to ground at 15 V or less",
+    "The 100 ms dwell has no source"
+  ],
+  "performance": [],
+  "labels": {
+    "chip": "fidelity.tier.T1",
+    "summary": "fidelity.summary.assumed"
+  },
+  "status": "active"
+}

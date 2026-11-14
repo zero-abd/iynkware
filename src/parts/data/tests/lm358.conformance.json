@@ -1,0 +1,12 @@
+{
+  "id": "lm358_conformance",
+  "kind": "conformance",
+  "shape": "none",
+  "description": "Every layer resolves, every element terminal names a pin, every rating has the slot the model reads.",
+  "checks": [
+    "layers-resolve",
+    "terminals-are-pins",
+    "ratings-have-slot"
+  ],
+  "derivation": "Reads the descriptor only. The element has no golden-trace shape in src/sim/models/golden.ts, so no number is derived here; the expected circuit numbers are in src/studio/starters/analog.test.ts."
+}

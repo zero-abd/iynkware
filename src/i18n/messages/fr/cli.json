@@ -1,0 +1,105 @@
+{
+  "usage": {
+    "heading": "Utilisation",
+    "check": "Lance les règles du circuit, une simulation sans navigateur et les vérifications du projet. Se termine par 1 si quelque chose échoue.",
+    "run": "Lance un projet et affiche sa sortie série et les événements des broches.",
+    "export": "Écrit le dossier du sketch Arduino (ino) ou la liste des pièces (bom) d'un projet.",
+    "options": "Options",
+    "json": "Affiche du JSON au lieu du rapport lisible.",
+    "junit": "Écrit un rapport JUnit XML dans un fichier (- pour la sortie standard).",
+    "strict": "Échoue aussi sur les avertissements, pas seulement sur les erreurs.",
+    "for": "Durée de la simulation, par exemple 5s ou 500ms. Par défaut : la durée du projet.",
+    "test": "Utilise le script d'entrées de ce test.",
+    "format": "ino ou bom.",
+    "out": "Où écrire : un dossier pour ino, un fichier pour bom (sans cela, bom écrit sur la sortie standard).",
+    "lang": "Langue des messages : en, de, es, fr, hi ou zh.",
+    "assignment": "Noter un fichier de rendu selon ce devoir (un .iynk de l'enseignant). Les fichiers de rendu se passent à check comme des projets."
+  },
+  "error": {
+    "unknownCommand": "Commande inconnue « {name} ». Lancez iynk help.",
+    "badOption": "Cette option ne convient pas ici : {detail}",
+    "noFiles": "Aucun fichier de projet ne correspond à {patterns}.",
+    "oneFile": "{command} attend exactement un fichier de projet.",
+    "badDuration": "« {value} » n'est pas une durée. Utilisez 5s, 500ms ou un nombre de millisecondes.",
+    "badFormat": "Choisissez un format avec --format : ino ou bom.",
+    "badLang": "Langue inconnue « {value} ». Utilisez en, de, es, fr, hi ou zh.",
+    "noBoard": "Ce projet n'a aucune carte avec un firmware Arduino à exporter.",
+    "unknownTest": "Ce projet n'a aucun test nommé « {id} ».",
+    "noCode": "Ce projet n'a pas de code à exécuter.",
+    "unsupportedRun": "Le code de cette carte ne peut pas tourner dans le simulateur sans navigateur.",
+    "load": {
+      "unsupported": "{file} n'est pas un projet iynk. Utilisez un fichier .iynk, un fichier .iynkz ou un .json de projet.",
+      "unreadable": "{file} n'a pas pu être lu : {detail}",
+      "invalid": "{file} n'est pas un projet valide : {detail}",
+      "submission": "{file} est un rendu d'élève. Indiquez le devoir de l'enseignant avec --assignment."
+    },
+    "badAssignment": "{file} n'est pas un devoir : {detail}"
+  },
+  "count": {
+    "error": {
+      "one": "{count} erreur",
+      "other": "{count} erreurs"
+    },
+    "warning": {
+      "one": "{count} avertissement",
+      "other": "{count} avertissements"
+    },
+    "note": {
+      "one": "{count} note",
+      "other": "{count} notes"
+    }
+  },
+  "check": {
+    "pass": "RÉUSSI",
+    "fail": "ÉCHEC",
+    "circuit": "Règles du circuit",
+    "circuitClean": "aucun problème trouvé",
+    "run": "Simulation",
+    "runOk": "{seconds} s simulées, aucune erreur",
+    "runError": "{seconds} s simulées, arrêt à la ligne {line} : {message}",
+    "runErrorNoLine": "{seconds} s simulées, arrêt : {message}",
+    "runLimit": "le temps a manqué avant la fin",
+    "runSkipped": "non exécutée : {reason}",
+    "checks": "Vérifications du projet",
+    "checksCount": "{passed} sur {total} réussies",
+    "mark": {
+      "ok": "ok",
+      "fail": "ÉCHEC",
+      "skip": "ignorée"
+    },
+    "skip": {
+      "needs-analog": "demande le solveur analogique, que la ligne de commande n'exécute pas",
+      "no-source": "la carte n'a pas de code",
+      "no-board": "le projet n'a pas de carte",
+      "unsupported-language": "le langage de cette carte ne lit pas les broches dans l'exécution sans navigateur"
+    },
+    "ruleFailed": "Une règle n'a pas pu s'exécuter ({rule}) : {message}",
+    "summary": {
+      "one": "{passed} projet réussi sur {count}",
+      "other": "{passed} projets réussis sur {count}"
+    },
+    "noTests": "aucune vérification écrite",
+    "severity": {
+      "error": "erreur",
+      "warning": "avertissement",
+      "note": "note"
+    },
+    "imported": "importé",
+    "fix": "correctif :",
+    "graded": "{student} : rendu pour « {assignment} »",
+    "otherAssignment": "Ce rendu appartient à un autre devoir.",
+    "edited": "Le fichier a été modifié après sa création par l'élève.",
+    "lockedLost": "Des pièces verrouillées ont été retirées ou modifiées : {parts}",
+    "mismatch": "diffère de ce qu'a indiqué l'appareil de l'élève"
+  },
+  "run": {
+    "heading": "{seconds} s simulées",
+    "serial": "Sortie série",
+    "pins": "Événements des broches",
+    "noSerial": "Rien n'a été affiché.",
+    "noPins": "Aucune broche n'a changé."
+  },
+  "export": {
+    "wrote": "{file} écrit"
+  }
+}

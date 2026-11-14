@@ -1,0 +1,500 @@
+{
+  "role": "board",
+  "pins": [
+    {
+      "id": "D0",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D0",
+      "position": {
+        "x": 63.5,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D1",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D1",
+      "position": {
+        "x": 60.96,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D2",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D2",
+      "position": {
+        "x": 58.42,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D3",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D3",
+      "position": {
+        "x": 55.88,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D4",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D4",
+      "position": {
+        "x": 53.34,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D5",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D5",
+      "position": {
+        "x": 50.8,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D6",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D6",
+      "position": {
+        "x": 48.26,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D7",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D7",
+      "position": {
+        "x": 45.72,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D8",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D8",
+      "position": {
+        "x": 41.66,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D9",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D9",
+      "position": {
+        "x": 39.12,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D10",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D10",
+      "position": {
+        "x": 36.58,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D11",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "~D11",
+      "position": {
+        "x": 34.04,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D12",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D12",
+      "position": {
+        "x": 31.5,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "D13",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "D13",
+      "position": {
+        "x": 28.96,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "GND",
+      "type": "ground",
+      "class": "ground",
+      "designator": "GND",
+      "position": {
+        "x": 26.42,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "AREF",
+      "type": "analog_in",
+      "class": "analog",
+      "designator": "AREF",
+      "position": {
+        "x": 23.88,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "SDA",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "SDA",
+      "position": {
+        "x": 21.34,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "SCL",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "SCL",
+      "position": {
+        "x": 18.8,
+        "y": 50.8
+      }
+    },
+    {
+      "id": "NC",
+      "type": "nc",
+      "class": "nc",
+      "designator": "NC",
+      "position": {
+        "x": 27.94,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "IOREF",
+      "type": "passive",
+      "class": "passive",
+      "designator": "IOREF",
+      "position": {
+        "x": 30.48,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "RESET",
+      "type": "digital_io",
+      "class": "digital",
+      "designator": "RESET",
+      "position": {
+        "x": 33.02,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "P3V3",
+      "type": "power_io",
+      "class": "power",
+      "designator": "3V3",
+      "position": {
+        "x": 35.56,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "P5V",
+      "type": "power_io",
+      "class": "power",
+      "designator": "5V",
+      "position": {
+        "x": 38.1,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "POWER_6",
+      "type": "ground",
+      "class": "ground",
+      "designator": "GND",
+      "position": {
+        "x": 40.64,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "POWER_7",
+      "type": "ground",
+      "class": "ground",
+      "designator": "GND",
+      "position": {
+        "x": 43.18,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "VIN",
+      "type": "power_io",
+      "class": "power",
+      "designator": "VIN",
+      "position": {
+        "x": 45.72,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A0",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A0",
+      "position": {
+        "x": 50.8,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A1",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A1",
+      "position": {
+        "x": 53.34,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A2",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A2",
+      "position": {
+        "x": 55.88,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A3",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A3",
+      "position": {
+        "x": 58.42,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A4",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A4",
+      "position": {
+        "x": 60.96,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "A5",
+      "type": "digital_io",
+      "class": "analog",
+      "designator": "A5",
+      "position": {
+        "x": 63.5,
+        "y": 2.54
+      }
+    },
+    {
+      "id": "ICSP_1",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "MISO",
+      "position": {
+        "x": 63.63,
+        "y": 30.48
+      }
+    },
+    {
+      "id": "ICSP_2",
+      "type": "power_io",
+      "class": "power",
+      "designator": "5V",
+      "position": {
+        "x": 66.17,
+        "y": 30.48
+      }
+    },
+    {
+      "id": "ICSP_3",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "SCK",
+      "position": {
+        "x": 63.63,
+        "y": 27.94
+      }
+    },
+    {
+      "id": "ICSP_4",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "MOSI",
+      "position": {
+        "x": 66.17,
+        "y": 27.94
+      }
+    },
+    {
+      "id": "ICSP_5",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "RESET",
+      "position": {
+        "x": 63.63,
+        "y": 25.4
+      }
+    },
+    {
+      "id": "ICSP_6",
+      "type": "ground",
+      "class": "ground",
+      "designator": "GND",
+      "position": {
+        "x": 66.17,
+        "y": 25.4
+      }
+    },
+    {
+      "id": "MISO2",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "MISO2",
+      "position": {
+        "x": 20.83,
+        "y": 47.5
+      }
+    },
+    {
+      "id": "ICSP1_2",
+      "type": "power_io",
+      "class": "power",
+      "designator": "5V",
+      "position": {
+        "x": 20.83,
+        "y": 44.96
+      }
+    },
+    {
+      "id": "SCK2",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "SCK2",
+      "position": {
+        "x": 18.29,
+        "y": 47.5
+      }
+    },
+    {
+      "id": "MOSI2",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "MOSI2",
+      "position": {
+        "x": 18.29,
+        "y": 44.96
+      }
+    },
+    {
+      "id": "RESET2",
+      "type": "digital_io",
+      "class": "bus",
+      "designator": "RESET2",
+      "position": {
+        "x": 15.75,
+        "y": 47.5
+      }
+    },
+    {
+      "id": "ICSP1_6",
+      "type": "ground",
+      "class": "ground",
+      "designator": "GND",
+      "position": {
+        "x": 15.75,
+        "y": 44.96
+      }
+    }
+  ],
+  "params": [],
+  "groups": [
+    {
+      "id": "g_D11",
+      "kind": "internal-short",
+      "pins": [
+        "D11",
+        "ICSP_4"
+      ]
+    },
+    {
+      "id": "g_D12",
+      "kind": "internal-short",
+      "pins": [
+        "D12",
+        "ICSP_1"
+      ]
+    },
+    {
+      "id": "g_D13",
+      "kind": "internal-short",
+      "pins": [
+        "D13",
+        "ICSP_3"
+      ]
+    },
+    {
+      "id": "g_GND",
+      "kind": "internal-short",
+      "pins": [
+        "GND",
+        "POWER_6",
+        "POWER_7",
+        "ICSP_6",
+        "ICSP1_6"
+      ]
+    },
+    {
+      "id": "g_RESET",
+      "kind": "internal-short",
+      "pins": [
+        "RESET",
+        "ICSP_5"
+      ]
+    },
+    {
+      "id": "g_P5V",
+      "kind": "internal-short",
+      "pins": [
+        "P5V",
+        "ICSP_2",
+        "ICSP1_2"
+      ]
+    }
+  ]
+}

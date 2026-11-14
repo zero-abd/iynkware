@@ -1,0 +1,289 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.aa-holder-4",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "generic",
+    "model": "4 x AA battery holder",
+    "generic": true,
+    "refdes_prefix": "BT",
+    "kind": "mechanical",
+    "category": "power",
+    "description": {
+      "en": "An open holder for four AA cells in series, 6 V nominal, with a red and a black lead."
+    },
+    "primary_source": "figurejs",
+    "legacy_ids": [
+      "aa-holder-4"
+    ],
+    "tags": [
+      "battery",
+      "aa",
+      "holder",
+      "power",
+      "robotics"
+    ]
+  },
+  "sources": [
+    {
+      "id": "figurejs",
+      "kind": "own-estimate",
+      "title": "figures/parts/aa-holder-4.js",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "Header comment: 62 x 58 x 16 mm tray, four cells in series, 1.5 V nominal each. It cites Energizer E91 data, which was not read here."
+    },
+    {
+      "id": "assumption",
+      "kind": "own-estimate",
+      "title": "iynk assumption",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "A typical value for this kind of part, chosen by iynk. No maker datasheet or bench measurement stands behind it. Replace it when one is read."
+    }
+  ],
+  "pins": [
+    {
+      "id": "PLUS",
+      "name": {
+        "en": "Positive lead"
+      },
+      "designator": "+",
+      "type": "power_out",
+      "class": "power",
+      "polarity": "positive",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "connector": "leads"
+    },
+    {
+      "id": "MINUS",
+      "name": {
+        "en": "Negative lead"
+      },
+      "designator": "-",
+      "type": "ground",
+      "class": "ground",
+      "polarity": "negative",
+      "position": {
+        "x": 2.54,
+        "y": 0
+      },
+      "connector": "leads"
+    }
+  ],
+  "ratings": {
+    "nominal_voltage": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "scope": {
+        "pins": [
+          "PLUS",
+          "MINUS"
+        ]
+      },
+      "description": {
+        "en": "Nominal pack voltage: four cells at 1.5 V."
+      },
+      "simulation": {
+        "unit": "V",
+        "value": 6,
+        "confidence": "low",
+        "source": {
+          "src": "figurejs",
+          "loc": "figures/parts/aa-holder-4.js"
+        },
+        "rationale": {
+          "en": "Constant in figures/parts/aa-holder-4.js:3, no datasheet read. Four cells in series at 1.5 V each."
+        }
+      },
+      "used_by_model": "none"
+    }
+  },
+  "parameters": [
+    {
+      "id": "demo",
+      "name": {
+        "en": "Show"
+      },
+      "kind": "variant",
+      "type": "enum",
+      "default": "fresh",
+      "values": [
+        "fresh",
+        "running",
+        "li-ion"
+      ],
+      "affects": [
+        "dc"
+      ]
+    }
+  ],
+  "mechanics": {
+    "battery": {
+      "cells": 4,
+      "capacity_mah": 2500,
+      "r_cell_ohm": 0.15,
+      "chemistry": "alkaline",
+      "mass_g": 100,
+      "source": {
+        "src": "assumption",
+        "loc": "four AA alkaline cells: 2500 mAh at low drain and about 0.15 ohm each fresh (typical AA datasheet values); mass_g: four 23 g cells plus the holder, iynk assumption"
+      }
+    }
+  },
+  "behaviour": {
+    "summary": {
+      "en": "Four AA cells in series, 6 V nominal. The solver has no voltage source element yet, so the Studio draws it and does not run it."
+    },
+    "layers": [
+      {
+        "id": "dc",
+        "domain": "analog",
+        "reads": [
+          "PLUS",
+          "MINUS"
+        ],
+        "summary": {
+          "en": "A fixed supply between the two leads."
+        },
+        "model": {
+          "kind": "none",
+          "reason": {
+            "en": "No voltage source element in the solver."
+          }
+        }
+      }
+    ]
+  },
+  "simulation": {
+    "tier": "T1",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "Four alkaline AA cells: 6.4 V fresh (5.8 V with Running set), behind 0.15 ohm a cell, so the pack sags under a load. The Li-ion setting is four 14500 cells."
+      },
+      {
+        "en": "Discharge: the charge the circuit takes lowers the volts along the alkaline curve, 2500 mAh in all."
+      },
+      {
+        "en": "The terminal volts, shown on the canvas."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "Reverse connection, the holder's switch and contact resistance."
+      },
+      {
+        "en": "Recovery after a rest, temperature and the faster fall of a cheap cell."
+      }
+    ],
+    "known_gaps": [
+      {
+        "id": "cell_numbers_unsourced",
+        "text": {
+          "en": "The figure's 1.6 V fresh cell and 0.15 to 0.3 ohm internal resistance are quoted from Energizer E91 data in a comment. That data sheet was not read here, and no value is stored."
+        },
+        "evidence": "figures/parts/aa-holder-4.js header"
+      }
+    ],
+    "solver_requires": [],
+    "tests": [
+      {
+        "id": "live_power",
+        "kind": "property",
+        "file": "src/sim/analog/live-power.test.ts",
+        "note": "Fresh volts, sag under a load."
+      },
+      {
+        "id": "reading",
+        "kind": "property",
+        "file": "src/sim/part-state/power.test.ts",
+        "note": "The volts shown on the canvas."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "breadboard": {
+      "figure": {
+        "kind": "part",
+        "id": "aa-holder-4",
+        "path": "public/figures/parts/aa-holder-4.html",
+        "engine": "colorfigures-bench"
+      },
+      "legs": [
+        "PLUS",
+        "MINUS"
+      ],
+      "span": [
+        1,
+        30
+      ]
+    },
+    "fallback": {
+      "renderer": "generic-two-lead",
+      "label": "4 x AA battery holder",
+      "body_colour": "#33302d",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [
+      {
+        "text": "Drawing engine: Colorfigures, MIT license (figures/vendor/colorfigures/LICENSE)."
+      }
+    ],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-10-31",
+    "third_party_content": true,
+    "review": {
+      "status": "ci-checked"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-10-31",
+        "note": "First descriptor, from figures/parts/aa-holder-4.js.",
+        "behaviour_change": false
+      }
+    ]
+  },
+  "connectors": [
+    {
+      "id": "leads",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pins": [
+        "PLUS",
+        "MINUS"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "58 x 62 x 16 mm tray",
+    "body": {
+      "w": 58,
+      "h": 62,
+      "d": 16
+    },
+    "accuracy": 1,
+    "source": {
+      "src": "figurejs",
+      "loc": "figures/parts/aa-holder-4.js"
+    }
+  }
+}

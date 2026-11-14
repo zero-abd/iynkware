@@ -1,0 +1,57 @@
+{
+  "edit": {
+    "place": {
+      "quota": "Dieses Projekt hat seine Größengrenze erreicht. Entferne etwas, bevor du mehr hinzufügst.",
+      "unknownDefinition": "Dieses Bauteil ist nicht in der Bibliothek und wurde deshalb nicht platziert.",
+      "boardView": "Der Reiter „Platine“ zeigt nur die Platine. Bauteile kommen in den Reiter „Steckbrett“ oder „Schaltplan“.",
+      "readOnly": "Dieses Projekt ist schreibgeschützt geöffnet, deshalb lassen sich keine Bauteile hinzufügen.",
+      "placed": "{refdes} platziert.",
+      "placedLoose": "{refdes} liegt auf der Arbeitsfläche. Zieh es auf das Steckbrett, um es einzustecken, oder verbinde seine Anschlüsse mit Drähten.",
+      "placedLooseChip": "{refdes} liegt auf der Arbeitsfläche. Ein Chip sitzt quer über dem Mittelsteg des Steckbretts: zieh ihn mit Pin 1 auf die untere Seite des Stegs, oder verbinde seine Anschlüsse mit Drähten.",
+      "cancelled": "Platzieren abgebrochen.",
+      "armed": "{name} ist bereit. Tippe auf die Arbeitsfläche, um es zu platzieren.",
+      "zoomed": "Herangezoomt. Tippe noch einmal, um es zu platzieren."
+    },
+    "seat": {
+      "unseated": "{refdes} ist nicht mehr im Steckbrett, seine Anschlüsse sind daher nicht mehr verbunden.",
+      "rotateBlocked": "{refdes} wurde nicht gedreht: Die gedrehten Anschlüsse würden nicht auf freien Löchern liegen. Verschiebe es zuerst oder gib die benötigten Löcher frei."
+    }
+  },
+  "palette": {
+    "title": "Bauteile",
+    "search": "Bauteile suchen",
+    "results": {
+      "one": "{count} Bauteil",
+      "other": "{count} Bauteile"
+    },
+    "empty": "Kein Bauteil passt zu {query}.",
+    "emptyHelp": "Versuche ein kürzeres Wort oder eine Art wie passiv oder Display.",
+    "armed": "{name} ist bereit. Klicke oder tippe, um es zu platzieren: Über dem Steckbrett rastet es in die Löcher ein. Mit der Eingabetaste kommt es in die Mitte der Ansicht.",
+    "place": "{name} platzieren",
+    "modelLabel": "Modell",
+    "model": {
+      "modelled": "Abgebildet",
+      "partly-modelled": "Teilweise abgebildet",
+      "not-modelled-yet": "Noch nicht abgebildet",
+      "mechanical": "Mechanisches Teil"
+    },
+    "category": {
+      "microcontroller": "Mikrocontroller",
+      "dev-board": "Entwicklungsboard",
+      "passive": "Passiv",
+      "semiconductor": "Halbleiter",
+      "sensor": "Sensor",
+      "actuator": "Aktor",
+      "motor-driver": "Motortreiber",
+      "power": "Stromversorgung",
+      "display": "Display",
+      "communication": "Kommunikation",
+      "mechanical": "Mechanisch",
+      "robotics": "Robotik",
+      "drone": "Drohne",
+      "fpga": "FPGA",
+      "instrument": "Messgerät",
+      "virtual": "Virtuell"
+    }
+  }
+}

@@ -1,0 +1,422 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.capacitor-ceramic",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "generic",
+    "model": "Ceramic capacitor",
+    "generic": true,
+    "refdes_prefix": "C",
+    "kind": "discrete",
+    "category": "passive",
+    "description": {
+      "en": "A radial ceramic capacitor in 100 nF, 1 uF or 10 uF. It has no polarity. Use 100 nF next to a chip's supply pins and the larger values for smoothing and timing."
+    },
+    "tags": [
+      "capacitor",
+      "ceramic",
+      "decoupling",
+      "breadboard"
+    ],
+    "legacy_ids": [
+      "capacitor-ceramic"
+    ]
+  },
+  "sources": [
+    {
+      "id": "factsheet",
+      "kind": "fact-sheet",
+      "title": "Analog parts fact sheet",
+      "publisher": "iynk",
+      "revision": "2026-11-10",
+      "reliability": "secondary",
+      "note": "docs/facts/analog-parts.md. Quotes the maker sheets it names; a figure marked own estimate there is not on any sheet."
+    },
+    {
+      "id": "figurejs",
+      "kind": "own-estimate",
+      "title": "figures/parts/capacitor-ceramic.js: header comment and elec()",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "Constants in the figure code."
+    },
+    {
+      "id": "series",
+      "kind": "datasheet",
+      "title": "C0G/X7R multilayer ceramic capacitor series, tolerance K",
+      "publisher": "Kemet",
+      "reliability": "unverified",
+      "note": "Tolerance code as the maker prints it for the series; recalled, not re-read from the sheet for this change."
+    }
+  ],
+  "pins": [
+    {
+      "id": "P1",
+      "name": {
+        "en": "Lead 1"
+      },
+      "designator": "1",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "connector": "legs"
+    },
+    {
+      "id": "P2",
+      "name": {
+        "en": "Lead 2"
+      },
+      "designator": "2",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 5.08,
+        "y": 0.0
+      },
+      "connector": "legs"
+    }
+  ],
+  "connectors": [
+    {
+      "id": "legs",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pitch": 2.54,
+      "pins": [
+        "P1",
+        "P2"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "radial, 5.08 mm lead pitch",
+    "body": {
+      "w": 5.0,
+      "h": 2.5,
+      "d": 5.0
+    },
+    "accuracy": 0.5,
+    "source": {
+      "src": "figurejs",
+      "loc": "figures/parts/capacitor-ceramic.js:5"
+    }
+  },
+  "ratings": {
+    "rated_voltage": {
+      "measure": "voltage",
+      "role": "abs_max",
+      "description": {
+        "en": "Highest voltage across the capacitor. 50 V for 100 nF, 25 V for 1 uF, 16 V for 10 uF; the descriptor carries the lowest, 16 V."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "V",
+        "value": 16,
+        "rationale": {
+          "en": "The common stock ratings of X7R and X5R radial parts are 50 V, 25 V and 16 V for 100 nF, 1 uF and 10 uF. The lowest is used for all three until the rating follows the value."
+        },
+        "confidence": "low",
+        "source": {
+          "src": "factsheet",
+          "loc": "section 4"
+        }
+      },
+      "scope": {
+        "pins": [
+          "P1",
+          "P2"
+        ]
+      }
+    },
+    "esr": {
+      "measure": "resistance",
+      "role": "characteristic",
+      "description": {
+        "en": "Equivalent series resistance of a ceramic part at audio and low radio frequency."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "ohm",
+        "value": 0.02,
+        "rationale": {
+          "en": "Typical of small multilayer ceramics; not from a maker sheet."
+        },
+        "confidence": "low",
+        "source": {
+          "src": "factsheet",
+          "loc": "section 4"
+        }
+      },
+      "scope": {
+        "pins": [
+          "P1",
+          "P2"
+        ]
+      }
+    },
+    "tolerance": {
+      "measure": "ratio",
+      "role": "characteristic",
+      "description": {
+        "en": "Capacitance tolerance of an X7R multilayer ceramic part."
+      },
+      "scope": {
+        "part": true
+      },
+      "manufacturer": {
+        "unit": "percent",
+        "value": 10,
+        "source": {
+          "src": "series",
+          "loc": "tolerance code K: plus or minus 10 percent"
+        }
+      },
+      "used_by_model": "manufacturer"
+    }
+  },
+  "parameters": [
+    {
+      "id": "farads",
+      "name": {
+        "en": "Capacitance"
+      },
+      "kind": "setting",
+      "type": "number",
+      "default": 1e-07,
+      "min": 1e-11,
+      "max": 1e-05,
+      "unit": "F",
+      "affects": [
+        "dc"
+      ]
+    }
+  ],
+  "behaviour": {
+    "summary": {
+      "en": "A ceramic capacitor, open at DC and charging through its series resistance in a transient run. No polarity."
+    },
+    "layers": [
+      {
+        "id": "dc",
+        "domain": "analog",
+        "reads": [
+          "P1",
+          "P2",
+          "farads"
+        ],
+        "summary": {
+          "en": "Capacitor between the two pins with a small series resistance."
+        },
+        "model": {
+          "kind": "element",
+          "element": "capacitor",
+          "terminals": {
+            "a": "P1",
+            "b": "P2"
+          },
+          "params": {
+            "farads": {
+              "value": 1e-07,
+              "rationale": {
+                "en": "Default only. The placed value comes from the farads parameter."
+              },
+              "unit": "F",
+              "source": {
+                "src": "figurejs",
+                "loc": "figures/parts/capacitor-ceramic.js"
+              }
+            },
+            "esr_ohms": {
+              "from_rating": "esr",
+              "pick": "value"
+            },
+            "polarized": {
+              "value": false,
+              "rationale": {
+                "en": "A ceramic capacitor has no polarity."
+              },
+              "source": {
+                "src": "figurejs",
+                "loc": "figures/parts/capacitor-ceramic.js"
+              }
+            },
+            "rated_volts": {
+              "from_rating": "rated_voltage",
+              "pick": "value"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "failure_modes": [
+    {
+      "id": "overvoltage",
+      "name": {
+        "en": "Cracked by too much voltage"
+      },
+      "cause_id": "x-ceramic-overvoltage",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "pin_voltage",
+          "target": "P1",
+          "op": ">",
+          "threshold": {
+            "rating": "rated_voltage",
+            "pick": "value"
+          }
+        }
+      ],
+      "effect": {
+        "state": "short_circuit",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "A ceramic dielectric punches through above its rated voltage and the capacitor fails as a short. The threshold is the lowest rating of the family, 16 V."
+      },
+      "basis": "simulation-assumption",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "factsheet",
+        "loc": "section 4"
+      }
+    }
+  ],
+  "simulation": {
+    "tier": "T0",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "A capacitance of 100 nF, 1 uF or 10 uF with a series resistance."
+      },
+      {
+        "en": "Failure above the rated voltage."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "Voltage coefficient: a 10 uF X5R part loses much of its capacitance under bias."
+      },
+      {
+        "en": "Leakage, dielectric absorption, temperature and self-resonance."
+      }
+    ],
+    "validity": [
+      {
+        "measure": "voltage",
+        "min": 0,
+        "max": 16,
+        "unit": "V"
+      }
+    ],
+    "known_gaps": [
+      {
+        "id": "one_rating",
+        "text": {
+          "en": "One rated voltage for all three values; the real ratings are 50 V, 25 V and 16 V."
+        }
+      }
+    ],
+    "solver_requires": [
+      "capacitor"
+    ],
+    "tests": [
+      {
+        "id": "capacitor_ceramic_conformance",
+        "kind": "conformance",
+        "file": "src/parts/data/tests/capacitor-ceramic.conformance.json",
+        "note": "Layers, terminals and ratings only."
+      },
+      {
+        "id": "live_starters",
+        "kind": "golden-trace",
+        "file": "src/studio/starters/analog-live.test.ts",
+        "note": "The starters run on the live solver and the test reads their nets: the RC charge, the 555 blink, the op amp gain of 2, the rectifier peak and the Zener hold."
+      },
+      {
+        "id": "live_health",
+        "kind": "golden-trace",
+        "file": "src/sim/analog/live-health.test.ts",
+        "note": "A capacitor and an inductor in a run burn when abused and read hot, reversed or burnt in the readout."
+      },
+      {
+        "id": "part_job",
+        "kind": "golden-trace",
+        "file": "src/sim/analog/part-jobs.test.ts",
+        "state": "present",
+        "note": "A ceramic capacitor charges through 1 kilohm with the expected time constant."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "breadboard": {
+      "figure": {
+        "kind": "part",
+        "id": "capacitor-ceramic",
+        "path": "public/figures/parts/capacitor-ceramic.html",
+        "sha256": "b64f31f3c6e3905330df01bcc3dce7b63cbee837463bccdf2ff8ab8cfbd54f00",
+        "engine": "colorfigures-bench"
+      },
+      "legs": [
+        "P1",
+        "P2"
+      ],
+      "span": [
+        2,
+        3
+      ]
+    },
+    "schematic": {
+      "symbol": "capacitor"
+    },
+    "fallback": {
+      "renderer": "generic-two-lead",
+      "label": "Ceramic cap",
+      "body_colour": "#c99a33",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [
+      {
+        "text": "Drawing engine: Colorfigures, MIT license (figures/vendor/colorfigures/LICENSE)."
+      },
+      {
+        "text": "Typical values of the common ceramic families, docs/facts/analog-parts.md section 4."
+      }
+    ],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-11-10",
+    "third_party_content": true,
+    "review": {
+      "status": "ci-checked"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-11-10",
+        "note": "First descriptor, from figures/parts/capacitor-ceramic.js and the analog fact sheet.",
+        "behaviour_change": false
+      }
+    ]
+  }
+}

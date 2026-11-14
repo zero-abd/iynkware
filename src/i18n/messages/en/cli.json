@@ -1,0 +1,105 @@
+{
+  "usage": {
+    "heading": "Usage",
+    "check": "Run the circuit rules, a headless simulation and the project's own checks. Exits with 1 when anything fails.",
+    "run": "Run one project and print its serial output and pin events.",
+    "export": "Write a project's Arduino sketch folder (ino) or its parts list (bom).",
+    "options": "Options",
+    "json": "Print JSON instead of the readable report.",
+    "junit": "Write a JUnit XML report to a file, or to standard output when the name is a single dash.",
+    "strict": "Fail on warnings as well as errors.",
+    "for": "How long to simulate, such as 5s or 500ms. Default: the project's duration.",
+    "test": "Use the inputs script of this test.",
+    "format": "ino or bom.",
+    "out": "Where to write: a folder for ino, a file for bom (bom prints to standard output without it).",
+    "lang": "Language of the messages: en, de, es, fr, hi or zh.",
+    "assignment": "Grade a submission file against this assignment (an .iynk the teacher made). Submission files are given to check like projects."
+  },
+  "error": {
+    "unknownCommand": "Unknown command \"{name}\". Run iynk help.",
+    "badOption": "That option does not work here: {detail}",
+    "noFiles": "No project file matches {patterns}.",
+    "oneFile": "{command} takes exactly one project file.",
+    "badDuration": "\"{value}\" is not a duration. Use 5s, 500ms or a number of milliseconds.",
+    "badFormat": "Choose a format with --format: ino or bom.",
+    "badLang": "Unknown language \"{value}\". Use en, de, es, fr, hi or zh.",
+    "noBoard": "This project has no board with Arduino firmware to export.",
+    "unknownTest": "This project has no test called \"{id}\".",
+    "noCode": "This project has no code to run.",
+    "unsupportedRun": "The code of this board cannot run in the headless simulator.",
+    "load": {
+      "unsupported": "{file} is not an iynk project. Use a .iynk file, a .iynkz file or a project .json.",
+      "unreadable": "{file} could not be read: {detail}",
+      "invalid": "{file} is not a valid project: {detail}",
+      "submission": "{file} is a student submission. Name the teacher's assignment with --assignment."
+    },
+    "badAssignment": "{file} is not an assignment: {detail}"
+  },
+  "count": {
+    "error": {
+      "one": "{count} error",
+      "other": "{count} errors"
+    },
+    "warning": {
+      "one": "{count} warning",
+      "other": "{count} warnings"
+    },
+    "note": {
+      "one": "{count} note",
+      "other": "{count} notes"
+    }
+  },
+  "check": {
+    "pass": "PASS",
+    "fail": "FAIL",
+    "circuit": "Circuit rules",
+    "circuitClean": "no problems found",
+    "run": "Simulation",
+    "runOk": "{seconds} s simulated, no error",
+    "runError": "{seconds} s simulated, stopped at line {line}: {message}",
+    "runErrorNoLine": "{seconds} s simulated, stopped: {message}",
+    "runLimit": "ran out of time before the end",
+    "runSkipped": "not run: {reason}",
+    "checks": "Project checks",
+    "checksCount": "{passed} of {total} passed",
+    "mark": {
+      "ok": "ok",
+      "fail": "FAIL",
+      "skip": "skip"
+    },
+    "skip": {
+      "needs-analog": "needs the analog solver, which the command line does not run",
+      "no-source": "the board has no code",
+      "no-board": "the project has no board",
+      "unsupported-language": "this board's language cannot read pins in the headless run"
+    },
+    "ruleFailed": "A rule could not run ({rule}): {message}",
+    "summary": {
+      "one": "{passed} of {count} project passed",
+      "other": "{passed} of {count} projects passed"
+    },
+    "noTests": "no checks written",
+    "severity": {
+      "error": "error",
+      "warning": "warning",
+      "note": "note"
+    },
+    "imported": "imported",
+    "fix": "fix:",
+    "graded": "{student}: handed in for \"{assignment}\"",
+    "otherAssignment": "This submission is for a different assignment.",
+    "edited": "The file was changed after the student made it.",
+    "lockedLost": "Locked parts were removed or changed: {parts}",
+    "mismatch": "differs from what the student's device said"
+  },
+  "run": {
+    "heading": "{seconds} s simulated",
+    "serial": "Serial output",
+    "pins": "Pin events",
+    "noSerial": "Nothing was printed.",
+    "noPins": "No pin changed."
+  },
+  "export": {
+    "wrote": "Wrote {file}"
+  }
+}

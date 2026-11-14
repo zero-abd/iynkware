@@ -1,0 +1,241 @@
+{
+  "panel": {
+    "title": "Gemeinsam",
+    "intro": "Bau das mit Freunden. Alle sehen dieselbe Werkbank, und der Chat wird in die Sprache jeder Person übersetzt.",
+    "introPlain": "Bau das mit Freunden. Alle sehen dieselbe Werkbank, und es tippt immer eine Person.",
+    "start": "Raum öffnen",
+    "joinLabel": "Raumcode oder Einladungslink",
+    "joinPlaceholder": "z. B. k7m2qx",
+    "join": "Beitreten",
+    "badCode": "Das ist kein Raumcode. Codes haben 6 Buchstaben und Ziffern.",
+    "unavailable": "Dieser Browser kann keine Räume öffnen. Versuch es mit einer aktuellen Version von Chrome, Firefox, Safari oder Edge.",
+    "localOnly": "Diese Installation hat keinen Relay-Server, deshalb funktionieren Räume nur zwischen Tabs dieses Browsers.",
+    "connecting": "Raum {code} wird betreten …",
+    "syncing": "Die Werkbank wird vom Gastgeber geholt …",
+    "reconnecting": "Verbindung verloren. Sie wird neu aufgebaut … Deine Änderungen werden synchronisiert, sobald du wieder da bist.",
+    "ended": {
+      "left": "Du hast den Raum verlassen.",
+      "removed": "Der Gastgeber hat dich aus dem Raum entfernt.",
+      "full": "Dieser Raum ist voll. In einen Raum passen 8 Personen.",
+      "wrong-item": "In diesem Raum wird etwas anderes gebaut. Öffne seinen Einladungslink, um beizutreten.",
+      "error": "Der Raum wurde geschlossen."
+    },
+    "again": "Neuen Raum öffnen"
+  },
+  "identity": {
+    "title": "Wer bist du?",
+    "hint": "Die Leute im Raum sehen diesen Namen. Er bleibt auf diesem Gerät.",
+    "name": "Dein Name",
+    "missing": "Gib den Namen ein, den die anderen im Raum sehen.",
+    "color": "Deine Farbe",
+    "save": "Raum betreten",
+    "saveOnly": "Speichern",
+    "rename": "Namen ändern",
+    "cancel": "Abbrechen",
+    "colors": {
+      "tomato": "Tomate",
+      "mustard": "Senf",
+      "mint": "Minze",
+      "cobalt": "Kobalt",
+      "blush": "Rosé"
+    }
+  },
+  "bar": {
+    "label": "Raum {code}",
+    "invite": "Einladen",
+    "inviteTitle": "Leute in Raum {code} einladen",
+    "inviteHint": "Alle mit diesem Link oder QR-Code können beitreten. Kein Konto nötig.",
+    "copy": "Link kopieren",
+    "copied": "Link kopiert",
+    "copyFailed": "Kopieren ging nicht. Markiere den Link und kopiere ihn selbst.",
+    "share": "Teilen",
+    "shareText": "Bau mit mir in iynk, Raum {code}",
+    "qr": "QR-Code für den Einladungslink zu Raum {code}",
+    "qrError": "Der QR-Code ließ sich nicht zeichnen. Kopiere stattdessen den Link.",
+    "close": "Schließen",
+    "people": {
+      "one": "{count} Person hier",
+      "other": "{count} Personen hier"
+    },
+    "you": "du",
+    "host": "Gastgeber",
+    "role": "Deine Rolle",
+    "roles": {
+      "none": "Keine Rolle",
+      "wirer": "Verkabler",
+      "coder": "Coder",
+      "pilot": "Pilot",
+      "watcher": "Zuschauer"
+    },
+    "keyboardYou": "Du hast die Tastatur",
+    "keyboardOther": "{name} hat die Tastatur",
+    "passTo": "Tastatur weitergeben an",
+    "pass": "Weitergeben",
+    "ask": "Um die Tastatur bitten",
+    "take": "Tastatur übernehmen",
+    "asked": "{name} möchte die Tastatur",
+    "denied": "{name} hat die Tastatur. Bitte darum, um den Code zu bearbeiten.",
+    "leave": "Raum verlassen",
+    "remove": "{name} entfernen",
+    "removeConfirm": "{name} aus dem Raum entfernen?",
+    "removeYes": "Entfernen",
+    "status": {
+      "ws": "Live",
+      "broadcast": "Nur dieser Browser",
+      "connecting": "Verbindet",
+      "syncing": "Synchronisiert",
+      "reconnecting": "Verbindet neu",
+      "ended": "Geschlossen"
+    },
+    "peerLanguage": "Spricht {lang}"
+  },
+  "chat": {
+    "title": "Raum-Chat",
+    "empty": "Noch keine Nachrichten. Sag Hallo oder bitte um Hilfe mit einem Bauteil.",
+    "label": "Nachricht",
+    "placeholder": "Nachricht schreiben",
+    "send": "Senden",
+    "count": "{count}/{max}",
+    "translatedFrom": "Übersetzt aus: {lang}",
+    "showOriginal": "Original zeigen",
+    "showTranslation": "Übersetzung zeigen",
+    "translating": "Wird übersetzt …",
+    "translateOff": "Auf dieser Installation ist keine Übersetzung eingerichtet, deshalb erscheinen Nachrichten so, wie sie geschrieben wurden.",
+    "offBoth": "Auf dieser Installation sind weder Übersetzung noch Sprachnachrichten eingerichtet, deshalb erscheinen Nachrichten so, wie sie geschrieben wurden.",
+    "translateFailed": "Diese Nachricht ließ sich nicht übersetzen.",
+    "sending": "Wird gesendet …",
+    "kind": {
+      "voice": "Sprachnachricht",
+      "ai": "Laborpartner"
+    },
+    "voice": {
+      "start": "Sprachnachricht aufnehmen",
+      "stop": "Stoppen und senden",
+      "recording": "Aufnahme … {seconds} s",
+      "transcribing": "Deine Stimme wird in Text umgewandelt …",
+      "off": "Auf dieser Installation sind keine Sprachnachrichten eingerichtet.",
+      "denied": "iynk kann das Mikrofon nicht benutzen. Erlaube es im Browser, um Sprachnachrichten zu senden.",
+      "failed": "Das ließ sich nicht in Text umwandeln. Versuch es noch einmal oder tipp es ein.",
+      "unsupported": "Dieser Browser kann keinen Ton aufnehmen.",
+      "tooLong": "Sprachnachrichten stoppen nach 60 Sekunden."
+    },
+    "system": {
+      "join": "{name} ist beigetreten",
+      "leave": "{name} ist gegangen",
+      "host": "{name} ist jetzt Gastgeber",
+      "removed": "{name} wurde vom Gastgeber entfernt",
+      "baton": "{by} hat die Tastatur an {name} weitergegeben",
+      "batonRequest": "{name} hat um die Tastatur gebeten"
+    },
+    "someone": "Jemand"
+  },
+  "cursors": {
+    "label": "Worauf die anderen zeigen",
+    "point": "Auf die Abbildung zeigen",
+    "stop": "Nicht mehr zeigen",
+    "surface": "Zeigefläche. Fahr über die Abbildung, um den anderen zu zeigen, worauf du zeigst. Pfeiltasten bewegen, Esc beendet."
+  },
+  "languages": {
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "zh": "Chinesisch",
+    "hi": "Hindi"
+  },
+  "labs": {
+    "board": "Boards",
+    "robotics": "Robotik",
+    "drone": "Drohnen"
+  },
+  "lobby": {
+    "metaTitle": "Gemeinsam bauen",
+    "metaDescription": "Öffne einen Live-Bauraum für jedes Board, jeden Roboter und jede Drohne und baut gemeinsam.",
+    "eyebrow": "iynk Gemeinsam",
+    "title": "Niemand muss allein bauen",
+    "lede": "Öffne einen Raum für ein Board, einen Roboter oder eine Drohne und schick den Link. Alle sehen dieselbe Werkbank, es tippt immer eine Person, und der Chat zeigt jede Nachricht in deiner Sprache.",
+    "ledePlain": "Öffne einen Raum für ein Board, einen Roboter oder eine Drohne und schick den Link. Alle sehen dieselbe Werkbank, und es tippt immer eine Person."
+  },
+  "rooms": {
+    "title": "Räume",
+    "ready": {
+      "body": "Öffne im Studio ein Projekt, wähle in der Werkzeugleiste Raum und schicke den Einladungslink. Alle sehen denselben Aufbau.",
+      "open": "Studio öffnen"
+    },
+    "selfHost": {
+      "title": "Räume laufen auf deiner eigenen Kopie von iynk",
+      "body": "iynk.tech hat keinen Server für Räume. Auf einer Kopie, die du oder ein Freund betreibt, sehen alle in einem Raum dieselbe Werkbank und denselben Lauf, und Freunde verbinden sich mit einem kurzen Code statt mit einem Konto.",
+      "points": {
+        "bench": "Dieselbe Werkbank, derselbe Lauf, live",
+        "keyboard": "Eine Tastatur, die weitergegeben wird",
+        "code": "Mit einem Code verbinden, ohne Konto"
+      },
+      "guide": "Wie eine Kopie läuft"
+    }
+  },
+  "buddies": {
+    "title": "Freunde",
+    "insecure": {
+      "title": "Diese Seite braucht eine sichere Verbindung",
+      "body": "Dein Browser erstellt Geräteschlüssel nur auf https Seiten oder auf localhost. Öffne iynk über https und versuche es erneut."
+    },
+    "empty": {
+      "title": "Noch keine Freunde",
+      "add": "Mit einem Freund koppeln",
+      "enter": "Code eingeben"
+    },
+    "list": {
+      "online": "Online",
+      "offline": "Offline",
+      "asOf": "Zuletzt gesehen {time}",
+      "inRoom": "Im Raum {code}",
+      "rename": "Umbenennen",
+      "remove": "Freund entfernen",
+      "block": "Blockieren",
+      "removeConfirm": "{name} aus deinen Freunden entfernen? Ihr könnt später erneut koppeln.",
+      "blockConfirm": "{name} blockieren? Die Person wird entfernt und kann sich nicht erneut mit dir koppeln.",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "enrol": {
+      "title": "Diesem Server beitreten",
+      "code": "Anmeldecode",
+      "name": "Dein Name",
+      "submit": "Beitreten",
+      "closed": "Dieser Server nimmt gerade keine neuen Leute auf.",
+      "wrongCode": "Der Code hat nicht funktioniert. Prüfe ihn oder frag die Person, die den Server betreibt, nach einem neuen.",
+      "help": "Die Person, die den Server betreibt, gibt dir einen Code. Er gilt nur einmal."
+    },
+    "pair": {
+      "title": "Mit einem Freund koppeln",
+      "code": "Kopplungscode",
+      "link": "Kopplungslink",
+      "qr": "QR Code für den Kopplungslink",
+      "copy": "Link kopieren",
+      "copied": "Link kopiert",
+      "expires": "Läuft {time} ab",
+      "cancel": "Kopplung abbrechen",
+      "enterCode": "Kopplungscode eingeben",
+      "enterLabel": "Code oder Link von deinem Freund",
+      "peekFrom": "{name} möchte sich mit dir koppeln.",
+      "accept": "Annehmen",
+      "wrong": "Der Code hat nicht funktioniert. Prüfe ihn und versuche es erneut.",
+      "tooMany": "Zu viele Versuche. Warte eine Minute und versuche es erneut.",
+      "already": "Ihr seid schon befreundet.",
+      "full": "Einer von euch hat die Freundesgrenze erreicht.",
+      "show": "Code anzeigen",
+      "joined": "{name} ist beigetreten.",
+      "fingerprint": "Schlüssel {fingerprint}"
+    },
+    "joined": "Du bist dem Server als {name} beigetreten.",
+    "unknown": {
+      "title": "Diesen Server kennt dieser Browser nicht",
+      "body": "Dieser Browser hat keinen Schlüssel für diesen Server. Tritt ihm zuerst mit einem Anmeldecode bei."
+    },
+    "unreachable": "Der Server ist nicht erreichbar. Prüfe, ob er läuft, und versuche es erneut.",
+    "errors": {
+      "generic": "Etwas ist schiefgelaufen. Versuche es erneut."
+    },
+    "selfHost": "Freunde leben auf demselben Server wie Räume. Auf deiner eigenen Kopie verbindest du dich hier mit einem Code."
+  }
+}

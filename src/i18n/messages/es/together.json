@@ -1,0 +1,241 @@
+{
+  "panel": {
+    "title": "Juntos",
+    "intro": "Constrúyelo con amigos. Todos ven el mismo banco de trabajo y el chat se traduce al idioma de cada persona.",
+    "introPlain": "Constrúyelo con amigos. Todos ven el mismo banco de trabajo y escribe una persona a la vez.",
+    "start": "Abrir una sala",
+    "joinLabel": "Código de sala o enlace de invitación",
+    "joinPlaceholder": "p. ej. k7m2qx",
+    "join": "Unirse",
+    "badCode": "Eso no es un código de sala. Los códigos tienen 6 letras y números.",
+    "unavailable": "Este navegador no puede abrir salas. Prueba una versión actual de Chrome, Firefox, Safari o Edge.",
+    "localOnly": "Esta instalación no tiene servidor de retransmisión, así que las salas solo funcionan entre pestañas de este navegador.",
+    "connecting": "Entrando en la sala {code}…",
+    "syncing": "Recibiendo el banco de trabajo del anfitrión…",
+    "reconnecting": "Se perdió la conexión. Reconectando… Tus cambios se sincronizarán cuando vuelvas.",
+    "ended": {
+      "left": "Saliste de la sala.",
+      "removed": "El anfitrión te sacó de la sala.",
+      "full": "Esa sala está llena. Caben 8 personas.",
+      "wrong-item": "Esa sala está construyendo otra cosa. Abre su enlace de invitación para unirte.",
+      "error": "La sala se cerró."
+    },
+    "again": "Abrir una sala nueva"
+  },
+  "identity": {
+    "title": "¿Quién eres?",
+    "hint": "Las personas de la sala ven este nombre. Se queda en este dispositivo.",
+    "name": "Tu nombre",
+    "missing": "Escribe el nombre que verán las personas de la sala.",
+    "color": "Tu color",
+    "save": "Entrar en la sala",
+    "saveOnly": "Guardar",
+    "rename": "Cambiar nombre",
+    "cancel": "Cancelar",
+    "colors": {
+      "tomato": "Tomate",
+      "mustard": "Mostaza",
+      "mint": "Menta",
+      "cobalt": "Cobalto",
+      "blush": "Rosa"
+    }
+  },
+  "bar": {
+    "label": "Sala {code}",
+    "invite": "Invitar",
+    "inviteTitle": "Invita a gente a la sala {code}",
+    "inviteHint": "Cualquiera con este enlace o código QR puede entrar. No hace falta cuenta.",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "copyFailed": "No se pudo copiar. Selecciona el enlace y cópialo tú.",
+    "share": "Compartir",
+    "shareText": "Construye conmigo en iynk, sala {code}",
+    "qr": "Código QR del enlace de invitación a la sala {code}",
+    "qrError": "No se pudo dibujar el código QR. Copia el enlace.",
+    "close": "Cerrar",
+    "people": {
+      "one": "{count} persona aquí",
+      "other": "{count} personas aquí"
+    },
+    "you": "tú",
+    "host": "anfitrión",
+    "role": "Tu papel",
+    "roles": {
+      "none": "Sin papel",
+      "wirer": "Cableado",
+      "coder": "Programación",
+      "pilot": "Piloto",
+      "watcher": "Observador"
+    },
+    "keyboardYou": "Tienes el teclado",
+    "keyboardOther": "{name} tiene el teclado",
+    "passTo": "Pasar el teclado a",
+    "pass": "Pasar",
+    "ask": "Pedir el teclado",
+    "take": "Tomar el teclado",
+    "asked": "{name} quiere el teclado",
+    "denied": "{name} tiene el teclado. Pídeselo para editar el código.",
+    "leave": "Salir de la sala",
+    "remove": "Sacar a {name}",
+    "removeConfirm": "¿Sacar a {name} de la sala?",
+    "removeYes": "Sacar",
+    "status": {
+      "ws": "En vivo",
+      "broadcast": "Solo este navegador",
+      "connecting": "Conectando",
+      "syncing": "Sincronizando",
+      "reconnecting": "Reconectando",
+      "ended": "Cerrada"
+    },
+    "peerLanguage": "Habla {lang}"
+  },
+  "chat": {
+    "title": "Chat de la sala",
+    "empty": "Aún no hay mensajes. Saluda o pide ayuda con una pieza.",
+    "label": "Mensaje",
+    "placeholder": "Escribe un mensaje",
+    "send": "Enviar",
+    "count": "{count}/{max}",
+    "translatedFrom": "Traducido del {lang}",
+    "showOriginal": "Ver original",
+    "showTranslation": "Ver traducción",
+    "translating": "Traduciendo…",
+    "translateOff": "La traducción no está configurada en esta instalación, así que los mensajes se ven tal como se escribieron.",
+    "offBoth": "La traducción y los mensajes de voz no están configurados en esta instalación, así que los mensajes se ven tal como se escribieron.",
+    "translateFailed": "No se pudo traducir este mensaje.",
+    "sending": "Enviando…",
+    "kind": {
+      "voice": "Voz",
+      "ai": "Compañero de laboratorio"
+    },
+    "voice": {
+      "start": "Grabar un mensaje de voz",
+      "stop": "Parar y enviar",
+      "recording": "Grabando… {seconds} s",
+      "transcribing": "Pasando tu voz a texto…",
+      "off": "Los mensajes de voz no están configurados en esta instalación.",
+      "denied": "iynk no puede usar el micrófono. Permítelo en el navegador para enviar mensajes de voz.",
+      "failed": "No se pudo transcribir. Inténtalo de nuevo o escríbelo.",
+      "unsupported": "Este navegador no puede grabar audio.",
+      "tooLong": "Los mensajes de voz se detienen a los 60 segundos."
+    },
+    "system": {
+      "join": "{name} entró",
+      "leave": "{name} salió",
+      "host": "{name} es ahora el anfitrión",
+      "removed": "El anfitrión sacó a {name}",
+      "baton": "{by} pasó el teclado a {name}",
+      "batonRequest": "{name} pidió el teclado"
+    },
+    "someone": "Alguien"
+  },
+  "cursors": {
+    "label": "Dónde están señalando los demás",
+    "point": "Señalar en la figura",
+    "stop": "Dejar de señalar",
+    "surface": "Superficie para señalar. Muévete sobre la figura para mostrar a los demás dónde señalas. Las flechas mueven el puntero y Esc termina."
+  },
+  "languages": {
+    "en": "inglés",
+    "es": "español",
+    "fr": "francés",
+    "de": "alemán",
+    "zh": "chino",
+    "hi": "hindi"
+  },
+  "labs": {
+    "board": "Placas",
+    "robotics": "Robótica",
+    "drone": "Drones"
+  },
+  "lobby": {
+    "metaTitle": "Construir juntos",
+    "metaDescription": "Abre una sala de construcción en vivo para cualquier placa, robot o dron y constrúyanlo juntos.",
+    "eyebrow": "iynk Juntos",
+    "title": "Nadie tiene que construir solo",
+    "lede": "Abre una sala para cualquier placa, robot o dron y envía el enlace. Todos ven el mismo banco de trabajo, una persona escribe a la vez y el chat muestra cada mensaje en tu propio idioma.",
+    "ledePlain": "Abre una sala para cualquier placa, robot o dron y envía el enlace. Todos ven el mismo banco de trabajo y una persona escribe a la vez."
+  },
+  "rooms": {
+    "title": "Salas",
+    "ready": {
+      "body": "Abre un proyecto en el Studio, elige Sala en la barra de herramientas y envía el enlace de invitación. Todos ven el mismo banco.",
+      "open": "Abrir el Studio"
+    },
+    "selfHost": {
+      "title": "Las salas funcionan en tu propia copia de iynk",
+      "body": "iynk.tech no tiene servidor para salas. En una copia que ejecutas tú o un amigo, todos en una sala ven el mismo banco y la misma ejecución, y los amigos se emparejan con un código corto en lugar de una cuenta.",
+      "points": {
+        "bench": "El mismo banco y la misma ejecución, en vivo",
+        "keyboard": "Un solo teclado, que se va pasando",
+        "code": "Emparejar con un código, sin cuenta"
+      },
+      "guide": "Cómo funciona una copia"
+    }
+  },
+  "buddies": {
+    "title": "Amigos",
+    "insecure": {
+      "title": "Esta página necesita una conexión segura",
+      "body": "Tu navegador solo crea claves de dispositivo en páginas https o en localhost. Abre iynk por https y vuelve a intentarlo."
+    },
+    "empty": {
+      "title": "Aún no tienes amigos",
+      "add": "Emparejar con un amigo",
+      "enter": "Introducir un código"
+    },
+    "list": {
+      "online": "En línea",
+      "offline": "Desconectado",
+      "asOf": "Visto por última vez {time}",
+      "inRoom": "En la sala {code}",
+      "rename": "Renombrar",
+      "remove": "Quitar amigo",
+      "block": "Bloquear",
+      "removeConfirm": "¿Quitar a {name} de tus amigos? Podéis emparejaros de nuevo más tarde.",
+      "blockConfirm": "¿Bloquear a {name}? Se le quita de tus amigos y no podrá emparejarse contigo otra vez.",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "enrol": {
+      "title": "Unirte a este servidor",
+      "code": "Código de inscripción",
+      "name": "Tu nombre",
+      "submit": "Unirme",
+      "closed": "Este servidor no acepta gente nueva ahora mismo.",
+      "wrongCode": "Ese código no funcionó. Compruébalo o pide uno nuevo a quien gestiona el servidor.",
+      "help": "Quien gestiona el servidor te da un código. Solo sirve una vez."
+    },
+    "pair": {
+      "title": "Emparejar con un amigo",
+      "code": "Código de emparejamiento",
+      "link": "Enlace de emparejamiento",
+      "qr": "Código QR del enlace de emparejamiento",
+      "copy": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "expires": "Caduca {time}",
+      "cancel": "Cancelar emparejamiento",
+      "enterCode": "Introduce un código de emparejamiento",
+      "enterLabel": "Código o enlace de tu amigo",
+      "peekFrom": "{name} quiere emparejarse contigo.",
+      "accept": "Aceptar",
+      "wrong": "Ese código no funcionó. Compruébalo e inténtalo de nuevo.",
+      "tooMany": "Demasiados intentos. Espera un minuto e inténtalo de nuevo.",
+      "already": "Ya sois amigos.",
+      "full": "Uno de vosotros ha llegado al límite de amigos.",
+      "show": "Mostrar un código",
+      "joined": "{name} se unió.",
+      "fingerprint": "Clave {fingerprint}"
+    },
+    "joined": "Te uniste al servidor como {name}.",
+    "unknown": {
+      "title": "Este servidor no se conoce aquí",
+      "body": "Este navegador no tiene clave para ese servidor. Únete antes con un código de inscripción."
+    },
+    "unreachable": "No se puede llegar al servidor. Comprueba que está en marcha e inténtalo de nuevo.",
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "selfHost": "Los amigos viven en el mismo servidor que las salas. En tu propia copia, aquí es donde te emparejas con un código."
+  }
+}

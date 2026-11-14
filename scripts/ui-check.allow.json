@@ -1,0 +1,386 @@
+[
+  {
+    "file": "src/components/boardlab/WireInPanel.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Wire colours are data: each colour names a real jumper wire."
+  },
+  {
+    "file": "src/components/dronelab/WiringPanel.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Wire colours are data: each colour names a real motor lead."
+  },
+  {
+    "file": "src/components/flight/FlightRange.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Ghost lines on the flight chart are data colours."
+  },
+  {
+    "file": "src/styles/tokens.css",
+    "code": "R16",
+    "pattern": "^--plate-bg:",
+    "reason": "The figure plate keeps its own background in dark mode so drawings stay readable."
+  },
+  {
+    "file": "src/components/ui/Tabs.tsx",
+    "code": "R17",
+    "pattern": ".",
+    "reason": "Passive measure of the overflow edge; nothing animates on scroll."
+  },
+  {
+    "file": "src/components/ui/Popover.tsx",
+    "code": "R17",
+    "pattern": ".",
+    "reason": "Passive measure to close or reposition; nothing animates on scroll."
+  },
+  {
+    "file": "src/components/shell/Logo.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The logo is a drawing, not an icon."
+  },
+  {
+    "file": "src/components/realtime/PeerAvatar.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The avatar is a drawing, not an icon."
+  },
+  {
+    "file": "src/components/studio/PartEditor.tsx",
+    "code": "R9",
+    "pattern": "^<svg\\b",
+    "reason": "The part drawing preview is drawn from the pin positions, not an icon."
+  },
+  {
+    "file": "src/components/home/",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "Home page art is drawn inline."
+  },
+  {
+    "file": "src/i18n/messages/en/",
+    "code": "R14",
+    "pattern": "^(?:wi-fi|usb-\\w+|micro-usb|mini-usb|pull-up|pull-down|brown-out|flip-flops?)$",
+    "reason": "Standard product and electronics terms written with a hyphen."
+  },
+  {
+    "file": "src/components/realtime/InviteDialog.tsx",
+    "code": "R9",
+    "pattern": "^<svg$",
+    "reason": "The QR code is drawn data, not an icon."
+  },
+  {
+    "file": "src/styles/tokens.css",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The film grain is a noise texture, not an icon."
+  },
+  {
+    "file": "src/components/ui/icons.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The Icon component draws the generated Phosphor paths; every other file goes through it."
+  },
+  {
+    "file": "src/components/studio/Palette.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The thumbnail is the part's drawing, not an icon."
+  },
+  {
+    "file": "src/components/studio/Outline.tsx",
+    "code": "R17",
+    "pattern": "onScroll",
+    "reason": "The virtualised outline reads scrollTop once per animation frame, so the handler is throttled."
+  },
+  {
+    "file": "src/components/studio/instruments/Scope.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The waveform is drawn data, not an icon."
+  },
+  {
+    "file": "src/components/studio/instruments/Scope.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Trace colours are data colours on the dark console surface."
+  },
+  {
+    "file": "src/components/studio/instruments/DecodeLane.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Mark colours are data colours on the dark console surface, like the trace colours of the scope."
+  },
+  {
+    "file": "src/components/studio/instruments/FunctionGenerator.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The waveform preview is drawn data, not an icon."
+  },
+  {
+    "file": "src/components/studio/instruments/FunctionGenerator.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Trace colours are data colours on the dark console surface."
+  },
+  {
+    "file": "src/components/studio/instruments/Plotter.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The plot is drawn data, not an icon."
+  },
+  {
+    "file": "src/components/studio/instruments/Plotter.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Trace colours are data colours on the dark console surface."
+  },
+  {
+    "file": "src/components/studio/robot/TopDownView.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The plan view is the robot's drawing, not an icon."
+  },
+  {
+    "file": "src/components/studio/robot/LoopTimingView.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The histogram is drawn data, not an icon."
+  },
+  {
+    "file": "src/components/studio/robot/LoopTimingView.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Axis colour on the dark console surface, like the other plots."
+  },
+  {
+    "file": "src/components/studio/robot/PidPanel.tsx",
+    "code": "R9",
+    "pattern": ".",
+    "reason": "The response plot and its legend swatches are drawn data, not icons."
+  },
+  {
+    "file": "src/components/studio/robot/PidPanel.tsx",
+    "code": "R16",
+    "pattern": ".",
+    "reason": "Series colours are data colours on the dark console surface."
+  },
+  {
+    "file": "src/components/studio/TruthTableEditor.tsx",
+    "code": "R17",
+    "pattern": ".",
+    "reason": "The virtualised table reads scrollTop to pick the rows to render; nothing animates on scroll."
+  },
+  {
+    "file": "src/app/[lang]/layout.tsx",
+    "code": "R1",
+    "pattern": "^(?:Instrument_Serif)$",
+    "reason": "Instrument Serif is the landing accent face, loaded for the one accent word."
+  },
+  {
+    "file": "src/app/[lang]/page.tsx",
+    "code": "R4",
+    "pattern": "^(?:pb-\\[clamp\\(32px,4vw,64px\\)\\]|pt-\\[clamp\\(40px,6vw,96px\\)\\]|-me-\\[calc\\(var\\(--shell-pad\\)\\*0\\.6\\)\\]|gap-x-\\[clamp\\(16px,2vw,32px\\)\\])$",
+    "reason": "The landing grid and hero use fluid clamp() spacing so the gutters follow the viewport."
+  },
+  {
+    "file": "src/components/editorial/Cards.tsx",
+    "code": "R6",
+    "pattern": "^(?:shadow-ink)$",
+    "reason": "The project card uses the card shadow token of the editorial look."
+  },
+  {
+    "file": "src/components/editorial/Cards.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "Card title and description sit on the editorial 14 and 15 px sizes."
+  },
+  {
+    "file": "src/components/editorial/FloatingControls.tsx",
+    "code": "R9",
+    "pattern": "^(?:<svg)$",
+    "reason": "The font and theme switch glyphs are small drawings tied to the control, not icons."
+  },
+  {
+    "file": "src/components/editorial/FloatingControls.tsx",
+    "code": "R6",
+    "pattern": "^(?:shadow-\\[|shadow-ink)$",
+    "reason": "The floating pill uses the ink shadow and the inset ring of the editorial look."
+  },
+  {
+    "file": "src/components/editorial/FloatingControls.tsx",
+    "code": "R8",
+    "pattern": "^(?:z-4)$",
+    "reason": "The floating controls sit above the page content and below dialogs."
+  },
+  {
+    "file": "src/components/editorial/FloatingControls.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "The pill labels use the editorial 11 and 13 px sizes."
+  },
+  {
+    "file": "src/components/editorial/FloatingControls.tsx",
+    "code": "R5",
+    "pattern": "^(?:rounded-\\[)$",
+    "reason": "The font badge inside the pill is a small rounded square."
+  },
+  {
+    "file": "src/components/editorial/GlyphScene.tsx",
+    "code": "R16",
+    "pattern": "^(?:#fff|rgba\\(|#000)$",
+    "reason": "The glyph scene paints on a canvas with its own ink colours and a white mask."
+  },
+  {
+    "file": "src/components/editorial/GlyphScene.tsx",
+    "code": "R11",
+    "pattern": "^(?:gradient\\()$",
+    "reason": "The scene edge is feathered with a mask gradient."
+  },
+  {
+    "file": "src/components/editorial/GlyphScene.tsx",
+    "code": "R4",
+    "pattern": "^(?:px-\\[11px\\])$",
+    "reason": "The time slider is inset by a hand sized 11 px to line up with the scene."
+  },
+  {
+    "file": "src/components/editorial/GlyphScene.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "The slider ticks use an 11 px label."
+  },
+  {
+    "file": "src/components/editorial/Layout.tsx",
+    "code": "R4",
+    "pattern": "^(?:gap-x-\\[clamp\\(16px,2vw,32px\\)\\])$",
+    "reason": "The 12 column grid gap scales with the viewport."
+  },
+  {
+    "file": "src/components/editorial/PcbTraces.tsx",
+    "code": "R9",
+    "pattern": "^(?:<svg)$",
+    "reason": "The PCB trace backdrop is drawn art, not an icon."
+  },
+  {
+    "file": "src/components/editorial/PcbTraces.tsx",
+    "code": "R16",
+    "pattern": "^(?:#000)$",
+    "reason": "The trace tile is a mask, so its stroke is black."
+  },
+  {
+    "file": "src/components/editorial/PcbTraces.tsx",
+    "code": "R8",
+    "pattern": "^(?:z-0)$",
+    "reason": "The trace backdrop sits behind the page content."
+  },
+  {
+    "file": "src/components/editorial/PcbTraces.tsx",
+    "code": "R11",
+    "pattern": "^(?:gradient\\()$",
+    "reason": "The trace fade and the pulse sweep are gradients."
+  },
+  {
+    "file": "src/components/editorial/SelectionBox.tsx",
+    "code": "R4",
+    "pattern": "^(?:mx-\\[1px\\]|px-\\[5px\\])$",
+    "reason": "The selection frame is hand sized around the word it marks."
+  },
+  {
+    "file": "src/components/editorial/SelectionBox.tsx",
+    "code": "R5",
+    "pattern": "^(?:rounded-\\[)$",
+    "reason": "The selection frame and its tag have small corners."
+  },
+  {
+    "file": "src/components/editorial/SelectionBox.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "The selection tag uses a tiny label size."
+  },
+  {
+    "file": "src/components/editorial/Stamp.tsx",
+    "code": "R16",
+    "pattern": "^(?:#b83f25|#2b4a99|#0f6b48|#94561f|#6b3a7a|rgb\\(|#fff|#000)$",
+    "reason": "Stamp tones are fixed ink colours with a perforated white edge, in light and dark."
+  },
+  {
+    "file": "src/components/editorial/Stamp.tsx",
+    "code": "R9",
+    "pattern": "^(?:<svg)$",
+    "reason": "The stamp is a drawing, not an icon."
+  },
+  {
+    "file": "src/components/home/primitives.tsx",
+    "code": "R4",
+    "pattern": "^(?:mt-\\[clamp\\(56px,7vw,104px\\)\\]|gap-3\\.5)$",
+    "reason": "The landing section header uses fluid spacing and a stamp gap of 14 px."
+  },
+  {
+    "file": "src/components/home/primitives.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "The landing section heading is an 18 px title."
+  },
+  {
+    "file": "src/components/shell/NavBar.tsx",
+    "code": "R4",
+    "pattern": "^(?:gap-5)$",
+    "reason": "The flat header sets its own gap."
+  },
+  {
+    "file": "src/components/shell/NavLinks.tsx",
+    "code": "R4",
+    "pattern": "^(?:px-2\\.5)$",
+    "reason": "Flat header links use their own padding."
+  },
+  {
+    "file": "src/components/shell/NavLinks.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "Flat header links use the 13.5 px nav size."
+  },
+  {
+    "file": "src/components/shell/SiteFooter.tsx",
+    "code": "R4",
+    "pattern": "^(?:pt-\\[clamp\\(40px,5vw,72px\\)\\])$",
+    "reason": "The quiet footer uses fluid top spacing."
+  },
+  {
+    "file": "src/components/shell/SiteFooter.tsx",
+    "code": "R2",
+    "pattern": "^(?:text-\\[1)$",
+    "reason": "The quiet footer uses its own small text sizes."
+  },
+  {
+    "file": "src/components/ui/Button.tsx",
+    "code": "R5",
+    "pattern": "^(?:rounded-full)$",
+    "reason": "Buttons are pills in the editorial look."
+  },
+  {
+    "file": "src/styles/motion.css",
+    "code": "R16",
+    "pattern": "^(?:#ffd36a|#ffb347|#f29a8a|rgb\\(|#fff)$",
+    "reason": "The time of day slider and its knob are fixed sky colours."
+  },
+  {
+    "file": "src/styles/motion.css",
+    "code": "R11",
+    "pattern": "^(?:gradient\\()$",
+    "reason": "The time of day slider track, its knob and the dotted card backdrop are gradients."
+  },
+  {
+    "file": "src/styles/tokens.css",
+    "code": "R6",
+    "pattern": "^(?:shadow-ink|--card-shadow)$",
+    "reason": "The ink shadows and the card shadow are tokens of the editorial look."
+  },
+  {
+    "file": "src/styles/tokens.css",
+    "code": "R1",
+    "pattern": "^(?:font-accent)$",
+    "reason": "The accent serif face is a token of the editorial look."
+  }
+]

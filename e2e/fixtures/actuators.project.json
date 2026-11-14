@@ -1,0 +1,2551 @@
+{
+  "format": "iynk.project",
+  "schemaVersion": "1.1",
+  "id": "prj_actuators",
+  "revision": 44,
+  "meta": {
+    "title": "Actuators",
+    "kind": "project",
+    "locale": "en",
+    "createdAt": "2026-10-28T10:00:00.000Z",
+    "updatedAt": "2026-10-28T10:00:34.000Z"
+  },
+  "actors": [
+    {
+      "id": "usr_amar",
+      "name": "Owner"
+    }
+  ],
+  "access": {
+    "owners": [
+      "usr_amar"
+    ],
+    "visibility": "private",
+    "grants": [],
+    "authority": "advisory"
+  },
+  "boards": [
+    {
+      "id": "brd_uno",
+      "definition": {
+        "ref": "core.uno-r3",
+        "version": "1.0.0"
+      },
+      "refdes": "U1",
+      "firmware": {
+        "language": "arduino-cpp",
+        "entry": "src_main",
+        "sources": [
+          "src_main"
+        ],
+        "libraries": []
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "cmp_hnbn5qqtg326vdtr",
+      "definition": {
+        "ref": "core.resistor",
+        "version": "1.0.0"
+      },
+      "refdes": "R1",
+      "params": {
+        "ohms": 1000
+      }
+    },
+    {
+      "id": "cmp_lade4w7l66yw3lvs",
+      "definition": {
+        "ref": "core.aa-holder-4",
+        "version": "1.0.0"
+      },
+      "refdes": "BT1"
+    },
+    {
+      "id": "cmp_oayrj5l25t54ngbp",
+      "definition": {
+        "ref": "core.dc-motor",
+        "version": "1.0.0"
+      },
+      "refdes": "M2"
+    },
+    {
+      "id": "cmp_q4ledatomc64ebbb",
+      "definition": {
+        "ref": "core.diode-1n4007",
+        "version": "1.0.0"
+      },
+      "refdes": "D1"
+    },
+    {
+      "id": "cmp_tndxps7mb6624dql",
+      "definition": {
+        "ref": "core.tip120",
+        "version": "1.0.0"
+      },
+      "refdes": "Q1"
+    },
+    {
+      "id": "cmp_z2ovfkucp2medf5v",
+      "definition": {
+        "ref": "core.servo-sg90",
+        "version": "1.0.0"
+      },
+      "refdes": "M1"
+    }
+  ],
+  "nets": [
+    {
+      "id": "net_2taviliqmnl4ass7",
+      "connections": [
+        {
+          "c": "cmp_hnbn5qqtg326vdtr",
+          "p": "P2"
+        },
+        {
+          "c": "cmp_tndxps7mb6624dql",
+          "p": "B"
+        }
+      ]
+    },
+    {
+      "id": "net_75dt6vlahyct4mdk",
+      "connections": [
+        {
+          "c": "brd_uno",
+          "p": "GND"
+        },
+        {
+          "c": "cmp_lade4w7l66yw3lvs",
+          "p": "MINUS"
+        },
+        {
+          "c": "cmp_tndxps7mb6624dql",
+          "p": "E"
+        },
+        {
+          "c": "cmp_z2ovfkucp2medf5v",
+          "p": "GND"
+        }
+      ],
+      "class": "ground"
+    },
+    {
+      "id": "net_75p75unuqmanttpt",
+      "connections": [
+        {
+          "c": "cmp_oayrj5l25t54ngbp",
+          "p": "MINUS"
+        },
+        {
+          "c": "cmp_q4ledatomc64ebbb",
+          "p": "A"
+        },
+        {
+          "c": "cmp_tndxps7mb6624dql",
+          "p": "C"
+        }
+      ]
+    },
+    {
+      "id": "net_bqt5smrs2cqptmdx",
+      "connections": [
+        {
+          "c": "brd_uno",
+          "p": "P5V"
+        },
+        {
+          "c": "cmp_z2ovfkucp2medf5v",
+          "p": "VPLUS"
+        }
+      ],
+      "class": "power"
+    },
+    {
+      "id": "net_fasywudimooqtroz",
+      "connections": [
+        {
+          "c": "brd_uno",
+          "p": "D9"
+        },
+        {
+          "c": "cmp_z2ovfkucp2medf5v",
+          "p": "SIG"
+        }
+      ]
+    },
+    {
+      "id": "net_nzjxhj5k5zkqsiya",
+      "connections": [
+        {
+          "c": "cmp_lade4w7l66yw3lvs",
+          "p": "PLUS"
+        },
+        {
+          "c": "cmp_oayrj5l25t54ngbp",
+          "p": "PLUS"
+        },
+        {
+          "c": "cmp_q4ledatomc64ebbb",
+          "p": "K"
+        }
+      ],
+      "class": "power"
+    },
+    {
+      "id": "net_vsw5a55lqpf7dtb2",
+      "connections": [
+        {
+          "c": "brd_uno",
+          "p": "D6"
+        },
+        {
+          "c": "cmp_hnbn5qqtg326vdtr",
+          "p": "P1"
+        }
+      ]
+    }
+  ],
+  "views": [
+    {
+      "id": "vw_bb",
+      "kind": "breadboard",
+      "name": "Breadboard",
+      "placements": [
+        {
+          "c": "brd_uno",
+          "x_mm": -80,
+          "y_mm": 0
+        },
+        {
+          "c": "cmp_hnbn5qqtg326vdtr",
+          "x_mm": 40,
+          "y_mm": 60
+        },
+        {
+          "c": "cmp_lade4w7l66yw3lvs",
+          "x_mm": 80,
+          "y_mm": 40
+        },
+        {
+          "c": "cmp_oayrj5l25t54ngbp",
+          "x_mm": 0,
+          "y_mm": 40
+        },
+        {
+          "c": "cmp_q4ledatomc64ebbb",
+          "x_mm": 40,
+          "y_mm": 20
+        },
+        {
+          "c": "cmp_tndxps7mb6624dql",
+          "x_mm": 40,
+          "y_mm": 40
+        },
+        {
+          "c": "cmp_z2ovfkucp2medf5v",
+          "x_mm": 0,
+          "y_mm": 0
+        }
+      ],
+      "wires": [
+        {
+          "id": "wir_2vgkw3uhyc6zbzn7",
+          "net": "net_nzjxhj5k5zkqsiya",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_q4ledatomc64ebbb",
+            "p": "K"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_oayrj5l25t54ngbp",
+            "p": "PLUS"
+          },
+          "color": "red"
+        },
+        {
+          "id": "wir_5nhj372guqyhx7c4",
+          "net": "net_75dt6vlahyct4mdk",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_tndxps7mb6624dql",
+            "p": "E"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "GND"
+          },
+          "color": "black"
+        },
+        {
+          "id": "wir_epxb655nieho6zim",
+          "net": "net_fasywudimooqtroz",
+          "from": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "D9"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_z2ovfkucp2medf5v",
+            "p": "SIG"
+          },
+          "color": "blue"
+        },
+        {
+          "id": "wir_ihqu4rba4h2vqf4p",
+          "net": "net_bqt5smrs2cqptmdx",
+          "from": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "P5V"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_z2ovfkucp2medf5v",
+            "p": "VPLUS"
+          },
+          "color": "red"
+        },
+        {
+          "id": "wir_oir43flw5u7jgbid",
+          "net": "net_75p75unuqmanttpt",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_oayrj5l25t54ngbp",
+            "p": "MINUS"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_tndxps7mb6624dql",
+            "p": "C"
+          },
+          "color": "brown"
+        },
+        {
+          "id": "wir_ooh6wbnsxjnmk4od",
+          "net": "net_75dt6vlahyct4mdk",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_lade4w7l66yw3lvs",
+            "p": "MINUS"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "GND"
+          },
+          "color": "black"
+        },
+        {
+          "id": "wir_sbc5qvvjlkdfhyg3",
+          "net": "net_75p75unuqmanttpt",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_q4ledatomc64ebbb",
+            "p": "A"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_oayrj5l25t54ngbp",
+            "p": "MINUS"
+          },
+          "color": "orange"
+        },
+        {
+          "id": "wir_syj5jrhcollm7gsn",
+          "net": "net_vsw5a55lqpf7dtb2",
+          "from": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "D6"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_hnbn5qqtg326vdtr",
+            "p": "P1"
+          },
+          "color": "green"
+        },
+        {
+          "id": "wir_ufbaf5adh2ppcjhk",
+          "net": "net_75dt6vlahyct4mdk",
+          "from": {
+            "kind": "pin",
+            "c": "brd_uno",
+            "p": "GND"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_z2ovfkucp2medf5v",
+            "p": "GND"
+          },
+          "color": "black"
+        },
+        {
+          "id": "wir_xtltsfhjoglp3mbi",
+          "net": "net_2taviliqmnl4ass7",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_hnbn5qqtg326vdtr",
+            "p": "P2"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_tndxps7mb6624dql",
+            "p": "B"
+          },
+          "color": "yellow"
+        },
+        {
+          "id": "wir_yk2v2suygkli7des",
+          "net": "net_nzjxhj5k5zkqsiya",
+          "from": {
+            "kind": "pin",
+            "c": "cmp_lade4w7l66yw3lvs",
+            "p": "PLUS"
+          },
+          "to": {
+            "kind": "pin",
+            "c": "cmp_oayrj5l25t54ngbp",
+            "p": "PLUS"
+          },
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "id": "vw_sch",
+      "kind": "schematic",
+      "name": "Schematic",
+      "placements": [],
+      "wires": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "src_main",
+      "path": "main.ino",
+      "language": "arduino-cpp",
+      "role": "firmware",
+      "board": "brd_uno",
+      "content": "#include <Servo.h>\n\nServo arm;\n\nvoid setup() {\n  arm.attach(9);\n  arm.write(135);\n  pinMode(6, OUTPUT);\n  analogWrite(6, 200);\n}\n\nvoid loop() {\n  delay(100);\n}\n"
+    }
+  ],
+  "simulation": {
+    "seed": 625341585,
+    "duration_ms": 4000,
+    "runtimes": [
+      {
+        "id": "rtm_main",
+        "board": "brd_uno",
+        "engine": "iynk-interp"
+      }
+    ],
+    "solver": {
+      "engine": "iynk-mna"
+    },
+    "world": {
+      "inputs": [],
+      "script": []
+    },
+    "faults": []
+  },
+  "parameters": [],
+  "assets": [],
+  "dependencies": {
+    "components": [
+      {
+        "ref": "core.aa-holder-4",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "PLUS",
+              "type": "power_out",
+              "class": "power",
+              "designator": "+",
+              "polarity": "positive",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "MINUS",
+              "type": "ground",
+              "class": "ground",
+              "designator": "-",
+              "polarity": "negative",
+              "position": {
+                "x": 2.54,
+                "y": 0
+              }
+            }
+          ],
+          "params": [
+            {
+              "id": "demo",
+              "type": "enum",
+              "default": "fresh",
+              "values": [
+                "fresh",
+                "running",
+                "li-ion"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "ref": "core.dc-motor",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "PLUS",
+              "type": "passive",
+              "class": "passive",
+              "designator": "+",
+              "polarity": "positive",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "MINUS",
+              "type": "passive",
+              "class": "passive",
+              "designator": "-",
+              "polarity": "negative",
+              "position": {
+                "x": 2.54,
+                "y": 0
+              }
+            }
+          ],
+          "params": [
+            {
+              "id": "load",
+              "type": "enum",
+              "default": "prop",
+              "values": [
+                "prop",
+                "free",
+                "stalled"
+              ]
+            },
+            {
+              "id": "demo",
+              "type": "enum",
+              "default": "stopped",
+              "values": [
+                "stopped",
+                "half",
+                "full",
+                "reversed",
+                "stalled",
+                "burnt"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "ref": "core.diode-1n4007",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "A",
+              "type": "passive",
+              "class": "passive",
+              "designator": "A",
+              "polarity": "anode",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "K",
+              "type": "passive",
+              "class": "passive",
+              "designator": "K",
+              "polarity": "cathode",
+              "position": {
+                "x": 17.78,
+                "y": 0
+              }
+            }
+          ],
+          "params": []
+        }
+      },
+      {
+        "ref": "core.resistor",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "P1",
+              "type": "passive",
+              "class": "passive",
+              "designator": "1",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "P2",
+              "type": "passive",
+              "class": "passive",
+              "designator": "2",
+              "position": {
+                "x": 10.16,
+                "y": 0
+              }
+            }
+          ],
+          "params": [
+            {
+              "id": "ohms",
+              "type": "number",
+              "default": 220,
+              "unit": "ohm",
+              "min": 0.001,
+              "max": 1000000000
+            }
+          ]
+        }
+      },
+      {
+        "ref": "core.servo-sg90",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "GND",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "polarity": "negative",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "VPLUS",
+              "type": "power_in",
+              "class": "power",
+              "designator": "V+",
+              "polarity": "positive",
+              "position": {
+                "x": 2.54,
+                "y": 0
+              }
+            },
+            {
+              "id": "SIG",
+              "type": "digital_in",
+              "class": "digital",
+              "designator": "SIG",
+              "position": {
+                "x": 5.08,
+                "y": 0
+              }
+            }
+          ],
+          "params": [
+            {
+              "id": "angle",
+              "type": "number",
+              "default": 90,
+              "unit": "deg",
+              "min": 0,
+              "max": 180
+            },
+            {
+              "id": "demo",
+              "type": "enum",
+              "default": "hold 90°",
+              "values": [
+                "hold 90°",
+                "hold 0°",
+                "hold 180°",
+                "past the stop",
+                "low supply",
+                "burnt"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "ref": "core.tip120",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "part",
+          "pins": [
+            {
+              "id": "B",
+              "type": "passive",
+              "class": "passive",
+              "designator": "1",
+              "position": {
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "id": "C",
+              "type": "passive",
+              "class": "passive",
+              "designator": "2",
+              "position": {
+                "x": 2.54,
+                "y": 0
+              }
+            },
+            {
+              "id": "E",
+              "type": "passive",
+              "class": "passive",
+              "designator": "3",
+              "position": {
+                "x": 5.08,
+                "y": 0
+              }
+            }
+          ],
+          "params": []
+        }
+      },
+      {
+        "ref": "core.uno-r3",
+        "version": "1.0.0",
+        "origin": "builtin",
+        "interface": {
+          "role": "board",
+          "pins": [
+            {
+              "id": "D0",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D0",
+              "position": {
+                "x": 63.5,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D1",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D1",
+              "position": {
+                "x": 60.96,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D2",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D2",
+              "position": {
+                "x": 58.42,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D3",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D3",
+              "position": {
+                "x": 55.88,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D4",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D4",
+              "position": {
+                "x": 53.34,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D5",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D5",
+              "position": {
+                "x": 50.8,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D6",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D6",
+              "position": {
+                "x": 48.26,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D7",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D7",
+              "position": {
+                "x": 45.72,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D8",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D8",
+              "position": {
+                "x": 41.66,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D9",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D9",
+              "position": {
+                "x": 39.12,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D10",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D10",
+              "position": {
+                "x": 36.58,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D11",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "~D11",
+              "position": {
+                "x": 34.04,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D12",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D12",
+              "position": {
+                "x": 31.5,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "D13",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "D13",
+              "position": {
+                "x": 28.96,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "GND",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "position": {
+                "x": 26.42,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "AREF",
+              "type": "analog_in",
+              "class": "analog",
+              "designator": "AREF",
+              "position": {
+                "x": 23.88,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "SDA",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "SDA",
+              "position": {
+                "x": 21.34,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "SCL",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "SCL",
+              "position": {
+                "x": 18.8,
+                "y": 50.8
+              }
+            },
+            {
+              "id": "NC",
+              "type": "nc",
+              "class": "nc",
+              "designator": "NC",
+              "position": {
+                "x": 27.94,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "IOREF",
+              "type": "passive",
+              "class": "passive",
+              "designator": "IOREF",
+              "position": {
+                "x": 30.48,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "RESET",
+              "type": "digital_io",
+              "class": "digital",
+              "designator": "RESET",
+              "position": {
+                "x": 33.02,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "P3V3",
+              "type": "power_io",
+              "class": "power",
+              "designator": "3V3",
+              "position": {
+                "x": 35.56,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "P5V",
+              "type": "power_io",
+              "class": "power",
+              "designator": "5V",
+              "position": {
+                "x": 38.1,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "POWER_6",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "position": {
+                "x": 40.64,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "POWER_7",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "position": {
+                "x": 43.18,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "VIN",
+              "type": "power_io",
+              "class": "power",
+              "designator": "VIN",
+              "position": {
+                "x": 45.72,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A0",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A0",
+              "position": {
+                "x": 50.8,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A1",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A1",
+              "position": {
+                "x": 53.34,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A2",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A2",
+              "position": {
+                "x": 55.88,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A3",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A3",
+              "position": {
+                "x": 58.42,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A4",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A4",
+              "position": {
+                "x": 60.96,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "A5",
+              "type": "digital_io",
+              "class": "analog",
+              "designator": "A5",
+              "position": {
+                "x": 63.5,
+                "y": 2.54
+              }
+            },
+            {
+              "id": "ICSP_1",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "MISO",
+              "position": {
+                "x": 63.63,
+                "y": 30.48
+              }
+            },
+            {
+              "id": "ICSP_2",
+              "type": "power_io",
+              "class": "power",
+              "designator": "5V",
+              "position": {
+                "x": 66.17,
+                "y": 30.48
+              }
+            },
+            {
+              "id": "ICSP_3",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "SCK",
+              "position": {
+                "x": 63.63,
+                "y": 27.94
+              }
+            },
+            {
+              "id": "ICSP_4",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "MOSI",
+              "position": {
+                "x": 66.17,
+                "y": 27.94
+              }
+            },
+            {
+              "id": "ICSP_5",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "RESET",
+              "position": {
+                "x": 63.63,
+                "y": 25.4
+              }
+            },
+            {
+              "id": "ICSP_6",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "position": {
+                "x": 66.17,
+                "y": 25.4
+              }
+            },
+            {
+              "id": "MISO2",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "MISO2",
+              "position": {
+                "x": 20.83,
+                "y": 47.5
+              }
+            },
+            {
+              "id": "ICSP1_2",
+              "type": "power_io",
+              "class": "power",
+              "designator": "5V",
+              "position": {
+                "x": 20.83,
+                "y": 44.96
+              }
+            },
+            {
+              "id": "SCK2",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "SCK2",
+              "position": {
+                "x": 18.29,
+                "y": 47.5
+              }
+            },
+            {
+              "id": "MOSI2",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "MOSI2",
+              "position": {
+                "x": 18.29,
+                "y": 44.96
+              }
+            },
+            {
+              "id": "RESET2",
+              "type": "digital_io",
+              "class": "bus",
+              "designator": "RESET2",
+              "position": {
+                "x": 15.75,
+                "y": 47.5
+              }
+            },
+            {
+              "id": "ICSP1_6",
+              "type": "ground",
+              "class": "ground",
+              "designator": "GND",
+              "position": {
+                "x": 15.75,
+                "y": 44.96
+              }
+            }
+          ],
+          "params": [],
+          "groups": [
+            {
+              "id": "g_D11",
+              "kind": "internal-short",
+              "pins": [
+                "D11",
+                "ICSP_4"
+              ]
+            },
+            {
+              "id": "g_D12",
+              "kind": "internal-short",
+              "pins": [
+                "D12",
+                "ICSP_1"
+              ]
+            },
+            {
+              "id": "g_D13",
+              "kind": "internal-short",
+              "pins": [
+                "D13",
+                "ICSP_3"
+              ]
+            },
+            {
+              "id": "g_GND",
+              "kind": "internal-short",
+              "pins": [
+                "GND",
+                "POWER_6",
+                "POWER_7",
+                "ICSP_6",
+                "ICSP1_6"
+              ]
+            },
+            {
+              "id": "g_RESET",
+              "kind": "internal-short",
+              "pins": [
+                "RESET",
+                "ICSP_5"
+              ]
+            },
+            {
+              "id": "g_P5V",
+              "kind": "internal-short",
+              "pins": [
+                "P5V",
+                "ICSP_2",
+                "ICSP1_2"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "libraries": []
+  },
+  "tests": [],
+  "history": {
+    "baseRevision": 0,
+    "baseChain": "1880ff403d992dd8b9f67043da5a46e6102b131021fe412a2058f5cb11c7c9b2",
+    "checkpoints": [],
+    "ops": [
+      {
+        "opId": "op_yz7n7odr5qpndhhg",
+        "seq": 1,
+        "base": 0,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:01.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "brd_uno",
+            "x_mm": -80,
+            "y_mm": 0
+          }
+        }
+      },
+      {
+        "opId": "op_pya46qp5byrvke6j",
+        "seq": 2,
+        "base": 1,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:03.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.servo-sg90",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "GND",
+                  "type": "ground",
+                  "class": "ground",
+                  "designator": "GND",
+                  "polarity": "negative",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "VPLUS",
+                  "type": "power_in",
+                  "class": "power",
+                  "designator": "V+",
+                  "polarity": "positive",
+                  "position": {
+                    "x": 2.54,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "SIG",
+                  "type": "digital_in",
+                  "class": "digital",
+                  "designator": "SIG",
+                  "position": {
+                    "x": 5.08,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": [
+                {
+                  "id": "angle",
+                  "type": "number",
+                  "default": 90,
+                  "unit": "deg",
+                  "min": 0,
+                  "max": 180
+                },
+                {
+                  "id": "demo",
+                  "type": "enum",
+                  "default": "hold 90°",
+                  "values": [
+                    "hold 90°",
+                    "hold 0°",
+                    "hold 180°",
+                    "past the stop",
+                    "low supply",
+                    "burnt"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "batch": "op_pya46qp5byrvke6j"
+      },
+      {
+        "opId": "op_g3oc7tdzsvozicme",
+        "seq": 3,
+        "base": 2,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:03.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_z2ovfkucp2medf5v",
+            "definition": {
+              "ref": "core.servo-sg90",
+              "version": "1.0.0"
+            },
+            "refdes": "M1"
+          }
+        },
+        "batch": "op_pya46qp5byrvke6j"
+      },
+      {
+        "opId": "op_rgbmqcxuqv7znj2l",
+        "seq": 4,
+        "base": 3,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:03.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_z2ovfkucp2medf5v",
+            "x_mm": 0,
+            "y_mm": 0
+          }
+        },
+        "batch": "op_pya46qp5byrvke6j"
+      },
+      {
+        "opId": "op_ydkc24ejflutr5t3",
+        "seq": 5,
+        "base": 4,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:05.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.dc-motor",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "PLUS",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "+",
+                  "polarity": "positive",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "MINUS",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "-",
+                  "polarity": "negative",
+                  "position": {
+                    "x": 2.54,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": [
+                {
+                  "id": "load",
+                  "type": "enum",
+                  "default": "prop",
+                  "values": [
+                    "prop",
+                    "free",
+                    "stalled"
+                  ]
+                },
+                {
+                  "id": "demo",
+                  "type": "enum",
+                  "default": "stopped",
+                  "values": [
+                    "stopped",
+                    "half",
+                    "full",
+                    "reversed",
+                    "stalled",
+                    "burnt"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "batch": "op_ydkc24ejflutr5t3"
+      },
+      {
+        "opId": "op_hbkcvakfaxwxi6yh",
+        "seq": 6,
+        "base": 5,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:05.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_oayrj5l25t54ngbp",
+            "definition": {
+              "ref": "core.dc-motor",
+              "version": "1.0.0"
+            },
+            "refdes": "M2"
+          }
+        },
+        "batch": "op_ydkc24ejflutr5t3"
+      },
+      {
+        "opId": "op_ssjxycywqr5ejwxz",
+        "seq": 7,
+        "base": 6,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:05.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_oayrj5l25t54ngbp",
+            "x_mm": 0,
+            "y_mm": 40
+          }
+        },
+        "batch": "op_ydkc24ejflutr5t3"
+      },
+      {
+        "opId": "op_6v2cqraatm5zngyt",
+        "seq": 8,
+        "base": 7,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:07.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.tip120",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "B",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "1",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "C",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "2",
+                  "position": {
+                    "x": 2.54,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "E",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "3",
+                  "position": {
+                    "x": 5.08,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": []
+            }
+          }
+        },
+        "batch": "op_6v2cqraatm5zngyt"
+      },
+      {
+        "opId": "op_faumbqp3oxi3cyop",
+        "seq": 9,
+        "base": 8,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:07.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_tndxps7mb6624dql",
+            "definition": {
+              "ref": "core.tip120",
+              "version": "1.0.0"
+            },
+            "refdes": "Q1"
+          }
+        },
+        "batch": "op_6v2cqraatm5zngyt"
+      },
+      {
+        "opId": "op_x3eugvtqob3s4gje",
+        "seq": 10,
+        "base": 9,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:07.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_tndxps7mb6624dql",
+            "x_mm": 40,
+            "y_mm": 40
+          }
+        },
+        "batch": "op_6v2cqraatm5zngyt"
+      },
+      {
+        "opId": "op_eiu4ul3rsiplcku2",
+        "seq": 11,
+        "base": 10,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:09.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.resistor",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "P1",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "1",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "P2",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "2",
+                  "position": {
+                    "x": 10.16,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": [
+                {
+                  "id": "ohms",
+                  "type": "number",
+                  "default": 220,
+                  "unit": "ohm",
+                  "min": 0.001,
+                  "max": 1000000000
+                }
+              ]
+            }
+          }
+        },
+        "batch": "op_eiu4ul3rsiplcku2"
+      },
+      {
+        "opId": "op_mnacl3jhz2zjdsan",
+        "seq": 12,
+        "base": 11,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:09.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_hnbn5qqtg326vdtr",
+            "definition": {
+              "ref": "core.resistor",
+              "version": "1.0.0"
+            },
+            "refdes": "R1",
+            "params": {
+              "ohms": 1000
+            }
+          }
+        },
+        "batch": "op_eiu4ul3rsiplcku2"
+      },
+      {
+        "opId": "op_wuulbcpervlsjkpz",
+        "seq": 13,
+        "base": 12,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:09.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_hnbn5qqtg326vdtr",
+            "x_mm": 40,
+            "y_mm": 60
+          }
+        },
+        "batch": "op_eiu4ul3rsiplcku2"
+      },
+      {
+        "opId": "op_ncviapos4zkgh25e",
+        "seq": 14,
+        "base": 13,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:11.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.diode-1n4007",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "A",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "A",
+                  "polarity": "anode",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "K",
+                  "type": "passive",
+                  "class": "passive",
+                  "designator": "K",
+                  "polarity": "cathode",
+                  "position": {
+                    "x": 17.78,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": []
+            }
+          }
+        },
+        "batch": "op_ncviapos4zkgh25e"
+      },
+      {
+        "opId": "op_qjmp6woote33xlg3",
+        "seq": 15,
+        "base": 14,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:11.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_q4ledatomc64ebbb",
+            "definition": {
+              "ref": "core.diode-1n4007",
+              "version": "1.0.0"
+            },
+            "refdes": "D1"
+          }
+        },
+        "batch": "op_ncviapos4zkgh25e"
+      },
+      {
+        "opId": "op_ux2vlm6sxfseljsk",
+        "seq": 16,
+        "base": 15,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:11.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_q4ledatomc64ebbb",
+            "x_mm": 40,
+            "y_mm": 20
+          }
+        },
+        "batch": "op_ncviapos4zkgh25e"
+      },
+      {
+        "opId": "op_ucxhisae7qxyeb2d",
+        "seq": 17,
+        "base": 16,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:13.000Z",
+        "op": {
+          "k": "dep.set",
+          "dependency": {
+            "ref": "core.aa-holder-4",
+            "version": "1.0.0",
+            "origin": "builtin",
+            "interface": {
+              "role": "part",
+              "pins": [
+                {
+                  "id": "PLUS",
+                  "type": "power_out",
+                  "class": "power",
+                  "designator": "+",
+                  "polarity": "positive",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  }
+                },
+                {
+                  "id": "MINUS",
+                  "type": "ground",
+                  "class": "ground",
+                  "designator": "-",
+                  "polarity": "negative",
+                  "position": {
+                    "x": 2.54,
+                    "y": 0
+                  }
+                }
+              ],
+              "params": [
+                {
+                  "id": "demo",
+                  "type": "enum",
+                  "default": "fresh",
+                  "values": [
+                    "fresh",
+                    "running",
+                    "li-ion"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "batch": "op_ucxhisae7qxyeb2d"
+      },
+      {
+        "opId": "op_ni2e3q4gmjqwbj6o",
+        "seq": 18,
+        "base": 17,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:13.000Z",
+        "op": {
+          "k": "component.add",
+          "component": {
+            "id": "cmp_lade4w7l66yw3lvs",
+            "definition": {
+              "ref": "core.aa-holder-4",
+              "version": "1.0.0"
+            },
+            "refdes": "BT1"
+          }
+        },
+        "batch": "op_ucxhisae7qxyeb2d"
+      },
+      {
+        "opId": "op_rtiu53hbgjb7x5qn",
+        "seq": 19,
+        "base": 18,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:13.000Z",
+        "op": {
+          "k": "view.place",
+          "view": "vw_bb",
+          "placement": {
+            "c": "cmp_lade4w7l66yw3lvs",
+            "x_mm": 80,
+            "y_mm": 40
+          }
+        },
+        "batch": "op_ucxhisae7qxyeb2d"
+      },
+      {
+        "opId": "op_5xdelgoqc5qycr3q",
+        "seq": 20,
+        "base": 19,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:15.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_fasywudimooqtroz",
+            "connections": [
+              {
+                "c": "brd_uno",
+                "p": "D9"
+              },
+              {
+                "c": "cmp_z2ovfkucp2medf5v",
+                "p": "SIG"
+              }
+            ]
+          }
+        },
+        "batch": "op_5xdelgoqc5qycr3q"
+      },
+      {
+        "opId": "op_crrtdfcpzure7kws",
+        "seq": 21,
+        "base": 20,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:15.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_epxb655nieho6zim",
+            "net": "net_fasywudimooqtroz",
+            "from": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "D9"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_z2ovfkucp2medf5v",
+              "p": "SIG"
+            },
+            "color": "blue"
+          }
+        },
+        "batch": "op_5xdelgoqc5qycr3q"
+      },
+      {
+        "opId": "op_pazdtbzjitda5pp4",
+        "seq": 22,
+        "base": 21,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:17.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_bqt5smrs2cqptmdx",
+            "connections": [
+              {
+                "c": "brd_uno",
+                "p": "P5V"
+              },
+              {
+                "c": "cmp_z2ovfkucp2medf5v",
+                "p": "VPLUS"
+              }
+            ]
+          }
+        },
+        "batch": "op_pazdtbzjitda5pp4"
+      },
+      {
+        "opId": "op_aets37esjwgulwxr",
+        "seq": 23,
+        "base": 22,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:17.000Z",
+        "op": {
+          "k": "net.set",
+          "id": "net_bqt5smrs2cqptmdx",
+          "class": "power"
+        },
+        "batch": "op_pazdtbzjitda5pp4"
+      },
+      {
+        "opId": "op_sq6mwbp4ascsobe3",
+        "seq": 24,
+        "base": 23,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:17.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_ihqu4rba4h2vqf4p",
+            "net": "net_bqt5smrs2cqptmdx",
+            "from": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "P5V"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_z2ovfkucp2medf5v",
+              "p": "VPLUS"
+            },
+            "color": "red"
+          }
+        },
+        "batch": "op_pazdtbzjitda5pp4"
+      },
+      {
+        "opId": "op_utzw4dvbcqnlg5qc",
+        "seq": 25,
+        "base": 24,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:19.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_75dt6vlahyct4mdk",
+            "connections": [
+              {
+                "c": "brd_uno",
+                "p": "GND"
+              },
+              {
+                "c": "cmp_z2ovfkucp2medf5v",
+                "p": "GND"
+              }
+            ]
+          }
+        },
+        "batch": "op_utzw4dvbcqnlg5qc"
+      },
+      {
+        "opId": "op_c3l2uwi5aq53krn3",
+        "seq": 26,
+        "base": 25,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:19.000Z",
+        "op": {
+          "k": "net.set",
+          "id": "net_75dt6vlahyct4mdk",
+          "class": "ground"
+        },
+        "batch": "op_utzw4dvbcqnlg5qc"
+      },
+      {
+        "opId": "op_2q6kd6zalpk4yuq2",
+        "seq": 27,
+        "base": 26,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:19.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_ufbaf5adh2ppcjhk",
+            "net": "net_75dt6vlahyct4mdk",
+            "from": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "GND"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_z2ovfkucp2medf5v",
+              "p": "GND"
+            },
+            "color": "black"
+          }
+        },
+        "batch": "op_utzw4dvbcqnlg5qc"
+      },
+      {
+        "opId": "op_fduc6kjiol2zthh2",
+        "seq": 28,
+        "base": 27,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:21.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_nzjxhj5k5zkqsiya",
+            "connections": [
+              {
+                "c": "cmp_lade4w7l66yw3lvs",
+                "p": "PLUS"
+              },
+              {
+                "c": "cmp_oayrj5l25t54ngbp",
+                "p": "PLUS"
+              }
+            ]
+          }
+        },
+        "batch": "op_fduc6kjiol2zthh2"
+      },
+      {
+        "opId": "op_mqnzwajoo6mdtju7",
+        "seq": 29,
+        "base": 28,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:21.000Z",
+        "op": {
+          "k": "net.set",
+          "id": "net_nzjxhj5k5zkqsiya",
+          "class": "power"
+        },
+        "batch": "op_fduc6kjiol2zthh2"
+      },
+      {
+        "opId": "op_wz44l7s4c6mhbaig",
+        "seq": 30,
+        "base": 29,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:21.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_yk2v2suygkli7des",
+            "net": "net_nzjxhj5k5zkqsiya",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_lade4w7l66yw3lvs",
+              "p": "PLUS"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_oayrj5l25t54ngbp",
+              "p": "PLUS"
+            },
+            "color": "red"
+          }
+        },
+        "batch": "op_fduc6kjiol2zthh2"
+      },
+      {
+        "opId": "op_zj6nf7itvumbemri",
+        "seq": 31,
+        "base": 30,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:23.000Z",
+        "op": {
+          "k": "net.connect",
+          "net": "net_75dt6vlahyct4mdk",
+          "pin": {
+            "c": "cmp_lade4w7l66yw3lvs",
+            "p": "MINUS"
+          }
+        },
+        "batch": "op_zj6nf7itvumbemri"
+      },
+      {
+        "opId": "op_wxwqhph6ipwrzzxh",
+        "seq": 32,
+        "base": 31,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:23.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_ooh6wbnsxjnmk4od",
+            "net": "net_75dt6vlahyct4mdk",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_lade4w7l66yw3lvs",
+              "p": "MINUS"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "GND"
+            },
+            "color": "black"
+          }
+        },
+        "batch": "op_zj6nf7itvumbemri"
+      },
+      {
+        "opId": "op_tamkedvqqiww6zwg",
+        "seq": 33,
+        "base": 32,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:25.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_75p75unuqmanttpt",
+            "connections": [
+              {
+                "c": "cmp_oayrj5l25t54ngbp",
+                "p": "MINUS"
+              },
+              {
+                "c": "cmp_tndxps7mb6624dql",
+                "p": "C"
+              }
+            ]
+          }
+        },
+        "batch": "op_tamkedvqqiww6zwg"
+      },
+      {
+        "opId": "op_tfh4vt2yluy6kc7d",
+        "seq": 34,
+        "base": 33,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:25.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_oir43flw5u7jgbid",
+            "net": "net_75p75unuqmanttpt",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_oayrj5l25t54ngbp",
+              "p": "MINUS"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_tndxps7mb6624dql",
+              "p": "C"
+            },
+            "color": "brown"
+          }
+        },
+        "batch": "op_tamkedvqqiww6zwg"
+      },
+      {
+        "opId": "op_daz6i7jaubufx4vo",
+        "seq": 35,
+        "base": 34,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:27.000Z",
+        "op": {
+          "k": "net.connect",
+          "net": "net_75dt6vlahyct4mdk",
+          "pin": {
+            "c": "cmp_tndxps7mb6624dql",
+            "p": "E"
+          }
+        },
+        "batch": "op_daz6i7jaubufx4vo"
+      },
+      {
+        "opId": "op_z2c4lu7ujiq5cjkx",
+        "seq": 36,
+        "base": 35,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:27.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_5nhj372guqyhx7c4",
+            "net": "net_75dt6vlahyct4mdk",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_tndxps7mb6624dql",
+              "p": "E"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "GND"
+            },
+            "color": "black"
+          }
+        },
+        "batch": "op_daz6i7jaubufx4vo"
+      },
+      {
+        "opId": "op_rf27lv3srj3nll3d",
+        "seq": 37,
+        "base": 36,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:29.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_vsw5a55lqpf7dtb2",
+            "connections": [
+              {
+                "c": "brd_uno",
+                "p": "D6"
+              },
+              {
+                "c": "cmp_hnbn5qqtg326vdtr",
+                "p": "P1"
+              }
+            ]
+          }
+        },
+        "batch": "op_rf27lv3srj3nll3d"
+      },
+      {
+        "opId": "op_r2oibf7turzcb2ae",
+        "seq": 38,
+        "base": 37,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:29.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_syj5jrhcollm7gsn",
+            "net": "net_vsw5a55lqpf7dtb2",
+            "from": {
+              "kind": "pin",
+              "c": "brd_uno",
+              "p": "D6"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_hnbn5qqtg326vdtr",
+              "p": "P1"
+            },
+            "color": "green"
+          }
+        },
+        "batch": "op_rf27lv3srj3nll3d"
+      },
+      {
+        "opId": "op_wo7bbj7qbc3jodir",
+        "seq": 39,
+        "base": 38,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:31.000Z",
+        "op": {
+          "k": "net.create",
+          "net": {
+            "id": "net_2taviliqmnl4ass7",
+            "connections": [
+              {
+                "c": "cmp_hnbn5qqtg326vdtr",
+                "p": "P2"
+              },
+              {
+                "c": "cmp_tndxps7mb6624dql",
+                "p": "B"
+              }
+            ]
+          }
+        },
+        "batch": "op_wo7bbj7qbc3jodir"
+      },
+      {
+        "opId": "op_bwepmz4mnwbd624x",
+        "seq": 40,
+        "base": 39,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:31.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_xtltsfhjoglp3mbi",
+            "net": "net_2taviliqmnl4ass7",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_hnbn5qqtg326vdtr",
+              "p": "P2"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_tndxps7mb6624dql",
+              "p": "B"
+            },
+            "color": "yellow"
+          }
+        },
+        "batch": "op_wo7bbj7qbc3jodir"
+      },
+      {
+        "opId": "op_t4ow2i3z5tiwlxo4",
+        "seq": 41,
+        "base": 40,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:33.000Z",
+        "op": {
+          "k": "net.connect",
+          "net": "net_75p75unuqmanttpt",
+          "pin": {
+            "c": "cmp_q4ledatomc64ebbb",
+            "p": "A"
+          }
+        },
+        "batch": "op_t4ow2i3z5tiwlxo4"
+      },
+      {
+        "opId": "op_xjpeoy42qqnx7r57",
+        "seq": 42,
+        "base": 41,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:33.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_sbc5qvvjlkdfhyg3",
+            "net": "net_75p75unuqmanttpt",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_q4ledatomc64ebbb",
+              "p": "A"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_oayrj5l25t54ngbp",
+              "p": "MINUS"
+            },
+            "color": "orange"
+          }
+        },
+        "batch": "op_t4ow2i3z5tiwlxo4"
+      },
+      {
+        "opId": "op_wrdg3nwkw52ufgxt",
+        "seq": 43,
+        "base": 42,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:35.000Z",
+        "op": {
+          "k": "net.connect",
+          "net": "net_nzjxhj5k5zkqsiya",
+          "pin": {
+            "c": "cmp_q4ledatomc64ebbb",
+            "p": "K"
+          }
+        },
+        "batch": "op_wrdg3nwkw52ufgxt"
+      },
+      {
+        "opId": "op_su2de5t7hmtpl3rw",
+        "seq": 44,
+        "base": 43,
+        "author": {
+          "actor": "usr_amar",
+          "kind": "user"
+        },
+        "at": "2026-10-28T10:00:35.000Z",
+        "op": {
+          "k": "wire.add",
+          "view": "vw_bb",
+          "wire": {
+            "id": "wir_2vgkw3uhyc6zbzn7",
+            "net": "net_nzjxhj5k5zkqsiya",
+            "from": {
+              "kind": "pin",
+              "c": "cmp_q4ledatomc64ebbb",
+              "p": "K"
+            },
+            "to": {
+              "kind": "pin",
+              "c": "cmp_oayrj5l25t54ngbp",
+              "p": "PLUS"
+            },
+            "color": "red"
+          }
+        },
+        "batch": "op_wrdg3nwkw52ufgxt"
+      }
+    ]
+  },
+  "provenance": {
+    "createdBy": "usr_amar",
+    "createdWith": {
+      "app": "iynk",
+      "version": "0.1.0"
+    },
+    "origin": {
+      "kind": "blank"
+    }
+  },
+  "license": {
+    "spdx": "LicenseRef-iynk-pending"
+  }
+}

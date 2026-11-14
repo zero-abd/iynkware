@@ -1,0 +1,47 @@
+name: iynk check
+description: Check iynk projects with the same circuit rules, headless simulation and project checks the Studio runs.
+author: iynk
+
+inputs:
+  files:
+    description: Project files or globs, separated by spaces. A folder stands for every project file inside it.
+    default: "."
+  strict:
+    description: Set to true to fail on warnings as well as errors.
+    default: "false"
+  junit:
+    description: Where to write a JUnit XML report. Empty writes none.
+    default: ""
+  assignment:
+    description: The teacher's assignment (.iynk) that submission files in `files` are graded against. Empty when there are none.
+    default: ""
+  lang:
+    description: Language of the messages (en, de, es, fr, hi or zh).
+    default: en
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: "24"
+    - name: Install
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci --ignore-scripts --no-audit --no-fund
+    - name: Check
+      shell: bash
+      env:
+        IYNK_FILES: ${{ inputs.files }}
+        IYNK_STRICT: ${{ inputs.strict }}
+        IYNK_JUNIT: ${{ inputs.junit }}
+        IYNK_ASSIGNMENT: ${{ inputs.assignment }}
+        IYNK_LANG: ${{ inputs.lang }}
+      run: |
+        # The patterns reach iynk as written; it expands them itself, so ** means the same on every runner.
+        set -f
+        args=()
+        if [ "$IYNK_STRICT" = "true" ]; then args+=(--strict); fi
+        if [ -n "$IYNK_JUNIT" ]; then args+=(--junit "$IYNK_JUNIT"); fi
+        if [ -n "$IYNK_ASSIGNMENT" ]; then args+=(--assignment "$IYNK_ASSIGNMENT"); fi
+        node "$GITHUB_ACTION_PATH/bin/iynk.mjs" check $IYNK_FILES "${args[@]}"

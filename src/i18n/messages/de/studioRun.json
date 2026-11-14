@@ -1,0 +1,111 @@
+{
+  "bar": {
+    "label": "Ausführungssteuerung",
+    "run": "Starten",
+    "restart": "Neu starten",
+    "stop": "Stopp",
+    "reset": "Zurücksetzen",
+    "time": "Simulierte Zeit",
+    "behind": "Läuft langsamer als in Echtzeit",
+    "stale": "Das Projekt wurde nach dem Start dieses Laufs geändert. Starte neu, um die Änderung zu nutzen."
+  },
+  "phase": {
+    "idle": "Bereit",
+    "starting": "Startet",
+    "running": "Läuft",
+    "paused": "Pausiert",
+    "stopped": "Gestoppt",
+    "done": "Beendet",
+    "error": "Start nicht möglich",
+    "limit": "An einer Grenze gestoppt",
+    "killed": "Simulator neu gestartet"
+  },
+  "limit": {
+    "statements": "Der Code hat zu viele Schritte ausgeführt, ohne einen Durchlauf zu beenden. Suche eine Schleife ohne Ende.",
+    "operations": "Ein Ausdruck brauchte zu viele Operationen. Prüfe die Zahlen, mit denen er rechnet.",
+    "memory": "Der Code hat mehr Speicher gebraucht, als der Simulator erlaubt.",
+    "time": "Der Lauf dauerte zu lange und wurde gestoppt."
+  },
+  "killed": "Der Simulator hat nicht mehr geantwortet und wurde neu gestartet. Dein Projekt ist unverändert.",
+  "noDetail": "Der Code konnte nicht gestartet werden.",
+  "diag": {
+    "unknown-ground": "Die Schaltung hat keine nutzbare Masse. Verbinde ein Bauteil mit GND und starte erneut.",
+    "duplicate-part": "Zwei Bauteile haben dieselbe ID. Entferne eines und füge es neu hinzu.",
+    "missing-net": "Ein Bauteilpin zeigt auf eine Leitung, die es nicht gibt. Verbinde den Pin neu.",
+    "unknown-part": "Ein Bauteil dieses Projekts ist nicht in der Bauteilbibliothek.",
+    "ambiguous-input-pin": "Ein Eingang ist mit zwei Boardpins zugleich verbunden. Verbinde ihn mit einem Pin.",
+    "netlist-too-large": "Die Schaltung hat mehr Bauteile, als der Simulator ausführen kann (höchstens 2.000).",
+    "no-time-progress": "Der Code lief, ohne dass die Zeit voranschritt. Suche nach einer Schleife, die nie wartet.",
+    "event-queue-overflow": "Die Schaltung hat zu viele Ereignisse auf einmal erzeugt, deshalb wurde der Lauf gestoppt.",
+    "output-contention": "Zwei Ausgänge treiben eine Leitung auf entgegengesetzte Pegel. Trenne einen davon.",
+    "numeric-fault": "Der Schaltungslöser ist auf eine Zahl gestoßen, die er nicht nutzen kann. Prüfe die Bauteilwerte auf Null oder riesige Zahlen.",
+    "no-convergence": "Der Schaltungslöser fand kein Ergebnis. Prüfe die Verdrahtung auf einen Kurzschluss oder eine Schleife.",
+    "invalid-device-params": "Ein Bauteil hat einen Wert, den sein Modell nicht nutzen kann. Prüfe seine Einstellungen."
+  },
+  "problems": {
+    "one": "1 Problem",
+    "other": "{count} Probleme"
+  },
+  "serial": {
+    "title": "Serielle Ausgabe",
+    "lines": "Serielle Zeilen",
+    "empty": "Noch nichts ausgegeben. Starte das Projekt, um zu sehen, was der Code sendet.",
+    "clear": "Leeren",
+    "copy": "Kopieren",
+    "copied": "In die Zwischenablage kopiert",
+    "copyFailed": "Der Browser hat das Kopieren nicht erlaubt.",
+    "input": "Zu sendender Text",
+    "placeholder": "Zeile eingeben und Enter drücken",
+    "send": "Senden",
+    "dropped": {
+      "one": "1 ältere Zeile verworfen",
+      "other": "{count} ältere Zeilen verworfen"
+    },
+    "newLines": {
+      "one": "1 neue Zeile",
+      "other": "{count} neue Zeilen"
+    }
+  },
+  "overlay": {
+    "on": "an",
+    "off": "aus",
+    "duty": "Tastgrad {percent} %",
+    "pressed": "gedrückt",
+    "released": "losgelassen",
+    "tone": "{hz} Hz",
+    "silent": "still",
+    "position": "{percent} %",
+    "notModelled": "noch nicht modelliert",
+    "servo": "{deg}°",
+    "motor": "{rpm} U/min",
+    "stepper": "{deg}° · {steps} Schritte",
+    "reading": "{label} {value} {unit}",
+    "stalled": "blockiert",
+    "unpowered": "kein Strom"
+  },
+  "flow": {
+    "toggle": "Fluss",
+    "hint": "Die Drahtfarbe zeigt die Spannung. Punkte zeigen, in welche Richtung und wie stark der Strom fließt.",
+    "hintStill": "Die Drahtfarbe zeigt die Spannung. Pfeile zeigen, in welche Richtung der Strom fließt.",
+    "legend": "Volt",
+    "state": {
+      "hot": "heiß",
+      "reversed": "verpolt",
+      "burnt": "durchgebrannt"
+    },
+    "readout": {
+      "part": "{name}",
+      "net": "Netz {name}",
+      "pin": "{part} {name}",
+      "volts": "Spannung",
+      "amps": "Strom",
+      "watts": "Leistung",
+      "none": "Zeige auf einen Draht oder ein Bauteil, um es abzulesen."
+    }
+  },
+  "commands": {
+    "run": "Projekt starten",
+    "stop": "Lauf stoppen",
+    "reset": "Lauf zurücksetzen"
+  }
+}

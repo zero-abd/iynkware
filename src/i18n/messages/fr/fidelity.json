@@ -1,0 +1,166 @@
+{
+  "tier": {
+    "T0": "Illustration. Pas un calcul.",
+    "T1": "Modèle pédagogique",
+    "T2": "Modèle calculé",
+    "T3": "Exécute ton firmware compilé",
+    "none": "Pas encore modélisé",
+    "T3.note": "Les périphériques absents du panneau ne sont pas modélisés."
+  },
+  "layer": {
+    "execution": "Exécution",
+    "circuit": "Circuit",
+    "protocols": "Protocoles",
+    "mechanics": "Mécanique"
+  },
+  "summary": "Globalement : {tier}",
+  "panel": {
+    "title": "Ce qui est modélisé",
+    "modelled": "Modélisé",
+    "mocked": "Simulé sommairement",
+    "unmodelled": "Pas encore modélisé",
+    "stale": "La référence est plus ancienne que ce modèle",
+    "staleTag": "périmé"
+  },
+  "validation": {
+    "none": "Non comparé à une référence.",
+    "oracle": "À moins de {pct} pour cent de {oracle} sur {n} circuits ({date})",
+    "bench": "Mesuré sur matériel : {n} circuits, tableau des erreurs"
+  },
+  "reading": {
+    "computed": "{value} {unit}, {tier}, calculé à partir de {model}",
+    "approx": "approximatif, {why}",
+    "notModelled": "pas encore modélisé",
+    "noNumber": "pas de chiffre, seulement une illustration",
+    "outsideRange": "hors de la plage sur laquelle ce modèle a été vérifié",
+    "knownGap": "ce modèle a ici une lacune connue : {why}",
+    "noResult": "aucun résultat"
+  },
+  "notice": {
+    "part": "{part} n'est pas encore modélisé. Le reste du circuit fonctionne toujours.",
+    "model": "{model} n'est pas encore modélisé"
+  },
+  "states": {
+    "led": "{name} a grillé : {n} mA l'ont traversée, au-dessus des {limit} mA (2,5 fois ses {imax} mA) qu'une LED supporte. Ajoute une résistance en série.",
+    "diode": "{name} a grillé : {n} mA, c'est plus qu'il ne supporte.",
+    "npn": "{name} a surchauffé et est tombé en panne.",
+    "tmp36": "{name} a surchauffé et est tombé en panne.",
+    "pot": "{name} a grillé : {w} W, c'est trop pour sa piste.",
+    "capacitorOver": "{name} a lâché : {v} V, c'est plus que ses {rated} V nominaux.",
+    "capacitorReversed": "{name} a explosé : il a été branché à l'envers.",
+    "inductor": "{name} a grillé : {n} mA, c'est bien au-dessus de ses {rated} mA nominaux.",
+    "opampSupply": "{name} a grillé : {v} V sur son alimentation, c'est plus que les {rated} V qu'il supporte.",
+    "opampOutput": "{name} a grillé : sa sortie a débité {n} mA, au-dessus des {rated} mA admis en court-circuit.",
+    "timerSupply": "{name} a grillé : {v} V sur son alimentation, c'est plus que les {rated} V qu'il supporte.",
+    "timerOutput": "{name} a grillé : sa sortie a débité {n} mA, au-dessus des {rated} mA admis.",
+    "pin": "La broche {pin} fournit {n} mA, au-dessus des {max} mA que cette carte permet.",
+    "brownout": "L'alimentation est tombée à {v} V, sous les {min} V dont cette puce a besoin, elle redémarre donc.",
+    "brownoutUnknown": "Le seuil de brown-out de cette carte est inconnu, aucun redémarrage n'est donc simulé.",
+    "floating": "{pin} n'est relié à rien, sa lecture n'est donc que du bruit.",
+    "noconv": "Le circuit ne s'est pas stabilisé. Dernier état : {net} à {v} V."
+  },
+  "chip": {
+    "aria": "{layer} : {tier}. Ouvrir les détails"
+  },
+  "inspect": {
+    "title": "Inspecter le design synthétisé",
+    "intro": "Charge la netlist Yosys de ton design pour voir ses portes et ses fils. Tout se passe dans ton navigateur ; rien n'est envoyé.",
+    "size": "Téléchargement de {wire} (décompressé {raw})",
+    "memory": "Mémoire maximale d'environ {peak}",
+    "refuse": "Cet appareil indique 4 Go de mémoire ou moins, le moteur Yosys n'est donc pas chargé ici.",
+    "unknown": "Ce navigateur n'indique pas la mémoire de l'appareil, le moteur risque de ne pas tenir. Ne le charge que si tu l'acceptes.",
+    "load": "Charger Yosys",
+    "cancel": "Annuler",
+    "loading": "Chargement de Yosys",
+    "failed": "Yosys n'a pas pu être chargé",
+    "result": "Inspecté : {cells} cellules, {wires} fils",
+    "lint": {
+      "implicitWire": "Un signal est utilisé sans être déclaré. Yosys en a fait un fil de 1 bit."
+    }
+  },
+  "firmware": {
+    "mode": "Mode",
+    "interpreter": "Interpréteur",
+    "firmware": "Firmware",
+    "tier": "Exécute ton firmware",
+    "desktopNote": "Le mode firmware demande l'application de bureau. Sur cet appareil, l'interpréteur continue de tourner.",
+    "onlyFirmwareBoards": "Le mode firmware ne fonctionne qu'avec les cartes Uno, Nano et Pico.",
+    "importHex": "Importer un fichier .hex",
+    "importElf": "Importer un fichier .elf",
+    "importUf2": "Importer un fichier .uf2",
+    "dropUf2": "Tu peux aussi déposer un fichier .uf2 n'importe où dans le Studio.",
+    "dropNow": "Dépose le fichier .uf2 pour l'exécuter sur le Pico.",
+    "noImage": "Aucune image de firmware chargée",
+    "imageLoaded": "{bytes} octets de firmware chargés",
+    "notModelled": "pas encore modélisé"
+  },
+  "import": {
+    "error": {
+      "hex-too-large": "Ce fichier hex est trop volumineux.",
+      "hex-bad-record": "Une ligne du fichier hex n'est pas un enregistrement valide.",
+      "hex-bad-checksum": "Une ligne du fichier hex a une somme de contrôle incorrecte.",
+      "hex-out-of-flash": "Le fichier hex écrit en dehors de la flash de cette carte.",
+      "hex-overlap": "Le fichier hex écrit deux fois à la même adresse.",
+      "hex-no-eof": "Il manque l'enregistrement de fin de fichier au fichier hex.",
+      "elf-too-large": "Ce fichier ELF est trop volumineux.",
+      "elf-unsupported": "Ce fichier ELF n'est pas un exécutable AVR 32 bits.",
+      "elf-too-many-sections": "Ce fichier ELF a trop de sections.",
+      "elf-bad-section": "Une section de ce fichier ELF est mal formée.",
+      "dwarf-too-large": "Les données de débogage DWARF sont trop volumineuses, les lignes de source ne sont donc pas disponibles.",
+      "dwarf-bad-line-program": "La table de lignes DWARF est mal formée, les lignes de source ne sont donc pas disponibles.",
+      "uf2-bad-block": "Ce fichier UF2 est endommagé. Un bloc n'a pas la taille ni les marqueurs d'un bloc UF2.",
+      "uf2-too-large": "Ce fichier UF2 est trop volumineux.",
+      "uf2-wrong-family": "Ce fichier UF2 est prévu pour une autre puce, pas pour le RP2040.",
+      "uf2-out-of-flash": "Le fichier UF2 écrit en dehors de la mémoire flash du Pico.",
+      "uf2-no-blocks": "Ce fichier UF2 ne contient aucun programme.",
+      "uf2-no-vectors": "Ce fichier UF2 n'a aucun programme au début de la mémoire flash du Pico.",
+      "import-timeout": "L'importation a pris trop de temps et a été arrêtée.",
+      "store-failed": "Le fichier n'a pas pu être enregistré sur cet appareil."
+    }
+  },
+  "debug": {
+    "toggle": "Débogueur",
+    "step": "Pas à pas détaillé",
+    "over": "Pas à pas principal",
+    "out": "Pas à pas sortant",
+    "continue": "Continuer",
+    "pausedAt": "En pause à {file}:{line}",
+    "running": "En cours",
+    "variables": "Variables",
+    "watch": "Surveiller",
+    "addWatch": "Ajouter une surveillance",
+    "noSymbols": "Cette image n'a pas de symboles de débogage. Recompile avec -g.",
+    "inlineOnly": "Le débogueur ne fonctionne que sur les variables globales.",
+    "gutter": "Clique dans la gouttière pour poser un point d'arrêt",
+    "paused": "En pause",
+    "breakpoint": "Point d'arrêt à la ligne {line}",
+    "breakpointUnbound": "Il n'y a pas de code à la ligne {line}, donc ce point d'arrêt n'arrêtera pas l'exécution"
+  },
+  "compile": {
+    "build": "Compiler",
+    "building": "Compilation en cours",
+    "ok": "Compilé en {ms} ms",
+    "failed": "La compilation a échoué",
+    "off": "La compilation est désactivée par l'opérateur",
+    "tooLarge": "Le sketch est trop volumineux pour être compilé",
+    "timeout": "La compilation a pris trop de temps et a été arrêtée",
+    "size": "Flash {flash}, RAM {ram}",
+    "cached": "Depuis le cache",
+    "tool": "Toolchain",
+    "importInstead": "Importe plutôt un fichier .hex",
+    "offHint": "Demande à la personne qui gère le serveur de définir IYNK_COMPILE_ENABLE=1.",
+    "noServer": "La compilation nécessite ton propre serveur iynk.",
+    "notReachable": "La compilation est activée, mais le compilateur est injoignable",
+    "rateLimited": "Trop de compilations. Réessaie dans {seconds} s",
+    "stale": "Le sketch a changé depuis cette compilation",
+    "flash": "Flash {flash} sur {max} octets",
+    "debugBuild": "Compiler pour le débogage",
+    "cancel": "Annuler",
+    "needsSignIn": "Connecte-toi à ton serveur pour compiler",
+    "severity": {
+      "error": "Erreur",
+      "warning": "Avertissement",
+      "note": "Note"
+    }
+  }
+}

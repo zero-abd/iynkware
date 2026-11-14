@@ -1,0 +1,695 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.ne555",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "Texas Instruments",
+    "model": "NE555 timer",
+    "generic": true,
+    "refdes_prefix": "U",
+    "kind": "ic",
+    "category": "semiconductor",
+    "description": {
+      "en": "The classic 555 timer in an 8-pin DIP. With two resistors and a capacitor it makes a blinker; with one resistor and a capacitor, a one-shot pulse."
+    },
+    "tags": [
+      "555",
+      "timer",
+      "oscillator",
+      "ne555",
+      "dip-8",
+      "breadboard"
+    ],
+    "legacy_ids": [
+      "ne555"
+    ],
+    "mpn": "NE555",
+    "chip": {
+      "manufacturer": "Texas Instruments",
+      "model": "NE555",
+      "package": "PDIP-8"
+    }
+  },
+  "sources": [
+    {
+      "id": "datasheet",
+      "kind": "datasheet",
+      "title": "NA555, NE555, SA555, SE555 precision timers (SLFS022K)",
+      "publisher": "Texas Instruments",
+      "revision": "SLFS022K, March 2026",
+      "url": "https://www.ti.com/lit/ds/symlink/ne555.pdf",
+      "retrieved": "2026-11-10",
+      "reliability": "primary",
+      "note": "Sections 5.1 to 5.5 read from the PDF."
+    },
+    {
+      "id": "factsheet",
+      "kind": "fact-sheet",
+      "title": "Analog parts fact sheet",
+      "publisher": "iynk",
+      "revision": "2026-11-10",
+      "reliability": "secondary",
+      "note": "docs/facts/analog-parts.md. Quotes the maker sheets it names; a figure marked own estimate there is not on any sheet."
+    },
+    {
+      "id": "figurejs",
+      "kind": "own-estimate",
+      "title": "figures/parts/ne555.js: header comment and elec()",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "Constants in the figure code."
+    }
+  ],
+  "pins": [
+    {
+      "id": "GND",
+      "name": {
+        "en": "Ground"
+      },
+      "designator": "1",
+      "type": "ground",
+      "class": "ground",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "polarity": "negative"
+    },
+    {
+      "id": "TRIG",
+      "name": {
+        "en": "Trigger"
+      },
+      "designator": "2",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 2.54,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Sets the output high below one third of the supply."
+      }
+    },
+    {
+      "id": "OUT",
+      "name": {
+        "en": "Output"
+      },
+      "designator": "3",
+      "type": "digital_out",
+      "class": "digital",
+      "position": {
+        "x": 5.08,
+        "y": 0.0
+      },
+      "connector": "legs"
+    },
+    {
+      "id": "RESET",
+      "name": {
+        "en": "Reset"
+      },
+      "designator": "4",
+      "type": "digital_in",
+      "class": "digital",
+      "position": {
+        "x": 7.62,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Active low; tie to the supply to leave it alone."
+      }
+    },
+    {
+      "id": "CONT",
+      "name": {
+        "en": "Control voltage"
+      },
+      "designator": "5",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 7.62,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Leave open or bypass with 10 nF."
+      }
+    },
+    {
+      "id": "THRES",
+      "name": {
+        "en": "Threshold"
+      },
+      "designator": "6",
+      "type": "analog_in",
+      "class": "analog",
+      "position": {
+        "x": 5.08,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "note": {
+        "en": "Sets the output low above two thirds of the supply."
+      }
+    },
+    {
+      "id": "DISCH",
+      "name": {
+        "en": "Discharge"
+      },
+      "designator": "7",
+      "type": "open_drain",
+      "class": "digital",
+      "position": {
+        "x": 2.54,
+        "y": 7.62
+      },
+      "connector": "legs"
+    },
+    {
+      "id": "VCC",
+      "name": {
+        "en": "Supply"
+      },
+      "designator": "8",
+      "type": "power_in",
+      "class": "power",
+      "position": {
+        "x": 0.0,
+        "y": 7.62
+      },
+      "connector": "legs",
+      "polarity": "positive"
+    }
+  ],
+  "connectors": [
+    {
+      "id": "legs",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pitch": 2.54,
+      "pins": [
+        "GND",
+        "TRIG",
+        "OUT",
+        "RESET",
+        "CONT",
+        "THRES",
+        "DISCH",
+        "VCC"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "PDIP-8",
+    "body": {
+      "w": 9.8,
+      "h": 6.35,
+      "d": 3.3
+    },
+    "accuracy": 0.3,
+    "source": {
+      "src": "datasheet",
+      "loc": "thermal information, P (PDIP) 8 pins"
+    }
+  },
+  "ratings": {
+    "supply_voltage_max": {
+      "measure": "voltage",
+      "role": "abs_max",
+      "description": {
+        "en": "Highest supply voltage."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "V",
+        "value": 18,
+        "source": {
+          "src": "datasheet",
+          "loc": "absolute maximum ratings, VCC"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      },
+      "primary": true
+    },
+    "supply_voltage_range": {
+      "measure": "voltage",
+      "role": "recommended",
+      "description": {
+        "en": "Recommended supply of the NE555."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "V",
+        "min": 4.5,
+        "max": 16,
+        "source": {
+          "src": "datasheet",
+          "loc": "recommended operating conditions, VCC"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      }
+    },
+    "output_current_max": {
+      "measure": "current",
+      "role": "abs_max",
+      "description": {
+        "en": "Highest output current, either direction."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "A",
+        "value": 0.225,
+        "source": {
+          "src": "datasheet",
+          "loc": "absolute maximum ratings, IO"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT"
+        ]
+      },
+      "primary": true
+    },
+    "output_high_drop": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "Drop of the output below the supply when high. Fitted to 13.3 V at 15 V and 100 mA and 12.5 V at 200 mA."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "V",
+        "value": 0.7,
+        "derived_from": [
+          "output_resistance.simulation"
+        ],
+        "rationale": {
+          "en": "A 0.7 V drop plus 10 ohm times the current reproduces 13.3 V at 100 mA and 12.5 V at 200 mA (15 V supply) to 0.2 V."
+        },
+        "confidence": "medium",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, high-level output voltage"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT"
+        ]
+      },
+      "primary": true
+    },
+    "output_resistance": {
+      "measure": "resistance",
+      "role": "characteristic",
+      "description": {
+        "en": "Output resistance, high and low."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "ohm",
+        "value": 10,
+        "rationale": {
+          "en": "Output low is 0.1 V at 10 mA and 0.4 V at 50 mA at 15 V, about 8 ohm; 10 ohm is used. At 100 mA the sheet's 2 V low level is higher than the model gives."
+        },
+        "confidence": "medium",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, low-level output voltage"
+        }
+      },
+      "scope": {
+        "pins": [
+          "OUT"
+        ]
+      },
+      "primary": true
+    },
+    "discharge_resistance": {
+      "measure": "resistance",
+      "role": "characteristic",
+      "description": {
+        "en": "On-resistance of the discharge transistor: 0.15 V at 8 mA."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "ohm",
+        "value": 19,
+        "rationale": {
+          "en": "0.15 V divided by 8 mA is 19 ohm (5 V supply)."
+        },
+        "confidence": "medium",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, DISCH switch on-state voltage"
+        }
+      },
+      "scope": {
+        "pins": [
+          "DISCH"
+        ]
+      },
+      "primary": true
+    },
+    "supply_current": {
+      "measure": "current",
+      "role": "consumption",
+      "description": {
+        "en": "Supply current at 5 V, no load: 3 mA output low, 2 mA output high."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "A",
+        "value": 0.003,
+        "rationale": {
+          "en": "The output-low value at 5 V; the real current rises to 10 mA at 15 V and one number is used."
+        },
+        "confidence": "medium",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, supply current"
+        }
+      },
+      "scope": {
+        "pins": [
+          "VCC"
+        ]
+      }
+    },
+    "threshold_fraction": {
+      "measure": "ratio",
+      "role": "threshold",
+      "description": {
+        "en": "THRES trips at two thirds and TRIG at one third of the CONT voltage, which is the supply when CONT is open."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "1",
+        "value": 0.6667,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, THRES and TRIG voltage levels"
+        }
+      },
+      "scope": {
+        "part": true
+      }
+    }
+  },
+  "behaviour": {
+    "summary": {
+      "en": "A bipolar 555 timer: the trigger pin below one third of the supply sets the output high, the threshold pin above two thirds sets it low and turns the discharge transistor on."
+    },
+    "layers": [
+      {
+        "id": "timer",
+        "domain": "analog",
+        "reads": [
+          "TRIG",
+          "THRES",
+          "CONT",
+          "RESET"
+        ],
+        "summary": {
+          "en": "The latch, the two comparators and the discharge transistor."
+        },
+        "model": {
+          "kind": "element",
+          "element": "timer_555",
+          "terminals": {
+            "gnd": "GND",
+            "trig": "TRIG",
+            "out": "OUT",
+            "reset": "RESET",
+            "ctrl": "CONT",
+            "thr": "THRES",
+            "dis": "DISCH",
+            "vcc": "VCC"
+          },
+          "params": {
+            "r_out_ohms": {
+              "from_rating": "output_resistance",
+              "pick": "value"
+            },
+            "high_drop_volts": {
+              "from_rating": "output_high_drop",
+              "pick": "value"
+            },
+            "dis_on_ohms": {
+              "from_rating": "discharge_resistance",
+              "pick": "value"
+            },
+            "quiescent_amps": {
+              "from_rating": "supply_current",
+              "pick": "value"
+            },
+            "supply_max_volts": {
+              "from_rating": "supply_voltage_max",
+              "pick": "value"
+            },
+            "output_max_amps": {
+              "from_rating": "output_current_max",
+              "pick": "value"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "failure_modes": [
+    {
+      "id": "supply_over",
+      "name": {
+        "en": "Burned out by too high a supply"
+      },
+      "cause_id": "x-555-overvoltage",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "pin_voltage",
+          "target": "VCC",
+          "op": ">",
+          "threshold": {
+            "rating": "supply_voltage_max",
+            "pick": "value"
+          }
+        }
+      ],
+      "effect": {
+        "state": "burnt",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "Above 18 V the sheet allows no operation and the part can be destroyed."
+      },
+      "basis": "manufacturer",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "datasheet",
+        "loc": "absolute maximum ratings"
+      }
+    },
+    {
+      "id": "output_overcurrent",
+      "name": {
+        "en": "Burned out by too much output current"
+      },
+      "cause_id": "x-555-output-overcurrent",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "pin_current_peak",
+          "target": "OUT",
+          "op": ">",
+          "threshold": {
+            "rating": "output_current_max",
+            "pick": "value"
+          }
+        }
+      ],
+      "effect": {
+        "state": "burnt",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "An output asked for more than 225 mA overheats the output stage."
+      },
+      "basis": "manufacturer",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "datasheet",
+        "loc": "absolute maximum ratings, IO"
+      }
+    }
+  ],
+  "injectable_faults": [
+    {
+      "id": "supply_reversed",
+      "kind": "reversed_part",
+      "target": {
+        "pins": [
+          "VCC",
+          "GND"
+        ]
+      },
+      "cause_id": "swapped-pins",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "description": {
+        "en": "Swap the supply wires, so VCC sits on ground and GND on the positive rail."
+      }
+    }
+  ],
+  "simulation": {
+    "tier": "T0",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "The latch, the two comparators at one third and two thirds of the control voltage, the reset pin and the discharge transistor."
+      },
+      {
+        "en": "An output that sits 0.7 V plus 10 ohm times the current below the supply when high."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "Propagation delay and the supply current spike at each output change."
+      },
+      {
+        "en": "Threshold and trigger tolerance: the comparators trip at one third and two thirds with no spread."
+      },
+      {
+        "en": "Output swing under heavy load: low level is 1 V at 100 mA in the model and 2 V on the sheet."
+      }
+    ],
+    "validity": [
+      {
+        "measure": "supply voltage",
+        "min": 4.5,
+        "max": 16,
+        "unit": "V"
+      }
+    ],
+    "known_gaps": [],
+    "solver_requires": [
+      "timer_555"
+    ],
+    "tests": [
+      {
+        "id": "ne555_conformance",
+        "kind": "conformance",
+        "file": "src/parts/data/tests/ne555.conformance.json",
+        "note": "Layers, terminals and ratings only."
+      },
+      {
+        "id": "live_starters",
+        "kind": "golden-trace",
+        "file": "src/studio/starters/analog-live.test.ts",
+        "note": "The starters run on the live solver and the test reads their nets: the RC charge, the 555 blink, the op amp gain of 2, the rectifier peak and the Zener hold."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "breadboard": {
+      "figure": {
+        "kind": "part",
+        "id": "ne555",
+        "path": "public/figures/parts/ne555.html",
+        "sha256": "15ee645f334d698ee4fb03614de3d753714f5182ebb51d54389b4fabf0ec3836",
+        "engine": "colorfigures-bench"
+      },
+      "legs": [
+        "GND",
+        "TRIG",
+        "OUT",
+        "RESET",
+        "CONT",
+        "THRES",
+        "DISCH",
+        "VCC"
+      ],
+      "span": [
+        3,
+        3
+      ]
+    },
+    "schematic": {
+      "symbol": "ic-box",
+      "pin_sides": {
+        "TRIG": "left",
+        "THRES": "left",
+        "RESET": "left",
+        "CONT": "left",
+        "VCC": "top",
+        "GND": "bottom",
+        "OUT": "right",
+        "DISCH": "right"
+      }
+    },
+    "fallback": {
+      "renderer": "generic-dip",
+      "label": "NE555",
+      "body_colour": "#34312e",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [
+      {
+        "text": "Drawing engine: Colorfigures, MIT license (figures/vendor/colorfigures/LICENSE)."
+      },
+      {
+        "text": "Ratings after the Texas Instruments NA555, NE555, SA555, SE555 sheet (SLFS022K), docs/facts/analog-parts.md section 2."
+      }
+    ],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-11-10",
+    "third_party_content": true,
+    "review": {
+      "status": "ci-checked"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-11-10",
+        "note": "First descriptor, from figures/parts/ne555.js and the Texas Instruments NE555 sheet.",
+        "behaviour_change": false
+      }
+    ]
+  }
+}

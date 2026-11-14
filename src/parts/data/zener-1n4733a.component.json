@@ -1,0 +1,549 @@
+{
+  "$schema": "../../../docs/MASTER_PLAN/04_ARCHITECTURE/schemas/component.schema.json",
+  "schema": "iynk.component/1",
+  "id": "core.zener-1n4733a",
+  "version": "1.0.0",
+  "identity": {
+    "manufacturer": "Vishay",
+    "model": "1N4733A 5.1 V Zener diode",
+    "generic": true,
+    "refdes_prefix": "D",
+    "kind": "discrete",
+    "category": "semiconductor",
+    "description": {
+      "en": "A 5.1 V Zener diode in a DO-41 package with a band at the cathode end. Fitted in reverse behind a resistor it holds 5.1 V across a load."
+    },
+    "tags": [
+      "diode",
+      "zener",
+      "regulator",
+      "1n4733a",
+      "breadboard"
+    ],
+    "legacy_ids": [
+      "zener-1n4733a"
+    ],
+    "mpn": "1N4733A"
+  },
+  "sources": [
+    {
+      "id": "datasheet",
+      "kind": "datasheet",
+      "title": "1N4728A to 1N4761A Zener diodes",
+      "publisher": "Vishay Semiconductors",
+      "revision": "85816, rev. 2.7, 07-Nov-2024",
+      "url": "https://www.vishay.com/docs/85816/1n4728a.pdf",
+      "retrieved": "2026-11-10",
+      "reliability": "primary",
+      "note": "Absolute maximum ratings and the electrical characteristics table, read in full."
+    },
+    {
+      "id": "factsheet",
+      "kind": "fact-sheet",
+      "title": "Analog parts fact sheet",
+      "publisher": "iynk",
+      "revision": "2026-11-10",
+      "reliability": "secondary",
+      "note": "docs/facts/analog-parts.md. Quotes the maker sheets it names; a figure marked own estimate there is not on any sheet."
+    },
+    {
+      "id": "figurejs",
+      "kind": "own-estimate",
+      "title": "figures/parts/zener-1n4733a.js: header comment and elec()",
+      "publisher": "iynk",
+      "reliability": "unverified",
+      "note": "Constants in the figure code."
+    }
+  ],
+  "pins": [
+    {
+      "id": "A",
+      "name": {
+        "en": "Anode"
+      },
+      "designator": "A",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "polarity": "anode"
+    },
+    {
+      "id": "K",
+      "name": {
+        "en": "Cathode"
+      },
+      "designator": "K",
+      "type": "passive",
+      "class": "passive",
+      "position": {
+        "x": 17.78,
+        "y": 0.0
+      },
+      "connector": "legs",
+      "polarity": "cathode",
+      "note": {
+        "en": "The end with the band."
+      }
+    }
+  ],
+  "connectors": [
+    {
+      "id": "legs",
+      "kind": "wire-lead",
+      "gender": "none",
+      "pitch": 2.54,
+      "pins": [
+        "A",
+        "K"
+      ]
+    }
+  ],
+  "dimensions": {
+    "package": "DO-41 axial",
+    "body": {
+      "w": 4.8,
+      "h": 2.6,
+      "d": 2.6
+    },
+    "accuracy": 1.0,
+    "source": {
+      "src": "figurejs",
+      "loc": "figures/parts/zener-1n4733a.js:4"
+    }
+  },
+  "ratings": {
+    "zener_voltage": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "Zener voltage at the test current."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "V",
+        "value": 5.1,
+        "conditions": "IZT 49 mA",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, 1N4733A"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      },
+      "primary": true
+    },
+    "test_current": {
+      "measure": "current",
+      "role": "characteristic",
+      "description": {
+        "en": "Test current the Zener voltage is quoted at."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "A",
+        "value": 0.049,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, 1N4733A"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      }
+    },
+    "dynamic_resistance": {
+      "measure": "resistance",
+      "role": "characteristic",
+      "description": {
+        "en": "Dynamic resistance in breakdown at the test current."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "ohm",
+        "value": 7,
+        "conditions": "typ, 49 mA, 1 kHz",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, ZZT"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      }
+    },
+    "power_total": {
+      "measure": "power",
+      "role": "abs_max",
+      "description": {
+        "en": "Total power dissipation with the leads 4 mm from the case at ambient."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "W",
+        "value": 1.3,
+        "source": {
+          "src": "datasheet",
+          "loc": "absolute maximum ratings, Ptot"
+        }
+      },
+      "scope": {
+        "part": true
+      },
+      "primary": true
+    },
+    "regulator_current": {
+      "measure": "current",
+      "role": "abs_max",
+      "description": {
+        "en": "Highest regulator (Zener) current."
+      },
+      "used_by_model": "manufacturer",
+      "manufacturer": {
+        "unit": "A",
+        "value": 0.178,
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, IZM"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      }
+    },
+    "forward_voltage_max": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "Highest forward voltage at 200 mA."
+      },
+      "used_by_model": "none",
+      "manufacturer": {
+        "unit": "V",
+        "max": 1.2,
+        "conditions": "200 mA",
+        "source": {
+          "src": "datasheet",
+          "loc": "absolute maximum ratings, VF"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      }
+    },
+    "breakdown_voltage": {
+      "measure": "voltage",
+      "role": "characteristic",
+      "description": {
+        "en": "Breakdown parameter of the junction model: the reverse voltage at which its exponential curve passes the saturation current. It sits about 1 V under the quoted Zener voltage, which is measured at 49 mA."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "V",
+        "value": 4.06,
+        "derived_from": [
+          "zener_voltage.manufacturer",
+          "test_current.manufacturer",
+          "dynamic_resistance.manufacturer",
+          "saturation_current.simulation"
+        ],
+        "rationale": {
+          "en": "5.1 V at 49 mA, minus n x kT/q x ln(49 mA / Is) = 0.70 V for the junction curve and minus 7 ohm x 49 mA = 0.34 V across the series resistance, leaves 4.06 V."
+        },
+        "confidence": "medium",
+        "source": {
+          "src": "datasheet",
+          "loc": "electrical characteristics, 1N4733A, VZ at IZT"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      },
+      "primary": true
+    },
+    "saturation_current": {
+      "measure": "current",
+      "role": "characteristic",
+      "description": {
+        "en": "Saturation current of the forward junction."
+      },
+      "used_by_model": "simulation",
+      "simulation": {
+        "unit": "A",
+        "value": 7e-10,
+        "rationale": {
+          "en": "Chosen so the junction drops about 0.7 V at 50 mA with n 1.5. Not a datasheet figure."
+        },
+        "confidence": "low",
+        "source": {
+          "src": "datasheet",
+          "loc": "forward voltage 1.2 V max at 200 mA"
+        }
+      },
+      "scope": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      }
+    }
+  },
+  "behaviour": {
+    "summary": {
+      "en": "A 5.1 V Zener diode. Forward it drops about 0.7 V; reversed it blocks until 5.1 V, then conducts and holds that voltage."
+    },
+    "layers": [
+      {
+        "id": "dc",
+        "domain": "analog",
+        "reads": [
+          "A",
+          "K"
+        ],
+        "summary": {
+          "en": "Shockley junction with a reverse breakdown at the Zener voltage."
+        },
+        "model": {
+          "kind": "element",
+          "element": "zener",
+          "terminals": {
+            "anode": "A",
+            "cathode": "K"
+          },
+          "params": {
+            "vz_volts": {
+              "from_rating": "breakdown_voltage",
+              "pick": "value"
+            },
+            "is_amps": {
+              "from_rating": "saturation_current",
+              "pick": "value"
+            },
+            "n": {
+              "value": 1.5,
+              "rationale": {
+                "en": "Ideality factor chosen with the saturation current for a 0.7 V forward drop at 50 mA."
+              },
+              "source": {
+                "src": "datasheet",
+                "loc": "forward voltage 1.2 V max at 200 mA"
+              }
+            },
+            "rs_ohms": {
+              "from_rating": "dynamic_resistance",
+              "pick": "value"
+            },
+            "imax_amps": {
+              "from_rating": "regulator_current",
+              "pick": "value"
+            },
+            "pmax_watts": {
+              "from_rating": "power_total",
+              "pick": "value"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "failure_modes": [
+    {
+      "id": "overpower",
+      "name": {
+        "en": "Burned out by too much power"
+      },
+      "cause_id": "x-zener-overpower",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "when": [
+        {
+          "measure": "part_power",
+          "target": "part",
+          "op": ">",
+          "threshold": {
+            "rating": "power_total",
+            "pick": "value"
+          }
+        }
+      ],
+      "effect": {
+        "state": "burnt",
+        "latched": true,
+        "recovers_when": "the part is replaced"
+      },
+      "derivation": {
+        "en": "The diode fails when the power in it passes the 1.3 W total dissipation of the sheet. In a shunt regulator that happens when the series resistor is too small or left out."
+      },
+      "basis": "manufacturer",
+      "implemented_as": "threshold",
+      "source": {
+        "src": "datasheet",
+        "loc": "absolute maximum ratings, Ptot"
+      }
+    }
+  ],
+  "injectable_faults": [
+    {
+      "id": "reversed",
+      "kind": "reversed_part",
+      "target": {
+        "pins": [
+          "A",
+          "K"
+        ]
+      },
+      "cause_id": "swapped-pins",
+      "symptom_ids": [
+        "part-dead"
+      ],
+      "description": {
+        "en": "Fit the diode the other way round, so it conducts like an ordinary diode instead of regulating."
+      }
+    }
+  ],
+  "simulation": {
+    "tier": "T0",
+    "status": "modelled",
+    "what_it_models": [
+      {
+        "en": "Reverse breakdown that gives 5.1 V at 49 mA with 7 ohm of slope, forward conduction near 0.7 V."
+      },
+      {
+        "en": "Burn-out above 178 mA, which is 1.3 W at its voltage."
+      }
+    ],
+    "not_modelled": [
+      {
+        "en": "The knee below 1 mA, where the sheet gives 550 ohm of slope."
+      },
+      {
+        "en": "Temperature coefficient and the 5 % tolerance of the voltage."
+      }
+    ],
+    "validity": [
+      {
+        "measure": "current",
+        "min": 0.001,
+        "max": 0.178,
+        "unit": "A"
+      }
+    ],
+    "known_gaps": [
+      {
+        "id": "series_resistance",
+        "text": {
+          "en": "The 7 ohm slope is also applied to the forward branch, so the forward drop is about 0.35 V high at 50 mA."
+        }
+      },
+      {
+        "id": "no_stamp",
+        "text": {
+          "en": "The Zener breakdown is solved only by the Newton solver; the piecewise linear solver blocks in reverse."
+        }
+      }
+    ],
+    "solver_requires": [
+      "zener"
+    ],
+    "tests": [
+      {
+        "id": "zener_1n4733a_conformance",
+        "kind": "conformance",
+        "file": "src/parts/data/tests/zener-1n4733a.conformance.json",
+        "note": "Layers, terminals and ratings only."
+      },
+      {
+        "id": "live_starters",
+        "kind": "golden-trace",
+        "file": "src/studio/starters/analog-live.test.ts",
+        "note": "The starters run on the live solver and the test reads their nets: the RC charge, the 555 blink, the op amp gain of 2, the rectifier peak and the Zener hold."
+      }
+    ]
+  },
+  "software": {
+    "environments": [
+      {
+        "language": "none"
+      }
+    ]
+  },
+  "visual": {
+    "breadboard": {
+      "figure": {
+        "kind": "part",
+        "id": "zener-1n4733a",
+        "path": "public/figures/parts/zener-1n4733a.html",
+        "sha256": "e26dfb5e37506f83df3c0f3cd98f6fcc3bca52d565fb203d3ee4a89709bf778a",
+        "engine": "colorfigures-bench"
+      },
+      "legs": [
+        "A",
+        "K"
+      ],
+      "span": [
+        3,
+        8
+      ]
+    },
+    "schematic": {
+      "symbol": "diode"
+    },
+    "fallback": {
+      "renderer": "generic-two-lead",
+      "label": "1N4733A",
+      "body_colour": "#34312e",
+      "show_pin_labels": true
+    }
+  },
+  "provenance": {
+    "license": "LicenseRef-iynk-pending",
+    "attribution": [
+      {
+        "text": "Drawing engine: Colorfigures, MIT license (figures/vendor/colorfigures/LICENSE)."
+      },
+      {
+        "text": "Ratings after the Vishay 1N4728A to 1N4761A sheet (85816), docs/facts/analog-parts.md section 6."
+      }
+    ],
+    "authors": [
+      "Amar Kushwaha"
+    ],
+    "origin": "core",
+    "created": "2026-11-10",
+    "third_party_content": true,
+    "review": {
+      "status": "ci-checked"
+    },
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-11-10",
+        "note": "First descriptor, from figures/parts/zener-1n4733a.js and the Vishay 1N4728A series sheet.",
+        "behaviour_change": false
+      }
+    ]
+  }
+}

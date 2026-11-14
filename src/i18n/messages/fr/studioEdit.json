@@ -1,0 +1,57 @@
+{
+  "edit": {
+    "place": {
+      "quota": "Ce projet a atteint sa limite de taille. Retire quelque chose avant d'en ajouter.",
+      "unknownDefinition": "Cette pièce n'est pas dans la bibliothèque, elle n'a donc pas été placée.",
+      "boardView": "L'onglet Carte montre la carte seule. Les pièces se placent dans l'onglet Platine d'essai ou Schéma.",
+      "readOnly": "Ce projet est ouvert en lecture seule, on ne peut donc pas y ajouter de pièces.",
+      "placed": "{refdes} a été placée.",
+      "placedLoose": "{refdes} a été posée sur le plan de travail. Fais-la glisser sur la plaque d'essai pour l'enfoncer, ou relie ses broches avec des fils.",
+      "placedLooseChip": "{refdes} a été posé sur le plan de travail. Une puce se place à cheval sur la rainure centrale de la plaque d'essai : fais-la glisser là avec la broche 1 du côté bas de la rainure, ou relie ses broches avec des fils.",
+      "cancelled": "Placement annulé.",
+      "armed": "{name} est prête. Touche le canevas pour la placer.",
+      "zoomed": "Vue agrandie. Touche encore pour la placer."
+    },
+    "seat": {
+      "unseated": "{refdes} n'est plus sur la plaque d'essai, ses broches ne sont donc plus connectées.",
+      "rotateBlocked": "{refdes} n'a pas tourné : les broches tournées ne tomberaient pas sur des trous libres. Déplace-la d'abord ou libère les trous nécessaires."
+    }
+  },
+  "palette": {
+    "title": "Pièces",
+    "search": "Rechercher des pièces",
+    "results": {
+      "one": "{count} pièce",
+      "other": "{count} pièces"
+    },
+    "empty": "Aucune pièce ne correspond à {query}.",
+    "emptyHelp": "Essaie un mot plus court, ou un type comme passif ou écran.",
+    "armed": "{name} est prête. Clique ou touche pour la placer : au-dessus de la plaque d'essai, elle s'enfonce dans les trous. Appuie sur Entrée pour la placer au milieu de la vue.",
+    "place": "Placer {name}",
+    "modelLabel": "Modèle",
+    "model": {
+      "modelled": "Modélisée",
+      "partly-modelled": "Modélisée en partie",
+      "not-modelled-yet": "Pas encore modélisée",
+      "mechanical": "Pièce mécanique"
+    },
+    "category": {
+      "microcontroller": "Microcontrôleur",
+      "dev-board": "Carte de développement",
+      "passive": "Passif",
+      "semiconductor": "Semi-conducteur",
+      "sensor": "Capteur",
+      "actuator": "Actionneur",
+      "motor-driver": "Pilote de moteur",
+      "power": "Alimentation",
+      "display": "Écran",
+      "communication": "Communication",
+      "mechanical": "Mécanique",
+      "robotics": "Robotique",
+      "drone": "Drone",
+      "fpga": "FPGA",
+      "instrument": "Instrument",
+      "virtual": "Virtuel"
+    }
+  }
+}

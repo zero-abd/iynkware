@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -150, "left": 0, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-dht22", "id": "dht1", "top": 0, "left": 200, "attrs": {} },
+    { "type": "wokwi-neopixel", "id": "rgb1", "top": 60, "left": 200, "attrs": {} },
+    { "type": "wokwi-arduino-mega", "id": "mega", "top": 200, "left": 0, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 100, "left": 300, "attrs": { "color": "red" } }
+  ],
+  "connections": [
+    [ "dht1:SDA", "uno:2", "green", [] ],
+    [ "dht1:VCC", "uno:5V", "red", [] ],
+    [ "dht1:GND", "uno:GND.1", "black", [] ],
+    [ "lcd1:SDA", "uno:A4", "green", [] ],
+    [ "rgb1:DIN", "uno:6", "green", [] ],
+    [ "led1:A", "uno:5", "green", [] ],
+    [ "led1:C", "uno:GND.2", "black", [] ],
+    [ "led1:X", "uno:4", "green", [] ],
+    [ "mega:5V", "uno:5V", "red", [] ]
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "usage": {
+    "heading": "Uso",
+    "check": "Ejecuta las reglas del circuito, una simulación sin navegador y las comprobaciones del propio proyecto. Termina con 1 si algo falla.",
+    "run": "Ejecuta un proyecto e imprime su salida serie y los eventos de los pines.",
+    "export": "Escribe la carpeta del sketch de Arduino (ino) o la lista de piezas (bom) de un proyecto.",
+    "options": "Opciones",
+    "json": "Imprime JSON en lugar del informe legible.",
+    "junit": "Escribe un informe JUnit XML en un archivo (usa - para la salida estándar).",
+    "strict": "Falla también con avisos, no solo con errores.",
+    "for": "Cuánto simular, por ejemplo 5s o 500ms. Por defecto: la duración del proyecto.",
+    "test": "Usa el guion de entradas de esta prueba.",
+    "format": "ino o bom.",
+    "out": "Dónde escribir: una carpeta para ino, un archivo para bom (sin esto, bom imprime en la salida estándar).",
+    "lang": "Idioma de los mensajes: en, de, es, fr, hi o zh.",
+    "assignment": "Califica un archivo de entrega con esta tarea (un .iynk del docente). Los archivos de entrega se pasan a check como los proyectos."
+  },
+  "error": {
+    "unknownCommand": "Comando desconocido \"{name}\". Ejecuta iynk help.",
+    "badOption": "Esa opción no sirve aquí: {detail}",
+    "noFiles": "Ningún archivo de proyecto coincide con {patterns}.",
+    "oneFile": "{command} necesita exactamente un archivo de proyecto.",
+    "badDuration": "\"{value}\" no es una duración. Usa 5s, 500ms o un número de milisegundos.",
+    "badFormat": "Elige un formato con --format: ino o bom.",
+    "badLang": "Idioma desconocido \"{value}\". Usa en, de, es, fr, hi o zh.",
+    "noBoard": "Este proyecto no tiene ninguna placa con firmware de Arduino que exportar.",
+    "unknownTest": "Este proyecto no tiene ninguna prueba llamada \"{id}\".",
+    "noCode": "Este proyecto no tiene código que ejecutar.",
+    "unsupportedRun": "El código de esta placa no se puede ejecutar en el simulador sin navegador.",
+    "load": {
+      "unsupported": "{file} no es un proyecto de iynk. Usa un archivo .iynk, un archivo .iynkz o un .json de proyecto.",
+      "unreadable": "No se pudo leer {file}: {detail}",
+      "invalid": "{file} no es un proyecto válido: {detail}",
+      "submission": "{file} es una entrega de un alumno. Indica la tarea del docente con --assignment."
+    },
+    "badAssignment": "{file} no es una tarea: {detail}"
+  },
+  "count": {
+    "error": {
+      "one": "{count} error",
+      "other": "{count} errores"
+    },
+    "warning": {
+      "one": "{count} aviso",
+      "other": "{count} avisos"
+    },
+    "note": {
+      "one": "{count} nota",
+      "other": "{count} notas"
+    }
+  },
+  "check": {
+    "pass": "CORRECTO",
+    "fail": "FALLO",
+    "circuit": "Reglas del circuito",
+    "circuitClean": "no se encontró ningún problema",
+    "run": "Simulación",
+    "runOk": "{seconds} s simulados, sin errores",
+    "runError": "{seconds} s simulados, se detuvo en la línea {line}: {message}",
+    "runErrorNoLine": "{seconds} s simulados, se detuvo: {message}",
+    "runLimit": "se acabó el tiempo antes del final",
+    "runSkipped": "no se ejecutó: {reason}",
+    "checks": "Comprobaciones del proyecto",
+    "checksCount": "{passed} de {total} superadas",
+    "mark": {
+      "ok": "ok",
+      "fail": "FALLO",
+      "skip": "omitida"
+    },
+    "skip": {
+      "needs-analog": "necesita el solver analógico, que la línea de comandos no ejecuta",
+      "no-source": "la placa no tiene código",
+      "no-board": "el proyecto no tiene placa",
+      "unsupported-language": "el lenguaje de esta placa no lee pines en la ejecución sin navegador"
+    },
+    "ruleFailed": "Una regla no se pudo ejecutar ({rule}): {message}",
+    "summary": {
+      "one": "{passed} de {count} proyecto superado",
+      "other": "{passed} de {count} proyectos superados"
+    },
+    "noTests": "no hay comprobaciones escritas",
+    "severity": {
+      "error": "error",
+      "warning": "aviso",
+      "note": "nota"
+    },
+    "imported": "importado",
+    "fix": "arreglo:",
+    "graded": "{student}: entrega para \"{assignment}\"",
+    "otherAssignment": "Esta entrega es de otra tarea.",
+    "edited": "El archivo se cambió después de que el alumno lo hiciera.",
+    "lockedLost": "Se quitaron o cambiaron piezas bloqueadas: {parts}",
+    "mismatch": "difiere de lo que dijo el dispositivo del alumno"
+  },
+  "run": {
+    "heading": "{seconds} s simulados",
+    "serial": "Salida serie",
+    "pins": "Eventos de pines",
+    "noSerial": "No se imprimió nada.",
+    "noPins": "Ningún pin cambió."
+  },
+  "export": {
+    "wrote": "Se escribió {file}"
+  }
+}
