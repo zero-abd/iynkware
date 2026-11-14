@@ -1,6 +1,7 @@
 // The walking skeleton in the IWER emulator, headless: the entry page loads no engine, Open on this screen draws the
-// bench on the flat page, Enter starts a session, a controller ray and trigger on Run starts Blink in the worker, the
-// LED toggles every 500 ms, a hand pinch on Stop stops it and a hand pinch on Run starts it again from zero.
+// bench on the flat page, Enter starts a session, a controller ray and trigger on the run cluster's Run compiles,
+// uploads and starts Blink in the worker, the LED toggles every 500 ms, a hand pinch on Pause holds it, a hand pinch on
+// Run resumes it, Step adds 10 ms, Reset stops it at t = 0, and Run starts it again from zero.
 //
 //   npm run dev:http                                  # in another terminal (IWER is injected by the dev plugin)
 //   node scripts/emulator-check.mjs [url] [shot.png]  # url defaults to http://localhost:8081/
@@ -46,7 +47,11 @@ await page.evaluate(async () => {
     const m = window.iynkware.app.bench.objectOf('cmp_led1')?.getObjectByName('light');
     return m ? m.material.emissiveIntensity : -1;
   };
-  window.__btn = (n) => window.iynkware.world.scene.getObjectByName(`button:${n}`).getWorldPosition(window.iynkware.world.camera.position.clone()).toArray();
+  window.__btn = (n) => window.iynkware.world.scene.getObjectByName(`run:${n}`).getWorldPosition(window.iynkware.world.camera.position.clone()).toArray();
+  window.__cluster = () => {
+    const g = window.iynkware.world.scene.getObjectByName('run-cluster');
+    return { ...g.userData.state, clock: g.userData.clock };
+  };
 });
 await sleep(800);
 check('flat page shows the bench', await page.evaluate(() => window.iynkware.world.renderer.info.render.calls > 5), await page.evaluate(() => window.iynkware.world.renderer.info.render.calls));
@@ -65,52 +70,82 @@ const inXr = await page.evaluate(() => ({
 }));
 check('immersive session, controllers, shell hidden', inXr.sources.right === 'controller' && inXr.shell === 'none', inXr);
 
-// Controller ray at Run: identity orientation points -Z; start 30 cm in front of the button at its height.
-const run = await page.evaluate(() => window.__btn('Run'));
-await page.evaluate((p) => window.__x('set_transform', { device: 'controller-right', position: { x: p[0], y: p[1], z: p[2] + 0.3 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), run);
-await sleep(400);
-await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 1 }));
-await sleep(200);
-await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 0 }));
-await sleep(1500);
+// Presses a plate of the run cluster (`run:<name>`) with a ray: identity orientation points -Z, so start `back`
+// metres in front of the plate at its height. Trigger for a controller, pinch for a hand.
+const press = async (device, name, back) => {
+  const p = await page.evaluate((n) => window.__btn(n), name);
+  await page.evaluate(([d, q, b]) => window.__x('set_transform', { device: d, position: { x: q[0], y: q[1], z: q[2] + b }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), [device, p, back]);
+  await sleep(450);
+  await page.evaluate((d) => window.__x('set_select_value', { device: d, value: 1 }), device);
+  await sleep(220);
+  await page.evaluate((d) => window.__x('set_select_value', { device: d, value: 0 }), device);
+};
+const sim = () => page.evaluate(() => [window.iynkware.app.sim.state, Math.round((window.iynkware.app.sim.lastFrame?.atNs ?? 0) / 1e6), window.__led(), window.__cluster().phase]);
+const waitState = (s, ms) => page.waitForFunction((want) => window.iynkware.app.sim.state === want, s, { timeout: ms }).then(() => true, () => false);
+
+// Controller ray and trigger on Run: compiling, uploading (600 ms each), then running.
+await press('controller-right', 'run', 0.3);
+await sleep(150);
+const compiling = await page.evaluate(() => window.__cluster());
 let ev = await page.evaluate(() => window.__ev.splice(0));
-check('controller trigger on Run -> select', ev.includes('select:run:controller/ray'), ev);
+check('controller trigger on Run -> select, compiling', ev.includes('select:run:run:controller/ray') && compiling.phase === 'compiling' && compiling.label === 'compiling', { ev, compiling });
+const started = await waitState('running', 8000);
+await sleep(300);
 const samples = [];
 for (let i = 0; i < 12; i++) {
-  samples.push(await page.evaluate(() => [window.iynkware.app.sim.state, Math.round((window.iynkware.app.sim.lastFrame?.atNs ?? 0) / 1e6), window.__led()]));
+  samples.push(await sim());
   await sleep(150);
 }
 const lit = samples.filter((s) => s[2] > 0).length;
-check('sim running and LED toggles', samples.every((s) => s[0] === 'running') && lit > 0 && lit < samples.length, samples);
+check('sim running and LED toggles', started && samples.every((s) => s[0] === 'running' && s[3] === 'running') && lit > 0 && lit < samples.length, samples);
 // Seated head, looking down at the bench, for the picture.
 await page.evaluate(() => window.__x('set_transform', { device: 'headset', position: { x: 0, y: 1.2, z: 0 }, orientation: { x: -0.3007, y: 0, z: 0, w: 0.9537 } }));
 await sleep(700);
 if (SHOT) await page.screenshot({ path: SHOT });
+const perf = await page.evaluate(() => ({ calls: window.iynkware.world.renderer.info.render.calls, tris: window.iynkware.world.renderer.info.render.triangles }));
 
-// Hand pinch on Stop.
+// Hand pinch on Pause (the Run plate while running): paused, the LED holds.
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
 await sleep(700);
-const stop = await page.evaluate(() => window.__btn('Stop'));
-await page.evaluate((p) => window.__x('set_transform', { device: 'hand-right', position: { x: p[0], y: p[1], z: p[2] + 0.35 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), stop);
+await press('hand-right', 'run', 0.35);
 await sleep(500);
-await page.evaluate(() => window.__x('set_select_value', { device: 'hand-right', value: 1 }));
-await sleep(250);
-await page.evaluate(() => window.__x('set_select_value', { device: 'hand-right', value: 0 }));
-await sleep(600);
 ev = await page.evaluate(() => window.__ev.splice(0));
-const after = await page.evaluate(() => [window.iynkware.app.sim.state, window.__led(), window.iynkware.app.input.sources.value]);
-check('hand pinch on Stop -> select, sim idle, LED dark', ev.includes('select:stop:hand/ray') && after[0] === 'idle' && after[1] === 0, { ev, after });
+const p1 = await sim();
+await sleep(700);
+const p2 = await sim();
+check('hand pinch on Pause -> select, paused, LED holds', ev.includes('select:run:run:hand/ray') && p1[0] === 'paused' && p1[3] === 'paused' && p1[1] === p2[1] && p1[2] === p2[2], { ev, p1, p2, sources: await page.evaluate(() => window.iynkware.app.input.sources.value) });
 
-// Hand pinch on Run again: it restarts from the beginning.
-await page.evaluate((p) => window.__x('set_transform', { device: 'hand-right', position: { x: p[0], y: p[1], z: p[2] + 0.35 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), run);
+// Hand pinch on Run again: resumes where it was, without compiling again.
+await press('hand-right', 'run', 0.35);
+await sleep(150);
+const resumed = await sim();
+await sleep(600);
+const later = await sim();
+check('hand pinch on Run resumes without a reload', resumed[0] === 'running' && resumed[3] === 'running' && later[1] > p2[1], { p2, resumed, later });
+
+// Step from running pauses first, then each Step adds 10 ms of simulated time.
+await press('hand-right', 'step', 0.35);
 await sleep(500);
-await page.evaluate(() => window.__x('set_select_value', { device: 'hand-right', value: 1 }));
-await sleep(250);
-await page.evaluate(() => window.__x('set_select_value', { device: 'hand-right', value: 0 }));
-await sleep(800);
-const again = await page.evaluate(() => [window.iynkware.app.sim.state, Math.round((window.iynkware.app.sim.lastFrame?.atNs ?? 0) / 1e6)]);
-check('hand pinch on Run restarts', again[0] === 'running' && again[1] < 3000, again);
-const perf = await page.evaluate(() => ({ calls: window.iynkware.world.renderer.info.render.calls, tris: window.iynkware.world.renderer.info.render.triangles }));
+const s1 = await sim();
+await press('hand-right', 'step', 0.35);
+await sleep(500);
+const s2 = await sim();
+ev = await page.evaluate(() => window.__ev.splice(0));
+check('hand pinch on Step pauses, then steps 10 ms', ev.includes('select:run:step:hand/ray') && s1[0] === 'paused' && s2[0] === 'paused' && s2[1] - s1[1] === 10, { s1, s2 });
+
+// Reset: stopped, t = 0, the LED dark.
+await press('hand-right', 'reset', 0.35);
+await sleep(600);
+const r = await sim();
+const clock = await page.evaluate(() => window.__cluster().clock);
+check('hand pinch on Reset -> idle, t = 0, LED dark', r[0] === 'idle' && r[3] === 'stopped' && r[2] === 0 && clock.startsWith('t 0.00 s'), { r, clock });
+
+// The controller again: Run starts from the beginning.
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await sleep(600);
+await press('controller-right', 'run', 0.3);
+const again = (await waitState('running', 8000)) && (await sim());
+check('controller Run after Reset starts from zero', again && again[0] === 'running' && again[1] < 3000, again);
 console.log('render', perf);
 await browser.close();
 console.log(fails ? `${fails} FAILED` : 'ALL PASS');
