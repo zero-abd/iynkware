@@ -36,9 +36,11 @@
  *                  `root` at its target and a moved one where it was; the hook moves it and calls `done()` once, which
  *                  snaps it to its target (or, for remove, takes it out of `root` and disposes it). A newer transition
  *                  of the same item supersedes an older one, whose `done` is then ignored. Replacing the hook finishes
- *                  every running transition.
+ *                  every running transition. Transitions start after the layout pass, so the hook sees it whole.
+ *   restore        sends an item's object back to its target as a `move` (a hand moved it, the edit changed nothing).
  *   settled        resolves when the newest change is laid out.
- * `objectOf`, `partOf`, `worldOf` and `onLayout` follow the contract; `worldOf` and `anchorBoard` read target poses.
+ * `objectOf`, `partOf`, `worldOf` and `onLayout` follow the contract; `worldOf`, `anchorBoard` and wires read target
+ * poses, not where a running transition has an object.
  */
 import {
   BoxGeometry,
@@ -122,6 +124,8 @@ export interface BenchInternals {
   onItems(fn: (change: ItemsChange) => void): Unsubscribe;
   setWireRenderer(renderer: WireRenderer | null): void;
   setTransition(hook: Transition | null): void;
+  /** Sends an item's object back to its target as a `move` transition (after a hand moved it and the edit was refused or changed nothing). */
+  restore(partId: string): void;
   settled(): Promise<void>;
 }
 
@@ -425,11 +429,13 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
     const added: string[] = [];
     const moved: string[] = [];
     const removed: string[] = [];
+    // Transitions start once the whole layout is consistent, so a hook may read the internals.
+    const transits: Array<[Rec, TransitionKind, BenchPose | null]> = [];
     for (const rec of [...items.values()]) {
       if (next.has(rec.id)) continue;
       release(rec);
       removed.push(rec.id);
-      transit(rec, 'remove', poseOf(rec.object));
+      transits.push([rec, 'remove', poseOf(rec.object)]);
     }
     for (const want of next.values()) {
       const rec = items.get(want.id);
@@ -442,7 +448,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
         rec.target.quaternion.copy(want.quaternion);
         rec.matrix.copy(want.matrix);
         moved.push(want.id);
-        transit(rec, 'move', poseOf(rec.object));
+        transits.push([rec, 'move', poseOf(rec.object)]);
         continue;
       }
       if (rec) {
@@ -462,7 +468,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       root.add(object);
       items.set(want.id, fresh);
       added.push(want.id);
-      transit(fresh, 'add', null);
+      transits.push([fresh, 'add', null]);
     }
 
     if (recentre) {
@@ -500,14 +506,16 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
     viewId = view?.id;
     surfaceId = view?.surface;
     last = { view, boards: doc.boards, components: doc.components, deps: doc.dependencies };
+    for (const [rec, kind, from] of transits) transit(rec, kind, from);
     const change: ItemsChange = { added, moved, removed };
     for (const fn of [...itemFns]) fn(change);
     for (const fn of [...layoutFns]) fn();
   }
 
   function settle(gen: number) {
-    laidOut = gen;
-    if (gen !== generation) return;
+    // A listener may apply a change inside a layout, which is then laid out before this one returns.
+    laidOut = Math.max(laidOut, gen);
+    if (laidOut !== generation) return;
     markReady();
     const fns = settleFns;
     settleFns = [];
@@ -646,6 +654,10 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
         finish(rec, kind);
       }
       transition = hook;
+    },
+    restore(partId) {
+      const rec = items.get(partId);
+      if (rec) transit(rec, 'move', poseOf(rec.object));
     },
     settled() {
       return laidOut === generation ? Promise.resolve() : new Promise<void>((r) => settleFns.push(r));

@@ -280,6 +280,28 @@ describe('bench space: incremental layout', () => {
     expect(board.position.distanceTo(inner.items.get('brd_main')!.target.position)).toBeLessThan(1e-12);
   });
 
+  it('starts transitions once the layout is whole, and sends a hand-moved object home on restore', async () => {
+    const { project, bench, inner } = await blink();
+    const seen: Array<{ id: string; ledTarget: Vector3; from: Vector3 | undefined }> = [];
+    inner.setTransition((item, from, _to, _kind, done) => {
+      seen.push({ id: item.id, ledTarget: inner.items.get('cmp_led1')!.target.position.clone(), from: from?.position.clone() });
+      done();
+    });
+    place(project, 'cmp_bb', { x_mm: 15 });
+    const ledNow = inner.items.get('cmp_led1')!.target.position;
+    // The surface's hook call already sees the LED's new target.
+    expect(seen.find((s) => s.id === 'cmp_bb')!.ledTarget.distanceTo(ledNow)).toBeLessThan(1e-12);
+
+    seen.length = 0;
+    const board = bench.objectOf('brd_main')!;
+    const held = board.position.clone().add(new Vector3(0.01, 0.02, 0));
+    board.position.copy(held);
+    inner.restore('brd_main');
+    expect(seen).toHaveLength(1);
+    expect(seen[0]!.from!.distanceTo(held)).toBeLessThan(1e-12);
+    expect(board.position.distanceTo(inner.items.get('brd_main')!.target.position)).toBeLessThan(1e-12);
+  });
+
   it('hands wires to a replacement renderer when their ends change', async () => {
     const { project, bench, inner } = await blink();
     const drawn: string[] = [];
