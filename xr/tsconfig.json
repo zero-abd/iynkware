@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "webworker.importscripts"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "types": [
+      "vite/client",
+      "@iwsdk/vite-plugin-dev/client",
+      "node",
+      "webxr"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "../src/*"
+      ],
+      "@content/*": [
+        "../content/*"
+      ],
+      "avr8js": [
+        "./node_modules/avr8js"
+      ],
+      "rp2040js": [
+        "./node_modules/rp2040js"
+      ],
+      "@dimforge/rapier3d-deterministic-compat": [
+        "./node_modules/@dimforge/rapier3d-deterministic-compat"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vite.aliases.ts"
+  ]
+}

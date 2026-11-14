@@ -48,6 +48,7 @@
     ".next-*",
     "docs/MASTER_PLAN",
     "server",
-    "tools/catalogue"
+    "tools/catalogue",
+    "xr"
   ]
 }

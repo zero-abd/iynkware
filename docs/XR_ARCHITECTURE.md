@@ -1,0 +1,266 @@
+# XR architecture
+
+Updated 2026-11-14. The headset app lives in `xr/`. It is a separate Vite package built on Meta's Immersive Web SDK
+(IWSDK) that imports iynk's pure TypeScript (simulation, project document, parts, content) straight from `src/` and
+`content/`. This file is the map every pillar works from: what goes where, which files are shared contracts, how data
+flows, the frames and the performance rules, and how to run it on a desktop and on the Quest 3S.
+
+## 1. Decisions this rests on
+
+- **IWSDK** (`@iwsdk/core` 1.1.0, three.js `super-three` 0.185.0 re-exported by it) in `xr/` with its own
+  `package.json` and lockfile. The Next app's package.json, lockfile and headers are not touched by `xr/`.
+- **One project document.** Everything the person changes goes through `ProjectStore.apply(ops)`, which is iynk's
+  `createSession` (ops, undo and redo). The bench never edits meshes as truth: it lays meshes out from the document.
+- **The simulation runs in a Web Worker** that wraps iynk's `createSimHandler`. The render thread only sends requests
+  and reads frames.
+- **Controllers and hands are equal.** Every interaction is bound through `InputService.bind`, which reports a ray
+  press, a poke and a grab the same way for a controller, a tracked hand and the desktop mouse.
+- **Passthrough MR by default** (`immersive-ar`, `local-floor`), the VR studio (`immersive-vr`) as the fallback and as a
+  setting. Seated and standing benches (`XrSettings.posture`, `benchHeight`).
+- **Assets are built ahead of time** from iynk's figures as glTF plus a sidecar (docs/XR_ASSETS.md). The app never
+  fetches from a CDN at runtime; decoders and controller and hand models are served from `xr/` itself.
+- **Hosting:** a static build in `xr/dist`, deployed to Cloudflare (docs/XR_DEPLOY.md). Later, the same build under
+  `/xr/` on the 2D app's origin so both share `localStorage["iynk:v1"]`, then a Horizon Store web app.
+- **The AI lab partner is a seam only:** `XrApp.partner` is `null` and nothing is built.
+
+## 2. Directory layout
+
+```
+xr/
+  index.html            the 2D shell: canvas container, Enter button, status line
+  package.json          its own dependencies and lockfile; scripts below
+  vite.config.ts        IWSDK dev plugin (IWER emulator), aliases, port 8081, build to dist/
+  vite.aliases.ts       @/ -> ../src/, @content/ -> ../content/
+  tsconfig.json         strict; paths for @/ and @content/
+  vitest.config.ts      node environment, test/**/*.test.ts
+  scripts/              emulator check (Playwright + IWER), Quest Browser DevTools helper
+  test/                 unit tests that need no browser (sim bridge, assets, input)
+  src/
+    main.ts             boot: World.create, createApp, mount FEATURES, Enter button
+    app.ts              builds the services in XrApp around one world and one project
+    features.ts         the list of pillar modules, in mount order
+    contracts/          the shared types every pillar codes against (section 4)
+    sim/                worker, handler wiring, SimBridge (shared service)
+    assets/             asset registry, placeholders from part descriptors, converted-asset seam (shared service)
+    input/              InputService over IWSDK pointers and grabs (shared service)
+    project/            ProjectStore over iynk's session, TemplateSource
+    ui/                 canvas text labels, the overlay layer, a tiny observable value
+    bench/              pillar 1: BenchSpace (layout, frames) and the bench module
+    run/                pillar 2: Run and Stop, part views (LED first)
+    learn/              pillar 3: lesson guide, progress store
+    scale/              pillar 4: zoom levels and see-through (stub)
+    range/              pillar 5: drones and robots (stub)
+    shell/              pillar 6: settings store, menus, language (stub module)
+```
+
+Pillar 7, the asset pipeline, lives outside `xr/`: `tools/xr-assets/` and docs/XR_ASSETS.md.
+
+Each pillar owns its folder and exports one `FeatureModule` (`mount(app)` returns a teardown). A pillar never edits
+another pillar's folder; it uses the other pillar's services through `XrApp`.
+
+## 3. Data flow
+
+```
+ controller ray / hand pinch / poke / mouse
+        |  InputService.bind(object, {ray, poke, grab}) -> InteractionEvent
+        v
+ feature module (bench, run, learn ...)
+        |  ProjectStore.apply(ops, {label})            (iynk createSession: undo, redo, DocChange)
+        v
+ project document (iynk.project 1.1) ---- subscribe(DocChange) ----> BenchSpace.layout()
+        |  SimBridge.load(doc)                                        meshes from AssetRegistry,
+        v                                                             placed by x_mm, y_mm, legs, wires
+ buildSimNetlist + programOf (render thread)
+        |  postMessage SimReq (load, run, pause, step, stop, speed, input, analog.watch)
+        v
+ sim worker: createSimHandler (interp engine, digital nets, analog solver, fault rules)
+        |  SimEv frames: change driven, at most 30 per sim second, heartbeat every 250 ms
+        v
+ SimBridge.onFrame(SimFrame {atNs, pins, parts, serial})
+        |  run module: PartViewRegistry.create(ctx) per placed part
+        v
+ PartView.update(PartState) -> channel nodes (LED emissive, servo horn ...) on the placed meshes
+```
+
+Frames are plain data and cross the worker boundary as structured clones. Views must not allocate per frame and must
+not read the document or the sim directly; they only get `PartState`.
+
+## 4. Contracts
+
+The files in `xr/src/contracts/` are types (and one helper, `pickText`). Code against these, never against another
+pillar's implementation.
+
+| File | What it fixes | Implementation today |
+|---|---|---|
+| [common.ts](../xr/src/contracts/common.ts) | `Vec3`, `Unsubscribe`, `ReadonlyValue`, the six languages, `pickText` | |
+| [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch, meter; `SimFrame`, `RunState` | `xr/src/sim/bridge.ts` |
+| [project.ts](../xr/src/contracts/project.ts) | `ProjectStore` (ops, undo, redo, subscribe), `Selection`, `TemplateSource`, `ProjectRepository` | `xr/src/project/store.ts` |
+| [assets.ts](../xr/src/contracts/assets.ts) | `AssetRegistry`, `PartAsset` with the pipeline's sidecar (imported from `tools/xr-assets/schema/xr-asset.ts`) and `footprint` | `xr/src/assets/registry.ts` |
+| [space.ts](../xr/src/contracts/space.ts) | `BenchSpace`: bench pose and scale, document mm to board frame to world, `worldOf(target)`, `objectOf`, `onLayout` | `xr/src/bench/space.ts` |
+| [input.ts](../xr/src/contracts/input.ts) | `InputService`: `bind`, sources, stick, pulse, `onAny`; `InteractionEvent` | `xr/src/input/service.ts` |
+| [part-view.ts](../xr/src/contracts/part-view.ts) | `PartView`, `PartViewFactory`, `PartViewRegistry` | `xr/src/run/views/` |
+| [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
+| [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore` | `xr/src/learn/` (fake guide) |
+| [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh), `SettingsStore` | `xr/src/shell/settings.ts` |
+| [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |
+
+### Shared contract files
+
+These change only in their own small PR, labelled `contract-change` (and `lockfile` for a lockfile), merged before
+the code that needs the change (AGENTS.md hard rule 3):
+
+- `xr/src/contracts/**`
+- `xr/src/app.ts`, `xr/src/features.ts`, `xr/src/main.ts`, `xr/index.html`
+- `xr/package.json`, `xr/package-lock.json`
+- `xr/vite.config.ts`, `xr/vite.aliases.ts`, `xr/tsconfig.json`, `xr/vitest.config.ts`
+- `tools/xr-assets/schema/**` (owned by the asset pipeline, pillar 7)
+
+A pillar that needs a new service adds it to `XrApp` in a contract PR first, with a minimal implementation or a fake,
+then builds the real one in its own folder.
+
+## 5. Frames and units
+
+- **Asset frame** (docs/XR_ASSETS.md section 3): metres, +Y up, the item's front faces +Z, right-handed, origin at the
+  centre of the geometry's bounds in x and z with y = 0 on the surface it stands on.
+- **Document**: the breadboard view places a part's layout rectangle by its top-left corner `x_mm`, `y_mm` (y down the
+  page, which is towards the person). `PartAsset.footprint` says where that rectangle lies in the asset frame.
+- **Board frame**: one group (`BenchSpace.root`) holds every placed part in metres at real size: x = x_mm / 1000,
+  z = y_mm / 1000, y up. `docToBoard` and `boardToDoc` convert.
+- **World**: the board group is scaled by `BenchSpace.scale` (default 4, so a 68 mm Uno is 27 cm wide) and centred on
+  the bench top, which defaults to (0, 0.74, -0.6) in `local-floor`. Grabs and rays work in world space; convert
+  through `BenchSpace` and never by hand.
+- **Leaded parts** (LEDs, resistors) are seated by their leg anchors (`A`, `K`) on the hole anchors (`c14`) their
+  placement's `legs` names. Wires are drawn between pin or hole anchors.
+- **Anchor ids** are the sidecar's: pins and holes by their simulation id (`D13`, `a1`, `RAIL_TP2`), everything else
+  `<kind>:<name>` (`led:LED`, `control:button`). Channels (`led:<part>`) name the nodes a part view drives.
+
+## 6. Assets
+
+The asset format is docs/XR_ASSETS.md: one binary glTF plus a JSON sidecar per item, written by `tools/xr-assets`,
+with the ink look (three-band shading, inverted-hull outlines, flat shadow, no post-processing). The registry returns
+the converted item when there is one, else a placeholder built from the part descriptor with a sidecar of the same
+shape (`source: 'placeholder'`, one warning saying so). The converted path is a seam today
+(`xr/src/assets/converted.ts`); filling it is pillar 7 work with the bench.
+
+Placeholders today: boards, breadboards, leaded parts and generic boxes, at real size, with every positioned pin as an
+anchor and holes and pins as one instanced mesh each. Ten boards have no pin positions in their descriptors and get no
+pin anchors, and modules are plain boxes.
+
+## 7. Performance rules (Quest 3S)
+
+- **72 fps is the floor, 90 the target.** The app asks for 90 (`XrSettings.refresh`) through `updateTargetFrameRate`
+  when the browser offers it. The frame budget at 90 is 11.1 ms for CPU and GPU together.
+- **Under 100 draw calls** with a full bench in view. The skeleton bench draws 17 in the flat view and 48 for both
+  eyes in the emulator. Check with `world.renderer.info.render.calls`.
+- **Instancing for repeats.** Breadboard holes, header pins and anything else that repeats is one `InstancedMesh`, with
+  the instance index mapping back to an anchor id (`PartAsset.instanced`).
+- **Share geometry and materials** between placements; only channel materials (an LED's lens) are per placement.
+- **No allocation in per-frame code** (systems, `PartView.update`, `tick`): reuse vectors.
+- **Text is canvas textures** (`xr/src/ui/text.ts`), drawn with the system font stack (`system-ui`, then Noto), so
+  Hindi and Chinese use whatever Devanagari and Chinese fonts the browser has. The UI toolkit's bundled MSDF fonts are
+  Latin only and are not used for translated strings. Whether Quest Browser's fonts cover both scripts has not been
+  tried on the headset yet.
+- **No CDN fetches at runtime.** IWSDK's default controller profiles come from jsDelivr and its glTF decoders from
+  unpkg; both are refused by the deploy's Content Security Policy and must be served from `xr/` (open issue).
+- **Bundle.** The production build is about 28 MB with a 9 MB main chunk (2 MB gzipped), mostly IWSDK's physics,
+  UI fonts and every bundled project. Splitting it is open work; until then the first load on a headset is slow.
+
+## 8. What is imported from iynk and what is ported
+
+Imported unchanged, through the `@/` and `@content/` aliases (the code stays in `src/` and `content/`):
+
+| iynk module | Used for |
+|---|---|
+| `src/sim-host/handler`, `engines/interp-engine`, `engines/bind`, `mech`, `protocol`, `analog-protocol` | the worker's simulation host and its messages |
+| `src/sim/**` (netlist, digital nets, analog solver, fault rules, probe tap and meter, board profiles, registry) | the circuit simulation |
+| `src/lib/interp` | running the firmware source of a template (the interpreter engine) |
+| `src/protocol` | `createRpcPort`, `createInlinePort`, `serveWorker` |
+| `src/project/session`, `validate`, `touched`, `generated/types` | the project document, ops, undo and validation |
+| `src/parts/builtin`, `registry`, `descriptor`, `fallback` | part descriptors for the sim and the placeholders |
+| `content/projects` | the templates (`prj_uno-r3-blink` is the start project) |
+| `src/lib/progress/storage` (types only) | the shape of the shared `iynk:v1` record |
+
+Ported (rewritten in `xr/`, because the iynk file pulls in the browser app or the Next build):
+
+| xr file | Ported from | Why |
+|---|---|---|
+| `xr/src/sim/sim.worker.ts`, `handler-deps.ts` | iynk's sim worker | iynk's worker also loads the AVR, RP2040 and physics engines; the skeleton runs the interpreter only |
+| `xr/src/sim/bridge.ts` (`programOf`) | `src/studio/simLink.ts`, `src/sim-host/host.ts` | `host.ts` creates its worker with `new URL(...)`, which would bundle the Next worker; `simLink.ts` pulls IndexedDB |
+| `xr/src/learn/progress.ts` | `src/lib/progress/storage.ts` | same `localStorage["iynk:v1"]` record, read-modify-write; no IndexedDB mirror yet |
+| `xr/src/shell/settings.ts` | iynk's settings and language pick | language from `?lang=`, the `iynk-lang` cookie, then the browser; XR settings in `localStorage["iynk:xr:v1"]` |
+
+## 9. Storage
+
+- `localStorage["iynk:v1"]`: the 2D app's saved record (`done`, `quiz`, `best`, `settings`). The headset app reads it
+  and writes back only the fields it changes, so the two stay in step once they share an origin.
+- `localStorage["iynk:xr:v1"]`: headset-only settings (`XrSettings`).
+- Projects are not saved yet; the skeleton opens a template each time (open issue).
+
+## 10. Running it
+
+Everything below runs from `xr/` with Node 24.
+
+```bash
+cd xr && npm ci
+npm run dev:http            # http://localhost:8081/ with the IWER emulator injected; strictPort
+npm run typecheck           # tsc --noEmit
+npx vitest run < /dev/null  # sim bridge (Uno Blink toggles every 500 ms), assets, input
+npm run build               # static site in xr/dist (base './', so it works at any path)
+```
+
+`npm run dev` serves HTTPS with a self-signed certificate made by the IWSDK plugin (`@vitejs/plugin-basic-ssl`); it
+installs nothing into the system's trust store. Plain HTTP on localhost is a secure context, so `dev:http` is the
+normal loop. Only one server can hold port 8081: another worktree runs `npx vite --mode http --port <n>`.
+
+### Desktop emulator
+
+The dev plugin injects IWER, Meta's WebXR emulator, as a Quest 3 into the page. In a desktop browser:
+
+- The flat page shows the bench. Click Run (point first, then click) to run Blink; Stop resets it.
+- Enter MR starts an emulated `immersive-ar` session. IWER's overlay moves the headset, the controllers and the hands.
+- From code, `window.IWER_DEVICE.remote.dispatch(method, params)` drives it, for example
+  `set_transform {device: 'controller-right', position, orientation}`, `set_select_value {device, value}`,
+  `set_input_mode {mode: 'hand'}`. `window.iynkware` exposes the world and the app services.
+- `node scripts/emulator-check.mjs [url]` (with `dev:http` running) does the whole walk headless: enter MR, controller
+  ray and trigger on Run, the LED toggling every 500 ms, a hand pinch on Stop, a hand pinch on Run again. It needs a
+  Playwright Chromium (`npx playwright install chromium`; that command can delete other cached Playwright builds).
+
+### Quest 3S over USB
+
+With the Meta Horizon CLI (`metavr`, on the PATH via `export PATH="$HOME/.metavr/bin:$PATH"`) and the headset on USB:
+
+```bash
+metavr device list                              # the Quest 3S shows as a device
+metavr adb reverse tcp:8081 tcp:8081            # headset localhost:8081 -> this Mac
+metavr device wake
+metavr device proximity disable                 # stays awake off-head; undo with: metavr device proximity enable
+metavr device browser http://localhost:8081     # Quest Browser opens the page
+metavr ui dump                                  # find the DOM "Enter MR" button's coordinates
+metavr ui tap --coords <x>,<y>                  # enters the session without a person
+metavr capture screenshot -o shot.png           # wait about 3 s after entering
+```
+
+- Page console: `metavr adb forward tcp:9223 localabstract:chrome_devtools_remote`, then
+  `node scripts/cdp.mjs logs 3` or `node scripts/cdp.mjs eval '<expression>'` (an eval does not end the session; a
+  reload does).
+- Browser and OpenXR logs: `metavr log -n 3000 | grep -E "chromium|cr_|OpenXR_(Session|Passthrough)|XR_SESSION_STATE"`.
+- Quest Browser starts at 72 Hz; the app asks for 90. `local-floor` is anchored where the headset was when the session
+  began.
+- A Meta system consent dialog can appear on the first immersive entry on a device. A person handles it; an agent never
+  accepts it.
+- Any page reload, including a Vite full reload after editing `main.ts`, ends the session.
+- Reverse and forward mappings go away when USB or adb reconnects; run them again.
+
+### Hosted
+
+`cd deploy/cloudflare-xr && npm run deploy` publishes `xr/dist` to a public URL (docs/XR_DEPLOY.md). Deploying is the
+owner's call: the built JavaScript, including iynk's simulation, is readable by anyone with the link.
+
+## 11. Rules for pillar work
+
+- Bind every interaction through `app.input.bind`; never add IWSDK interactable components or raycast by hand.
+- Change the project only through `app.project.apply(ops)`; the bench lays itself out again from the `DocChange`.
+- Draw state on parts through part views and channels; draw hints through `app.overlay` with your pillar as `owner`.
+- Every user-facing string is in six languages (en de es fr hi zh) in the same PR, drawn as canvas text.
+- Show the result in the emulator in the PR (a screenshot or the emulator check's output) and say whether it was tried
+  on a headset.

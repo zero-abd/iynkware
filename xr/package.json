@@ -1,0 +1,36 @@
+{
+  "name": "iynkware-xr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "iynkware: the headset app (Immersive Web SDK). Imports iynk's pure TypeScript through Vite aliases.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "dev:http": "vite --mode http",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@iwsdk/core": "1.1.0",
+    "three": "npm:super-three@0.185.0"
+  },
+  "devDependencies": {
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "@iwsdk/vite-plugin-dev": "1.1.0",
+    "@types/node": "24.19.2",
+    "avr8js": "0.21.1",
+    "rp2040js": "1.4.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.7",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "three": "npm:super-three@0.185.0",
+    "sharp": "0.35.4"
+  }
+}

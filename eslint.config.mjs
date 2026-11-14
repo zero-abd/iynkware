@@ -99,6 +99,8 @@ const eslintConfig = defineConfig([
     "src/**/generated/**",
     // The unmodified RS-13 scripts read the clock.
     "src/sim/mech/fixtures/rs13/**",
+    // The headset app has its own package, tsconfig and checks (xr/package.json, docs/XR_ARCHITECTURE.md).
+    "xr/**",
   ]),
 ]);
 
