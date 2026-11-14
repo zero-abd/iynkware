@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: iynkware-quest-voice
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./quest-voice-backend/Dockerfile
+    dockerContext: ./quest-voice-backend
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLIENT_TOKEN
+        generateValue: true
+      - key: HOST
+        value: 0.0.0.0
+      - key: MAX_AUDIO_BYTES
+        value: 10000000
+      - key: SESSION_TTL_MINUTES
+        value: 30
+      - key: MAX_HISTORY_TURNS
+        value: 6
+      - key: GEMINI_LIVE_MODEL
+        value: gemini-3.8-live
