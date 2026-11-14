@@ -1,0 +1,14 @@
+{
+  "name": "iynkware-xr-deploy",
+  "private": true,
+  "description": "Deploys the static headset build to the iynkware-xr Worker on Cloudflare. See docs/XR_DEPLOY.md.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "deploy": "node deploy.mjs",
+    "preview": "node deploy.mjs --preview",
+    "check": "node check.mjs"
+  }
+}
