@@ -1,7 +1,5 @@
-/** Robot arena: drive the robot templates on the floor (stub). */
-import type { FeatureModule } from '../../contracts/app';
+/** Robot arena: drive the robot templates on the floor. Sub-modules, each its own issue. */
+import { composeModules } from '../../compose';
+import { arenaModule } from './arena';
 
-export const robotsModule: FeatureModule = {
-  id: 'range/robots',
-  mount: () => () => undefined,
-};
+export const robotsModule = composeModules('range/robots', [arenaModule]);
