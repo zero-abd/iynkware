@@ -18,6 +18,7 @@
  *   mat.ts       the inked work mat and front rail
  *   wires.ts     inked jumper wires that draw themselves on
  *   bench.ts     the bench in the look: mat, rail, wires, and parts dropping in, easing and leaving
+ *   studio.ts    the paper studio: dome, horizon ring, floor disc and an inked table, for the plain VR space
  *   fx.ts        effectsOf(world): pop and snap rings, spark, heat lines, smoke; one instanced draw per kind
  */
 import type { FeatureModule, XrApp } from '../contracts/app';
