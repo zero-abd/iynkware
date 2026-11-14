@@ -12,6 +12,7 @@ import type { OverlayLayer } from './overlay';
 import type { PartViewRegistry } from './part-view';
 import type { ProjectStore, TemplateSource } from './project';
 import type { SettingsStore } from './settings';
+import type { ShellService } from './shell';
 import type { SimBridge } from './sim';
 import type { BenchSpace } from './space';
 
@@ -30,6 +31,8 @@ export interface XrApp {
   readonly views: PartViewRegistry;
   readonly overlay: OverlayLayer;
   readonly settings: SettingsStore;
+  /** Where the person is (bench, room size, range), the home panel, the one menu and app-level notices. */
+  readonly shell: ShellService;
   readonly progress: ProgressStore;
   /** Set while a lesson is open. */
   readonly guide: ReadonlyValue<LessonGuide | null>;

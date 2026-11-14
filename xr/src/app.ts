@@ -10,6 +10,7 @@ import { createInputService } from './input';
 import { createProgressStore } from './learn/progress';
 import { createProjectStore, createTemplateSource } from './project/store';
 import { createPartViewRegistry } from './run/views/registry';
+import { createShellService } from './shell/service';
 import { createSettingsStore } from './shell/settings';
 import { createSimBridge } from './sim/bridge';
 import { createOverlay } from './ui/overlay';
@@ -47,6 +48,7 @@ export function createApp(world: World, doc: Project): AppHandle {
     views: createPartViewRegistry(),
     overlay,
     settings,
+    shell: createShellService(),
     progress: createProgressStore(),
     guide,
     partner: null,

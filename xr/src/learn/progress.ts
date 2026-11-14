@@ -46,6 +46,18 @@ export function createProgressStore(): ProgressStore {
       }
       notify();
     },
+    reset() {
+      const doc = load();
+      doc.done = {};
+      doc.quiz = {};
+      doc.best = {};
+      try {
+        globalThis.localStorage?.setItem(KEY, JSON.stringify(doc));
+      } catch {
+        /* storage blocked */
+      }
+      notify();
+    },
     subscribe(fn) {
       fns.add(fn);
       return () => fns.delete(fn);

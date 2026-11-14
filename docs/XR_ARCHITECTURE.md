@@ -53,7 +53,7 @@ xr/
     learn/              pillar 3, learn: lessons/ callouts/, guide.ts, progress.ts
     scale/              pillar 4, scale and insight: zoom/ insight/ probe/
     range/              pillar 5, range: flight/ robots/
-    shell/              pillar 6, shell and shipping: menu/, settings.ts
+    shell/              pillar 6, shell and shipping: menu/, settings.ts, service.ts (app.shell), copy.ts
 ```
 
 Pillar 7, the asset pipeline, lives outside `xr/`: `tools/xr-assets/` and docs/XR_ASSETS.md.
@@ -106,6 +106,7 @@ pillar's implementation.
 | [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
 | [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore` | `xr/src/learn/` (fake guide) |
 | [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh), `SettingsStore` | `xr/src/shell/settings.ts` |
+| [shell.ts](../xr/src/contracts/shell.ts) | `ShellService`: where the person is (`Place`: bench, room size, range) and `go`, the home panel and its entries, the one menu's items, app-level notices | `xr/src/shell/service.ts` |
 | [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |
 
 ### Shared contract files
