@@ -64,7 +64,7 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 
 What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
 each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
-`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `dd70871`.
+`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `f3469c6`.
 
 - **Can do:** press Enter (or Open on this screen); see Uno Blink on a bench in passthrough, drawn from the converted
   models (Uno R3, breadboard, LED, resistor, wires) with two fixed callouts; point a controller ray and pull the
@@ -73,7 +73,7 @@ each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, 
 - **Rough:** the bench is anchored where the headset was when the session began (re-enter to move it); parts cannot be
   grabbed or moved; no menu, home, project switcher or way back out besides the system button.
 - **Merged but not reachable:** bench build actions, targeting and layout (shelf, edit, wire and pose modules are
-  stubs); "Build it with me" (`xr/src/assistant`, not wired into the app); the learn catalogue; flight core and the
+  stubs); "Build it with me" (`xr/src/assistant`, not wired into the app); the learn catalogue and a lesson step panel (the lesson session from #141 runs behind the Blink bench and runs its checks on Run, but nothing draws its steps yet); flight core and the
   drone bench model (`range/flight` is a stub); scale and room size. Other templates open only by `?project=`, and
   their parts other than the Blink set are placeholders.
 
