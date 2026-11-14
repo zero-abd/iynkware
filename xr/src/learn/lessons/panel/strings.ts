@@ -12,7 +12,15 @@ import { createText, type Strings } from '../../text';
 
 interface Studio {
   readonly lesson: {
-    readonly guide: { readonly stepOf: string; readonly step: { readonly state: { readonly done: string } } };
+    readonly guide: {
+      readonly stepOf: string;
+      readonly step: { readonly state: { readonly done: string } };
+      readonly hints: string;
+      readonly hintReveal: string;
+      readonly quiz: { readonly title: string; readonly correct: string; readonly wrong: string; readonly why: string; readonly next: string };
+    };
+    readonly completion: { readonly open: Readonly<Record<'edit' | 'quiz' | 'checks' | 'fault' | 'steps' | 'goal', string>> };
+    readonly gallery: { readonly progress: { readonly done: string } };
     readonly checks: {
       readonly title: string;
       readonly run: string;
@@ -52,6 +60,20 @@ const studio = (s: Studio) => ({
   hiddenNote: s.lesson.checks.hiddenNote,
   showMe: s.lesson.assembly.showMe,
   close: s.workspace.keys.close,
+  quizTitle: s.lesson.guide.quiz.title,
+  quizCorrect: s.lesson.guide.quiz.correct,
+  quizWrong: s.lesson.guide.quiz.wrong,
+  quizWhy: s.lesson.guide.quiz.why,
+  quizNext: s.lesson.guide.quiz.next,
+  hints: s.lesson.guide.hints,
+  hintReveal: s.lesson.guide.hintReveal,
+  'open.edit': s.lesson.completion.open.edit,
+  'open.quiz': s.lesson.completion.open.quiz,
+  'open.checks': s.lesson.completion.open.checks,
+  'open.fault': s.lesson.completion.open.fault,
+  'open.steps': s.lesson.completion.open.steps,
+  'open.goal': s.lesson.completion.open.goal,
+  doneWord: s.lesson.gallery.progress.done,
 });
 
 const pack = (lesson: unknown, checks: unknown, layout: unknown, workspace: unknown) => studio({ lesson, checks, layout, workspace } as Studio);
@@ -59,6 +81,8 @@ const pack = (lesson: unknown, checks: unknown, layout: unknown, workspace: unkn
 const EN = {
   ...pack(enLesson, enChecks, enLayout, enWorkspace),
   tabSteps: 'Steps',
+  backToSteps: 'Back to the steps',
+  'open.diagnosis': 'Find the fault to finish.',
   back: 'Back',
   next: 'Next',
   lessonDone: 'Lesson done',
@@ -80,6 +104,8 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   de: {
     ...pack(deLesson, deChecks, deLayout, deWorkspace),
     tabSteps: 'Schritte',
+    backToSteps: 'Zurück zu den Schritten',
+    'open.diagnosis': 'Finde den Fehler, um abzuschließen.',
     back: 'Zurück',
     next: 'Weiter',
     lessonDone: 'Lektion geschafft',
@@ -98,6 +124,8 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   es: {
     ...pack(esLesson, esChecks, esLayout, esWorkspace),
     tabSteps: 'Pasos',
+    backToSteps: 'Volver a los pasos',
+    'open.diagnosis': 'Encuentra el fallo para terminar.',
     back: 'Atrás',
     next: 'Siguiente',
     lessonDone: 'Lección terminada',
@@ -116,6 +144,8 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   fr: {
     ...pack(frLesson, frChecks, frLayout, frWorkspace),
     tabSteps: 'Étapes',
+    backToSteps: 'Retour aux étapes',
+    'open.diagnosis': 'Trouvez la panne pour terminer.',
     back: 'Retour',
     next: 'Suivant',
     lessonDone: 'Leçon terminée',
@@ -134,6 +164,8 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   hi: {
     ...pack(hiLesson, hiChecks, hiLayout, hiWorkspace),
     tabSteps: 'चरण',
+    backToSteps: 'चरणों पर वापस',
+    'open.diagnosis': 'पूरा करने के लिए खराबी ढूँढें।',
     back: 'पीछे',
     next: 'आगे',
     lessonDone: 'पाठ पूरा हुआ',
@@ -152,6 +184,8 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   zh: {
     ...pack(zhLesson, zhChecks, zhLayout, zhWorkspace),
     tabSteps: '步骤',
+    backToSteps: '回到步骤',
+    'open.diagnosis': '找出故障即可完成。',
     back: '上一步',
     next: '下一步',
     lessonDone: '本课完成',

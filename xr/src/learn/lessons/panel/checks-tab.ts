@@ -12,6 +12,7 @@ import type { Region } from '../../kit/panel';
 import { drawText, fontOf, type Box } from '../../kit/text';
 import { pick } from '../../text';
 import type { LessonSessionState, SessionCheck } from '../../types';
+import { drawStatus } from './status';
 import { buttonRow } from './steps-tab';
 import { t, type PanelKey } from './strings';
 
@@ -71,6 +72,8 @@ export function drawChecksTab(
   const regions: Region[] = [{ id: 'run', rect: runR!, face: runFace, disabled: runFace.disabled, onSelect: () => a.run() }];
 
   let bottom = row.y - 12 * P;
+  const statusH = drawStatus(g, area.x, bottom, area.w, s, c, false);
+  if (statusH > 0) bottom -= statusH + 8 * P;
   if (hidden > 0) {
     const h = 26 * P;
     drawText(g, t(lang, 'hiddenNote', { n: hidden }), { x: area.x, y: bottom - h, w: area.w, h }, { role: 'caption', lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 1, valign: 'middle' });
