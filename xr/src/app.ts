@@ -8,6 +8,7 @@ import type { FeatureModule, XrApp, XrMode } from './contracts/app';
 import type { Project } from './contracts/project';
 import { createInputService } from './input';
 import { createLessonSlot } from './learn/launcher';
+import { effectsOf } from './look/fx';
 import { createProgressStore } from './learn/progress';
 import { createProjectStore, createTemplateSource } from './project/store';
 import { createPartViewRegistry } from './run/views/registry';
@@ -15,6 +16,7 @@ import { createShellService } from './shell/service';
 import { createScaleService } from './scale/service';
 import { createSettingsStore } from './shell/settings';
 import { createSimBridge } from './sim/bridge';
+import { createFeedbackService } from './ui/feedback';
 import { createOverlay } from './ui/overlay';
 import { value } from './ui/value';
 
@@ -41,6 +43,8 @@ export function createApp(world: World, doc: Project): AppHandle {
   const shell = createShellService();
   const templates = createTemplateSource();
   const sim = createSimBridge();
+  const input = createInputService(world);
+  const feedback = createFeedbackService({ world, input, settings, ring: (at) => effectsOf(world).popRing({ x: at[0], y: at[1], z: at[2] }) });
   const assistant = createAssistantService({ project, templates, sim, lang: () => settings.lang.value, guide: () => lessons.guide.value?.state ?? null, presence: instantPresence });
   const app: XrApp = {
     world,
@@ -49,7 +53,8 @@ export function createApp(world: World, doc: Project): AppHandle {
     templates,
     sim,
     assets,
-    input: createInputService(world),
+    input,
+    feedback,
     bench,
     views: createPartViewRegistry(),
     overlay,
@@ -72,6 +77,7 @@ export function createApp(world: World, doc: Project): AppHandle {
     async dispose() {
       for (const t of teardowns.reverse()) t();
       assistant.dispose();
+      feedback.dispose();
       overlay.dispose();
       bench.dispose();
       await app.sim.dispose();
