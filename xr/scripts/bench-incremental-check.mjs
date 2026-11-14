@@ -24,6 +24,8 @@ const check = (name, ok, detail) => {
 };
 
 await page.goto(target.href, { waitUntil: 'load' });
+// The entry page loads no engine until asked: Open on this screen boots the bench on the flat page.
+await page.click('#flat');
 await page.waitForFunction(() => window.iynkware?.ready, null, { timeout: 60000 });
 await page.evaluate(() => window.iynkware.ready);
 await page.click('#enter');
