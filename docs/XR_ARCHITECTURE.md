@@ -50,7 +50,7 @@ xr/
     bench/              pillar 1, build: space.ts (BenchSpace), shelf/ wire/ edit/ pose/
     run/                pillar 2, run and stress: controls/ (run cluster, clock) views/ (part views) inputs/ (parts
                         worked by hand) tools/ (meter, scope, serial) findings/ (problems at the part) faults/ (fault lab)
-    learn/              pillar 3, learn: lessons/ callouts/, guide.ts, progress.ts
+    learn/              pillar 3, learn: lessons/ callouts/ catalogue/ onboarding/, launcher.ts (app.lessons), guide.ts, progress.ts
     scale/              pillar 4, scale and insight: zoom/ insight/ probe/
     range/              pillar 5, range: flight/ robots/
     shell/              pillar 6, shell and shipping: menu/, settings.ts, service.ts (app.shell), copy.ts
@@ -104,7 +104,7 @@ pillar's implementation.
 | [input.ts](../xr/src/contracts/input.ts) | `InputService`: `bind`, sources, stick, pulse, `onAny`; `InteractionEvent` | `xr/src/input/service.ts` |
 | [part-view.ts](../xr/src/contracts/part-view.ts) | `PartView`, `PartViewFactory`, `PartViewRegistry` | `xr/src/run/views/` |
 | [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
-| [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore` | `xr/src/learn/` (fake guide) |
+| [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore`, `LessonLauncher` (catalogue and opening lessons, `app.lessons`) | `xr/src/learn/` (fake guide; `launcher.ts` slot) |
 | [settings.ts](../xr/src/contracts/settings.ts) | `XrSettings` (space, posture, bench height and scale, hand, refresh), `SettingsStore` | `xr/src/shell/settings.ts` |
 | [shell.ts](../xr/src/contracts/shell.ts) | `ShellService`: where the person is (`Place`: bench, room size, range) and `go`, the home panel and its entries, the one menu's items, app-level notices | `xr/src/shell/service.ts` |
 | [app.ts](../xr/src/contracts/app.ts) | `XrApp` (every service above), `XrMode`, `FeatureModule`, the `partner` seam | `xr/src/app.ts` |

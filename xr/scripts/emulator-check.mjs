@@ -9,7 +9,10 @@
 // delete other cached Playwright builds). Exit 0 when every check passes.
 import { chromium } from 'playwright';
 
-const URL = process.argv[2] ?? 'http://localhost:8081/';
+// Always the built Blink template: without `?project=`, a first-time person gets onboarding (Blink in build mode).
+const target = new globalThis.URL(process.argv[2] ?? 'http://localhost:8081/');
+if (!target.searchParams.has('project')) target.searchParams.set('project', 'prj_uno-r3-blink');
+const URL = target.href;
 const SHOT = process.argv[3];
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });

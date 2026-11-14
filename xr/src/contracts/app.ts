@@ -7,7 +7,7 @@ import type { World } from '@iwsdk/core';
 import type { AssetRegistry } from './assets';
 import type { ReadonlyValue, Unsubscribe } from './common';
 import type { InputService } from './input';
-import type { LessonGuide, ProgressStore } from './lesson';
+import type { LessonGuide, LessonLauncher, ProgressStore } from './lesson';
 import type { OverlayLayer } from './overlay';
 import type { PartViewRegistry } from './part-view';
 import type { ProjectStore, TemplateSource } from './project';
@@ -36,6 +36,8 @@ export interface XrApp {
   readonly progress: ProgressStore;
   /** Set while a lesson is open. */
   readonly guide: ReadonlyValue<LessonGuide | null>;
+  /** Opens lessons and the catalogue (the learn pillar fills it when it mounts). */
+  readonly lessons: LessonLauncher;
   /**
    * Seam for the AI lab partner with voice (after the seven pillars; nothing is built). It will observe `project`,
    * `sim`, `guide` and `input.onAny`, and propose ops through `project.apply` with an `ai` author. Stays null.
