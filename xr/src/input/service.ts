@@ -44,6 +44,7 @@ import type { Unsubscribe } from '../contracts/common';
 import type {
   BindOptions,
   Hand,
+  HandPose,
   InputService,
   InteractionEvent,
   InteractionType,
@@ -55,11 +56,14 @@ import {
   type Heading,
   type PointerKind,
   type Stick,
+  POSE_JOINTS,
   clampUnit,
+  fingersOpen,
   grabFlags,
   headingOf,
   isGrabPress,
   modeOf,
+  palmNormal,
   sourceOf,
   virtualStick,
 } from './helpers';
@@ -725,11 +729,94 @@ export function createInputService(world: World): InputService {
     for (const hand of HANDS) if (touchOff[hand]) xr.multiPointers[hand].toggleSubPointer('touch', false);
   });
 
+  // ---- per frame: poses -------------------------------------------------------------------------------------------
+
+  interface MPose {
+    source: PointerSource;
+    position: MVec3;
+    normal: MVec3;
+    pinching: boolean;
+    open: boolean;
+    ray: { origin: MVec3; direction: MVec3 };
+  }
+  const newPose = (): MPose => ({
+    source: 'hand',
+    position: [0, 0, 0],
+    normal: [0, -1, 0],
+    pinching: false,
+    open: false,
+    ray: { origin: [0, 0, 0], direction: [0, 0, -1] },
+  });
+  const poses: Record<Hand, MPose> = { left: newPose(), right: newPose() };
+  const posed: Record<Hand, boolean> = { left: false, right: false };
+  const joints = new Float32Array(POSE_JOINTS.length * 16);
+  const jointSpaces = new WeakMap<XRHand, XRSpace[]>();
+  const pv = new Vector3();
+  const pd = new Vector3();
+  const toVec = (v: Vector3, out: MVec3) => {
+    out[0] = v.x;
+    out[1] = v.y;
+    out[2] = v.z;
+  };
+  type JointFrame = XRFrame & { fillPoses?(spaces: XRSpace[], base: XRSpace, out: Float32Array): boolean };
+  /** Packs the pose joints of a tracked hand into `joints`, in the reference space; false when any is missing. */
+  const readJoints = (hand: XRHand): boolean => {
+    const frame = world.renderer.xr.getFrame() as JointFrame | null;
+    const ref = world.renderer.xr.getReferenceSpace();
+    if (!frame || !ref) return false;
+    let spaces = jointSpaces.get(hand);
+    if (!spaces) {
+      spaces = [];
+      for (const name of POSE_JOINTS) {
+        const s = hand.get(name);
+        if (!s) return false;
+        spaces.push(s);
+      }
+      jointSpaces.set(hand, spaces);
+    }
+    if (frame.fillPoses) return frame.fillPoses(spaces, ref, joints);
+    for (let i = 0; i < spaces.length; i++) {
+      const p = frame.getJointPose?.(spaces[i] as XRJointSpace, ref);
+      if (!p) return false;
+      joints.set(p.transform.matrix, i * 16);
+    }
+    return true;
+  };
+  const updatePose = (hand: Hand, source: PointerSource | null) => {
+    posed[hand] = source === 'hand' || source === 'controller';
+    if (!posed[hand]) return;
+    const out = poses[hand];
+    out.source = source!;
+    out.pinching = xr.getSelectState(hand).active;
+    const raySpace = player.raySpaces[hand];
+    toVec(raySpace.getWorldPosition(pv), out.ray.origin);
+    toVec(pd.set(0, 0, -1).transformDirection(raySpace.matrixWorld), out.ray.direction);
+    if (source === 'controller') {
+      const grip = player.gripSpaces[hand];
+      toVec(grip.getWorldPosition(pv), out.position);
+      toVec(pd.set(0, 0, -1).transformDirection(grip.matrixWorld), out.normal);
+      out.open = false;
+      return;
+    }
+    toVec(player.indexTipSpaces[hand].getWorldPosition(pv), out.position);
+    const xrHand = xr.getPrimaryInputSource(hand)?.hand;
+    if (xrHand && readJoints(xrHand)) {
+      // Joint poses are in the reference space, which is the player rig's frame.
+      palmNormal(joints, hand, out.normal);
+      toVec(pd.set(out.normal[0], out.normal[1], out.normal[2]).transformDirection(player.matrixWorld), out.normal);
+      out.open = fingersOpen(joints);
+    } else {
+      out.open = false;
+    }
+  };
+
   const tick = (time: number) => {
     const left = sourceNow('left');
     const right = sourceNow('right');
     const cur = sources.value;
     if (cur.left !== left || cur.right !== right) sources.value = Object.freeze({ left, right });
+    updatePose('left', left);
+    updatePose('right', right);
     updateStick('left', left);
     updateStick('right', right);
     routeEvent.timeStamp = time * 1000;
@@ -750,6 +837,9 @@ export function createInputService(world: World): InputService {
   return {
     bind,
     sources,
+    pose(hand): HandPose | null {
+      return posed[hand] ? poses[hand] : null;
+    },
     stick(hand) {
       const view = stickViews[hand];
       view.x = sticks[hand].x;

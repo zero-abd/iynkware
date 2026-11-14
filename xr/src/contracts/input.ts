@@ -66,7 +66,31 @@ export interface BindOptions {
   grab?: 'none' | 'near' | 'distance' | 'both';
 }
 
+/**
+ * Where a hand or controller is this frame, whether or not it touches anything bound (sensor gestures, probe tips,
+ * the hover ring under a pinch or ray, the palm menu). World frame, metres.
+ */
+export interface HandPose {
+  /** `hand` or `controller`. */
+  readonly source: PointerSource;
+  /** Pinch point (hands: the index tip) or grip centre (controllers). */
+  readonly position: Vec3;
+  /** Palm normal, out of the palm (hands), or grip forward (controllers). Unit. */
+  readonly normal: Vec3;
+  /** Pinching (hands) or the trigger held (controllers). */
+  readonly pinching: boolean;
+  /** Hands: index, middle, ring and little fingers stretched out (a flat or open hand). Always false for controllers. */
+  readonly open: boolean;
+  /** The target ray: the controller's, or the hand's aim ray. `direction` is unit. */
+  readonly ray: { readonly origin: Vec3; readonly direction: Vec3 };
+}
+
 export interface InputService {
+  /**
+   * The current pose of each hand or controller, or null when it is untracked (and on the flat page). Updated once a
+   * frame before feature systems run; the same object is returned on every call for a hand, so read it, do not keep it.
+   */
+  pose(hand: Hand): HandPose | null;
   /** Makes an object interactable and routes its events to `handler`. Returns the unbind. */
   bind(object: Object3D, opts: BindOptions, handler: (e: InteractionEvent) => void): Unsubscribe;
   /** What each hand is using now; null when untracked. Features may adapt affordances, never gate features on it. */
