@@ -38,10 +38,13 @@
                the node's sun and fixed primitives are merged into one hull, ink.flat (decals) gets none, static.xray
                gets none
      shadow    one per static mesh node (static, static.cover; xray only while see-through shows it), plus one per
-               rotate / spin channel node (servo horns, props) because those move; LEDs and buttons cast none
-   So an item costs about  stats.drawCalls + meshNodesWithSolids + 1..2 + movingChannels.  For example a board with
-   3 static triangle primitives + 1 static line primitive and 5 channel nodes of 1 triangle + 1 line primitive each:
-   body 4 + 10 = 14, outline 1 + 5 = 6, shadow 1 (+ 1 per servo) = 21 draw calls, 42 with two eyes.
+               rotate / spin channel node (servo horns, props) because those move, and one per channel node at least
+               a quarter of the item's size (an LED part's dome); a board's LEDs and buttons cast none
+     glow      one per lit emissive channel node (createGlow: a 4-vertex quad), none while it is off
+   So an item costs about  stats.drawCalls + meshNodesWithSolids + 1..2 + movingChannels + litLeds.  For example a
+   board with 3 static triangle primitives + 1 static line primitive and 5 channel nodes of 1 triangle + 1 line
+   primitive each: body 4 + 10 = 14, outline 1 + 5 = 6, shadow 1 (+ 1 per servo) = 21 draw calls, 42 with two eyes,
+   + 1 per LED while it is lit.
    A line primitive drawn as fat lines (createFatLines, loadXrAsset's default) is still one draw: one instanced quad
    per segment, 4 vertices each. The xray layer costs nothing until see-through shows it.
    Fragment cost: bands are computed per vertex (faces are flat and do not share vertices, so the per-vertex result
@@ -290,8 +293,18 @@ void main() {
   vec3 front = toLin(inkBand(d, l, m, k));
   vec3 back = toLin(inkBand(-d, l, m, k)); // seen from behind, the visible side's normal is -normal
 #endif
-  front = mix(front, uEmissive, uEmissiveLevel);
-  back = mix(back, uEmissive, uEmissiveLevel);
+  // lit: the lens takes its bands from the channel colour lifted a little towards white (led.js lifts 25 % + 30 % x
+  // lit; less here, the halo drawn over it does the rest), so it brightens and keeps its shading
+  if (uEmissiveLevel > 0.0) {
+    vec3 el = mix(toSrgb(uEmissive), vec3(1.0), 0.12 + 0.18 * uEmissiveLevel);
+#ifdef SHADE_FLAT
+    vec3 lf = toLin(el), lb = lf;
+#else
+    vec3 lf = toLin(inkBand(d, el, el * 0.84, el * 0.58)), lb = toLin(inkBand(-d, el, el * 0.84, el * 0.58));
+#endif
+    front = mix(front, lf, uEmissiveLevel);
+    back = mix(back, lb, uEmissiveLevel);
+  }
   float hi = (uHighlight >= 0.0 && abs(part - uHighlight) < 0.5) ? uHiAmount : 0.0;
   vFront = mix(front, uHiColor, hi);
   vBack = mix(back, uHiColor, hi);
@@ -472,6 +485,50 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+const GLOW_VERT = /* glsl */`
+uniform vec3 uCenter;           // the parent's frame
+uniform float uRadius;          // metres, outer disc at full level
+uniform float uPull;            // metres towards the eye
+uniform float uMinPx;
+uniform float uLevel;
+uniform vec2 uResolution;
+uniform float uInkPx;
+varying vec2 vUv;
+void main() {
+  bool persp = projectionMatrix[2][3] != 0.0;
+  float s = length(modelMatrix[0].xyz);               // the item's scale: radius and pull are in its metres
+  vec4 mv = modelViewMatrix * vec4(uCenter, 1.0);
+  float dist = persp ? max(length(mv.xyz), 1e-6) : 1.0;
+  vec3 toEye = persp ? -mv.xyz / dist : vec3(0.0, 0.0, 1.0);
+  float pull = persp ? min(uPull * s, 0.5 * dist) : uPull * s;
+  // one pixel in view-space metres at the centre's depth
+  float px = 2.0 / (projectionMatrix[1][1] * uResolution.y) * (persp ? max(-mv.z, 1e-4) : 1.0);
+  float r = max(uRadius * s * (0.45 + 0.55 * uLevel), uMinPx * uInkPx * px);
+  if (persp) r *= (dist - pull) / dist;               // moved towards the eye, it keeps its drawn size
+  mv.xyz += toEye * pull;
+  mv.xy += position.xy * r;
+  vUv = position.xy;
+  gl_Position = projectionMatrix * mv;
+}`;
+
+const GLOW_FRAG = /* glsl */`
+uniform vec3 uColor;            // linear
+uniform vec3 uCore;
+uniform float uLevel;
+uniform float uAdd;
+varying vec2 vUv;
+void main() {
+  float r = length(vUv);
+  if (r >= 1.0) discard;
+  float halo = 0.34 * uLevel * (1.0 - smoothstep(0.35, 1.0, r));
+  float core = 0.8 * uLevel * (1.0 - smoothstep(0.17, 0.3, r));
+  float a = halo + core - halo * core;
+  if (a < 0.002) discard;
+  gl_FragColor = vec4((uColor * halo * (1.0 - core) + uCore * core) / a, 1.0);
+  #include <colorspace_fragment>
+  gl_FragColor = vec4(gl_FragColor.rgb * a, a * (1.0 - uAdd));   // premultiplied; uAdd of it is added
+}`;
+
 /* logarithmic depth, when the app's renderer uses it: every ink shader writes the same depth three's own do */
 export function withLogDepthVertex(src) {
   const i = src.lastIndexOf('}');
@@ -479,8 +536,8 @@ export function withLogDepthVertex(src) {
     + '#ifdef USE_LOGARITHMIC_DEPTH_BUFFER\n  vFragDepth = 1.0 + gl_Position.w;\n  vIsPerspective = projectionMatrix[2][3] == -1.0 ? 1.0 : 0.0;\n#endif\n' + src.slice(i);
 }
 export const withLogDepthFragment = (src) => '#include <logdepthbuf_pars_fragment>\n' + src.replace('#include <colorspace_fragment>', '#include <logdepthbuf_fragment>\n  #include <colorspace_fragment>');
-const VS = { band: withLogDepthVertex(BAND_VERT), line: withLogDepthVertex(LINE_VERT), fat: withLogDepthVertex(FAT_LINE_VERT), outline: withLogDepthVertex(OUTLINE_VERT), shadow: withLogDepthVertex(SHADOW_VERT) };
-const FS = { band: withLogDepthFragment(BAND_FRAG), color: withLogDepthFragment(COLOR_FRAG), solid: withLogDepthFragment(SOLID_FRAG), shadow: withLogDepthFragment(SHADOW_FRAG) };
+const VS = { band: withLogDepthVertex(BAND_VERT), line: withLogDepthVertex(LINE_VERT), fat: withLogDepthVertex(FAT_LINE_VERT), outline: withLogDepthVertex(OUTLINE_VERT), shadow: withLogDepthVertex(SHADOW_VERT), glow: withLogDepthVertex(GLOW_VERT) };
+const FS = { band: withLogDepthFragment(BAND_FRAG), color: withLogDepthFragment(COLOR_FRAG), solid: withLogDepthFragment(SOLID_FRAG), shadow: withLogDepthFragment(SHADOW_FRAG), glow: withLogDepthFragment(GLOW_FRAG) };
 
 /* ---------- materials ---------- */
 const definesFor = (geometry, extra = {}) => {
@@ -783,3 +840,60 @@ export function createShadow(source, { look = {}, root = null, planeY = 0, unifo
   return mesh;
 }
 const topOf = (o) => { while (o.parent && !o.parent.isScene) o = o.parent; return o; };
+
+/**
+ * A lit LED's halo, the figure's two glow discs (bench-kinds.js: a wide one in the LED's colour at 0.3 x lit, a
+ * small warm white core at 0.75 x lit) as one camera-facing quad of 4 vertices, the discs and their radial falloff
+ * computed in the fragment shader (no texture). One draw call; hidden (none) while the level is 0.
+ *   center: the glow's centre in the parent's frame (the LED node); radius: the outer disc at full level, metres
+ *   (it shrinks to 0.45 of that as the level falls, as the figure's does), never under minPx screen pixels x the ink
+ *   scale, so a 2 mm SMD LED still reads at arm's length in the headset; pull: metres the quad is moved towards the
+ *   eye (default 1.6 x radius) so the board it sits on does not cut its lower half, with its drawn size kept.
+ *   add: the additive share. 0 blends the discs over what is behind (the figure's SVG), 1 adds them; between, the
+ *   halo lights a dark body as light does and still tints white paper or a breadboard, where pure addition shows
+ *   nothing. Premultiplied blending, depth tested, no depth write, drawn last (renderOrder 3).
+ * setGlow(mesh, color, level) drives it.
+ */
+export function createGlow({ center = [0, 0, 0], radius = 0.004, color = '#ffffff', level = 0, uniforms = null, look = {}, pull = null, minPx = 7, add = 0.35, core = '#fffbe8' } = {}) {
+  const u = uniforms || createInkUniforms(look);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
+  g.setIndex([0, 1, 2, 0, 2, 3]);
+  const c = Array.isArray(center) ? new THREE.Vector3(...center) : center.clone();
+  g.boundingSphere = new THREE.Sphere(c.clone(), radius * 2 + (pull != null ? pull : 1.6 * radius));
+  const m = new THREE.ShaderMaterial({
+    name: 'ink.glow',
+    uniforms: {
+      uResolution: u.uResolution, uInkPx: u.uInkPx,
+      uCenter: { value: c }, uRadius: { value: radius }, uPull: { value: pull != null ? pull : 1.6 * radius }, uMinPx: { value: minPx },
+      uColor: { value: linearColor('#ffffff') }, uCore: { value: linearColor(core) }, uLevel: { value: 0 }, uAdd: { value: add },
+    },
+    vertexShader: VS.glow,
+    fragmentShader: FS.glow,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneMinusSrcAlphaFactor,
+    side: THREE.DoubleSide,
+  });
+  m.toneMapped = false;
+  m.userData.inkRole = 'glow';
+  const mesh = new THREE.Mesh(g, m);
+  mesh.name = 'glow';
+  mesh.renderOrder = 3;
+  mesh.userData.inkRole = 'glow';
+  mesh.userData.ownsGeometry = true;
+  mesh.onBeforeRender = (renderer) => updateInkViewport(u, renderer, mesh.userData.inkScale || 1);
+  setGlow(mesh, color, level);
+  return mesh;
+}
+/** A glow's colour ('#rrggbb' sRGB or THREE.Color) and level 0..1; it is drawn only while the level is above 0. */
+export function setGlow(mesh, color, level) {
+  const un = mesh.material.uniforms;
+  if (typeof color === 'string') un.uColor.value.copy(linearColor(color));
+  else if (color && color.isColor) un.uColor.value.copy(color);
+  un.uLevel.value = clamp01(level);
+  mesh.visible = un.uLevel.value > 0.003;
+}
