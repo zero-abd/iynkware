@@ -1,0 +1,12 @@
+{
+  "name": "iynkware-quest-voice-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "dev": "node --env-file=.env --enable-source-maps src/server.ts",
+    "start": "node --enable-source-maps src/server.ts",
+    "test": "node --test --test-concurrency=1 test/*.test.ts"
+  }
+}
