@@ -43,6 +43,8 @@
     "perf:budget": "node scripts/perf-budget.mjs",
     "perf:record": "node scripts/perf-budget.mjs --record",
     "corpus": "node scripts/convert-catalogue.mjs",
+    "xr:assets": "npm --prefix tools/xr-assets install --no-audit --no-fund --silent && node tools/xr-assets/build.mjs",
+    "xr:assets:test": "npm --prefix tools/xr-assets install --no-audit --no-fund --silent && npm --prefix tools/xr-assets test",
     "measure:apply": "node scripts/measure-apply.mjs",
     "icons": "node scripts/gen-icons.mjs",
     "ui:check": "node scripts/ui-check.mjs",
