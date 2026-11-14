@@ -23,9 +23,10 @@ import {
 export { INK, PAPER, SHADOW };
 
 const STATIC_NODES = ['static', 'static.cover', 'static.xray'];
-/** a lit LED's outer glow radius at full level: GLOW_K x its node's bounding-box diagonal + GLOW_R0 metres (a 2 mm
-    SMD LED gets about 3 mm, a 5 mm through-hole one about 6.5 mm) */
-export const GLOW_K = 0.4, GLOW_R0 = 0.0018;
+/** a lit LED's halo radius at full level: GLOW_K x its node's bounding-box diagonal + GLOW_R0 metres (a 2 mm SMD
+    LED gets about 1.7 mm, a 5 mm through-hole one about 3.5 mm; the halo's bands are flat to their edge, ink.js
+    GLOW_BANDS, so it needs less radius than a soft glow to read) */
+export const GLOW_K = 0.24, GLOW_R0 = 0.0011;
 export const glowRadius = (diag) => GLOW_K * diag + GLOW_R0;
 const absUrl = (u) => {
   try { return new URL(u).href; } catch { /* relative */ }
@@ -222,6 +223,7 @@ export function createXrAsset(gltf, sidecar, options = {}) {
     const st = { ch, nodes: ns, value: ch.value ? ch.value.rest : 0, angle: null, offset: null, rpm: 0, axis: vec(ch.axis, [0, 1, 0]).normalize(), pivot: ch.pivot ? vec(ch.pivot) : null, materials: [], glows: [] };
     if (ch.kind === 'emissive') {
       for (const n of ns) n.traverse((o) => { if (o.material && o.material.userData && o.material.userData.inkRole === 'body') st.materials.push(o.material); });
+      shareEmissive(st);
     } else {
       if (ch.kind === 'rotate' || ch.kind === 'spin') st.angle = 0;
       if (ch.kind === 'translate') st.offset = new THREE.Vector3();
@@ -447,6 +449,22 @@ export function createXrAsset(gltf, sidecar, options = {}) {
   updateInkLights(uniforms, look, root);
   object.userData.xrAsset = api;
   return api;
+}
+
+/**
+ * One emissive channel's body materials share one uEmissive and one uEmissiveLevel, so whatever writes either (set(),
+ * or an app driving a node's material directly, as xr/src/run/views/led.ts does through these uniforms) lights the
+ * whole node; writing the level also sets the channel's halos (st.glows) to the uEmissive colour and that level.
+ */
+function shareEmissive(st) {
+  if (!st.materials.length) return;
+  const color = { value: st.materials[0].uniforms.uEmissive.value };
+  let level = st.materials[0].uniforms.uEmissiveLevel.value;
+  const levelU = {
+    get value() { return level; },
+    set value(v) { level = v; for (const g of st.glows) setGlow(g, color.value, v); },
+  };
+  for (const m of st.materials) { m.uniforms.uEmissive = color; m.uniforms.uEmissiveLevel = levelU; }
 }
 
 /** exploded vertices travel up to |_explode|: grow the bounds so frustum culling never drops them */

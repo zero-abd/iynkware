@@ -2,11 +2,13 @@
 /* Screenshots of the viewer, headless: starts viewer/serve.mjs on a free port, opens the viewer per item in Chromium
    (Playwright from the repo root; WebGL through SwiftShader) and writes out/shots/<dir>__<id>.png.
 
-     node viewer/shoot.mjs [items...] [--variants] [--size 1200x900] [--param k=v ...] [--out <dir>]
+     node viewer/shoot.mjs [items...] [--variants] [--size 1200x900] [--param k=v ...] [--suffix s] [--out <dir>]
 
    items: '<dir>/<id>' ids; none = every item in out/index.json (else samples/index.json, else the built-in fixture).
    --variants also writes <dir>__<id>__x.png (explode 0.6, see-through 1, LEDs lit). --param adds viewer URL
-   parameters to every shot (yaw=30, ortho=1, lines=gl ...). Exits 1 if a page reports an error or never draws. */
+   parameters to every shot (yaw=30, ortho=1, lines=gl ...); --suffix adds __<s> to the file names (a close-up:
+   --param scale=3 --param dist=0.5 --param fov=45 --param focus=led:L --suffix arm).
+   Exits 1 if a page reports an error or never draws. */
 import { mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,13 +51,14 @@ async function launch(chromium) {
 }
 
 const args = process.argv.slice(2);
-const opt = { variants: false, size: [1200, 900], params: [], out: join(TOOL, 'out', 'shots'), items: [] };
+const opt = { variants: false, size: [1200, 900], params: [], out: join(TOOL, 'out', 'shots'), items: [], suffix: '' };
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--variants') opt.variants = true;
   else if (a === '--size') { const [w, h] = args[++i].split('x').map(Number); opt.size = [w, h]; }
   else if (a === '--param') opt.params.push(args[++i]);
   else if (a === '--out') opt.out = resolve(args[++i]);
+  else if (a === '--suffix') opt.suffix = '__' + args[++i];
   else if (a.startsWith('--')) { console.error('unknown option ' + a); process.exit(2); }
   else opt.items.push(a.replace(/\.js$/, ''));
 }
@@ -89,7 +92,7 @@ for (const id of opt.items) {
     for (const p of opt.params) { const [k, v = '1'] = p.split('='); q.set(k, v); }
     const url = `http://127.0.0.1:${port}/viewer/?${q.toString().replace(/%2F/g, '/')}`;
     logs.length = 0;
-    const file = join(opt.out, id.replace(/\//g, '__') + suffix + '.png');
+    const file = join(opt.out, id.replace(/\//g, '__') + opt.suffix + suffix + '.png');
     try {
       await page.goto(url, { waitUntil: 'load' });
       await page.waitForFunction(() => document.documentElement.dataset.ready === '1' || !!document.documentElement.dataset.errors, null, { timeout: 120000 });
