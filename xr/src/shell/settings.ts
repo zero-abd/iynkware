@@ -34,6 +34,18 @@ export function initialLang(): Lang {
   return 'en';
 }
 
+/**
+ * Keeps a chosen language across reloads in the 2D site's own cookie (same name, same meaning), so once the two apps
+ * share an origin a choice in one is the choice in the other. A year, the whole origin, never sent cross-site.
+ */
+export function writeLangCookie(l: Lang): void {
+  try {
+    if (globalThis.document) globalThis.document.cookie = `iynk-lang=${l}; path=/; max-age=31536000; SameSite=Lax`;
+  } catch {
+    /* cookies blocked: the language lasts for this page only */
+  }
+}
+
 export function createSettingsStore(): SettingsStore {
   const saved = read(XR_KEY) as Partial<XrSettings> | null;
   const xr = value<XrSettings>({ ...DEFAULT_XR_SETTINGS, ...(saved ?? {}) });
@@ -45,7 +57,11 @@ export function createSettingsStore(): SettingsStore {
     lang,
     xr,
     shared,
-    setLang: (l) => lang.set(l),
+    setLang(l) {
+      if (!isLang(l)) return;
+      lang.set(l);
+      writeLangCookie(l);
+    },
     setXr(patch) {
       xr.set({ ...xr.value, ...patch });
       try {

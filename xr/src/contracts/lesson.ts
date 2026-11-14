@@ -56,5 +56,7 @@ export interface LessonGuide {
 export interface ProgressStore {
   isDone(key: string): boolean;
   markDone(key: string): void;
+  /** Forgets every lesson's progress here (the `done`, `quiz` and `best` maps) and keeps the 2D site's settings. */
+  reset(): void;
   subscribe(fn: () => void): Unsubscribe;
 }
