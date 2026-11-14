@@ -49,6 +49,8 @@ import frInspect from '@/i18n/messages/fr/studioInspect.json';
 import hiInspect from '@/i18n/messages/hi/studioInspect.json';
 import zhInspect from '@/i18n/messages/zh/studioInspect.json';
 import type { Lang } from '../../contracts/common';
+import { checkFit } from './fit';
+import type { Fit } from './fit';
 import { format } from './text';
 
 export type { IdSource, StaticFlag, WireEndRef };
@@ -74,6 +76,10 @@ export type ActionReason =
   | 'bad-rotation'
   /** Not one of the ten project colours. */
   | 'bad-color'
+  /** Seating at a fit: a leg's hole holds another part's leg (`args`: pin, hole, holder). */
+  | 'hole-taken'
+  /** Seating at a fit: a leg lands on no hole (`args`: pin). */
+  | 'off-grid'
   /** The arguments are missing or of the wrong shape (an assistant's call). */
   | 'bad-args';
 
@@ -288,6 +294,65 @@ export function movePart(doc: Project, args: MovePartArgs, env: ActionEnv = {}):
   return done(ops, label, { seated: false, unseated: placement.legs !== undefined });
 }
 
+export type SeatPartArgs = {
+  /** An existing part to seat (moved or turned into the fit)... */
+  part?: string;
+  /** ...or a new part by its definition ref. */
+  ref?: string;
+  /** Its first leg's hole and its rotation: what the ghost showed (`GhostState.fit`). */
+  fit: Pick<Fit, 'anchorHole' | 'rotation'>;
+};
+export type Seated = { id: string; refdes: string; legs: Readonly<Record<string, string>> };
+
+const ROTATIONS: readonly number[] = [0, 90, 180, 270];
+
+/**
+ * Seats a part exactly at a fit the ghost showed, never at a neighbour: iynk's `seatOnSurface` must put the first leg
+ * in `fit.anchorHole` at `fit.rotation` (as `turnSeated` checks), else the first failing leg is the refusal
+ * (`hole-taken`, `same-strip` or `off-grid`). An existing part moves there with its legs (`legRecipe`); a new one is
+ * added as `placeBatch` adds it, then placed in the fit.
+ */
+export function seatPart(doc: Project, args: SeatPartArgs, env: ActionEnv = {}): ActionResult<Seated> {
+  const b = benchOf(doc, env);
+  if (isRefusal(b)) return b;
+  const fit = args?.fit;
+  if ((args.part === undefined) === (args.ref === undefined) || typeof fit?.anchorHole !== 'string' || !ROTATIONS.includes(fit.rotation)) {
+    return refuse('bad-args', { part: String(args?.part ?? args?.ref) });
+  }
+  const placement = args.part === undefined ? undefined : placementOf(b, args.part);
+  if (placement && isRefusal(placement)) return placement;
+  if (args.ref !== undefined && !b.registry.latest(args.ref)) return refuse('unknown-definition', { ref: args.ref });
+  const check = checkFit(b.state, { ref: args.ref, part: args.part, anchorHole: fit.anchorHole, rotation: fit.rotation }, b.registry);
+  if (!check) return refuse('bad-args', { part: String(args.part ?? args.ref) });
+  if (!check.ok) {
+    const { problem } = check;
+    if (problem.state === 'taken') return refuse('hole-taken', { pin: problem.pin, hole: problem.hole ?? '', holder: problem.holderRefdes ?? '' });
+    if (problem.state === 'same-strip') return refuse('same-strip', { a: problem.withHole ?? problem.hole ?? '', b: problem.hole ?? '' });
+    return refuse('off-grid', { pin: problem.pin });
+  }
+  const seat = check.fit;
+  if (placement) {
+    // a part in holes is drawn where its legs are, so the same legs at the same rotation is the same seat
+    const sameLegs = Object.keys(seat.legs).length === Object.keys(placement.legs ?? {}).length && Object.entries(seat.legs).every(([pin, h]) => placement.legs?.[pin] === h);
+    if (sameLegs && norm360(placement.rotation_deg ?? 0) === seat.rotation) return refuse('unchanged', { part: placement.c });
+    const next: Placement = { ...placement, x_mm: seat.x_mm, y_mm: seat.y_mm, legs: { ...seat.legs } };
+    if (seat.rotation !== 0 || placement.rotation_deg !== undefined) next.rotation_deg = seat.rotation;
+    const ops: Op[] = [{ k: 'view.place', view: b.view.id, placement: next }, ...legRecipe(b.state, b.view.id, placement.c, { ...seat.legs }, b.ids)];
+    const refdes = refdesOf(b.state, placement.c);
+    return done(ops, `Move ${refdes}`, { id: placement.c, refdes, legs: seat.legs });
+  }
+  // a new part: added exactly as placeBatch adds it, then put in the fit instead of where placeBatch would put it
+  const surfaceAt = b.view.placements.find((p) => p.c === b.view.surface)!;
+  const surfaceRef = b.state.components.find((c) => c.id === b.view.surface)!.definition.ref;
+  const hole = b.ctx.resolve(surfaceRef).pins.find((p) => p.id === seat.anchorHole)!;
+  const placed = placeBatch(b.ctx, { registry: b.registry, session: NO_SESSION, ids: b.ids }, args.ref!, { x: surfaceAt.x_mm + hole.xMm, y: surfaceAt.y_mm + hole.yMm });
+  if ('refused' in placed) return refuse(placed.refused, { ref: args.ref! });
+  const head = placed.batch.slice(0, placed.batch.findIndex((op) => op.k === 'view.place'));
+  const seated: Placement = { c: placed.id, x_mm: seat.x_mm, y_mm: seat.y_mm, rotation_deg: seat.rotation, legs: { ...seat.legs } };
+  const ops: Op[] = [...head, { k: 'view.place', view: b.view.id, placement: seated }, ...legRecipe(b.state, b.view.id, placed.id, { ...seat.legs }, b.ids)];
+  return done(ops, placed.label, { id: placed.id, refdes: placed.refdes, legs: seat.legs });
+}
+
 export type PullPartArgs = { part: string };
 
 /** Pulls a seated part out of its holes: it lies loose where it is drawn and its legs let go of their strips (`legRecipe`). */
@@ -480,6 +545,7 @@ export function removeWire(doc: Project, args: WireArgs, env: ActionEnv = {}): A
 
 const BUILD_ACTIONS = {
   placePart,
+  seatPart,
   movePart,
   pullPart,
   turnPart,
@@ -508,6 +574,7 @@ const POINT = '{ x_mm, y_mm } in the breadboard view, document millimetres';
 /** Every build action, for an assistant to list. Each one returns `{ ok: true, ops, label }` or `{ ok: false, reason, args }`. */
 export const ACTIONS: readonly ActionSpec[] = [
   { name: 'placePart', args: { ref: 'part definition ref, like core.led-5mm', at: `${POINT}: where its first leg goes` }, does: 'Adds a new part: it seats in the breadboard holes under its first leg, or lies loose with its middle at the point.' },
+  { name: 'seatPart', args: { 'part?': 'id of a part to seat', 'ref?': 'or a new part by definition ref', fit: "{ anchorHole: hole name like 'c14' for its first leg, rotation: 0, 90, 180 or 270 }" }, does: 'Seats a part with its first leg in the given hole at the given rotation, or says which leg cannot go there.' },
   { name: 'movePart', args: { part: 'part or board id', to: `${POINT}: its new top left corner`, 'seat?': 'false to lay it loose even over holes' }, does: 'Moves a part: a part with legs seats where its first leg lands or lies loose, a board just moves.' },
   { name: 'pullPart', args: { part: 'id of a part seated in holes' }, does: 'Pulls a part out of its holes so it lies loose where it is.' },
   { name: 'turnPart', args: { part: 'part or board id', 'deg?': 'rotation to end at: a multiple of 90 for a part, of 15 for a board', 'step?': '1 or -1: one step from where it is' }, does: 'Turns a part by quarter turns about its first leg, or a board in 15 degree steps.' },
