@@ -78,10 +78,10 @@ Code never edits a folder another open issue owns; it uses the other pillar's se
  buildSimNetlist + programOf (render thread)
         |  postMessage SimReq (load, run, pause, step, stop, speed, input, analog.watch)
         v
- sim worker: createSimHandler (interp engine, digital nets, analog solver, fault rules)
-        |  SimEv frames: change driven, at most 30 per sim second, heartbeat every 250 ms
+ sim worker: createSimHandler (interp engine, digital nets, analog solver, fault rules; rapier for a robot)
+        |  SimEv frames: change driven, at most 30 per sim second, heartbeat every 250 ms; mech_frame 30 per sim second
         v
- SimBridge.onFrame(SimFrame {atNs, pins, parts, serial})
+ SimBridge.onFrame(SimFrame {atNs, pins, parts, serial}), onMech(PhysicsFrame {atNs, bodies}), onMechState
         |  run module: PartViewRegistry.create(ctx) per placed part
         v
  PartView.update(PartState) -> channel nodes (LED emissive, servo horn ...) on the placed meshes
@@ -98,7 +98,7 @@ pillar's implementation.
 | File | What it fixes | Implementation today |
 |---|---|---|
 | [common.ts](../xr/src/contracts/common.ts) | `Vec3`, `Unsubscribe`, `ReadonlyValue`, the six languages, `pickText` | |
-| [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch, meter; `SimFrame`, `RunState` | `xr/src/sim/bridge.ts` |
+| [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch, meter, robot physics (`lastMech`, `onMech`, `onMechState`); `SimFrame`, `RunState`, `PhysicsFrame`, `MechStatus` | `xr/src/sim/bridge.ts` |
 | [project.ts](../xr/src/contracts/project.ts) | `ProjectStore` (ops, undo, redo, subscribe), `Selection`, `TemplateSource`, `ProjectRepository` | `xr/src/project/store.ts` |
 | [assets.ts](../xr/src/contracts/assets.ts) | `AssetRegistry`, `PartAsset` with the pipeline's sidecar (imported from `tools/xr-assets/schema/xr-asset.ts`) and `footprint` | `xr/src/assets/registry.ts` |
 | [space.ts](../xr/src/contracts/space.ts) | `BenchSpace`: bench pose and scale, document mm to board frame to world, `worldOf(target)`, `objectOf`, `onLayout` | `xr/src/bench/space.ts` |
@@ -192,7 +192,7 @@ Ported (rewritten in `xr/`, because the iynk file pulls in the browser app or th
 
 | xr file | Ported from | Why |
 |---|---|---|
-| `xr/src/sim/sim.worker.ts`, `handler-deps.ts` | iynk's sim worker | iynk's worker also loads the AVR, RP2040 and physics engines; the skeleton runs the interpreter only |
+| `xr/src/sim/sim.worker.ts`, `handler-deps.ts` | iynk's sim worker | iynk's worker also loads the AVR and RP2040 engines; the headset runs the interpreter, and for a robot project (`needsPhysics`) rapier from its own lazy chunk (the npm compat build, wasm inline) instead of iynk's manifest download |
 | `xr/src/sim/bridge.ts` (`programOf`) | `src/studio/simLink.ts`, `src/sim-host/host.ts` | `host.ts` creates its worker with `new URL(...)`, which would bundle the Next worker; `simLink.ts` pulls IndexedDB |
 | `xr/src/learn/progress.ts` | `src/lib/progress/storage.ts` | same `localStorage["iynk:v1"]` record, read-modify-write; no IndexedDB mirror yet |
 | `xr/src/shell/settings.ts` | iynk's settings and language pick | language from `?lang=`, the `iynk-lang` cookie, then the browser; XR settings in `localStorage["iynk:xr:v1"]` |
@@ -212,7 +212,7 @@ Everything below runs from `xr/` with Node 24.
 cd xr && npm ci
 npm run dev:http            # http://localhost:8081/ with the IWER emulator injected; strictPort
 npm run typecheck           # tsc --noEmit
-npx vitest run < /dev/null  # sim bridge (Uno Blink toggles every 500 ms), assets, input
+npx vitest run < /dev/null  # sim bridge (Uno Blink toggles every 500 ms, drive-base drives), assets, input
 npm run build               # static site in xr/dist (base './', so it works at any path)
 ```
 
