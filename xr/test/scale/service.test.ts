@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Group } from '@iwsdk/core';
 import type { XrMode } from '../../src/contracts/app';
 import { createScaleService, nearestStep, scaleInternals, stepFrom, WORK_SCALE_STEPS } from '../../src/scale/service';
+import { createShellService } from '../../src/shell/service';
 import { createSettingsStore } from '../../src/shell/settings';
 import { value } from '../../src/ui/value';
 
@@ -10,8 +11,9 @@ function make(mode: XrMode = 'mr') {
   const settings = createSettingsStore();
   const m = value<XrMode>(mode);
   const root = new Group();
-  const scale = createScaleService({ bench: { root }, settings, mode: m });
-  return { scale, settings, mode: m, root };
+  const shell = createShellService();
+  const scale = createScaleService({ bench: { root }, settings, mode: m, shell });
+  return { scale, settings, mode: m, root, shell };
 }
 
 describe('work-scale steps', () => {
@@ -51,8 +53,22 @@ describe('work-scale steps', () => {
 });
 
 describe('view and stage', () => {
+  it('enters Room size only once the room place is offered', () => {
+    const { scale, shell } = make();
+    scale.enterRoom();
+    expect(scale.view.value).toBe('bench');
+    shell.offer('room', 'scale');
+    scale.enterRoom();
+    expect(shell.place.value).toBe('room');
+    expect(scale.view.value).toBe('room');
+    shell.offer('range', 'range');
+    shell.go('range');
+    expect(scale.view.value).toBe('bench');
+  });
+
   it('enters and leaves Room size, but not while a fade runs', () => {
-    const { scale, root } = make();
+    const { scale, root, shell } = make();
+    shell.offer('room', 'scale');
     expect(scale.view.value).toBe('bench');
     expect(scale.stage.value).toEqual({ kind: 'bench', root });
     scale.enterRoom();

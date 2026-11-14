@@ -8,6 +8,7 @@ import type { XrMode } from '../contracts/app';
 import type { ReadonlyValue } from '../contracts/common';
 import type { LensSetting, RoomKind, ScaleService, ScaleStage } from '../contracts/scale';
 import type { SettingsStore } from '../contracts/settings';
+import type { ShellService } from '../contracts/shell';
 import type { BenchSpace } from '../contracts/space';
 import { value } from '../ui/value';
 
@@ -56,12 +57,16 @@ export interface ScaleServiceOptions {
   bench: Pick<BenchSpace, 'root'>;
   settings: SettingsStore;
   mode: ReadonlyValue<XrMode>;
+  /** Room size is the shell's `room` place: the view follows `place`, and the intents go through `go`. */
+  shell: Pick<ShellService, 'place' | 'go'>;
 }
 
 export function createScaleService(opts: ScaleServiceOptions): ScaleService {
-  const { settings, mode } = opts;
+  const { settings, mode, shell } = opts;
   const workScale = value(nearestStep(settings.xr.value.benchScale));
-  const view = value<'bench' | 'room'>('bench');
+  const viewOf = (): 'bench' | 'room' => (shell.place.value === 'room' ? 'room' : 'bench');
+  const view = value<'bench' | 'room'>(viewOf());
+  shell.place.subscribe(() => view.set(viewOf()));
   const fading = value(false);
   const stage = value<ScaleStage>({ kind: 'bench', root: opts.bench.root });
   const seeThrough = value<LensSetting>({ amount: 0, part: null });
@@ -93,10 +98,10 @@ export function createScaleService(opts: ScaleServiceOptions): ScaleService {
     fading,
     stage,
     enterRoom() {
-      if (!fading.value) view.set('room');
+      if (!fading.value && shell.place.value !== 'room') shell.go('room');
     },
     leaveRoom() {
-      if (!fading.value) view.set('bench');
+      if (!fading.value && shell.place.value === 'room') shell.go('bench');
     },
     seeThrough,
     setSeeThrough: (amount, part) => seeThrough.set(lens(seeThrough.value, amount, part)),

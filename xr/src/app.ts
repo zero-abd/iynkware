@@ -37,6 +37,7 @@ export function createApp(world: World, doc: Project): AppHandle {
   const overlay = createOverlay(bench, bench.table);
   const mode = value<XrMode>('flat');
   const guide = value<LessonGuide | null>(null);
+  const shell = createShellService();
   const app: XrApp = {
     world,
     mode,
@@ -49,10 +50,10 @@ export function createApp(world: World, doc: Project): AppHandle {
     views: createPartViewRegistry(),
     overlay,
     settings,
-    shell: createShellService(),
+    shell,
     progress: createProgressStore(),
     guide,
-    scale: createScaleService({ bench, settings, mode }),
+    scale: createScaleService({ bench, settings, mode, shell }),
     partner: null,
   };
   const teardowns: Array<() => void> = [];

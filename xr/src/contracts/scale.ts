@@ -41,13 +41,18 @@ export interface ScaleService {
   /** One step up or down; stays at the ends. */
   stepWorkScale(delta: 1 | -1): void;
 
-  /** `bench`, or `room` (Room size). It changes by a fade only, never by growth. */
+  /**
+   * `room` while the shell's place is `room` (Room size), else `bench`. It changes by a fade only, never by growth;
+   * the scale pillar offers the `room` place and fades on `ShellService.place`.
+   */
   readonly view: ReadonlyValue<'bench' | 'room'>;
   /** True while the view or the room is fading from one to the other; view requests made meanwhile are ignored. */
   readonly fading: ReadonlyValue<boolean>;
   /** The stage the board is drawn on now. */
   readonly stage: ReadonlyValue<ScaleStage>;
+  /** `shell.go('room')`: Room size, by a fade. Ignored while fading, or while nothing offers the room place. */
   enterRoom(): void;
+  /** Back to the bench (`shell.go('bench')`) from Room size, by a fade. */
   leaveRoom(): void;
 
   /** See-through (design 8.1): `cover` layers fade to 0.28 and `xray` layers fade in, as the asset sidecars give. */
