@@ -1,0 +1,25 @@
+// The iynkware headset app on Cloudflare Workers static assets. docs/XR_DEPLOY.md.
+//
+// Deploy with `npm run deploy -- <build dir>` from this folder, not with a bare `wrangler deploy`. deploy.mjs copies
+// the build into a staging folder outside the repo, adds _headers and .assetsignore from here, and runs Wrangler
+// against a copy of this file whose assets.directory points at that staging folder. A bare `wrangler deploy` here
+// would upload ../../xr/dist without the WebXR headers.
+{
+  "name": "iynkware-xr",
+  "compatibility_date": "2026-11-13",
+  // Runs only for a non-navigation request that matches no file, and answers 404 (see the file). Every other
+  // request is a static asset response, which costs no Worker invocation.
+  "main": "./not-found.js",
+  // https://iynkware-xr.<account subdomain>.workers.dev
+  "workers_dev": true,
+  // Version and Preview URLs on workers.dev, for `npm run preview` (one Preview per git branch).
+  "preview_urls": true,
+  "assets": {
+    // The default build folder; deploy.mjs replaces it with the staged copy of whichever folder it was given.
+    "directory": "../../xr/dist",
+    // A path with no file behind it gets /index.html with 200, so client side routes survive a reload.
+    "not_found_handling": "single-page-application"
+  },
+  // Previews use the top-level assets and compatibility date; nothing else needs a Preview value.
+  "previews": {}
+}

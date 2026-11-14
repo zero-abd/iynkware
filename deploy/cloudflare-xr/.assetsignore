@@ -1,0 +1,7 @@
+# Files Wrangler leaves out of the upload (gitignore syntax). deploy.mjs copies this file into the staged build.
+# Source maps: the URL is public and the repo is private, so a map would publish the source.
+*.map
+.DS_Store
+# Agent notes that build tools copy from public/ (IWSDK scaffolds put an AGENTS.md in ui/ and scenes/).
+AGENTS.md
+CLAUDE.md

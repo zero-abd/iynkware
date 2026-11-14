@@ -69,7 +69,8 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   headset UI. The architecture, folder layout and contract list land in `docs/XR_ARCHITECTURE.md` with the foundation
   PR.
 - A headset test setup (Meta Horizon CLI, desktop emulator): documented in the same file when the foundation lands.
-- Hosting or a deploy for iynkware: not set up, not decided.
+- Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
+  command ([XR_DEPLOY.md](XR_DEPLOY.md)); on 2026-11-14 it served a throwaway spike, not a build of `xr/`.
 - Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
   removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
   repos, not CI.

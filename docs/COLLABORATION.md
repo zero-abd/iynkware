@@ -232,6 +232,8 @@ other command.
 - WebXR needs a secure context. `http://localhost` is one; a LAN address over plain http is not. So the headset either
   opens localhost forwarded over USB to your dev port, or an HTTPS address. `next dev --experimental-https` serves a
   self signed certificate; whether the Quest browser accepts it has not been tried.
+- For a cable-free HTTPS address, deploy the static headset build to Cloudflare: `npm run deploy` or, per branch,
+  `npm run preview` in `deploy/cloudflare-xr/` ([XR_DEPLOY.md](XR_DEPLOY.md)). The URL is public.
 - The USB setup with the Meta Horizon CLI and the recipe for a desktop emulator will be in `docs/XR_ARCHITECTURE.md`
   when the foundation lands.
 - Today every page sends a Permissions-Policy that refuses `xr-spatial-tracking` and `microphone` (`next.config.ts`,

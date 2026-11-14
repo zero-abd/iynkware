@@ -1,0 +1,18 @@
+# Response headers for the iynkware-xr Worker (Workers static assets). deploy.mjs copies this file into the root of
+# the staged build, where Cloudflare reads it; it is not served. Rules apply in file order, and every matching rule
+# applies, so the /assets/* rule detaches Cache-Control before setting its own. Why each header: docs/XR_DEPLOY.md.
+
+/*
+  Permissions-Policy: xr-spatial-tracking=(self), microphone=(self), camera=(), geolocation=(), serial=(), usb=(), hid=(), bluetooth=(), midi=(), payment=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), browsing-topics=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' blob: data:; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex
+  Cache-Control: no-cache
+
+/assets/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
