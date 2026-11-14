@@ -1,12 +1,11 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const script = join(root, 'scripts/ci-local.sh');
-const workflowPath = join(root, '.github/workflows/ci.yml');
 
 const STEPS = ['content', 'schema', 'typecheck', 'lint', 'ui', 'no-only', 'copy', 'provenance', 'unit', 'perf', 'server', 'build', 'e2e', 'secrets', 'audit'];
 
@@ -42,25 +41,5 @@ describe('scripts/ci-local.sh', () => {
     } finally {
       rmSync(fixture, { force: true });
     }
-  });
-});
-
-describe('.github/workflows/ci.yml', () => {
-  const text = readFileSync(workflowPath, 'utf8');
-
-  it('runs the script and needs no secret or write access', () => {
-    expect(text).toContain('scripts/ci-local.sh');
-    expect(text).not.toContain('secrets.');
-    expect(text).not.toContain('write');
-  });
-
-  it('parses as YAML', () => {
-    const json = execFileSync('python3', ['-I', '-c', 'import sys, json, yaml; print(json.dumps(yaml.safe_load(sys.stdin)))'], {
-      input: text,
-      encoding: 'utf8',
-    });
-    const workflow = JSON.parse(json);
-    expect(workflow.permissions).toEqual({ contents: 'read' });
-    expect(workflow.jobs.check['timeout-minutes']).toBe(90);
   });
 });

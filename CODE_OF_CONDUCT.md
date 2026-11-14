@@ -1,7 +1,7 @@
 # Code of Conduct
 
-iynk is a place to learn how electronics, robots and drones work. Everyone who takes part, in issues, pull requests
-and discussions, is expected to keep it friendly and useful.
+iynkware, like iynk, is a place to learn how electronics, robots and drones work. Everyone who takes part, in issues,
+pull requests and discussions, is expected to keep it friendly and useful.
 
 ## What we expect
 

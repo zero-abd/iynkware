@@ -1,7 +1,16 @@
-# Contributing to iynk
+# Contributing to iynkware
 
-Thanks for wanting to help. This page covers how to run the app and the tests, and how to add a string, a lesson or a
-part.
+iynkware is a private repository. Four people work in it at once, each with a fleet of coding agents, so the process
+is written down and everyone keeps it. Read these first:
+
+- [AGENTS.md](AGENTS.md): the entry point, the hard rules and the loop from issue to merged PR.
+- [docs/COLLABORATION.md](docs/COLLABORATION.md): access and setup (with the clone address), claiming an issue,
+  branches and worktrees, ports, the checks every PR runs, commits and PRs.
+- [docs/STATE.md](docs/STATE.md): what exists today and what does not.
+
+This page keeps the how-tos for the 2D app inherited from iynk: the test commands, adding a string in six languages,
+and adding a board, a lesson or a part. The headset app's own guides will be in `docs/XR_ARCHITECTURE.md`,
+`docs/XR_ASSETS.md` and `docs/XR_DEPLOY.md`.
 
 ## Docs
 
@@ -15,21 +24,10 @@ part.
 - [docs/LOW_END_TESTING.md](docs/LOW_END_TESTING.md): testing on slow devices
 - [docs/PROVENANCE.md](docs/PROVENANCE.md): where the content came from
 
-## Set up
-
-You need the Node version in `.nvmrc` (24) and Python 3 (the figure tests run the figure builder).
-
-```bash
-git clone https://github.com/kushwahaamar-dev/iynk.git
-cd iynk
-npm ci
-npm run dev
-```
-
-The app runs without any key. AI and search are off until a key is pasted in Settings, so you never need a
-`.env.local` value to work on iynk.
-
 ## Run the checks
+
+The set every PR runs, and when the full gate is required instead, are in section 6 of
+[docs/COLLABORATION.md](docs/COLLABORATION.md). The single commands behind them:
 
 ```bash
 npm run content:check        # every board, robotics and drone item loads and its text keys exist
@@ -38,7 +36,7 @@ npm run lint
 npm test                     # unit tests (vitest)
 npm run test:perf            # timing budgets, one file at a time
 npm run check                # all of the above plus the Playwright specs
-bash scripts/ci-local.sh     # what CI runs, step by step; --list shows the steps, --only a,b picks some
+bash scripts/ci-local.sh     # the local gate, step by step; --list shows the steps, --only a,b picks some
 ```
 
 A test that asserts a wall-clock budget under one second lives in a `*.perf.test.ts` file next to the code it
@@ -47,9 +45,9 @@ the code; `npm run test:perf` runs them one file at a time. The Playwright save 
 the same way: it has its own `perf` project that waits for all the others.
 
 Write the budget in a perf test with `budgetMs()` from `src/core/perf.testing.ts`, set to what it should be on the
-reference machine (a quiet 14-CPU arm64 Mac). On another machine `budgetMs()` scales it by a calibration run and adds a
-2x margin, so there a budget catches a gross regression, not a small one. Never raise a budget to make a run pass: a
-timing test that fails on a quiet machine is a real failure.
+reference machine (iynk's: a quiet 14-CPU arm64 Mac). On another machine `budgetMs()` scales it by a calibration run
+and adds a 2x margin, so there a budget catches a gross regression, not a small one. Never raise a budget to make a run
+pass: a timing test that fails on a quiet machine is a real failure.
 
 `scripts/ci-local.sh` blanks the variables that switch a real service on. If you run Playwright or `next build` by
 hand, do the same:
@@ -65,7 +63,7 @@ English file defines the keys. Add the key to the English file, then add the sam
 to the other five. Change copy in all six files in one commit.
 
 ```bash
-npx vitest run src/i18n
+npx vitest run src/i18n < /dev/null
 ```
 
 The parity test fails if a language misses a key or drops a placeholder. Lesson and part prose is separate: it lives in
@@ -82,17 +80,16 @@ The parity test fails if a language misses a key or drops a placeholder. Lesson 
 4. Add a fact sheet at `docs/facts/<id>.md` with the sources for every number you used.
 5. Run `npm run content:check` and `npm test`.
 
-Don't see the part you want? Open an issue with the "Request a part" template.
+Want a part that is not there? Open an issue with the "Request a part" template.
 
 ## Rules
 
 - Do not edit `public/figures` by hand. Those pages are build output from `figures/`; change the source and rebuild.
 - Do not put a key, a token or a `.env.local` value in a pull request, an issue or a test. Tests that need one use
   the fixed strings the existing tests use.
-- Keep a pull request to one change, and say how you checked it.
-- Commit messages are a short line in the imperative, for example `Add the Nano lesson on PWM`.
+- The rest (one change per PR, commit messages, what a PR description holds) is in docs/COLLABORATION.md.
 
 ## Conduct and security
 
 Please read the [Code of Conduct](CODE_OF_CONDUCT.md). To report a security problem, follow [SECURITY.md](SECURITY.md)
-and do not open a public issue.
+and do not open an issue: every collaborator can read those.

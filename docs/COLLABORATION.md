@@ -9,7 +9,7 @@ their work does not collide. The short version is [AGENTS.md](../AGENTS.md); wha
 
 - The repo `zero-abd/iynkware` is private. zero-abd adds each person as a collaborator with write access; accept the
   invitation at https://github.com/zero-abd/iynkware/invitations.
-- Clone it. README.md and CONTRIBUTING.md still show iynk's clone address; use this one:
+- Clone it:
 
   ```bash
   git clone https://github.com/zero-abd/iynkware.git
@@ -165,8 +165,16 @@ IYNK_PORT=$((22000 + N))
 ## 6. Checks before a PR is marked ready
 
 There is no hosted CI. GitHub Actions is not used for checks (no paid CI), so checks run on your machine and the PR
-body is the record. The workflow files inherited from iynk in `.github/workflows/` are not a gate: do not wait for
-their runs, and do not fix them in a feature PR.
+body is the record. iynk kept Actions off on purpose and ran its checks locally; this repo does the same.
+
+- The two workflows inherited from iynk were removed on 2026-11-14 (PR #5): `ci.yml` ran the full gate on every push
+  and PR, `perf-editor.yml` ran the editor budgets nightly. Every run here ended in `startup_failure` before a job was
+  created. The same `ci.yml` did create jobs in iynk, which points at the account rather than the file, so no edit to
+  the file was likely to fix it. Run as written, `ci.yml` would spend up to 90 runner minutes on every push, and on a
+  private repo those minutes count against the account's Actions allowance.
+- `action.yml` at the root stays. It is not CI: it is the "iynk check" Action other repos call to check project files
+  ([CLI.md](CLI.md)), and `src/cli/cli.test.ts` tests it.
+- Do not add a workflow without asking zero-abd first.
 
 **Every PR** runs this fast set (about half a minute on the owner's machine on 2026-11-14):
 

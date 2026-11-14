@@ -1,17 +1,18 @@
 # Licence: not chosen yet
 
-Right now no licence has been chosen for iynk. Amar decides which one, and when.
+No licence has been chosen for iynk, and none for iynkware, which starts from a copy of iynk's code (2026-11-14).
+iynk's licence is Amar's to choose. What licence iynkware gets, and whether it follows iynk's, is open; it is listed
+for zero-abd in `docs/STATE.md`.
 
-Until he does:
+Until then:
 
-- The source code is published for reading. No licence file grants you any right to copy, change, run for others or
-  redistribute it. You have only what the hosting terms of the site that serves the repository allow, such as viewing
-  and forking there.
+- This repository is private: only its collaborators can read it. No licence file grants anyone the right to copy,
+  change, run for others or redistribute the code.
 - No source file carries an SPDX header or a copyright line that names a licence. Anything that looks like one is a
   mistake; please open an issue.
 - Third-party code keeps its own licence. Colorfigures is MIT, and its text sits at `figures/vendor/colorfigures/LICENSE`.
-  The licences of the npm packages iynk depends on are reproduced in `NOTICE`.
+  The licences of the npm packages the code depends on are reproduced in `NOTICE`.
 - Where lesson text, timings and calculator constants came from is recorded in `docs/PROVENANCE.md`. Some of those rows
   are still open, and a licence cannot be chosen honestly before they are settled. `npm run provenance:check` lists them.
 
-When Amar picks a licence this file is replaced by a `LICENSE` file and the headers follow in one commit.
+When a licence is chosen, this file is replaced by a `LICENSE` file and the headers follow in one commit.

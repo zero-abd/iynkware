@@ -103,7 +103,8 @@ The inputs reach the shell as environment variables, never spliced into the scri
 the patterns as written. The step fails when `iynk check` exits with 1. `src/cli/cli.test.ts` runs the action's Check step
 from `action.yml` on a passing and a failing project.
 
-This repo's own CI does not use the action: it already runs the content tests on every starter.
+This repo's own checks (`scripts/ci-local.sh`; there is no hosted CI) do not use the action: they already run the
+content tests on every starter.
 
 ## Speed
 

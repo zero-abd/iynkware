@@ -10,8 +10,11 @@ history: the first commit on `main` holds that code. Commit hashes in [HANDOFF.m
 `docs/MASTER_PLAN/` are iynk's and do not exist here. Fixes from iynk come over by hand as ordinary PRs; nothing is
 pushed to iynk.
 
-README.md and CONTRIBUTING.md still describe iynk (its name and its clone address). The package name in package.json
-is still `iynk`.
+README.md, CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md and LICENSE-PENDING.md describe iynkware and give this
+repo's clone address (PR #5). What still says iynk: the package names (`iynk` in package.json, `iynk-server` in
+`server/package.json`), the 2D app's own UI and copy (its name, and `iynk.tech` in the `shell` and `together` messages),
+the `iynk` command line and the "iynk check" Action in `action.yml`. HANDOFF.md and `docs/MASTER_PLAN/` are iynk's
+history and stay as they are.
 
 ## What was inherited
 
@@ -67,7 +70,9 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   PR.
 - A headset test setup (Meta Horizon CLI, desktop emulator): documented in the same file when the foundation lands.
 - Hosting or a deploy for iynkware: not set up, not decided.
-- Hosted CI: none. The workflow files in `.github/workflows/` came from iynk and are not a gate.
+- Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
+  removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
+  repos, not CI.
 
 ## Open items that matter here
 
@@ -77,9 +82,10 @@ From HANDOFF.md section 9, plus what the headset work changes.
 |---|---|
 | Permissions-Policy | `next.config.ts` sends `xr-spatial-tracking=()`, `microphone=()`, `accelerometer=()`, `gyroscope=()` and `magnetometer=()` on every page, so WebXR and voice input are refused. `e2e/headers.spec.ts` asserts the exact header; change both in one PR. |
 | Content Security Policy | `src/lib/csp.ts` allows `connect-src 'self'` plus the configured origins, `worker-src 'self'` (no blob workers) and `img-src 'self' data: blob:`; wasm is allowed. Anything the XR code fetches from another origin, or runs as a blob worker, is refused until the policy changes. Script elements keep `'unsafe-inline'` (reasons in HANDOFF.md section 9). |
-| Licence | Not chosen (`LICENSE-PENDING.md`); say "free". Provenance rows P-01 to P-06 must be settled first. |
+| Licence | Not chosen for iynk or iynkware (`LICENSE-PENDING.md`); say "free". iynk's is Amar's to choose; what iynkware gets, and whether it follows iynk's, needs zero-abd. Provenance rows P-01 to P-06 must be settled first. |
+| Names and contacts | Need zero-abd: whether the package names, the 2D app's UI name and its `iynk.tech` copy change; the private channel SECURITY.md sends reports to (it says only "zero-abd, privately"). |
 | Translations | The de, es, fr, hi and zh copy has not been read by native speakers. |
-| Server docs | `SELF_HOSTING.md`, `SERVER_AND_KEYS.md`, `DATA_HANDLING.md` and the README still describe the old Next `/api/*` routes; AI, search and MCP live in `server/`. |
+| Server docs | `SELF_HOSTING.md`, `SERVER_AND_KEYS.md` and `DATA_HANDLING.md` still describe the old Next `/api/*` routes; AI, search and MCP live in `server/`. The README says so. |
 | `minimatch` advisory | Moderate, lint tooling only; `npm audit --omit=dev` is clean. |
 
 ## How this file is kept current
