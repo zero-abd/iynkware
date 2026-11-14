@@ -1,8 +1,15 @@
 /**
  * Text as canvas textures: the browser's own shaper draws it, so Devanagari and Chinese render with the platform's
- * fonts and no font file is bundled. Each label is one quad, one texture, one draw call; redraw only on change.
+ * fonts. Each label is one quad, one texture, one draw call; redraw only on change. Drawn in iynk's hand by the look
+ * kit (`xr/src/look/paint.ts`): an opaque paper plate with an ink outline and a flat blue shadow plate, Geist type,
+ * wrapped and fitted (XR_DESIGN.md 9.5). A transparent `bg` draws the text alone, in ink.
+ *
+ *   const l = textLabel(0.3, 0.06, { role: 'label', maxLines: 2 });  l.set('Run');  parent.add(l.mesh);
  */
-import { CanvasTexture, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from '@iwsdk/core';
+import { CanvasTexture, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from '@iwsdk/core';
+import { INK, PAPER } from '../look/palette';
+import { fitLines, paintPlate } from '../look/paint';
+import { onFontsReady, TYPE, type TypeName } from '../look/type';
 
 export interface TextLabel {
   readonly mesh: Mesh;
@@ -10,52 +17,76 @@ export interface TextLabel {
   dispose(): void;
 }
 
-const FONT = 'system-ui, "Noto Sans", "Noto Sans Devanagari", "Noto Sans SC", sans-serif';
+export interface TextLabelOptions {
+  bg?: string;
+  fg?: string;
+  /** Canvas pixels per metre. */
+  px?: number;
+  /** The type role (look/type.ts); `label` by default. */
+  role?: TypeName;
+  /** Lines the text may wrap onto before it shrinks; 1 by default. */
+  maxLines?: number;
+  align?: 'center' | 'left';
+}
 
-/** A label `widthM` metres wide; the canvas is `px` pixels per metre. Text shrinks to fit, never clips. */
-export function textLabel(widthM: number, heightM: number, opts: { bg?: string; fg?: string; px?: number } = {}): TextLabel {
-  const px = opts.px ?? 1600;
+const transparent = (c: string) => /^#[0-9a-f]{6}00$/i.test(c) || /rgba\([^)]*,\s*0\)$/.test(c) || c === 'transparent';
+
+/** A label `widthM` metres wide; the canvas is `px` pixels per metre. Text wraps, then shrinks, never clips. */
+export function textLabel(widthM: number, heightM: number, opts: TextLabelOptions = {}): TextLabel {
+  const px = opts.px ?? 2400;
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(64, Math.round(widthM * px));
   canvas.height = Math.max(32, Math.round(heightM * px));
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
-  const mat = new MeshBasicMaterial({ map: tex, transparent: true });
+  tex.minFilter = LinearMipmapLinearFilter;
+  tex.anisotropy = 4;
+  const mat = new MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false });
   const mesh = new Mesh(new PlaneGeometry(widthM, heightM), mat);
-  let bg = opts.bg ?? '#f2efe7';
-  let fg = opts.fg ?? '#231e16';
+  const role = TYPE[opts.role ?? 'label'];
+  const maxLines = Math.max(1, opts.maxLines ?? 1);
+  let bg = opts.bg ?? PAPER;
+  let fg = opts.fg ?? INK;
+  let text = '';
   let last = '';
-  const set = (text: string, o?: { bg?: string; fg?: string }) => {
-    bg = o?.bg ?? bg;
-    fg = o?.fg ?? fg;
+  const draw = (force = false) => {
     const key = `${text}|${bg}|${fg}`;
-    if (key === last) return;
+    if (key === last && !force) return;
     last = key;
     const g = canvas.getContext('2d');
     if (!g) return;
     const { width: w, height: h } = canvas;
     g.clearRect(0, 0, w, h);
-    g.fillStyle = bg;
-    const r = h * 0.18;
-    g.beginPath();
-    g.roundRect(0, 0, w, h, r);
-    g.fill();
-    let size = Math.round(h * 0.5);
-    g.font = `600 ${size}px ${FONT}`;
-    const room = w * 0.92;
-    const measured = g.measureText(text).width;
-    if (measured > room) size = Math.max(8, Math.floor((size * room) / measured));
-    g.font = `600 ${size}px ${FONT}`;
+    const plate = !transparent(bg);
+    // the plate: outline about 2.5 dmm and the shadow plate about 6 dmm on a 40 dmm tall label
+    const border = plate ? Math.max(3, Math.round(h * 0.06)) : 0;
+    const shadow = plate ? Math.max(3, Math.round(h * 0.09)) : 0;
+    if (plate) paintPlate(g, 0, 0, w, h, { fill: bg, border, radius: Math.min(h * 0.3, 40), shadow });
+    const padX = plate ? h * 0.32 : h * 0.06;
+    const innerW = w - shadow - border - 2 * padX;
+    const innerH = h - shadow - border - (plate ? h * 0.16 : 0);
+    const size = Math.min(innerH / (maxLines * 1.35), h * 0.52);
+    const fit = fitLines(g, text, { role, size, minSize: size * 0.85, maxWidth: innerW, maxLines });
     g.fillStyle = fg;
-    g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(text, w / 2, h / 2);
+    g.textAlign = opts.align === 'left' ? 'left' : 'center';
+    const x = opts.align === 'left' ? padX + border / 2 : (w - shadow) / 2;
+    const top = (h - shadow) / 2 - ((fit.lines.length - 1) * fit.lineHeight) / 2;
+    fit.lines.forEach((line, i) => g.fillText(line, x, top + i * fit.lineHeight));
     tex.needsUpdate = true;
   };
+  // text drawn before the self-hosted fonts arrive is in the system stack: draw it again in Geist
+  const offFonts = onFontsReady(() => draw(true));
   return {
     mesh,
-    set,
+    set(next, o) {
+      bg = o?.bg ?? bg;
+      fg = o?.fg ?? fg;
+      text = next;
+      draw();
+    },
     dispose() {
+      offFonts();
       tex.dispose();
       mat.dispose();
       mesh.geometry.dispose();
