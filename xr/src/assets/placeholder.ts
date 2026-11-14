@@ -51,6 +51,18 @@ export const MESH = { body: 'body', light: 'light', holes: 'holes', pins: 'pins'
 export const LED_PART = 'LED';
 export const LIGHT_ANCHOR = `led:${LED_PART}`;
 
+/**
+ * The one moving mesh a placeholder may carry besides its LED lens, by what moves. The kind comes from the descriptor
+ * (`moverOf`): `servo` a horn, `motor` (DC, spins) and `stepper` (turns to an angle) a hub, `button` a cap, `knob` a
+ * pot's knob, `lever` a slide or toggle switch's lever. `display` moves nothing: it only gets a screen anchor.
+ */
+export const MOVER_MESH = { servo: 'horn', motor: 'hub', stepper: 'hub', button: 'cap', knob: 'knob', lever: 'lever' } as const;
+/** The part id of the moving piece (the id after the colon of its channel), and of a display's face. */
+export const MOVER_PART = { servo: 'HORN', motor: 'HUB', stepper: 'HUB', button: 'CAP', knob: 'KNOB', lever: 'LEVER' } as const;
+export const SCREEN_PART = 'DISPLAY';
+export const SCREEN_ANCHOR = `screen:${SCREEN_PART}`;
+export type MoverKind = keyof typeof MOVER_MESH | 'display';
+
 export type PlaceholderShape = 'surface' | 'board' | 'leaded' | 'generic';
 
 /** Sizes in millimetres. */
@@ -103,6 +115,104 @@ const CONTROL_OF: Readonly<Record<string, string>> = {
   'core.slide-switch': 'lever',
   'core.potentiometer-10k': 'knob',
 };
+
+/**
+ * What a part has that moves or shows pixels, read from the descriptor: its behaviour elements (servo, motor, button,
+ * pot), its tags and kind (a stepper is an actuator tagged `stepper`; a gear motor without an element is an actuator
+ * tagged `motor`), its schematic symbol (a switch that is not a button is a lever) and a display module's builtin
+ * device. Undefined for a part with nothing to show.
+ */
+export function moverOf(d: Descriptor): MoverKind | undefined {
+  const elements = new Set<string>();
+  let device = false;
+  for (const { model } of d.behaviour.layers) {
+    if (model.kind === 'element') elements.add(model.element);
+    else if (model.kind === 'builtin' && model.ref.startsWith('device:')) device = true;
+  }
+  const tags = d.identity.tags ?? [];
+  const actuator = d.identity.kind === 'actuator';
+  if (elements.has('servo')) return 'servo';
+  if (actuator && tags.includes('stepper')) return 'stepper';
+  if (elements.has('motor') || (actuator && tags.includes('motor'))) return 'motor';
+  if (elements.has('button')) return 'button';
+  if (elements.has('pot')) return 'knob';
+  if (d.visual.schematic?.symbol === 'switch') return 'lever';
+  if (d.identity.category === 'display' && device) return 'display';
+  return undefined;
+}
+
+/** The moving piece of one placement: its pieces in frame millimetres and its channel, before the bounds shift. */
+interface Mover {
+  solids: Solid[];
+  /** The channel, with the pivot (frame millimetres) still to be moved into the asset frame. */
+  channel: (part: string, nodes: string[], pivot: (m: Mm3) => V3) => Channel;
+  role: 'control' | 'motor';
+  name: string;
+}
+
+const DEG = Math.PI / 180;
+
+/** The pieces and channel of a mover standing on the top of the body at `at` (frame mm). */
+function buildMover(kind: Exclude<MoverKind, 'display'>, L: { w: number; h: number }, at: Mm3): Mover {
+  const [cx, top, cz] = at;
+  const small = Math.min(L.w, L.h);
+  const light = new Color('#e9e6dc');
+  const metal = new Color(COLOUR.lead);
+  const dark = new Color(COLOUR.dark);
+  const turning = (name: string, role: Mover['role'], solids: Solid[], axis: Readonly<V3>, pivot: Mm3, value: Channel['value'], scale: number, k: Channel['kind'] = 'rotate'): Mover => ({
+    solids,
+    name,
+    role,
+    channel: (part, nodes, to) => ({ id: `${name}:${part}`, kind: k, part, nodes, value, axis: [...axis], pivot: to(pivot), scale }),
+  });
+  if (kind === 'servo') {
+    // The output shaft sits towards one end of the case, as on a real micro servo.
+    const sx = cx - L.w * 0.25;
+    return turning('servo', 'motor', [
+      { geometry: cylinderUp(v(sx, top, cz), 2.6, 2), colour: light },
+      { geometry: box(v(sx - 3, top + 0.8, cz - 1.5), v(sx + 13, top + 2, cz + 1.5)), colour: light },
+    ], UP, v(sx, top + 2, cz), { unit: 'deg', min: 0, max: 180, rest: 90 }, DEG);
+  }
+  if (kind === 'motor' || kind === 'stepper') {
+    const r = Math.min(Math.max(small * 0.16, 1.2), 6);
+    const solids: Solid[] = [
+      { geometry: cylinderUp(v(cx, top, cz), r, 2), colour: metal },
+      { geometry: box(v(cx, top + 2, cz - 0.6), v(cx + r * 1.6, top + 3, cz + 0.6)), colour: dark },
+    ];
+    // A DC motor's tab goes both ways, so a fast spin still reads as a spin.
+    if (kind === 'motor') solids.push({ geometry: box(v(cx - r * 1.6, top + 2, cz - 0.6), v(cx, top + 3, cz + 0.6)), colour: dark });
+    return kind === 'motor'
+      ? turning('motor', 'motor', solids, UP, v(cx, top + 2, cz), { unit: 'rpm', min: -12000, max: 12000, rest: 0 }, -1, 'spin')
+      : turning('motor', 'motor', solids, UP, v(cx, top + 2, cz), { unit: 'deg', min: 0, max: 360, rest: 0 }, DEG);
+  }
+  if (kind === 'button') {
+    const r = Math.max(small * 0.32, 0.8);
+    return {
+      solids: [{ geometry: cylinderUp(v(cx, top, cz), r, 1.2), colour: dark }],
+      name: 'press',
+      role: 'control',
+      channel: (part, nodes) => ({
+        id: `press:${part}`, kind: 'translate', part, nodes, value: { unit: 'press', min: 0, max: 1, rest: 0 }, axis: [0, -1, 0], scale: 0.0008,
+      }),
+    };
+  }
+  if (kind === 'knob') {
+    const r = Math.max(small * 0.36, 1);
+    return turning('turn', 'control', [
+      { geometry: cylinderUp(v(cx, top, cz), r, 4), colour: dark },
+      { geometry: box(v(cx - 0.4, top + 4, cz - r), v(cx + 0.4, top + 4.3, cz)), colour: light },
+    ], UP, v(cx, top, cz), { unit: 'deg', min: 0, max: 270, rest: 135 }, -DEG);
+  }
+  return turning('turn', 'control', [
+    { geometry: box(v(cx - 0.8, top, cz - 0.6), v(cx + 0.8, top + 3.5, cz + 0.6)), colour: dark },
+  ], [0, 0, 1], v(cx, top, cz), { unit: 'deg', min: -20, max: 20, rest: 0 }, DEG);
+}
+
+/** Pixel size of a display from its model name ("128 x 64 I2C OLED"), else the usual 128 x 64. */
+function pixelsOf(d: Descriptor): [number, number] {
+  const m = /(\d+)\s*[x×]\s*(\d+)/i.exec(d.identity.model);
+  return m ? [Number(m[1]), Number(m[2])] : [128, 64];
+}
 
 /** Which of the four placeholder shapes a descriptor gets. */
 export function placeholderShape(d: Descriptor): PlaceholderShape {
@@ -270,12 +380,15 @@ export function buildPlaceholder(d: Descriptor): PartAsset {
 
   const controlName = CONTROL_OF[d.id] ?? (d.visual.schematic?.symbol === 'switch' ? 'switch' : undefined);
   if (controlName && control) anchorAt(`control:${controlName}`, 'control', control[0], control[1], control[2]);
+  const moverKind = moverOf(d);
+  const mover = moverKind && moverKind !== 'display' && control ? buildMover(moverKind, L, control) : undefined;
 
   // Shared GPU-side data: built once per descriptor, handed to every instance. Built in the top-left frame, then moved
   // so the bounds' centre is the origin (footprint-centre).
   const bounds = new Box3();
   const body = solids.length > 0 ? mergeSolids(solids) : undefined;
   const light = lightSolids.length > 0 ? mergeSolids(lightSolids) : undefined;
+  const moving = mover ? mergeSolids(mover.solids) : undefined;
   if (body?.boundingBox) bounds.union(body.boundingBox);
   if (light?.boundingBox) bounds.union(light.boundingBox);
   const preSets = instanced && instanced.boxes.length > 0 ? [instanced] : [];
@@ -288,23 +401,51 @@ export function buildPlaceholder(d: Descriptor): PartAsset {
   const oz = bounds.isEmpty() ? -H / 2000 : -(bounds.min.z + bounds.max.z) / 2;
   body?.translate(ox, 0, oz);
   light?.translate(ox, 0, oz);
+  moving?.translate(ox, 0, oz);
   if (!bounds.isEmpty()) bounds.translate(_p.set(ox, 0, oz));
   for (const a of anchors.values()) {
     a.position[0] = round5(a.position[0] + ox);
     a.position[2] = round5(a.position[2] + oz);
   }
+  // A display's glass: the top face of its body, 2:1 like the panel, lying flat (the canvas is laid over rect).
+  const bodyBox = body?.boundingBox;
+  if (moverKind === 'display' && bodyBox) {
+    const pixels = pixelsOf(d);
+    const width = Math.min((bodyBox.max.x - bodyBox.min.x) * 0.8, (bodyBox.max.z - bodyBox.min.z) * 1.6);
+    const height = (width * pixels[1]) / pixels[0];
+    const x0 = (bodyBox.min.x + bodyBox.max.x) / 2 - width / 2;
+    const z0 = bodyBox.min.z + (bodyBox.max.z - bodyBox.min.z) * 0.12;
+    const top = bodyBox.max.y;
+    anchors.set(SCREEN_ANCHOR, {
+      id: SCREEN_ANCHOR,
+      kind: 'screen',
+      part: SCREEN_PART,
+      position: [round5(x0 + width / 2), round5(top), round5(z0 + height / 2)],
+      normal: [...UP],
+      text: d.identity.model,
+      rect: { origin: [round5(x0), round5(top), round5(z0)], u: [round5(width), 0, 0], v: [0, 0, round5(height)], pixels },
+    });
+  }
 
   const tag = `${d.id}@${d.version}`;
   const solidMaterial = named(new MeshStandardMaterial({ vertexColors: true, roughness: ROUGHNESS, metalness: 0 }), `${tag}:solid`);
+  const moverMaterial = moving && named(new MeshStandardMaterial({ vertexColors: true, roughness: ROUGHNESS, metalness: 0 }), `${tag}:${mover!.name}`);
   const lightMaterial = light && named(new MeshStandardMaterial({ color: bodyColour, roughness: ROUGHNESS, metalness: 0 }), `${tag}:light`);
   const sets = preSets.map((set) => instanceData(set, `${tag}:dark`, ox, oz));
 
   const instancedList = sets.map((s) => Object.freeze({ meshName: s.name, anchors: Object.freeze([...s.anchors]) }));
   const footprint: Footprint = Object.freeze({ x: round5(ox), z: round5(oz), w: metres(L.w), d: metres(H) });
-  const meshNames = [...(body ? [MESH.body] : []), ...(light ? [MESH.light] : []), ...sets.map((s) => s.name)];
+  const moverMesh = moverKind && moverKind !== 'display' ? MOVER_MESH[moverKind] : undefined;
+  const meshNames = [
+    ...(body ? [MESH.body] : []),
+    ...(light ? [MESH.light] : []),
+    ...(moving && moverMesh ? [moverMesh] : []),
+    ...sets.map((s) => s.name),
+  ];
   const triangles =
     (body ? (body.index?.count ?? 0) / 3 : 0) +
     (light ? (light.index?.count ?? 0) / 3 : 0) +
+    (moving ? (moving.index?.count ?? 0) / 3 : 0) +
     sets.reduce((n, s) => n + s.anchors.length * 12, 0);
   const parts: AssetPart[] = [{ id: '', index: 0, name: d.identity.model, parent: '', role: 'item', explode: [0, 0, 0] }];
   const channels: Channel[] = [];
@@ -319,6 +460,14 @@ export function buildPlaceholder(d: Descriptor): PartAsset {
       color: `#${bodyColour.getHexString()}`,
     });
   }
+  if (mover && moving && moverKind && moverKind !== 'display' && moverMesh) {
+    const id = MOVER_PART[moverKind];
+    parts.push({ id, index: parts.length, name: moverMesh, parent: '', role: mover.role, nodes: [moverMesh], explode: [0, 0, 0] });
+    // A frame millimetre point to the asset frame, in metres (the geometry above moved by ox, oz).
+    channels.push(mover.channel(id, [moverMesh], (m) => [round5(m[0] / 1000 + ox), round5(m[1] / 1000), round5(m[2] / 1000 + oz)]));
+    if (moving.boundingBox) bounds.union(moving.boundingBox);
+  }
+  if (anchors.has(SCREEN_ANCHOR)) parts.push({ id: SCREEN_PART, index: parts.length, name: 'display', parent: '', role: 'part', explode: [0, 0, 0] });
   const box3 = (b: Box3): XrAsset['bounds'] =>
     b.isEmpty()
       ? { min: [0, 0, 0], max: [0, 0, 0] }
@@ -367,6 +516,8 @@ export function buildPlaceholder(d: Descriptor): PartAsset {
       if (body) root.add(named(new Mesh(body, solidMaterial), MESH.body));
       // The one material an instance owns: a part view may make it glow without touching other placements.
       if (light && lightMaterial) root.add(named(new Mesh(light, lightMaterial.clone()), MESH.light));
+      // The moving piece owns its material too: a part view tints it for health without touching other placements.
+      if (moving && moverMaterial && moverMesh) root.add(named(new Mesh(moving, moverMaterial.clone()), moverMesh));
       for (const s of sets) {
         const mesh = new InstancedMesh(s.geometry, s.material, 0);
         mesh.instanceMatrix = s.matrices;
