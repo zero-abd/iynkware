@@ -54,6 +54,7 @@ xr/
     scale/              pillar 4, scale and insight: service.ts (app.scale), kit/, space/ zoom/ room/ insight/ flow/
                         probe/ controls/
     range/              pillar 5, range: flight/ robots/
+    lab/                pillar 8, lab: model/ items/ experiments/ tutor/ (training labs beyond circuits)
     shell/              pillar 6, shell and shipping: menu/, settings.ts, service.ts (app.shell), copy.ts
 ```
 
