@@ -18,7 +18,7 @@ Checked on 2026-11-14:
 
 | URL | Serves |
 |---|---|
-| https://iynkware-xr.almahmud-zero.workers.dev | Production. Today: the throwaway XR spike build (Immersive Web SDK starter), until the first `xr/dist` deploy replaces it. |
+| https://iynkware-xr.almahmud-zero.workers.dev | Production: `xr/dist` built from `main`, deployed by hand (last on 2026-11-14 from `a26a57e`). |
 | https://test-page-iynkware-xr.almahmud-zero.workers.dev | A Preview with the deploy test page: one cube, an Enter button, a list of what the headers allow. |
 
 **These URLs are public.** Anyone with the link can open them, while the repo stays private. Whatever is deployed
@@ -103,10 +103,10 @@ cross-origin file that does not opt in. Add it, with `require-corp`, when a thre
 
 ### Opening other origins
 
-`connect-src 'self'` means the app cannot fetch from another host. The spike build shows what that refuses today: the
-Immersive Web SDK loads controller models from `cdn.jsdelivr.net` (`@webxr-input-profiles/assets`) and its default
-Draco decoder from `unpkg.com`. The SDK catches the failed model load, so input should still work, but controllers may
-show no model. The fix is to serve those files from the app itself. A backend the app must talk to, such as a voice
+`connect-src 'self'` means the app cannot fetch from another host. The Immersive Web SDK's defaults would load
+controller models from `cdn.jsdelivr.net` (`@webxr-input-profiles/assets`) and its Draco decoder from `unpkg.com`. The
+SDK catches a failed model load, so input still works, but controllers may show no model. The fix is to serve those
+files from the app itself (open: #25). The converted part models are served from the app under `/xr-assets/`. A backend the app must talk to, such as a voice
 service, is added to `connect-src` in `_headers` as an exact origin, in its own PR.
 
 ## Opening it on the headset
@@ -133,6 +133,11 @@ whether WebAssembly compiles and a `blob:` worker runs, and which session and fe
 Checked on 2026-11-14 in desktop Chromium (no headset): both URLs load with no CSP errors, the policy allows
 `xr-spatial-tracking` and `microphone`, WebAssembly compiles and a `blob:` worker runs. Neither URL has been opened in
 a Quest yet.
+
+Checked on 2026-11-14 against production built from `main` (headless Chromium through Playwright, no headset): the
+headers match `_headers`; Open on this screen draws the Blink bench with the Uno R3, half breadboard, LED and resistor
+from the converted assets; the page logs no errors and requests nothing from another origin. An immersive session on
+the live URL was not tried.
 
 ## Not set up
 

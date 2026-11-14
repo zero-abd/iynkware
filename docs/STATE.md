@@ -87,10 +87,12 @@ From HANDOFF.md section 7, which also names the doc to read for each.
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
 - Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
   glTF in the ink look; every other part is still a placeholder built from its descriptor.
-- Firmware engines in the headset: the worker runs iynk's interpreter only (no avr8js, rp2040js or rapier yet).
+- Firmware engines in the headset: the worker runs iynk's interpreter, and rapier physics for robot projects (PR #110,
+  loaded lazily in the worker); no avr8js or rp2040js yet (#38).
 - Saving projects in the headset: it opens a template each time.
 - Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
-  command ([XR_DEPLOY.md](XR_DEPLOY.md)); on 2026-11-14 it still served the throwaway spike, not a build of `xr/`.
+  command ([XR_DEPLOY.md](XR_DEPLOY.md)); since 2026-11-14 its production URL serves the headset app built from
+  `main`, deployed by hand.
 - Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
   removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
   repos, not CI.
