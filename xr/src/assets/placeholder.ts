@@ -129,7 +129,7 @@ function emitsLight(d: Descriptor): boolean {
 }
 
 /** The layout rectangle (w along x, h along the descriptor's y) and the height off the bench, millimetres. */
-function layoutOf(d: Descriptor): { w: number; h: number; height: number } {
+export function layoutOf(d: Descriptor): { w: number; h: number; height: number } {
   const dims = d.dimensions?.body ?? d.dimensions?.board;
   const generated = dims ? undefined : fallbackSpec(d).body_mm;
   return {

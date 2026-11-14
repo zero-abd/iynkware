@@ -1,12 +1,14 @@
 /**
- * The asset registry (contracts/assets.ts): one `PartAsset` per part ref and version, built once and cached. Until the
- * asset pipeline converts a part's figure, the asset is a placeholder drawn from the iynk part descriptor
- * (`./placeholder.ts`); `./converted.ts` is where converted glTF assets will come from.
+ * The asset registry (contracts/assets.ts): one `PartAsset` per part ref and version, built once and cached. A ref the
+ * asset pipeline has converted is drawn from its glb and sidecar (`./converted.ts`, read from `./xr-assets/` next to
+ * the page); every other ref, and a converted one that fails to load, is a placeholder drawn from the iynk part
+ * descriptor (`./placeholder.ts`).
  */
 import type { Descriptor } from '@/parts/descriptor';
 import type { PartRegistry } from '@/parts/registry';
 import type { AssetRegistry, PartAsset } from '../contracts/assets';
-import { loadConvertedAsset } from './converted';
+import { createConvertedAssets } from './converted';
+import type { ConvertedAssets } from './converted';
 import { buildPlaceholder } from './placeholder';
 
 export { LED_PART, LIGHT_ANCHOR, MESH, placeholderShape } from './placeholder';
@@ -17,6 +19,10 @@ export type Describe = (ref: string, version?: string) => Descriptor | undefined
 
 export interface AssetRegistryOptions {
   describe: Describe;
+  /** Converted assets. Default: `./xr-assets/` next to the page, its index read as the registry is made (none in Node). */
+  converted?: ConvertedAssets;
+  /** Where a converted asset that fails is reported (default console.warn); the placeholder is drawn instead. */
+  warn?: (message: string) => void;
 }
 
 /** `describe` over an iynk part registry: exactly the version asked for, else the newest. */
@@ -37,14 +43,18 @@ export function createAssetRegistry(opts: AssetRegistryOptions): AssetRegistry {
     return d;
   };
 
-  // Converted assets are not shipped yet; this reads the pipeline's manifest once `loadConvertedAsset` does.
-  const hasConverted = (_ref: string): boolean => false;
+  const converted = opts.converted ?? createConvertedAssets();
+  const warn = opts.warn ?? ((m: string) => console.warn(m));
 
   const load = async (d: Descriptor): Promise<PartAsset> => {
-    if (hasConverted(d.id)) {
+    await converted.ready;
+    if (converted.has(d.id)) {
       // A converted asset that fails to load still leaves the placeholder: `get` never rejects for a known ref.
-      const converted = await loadConvertedAsset(d).catch(() => undefined);
-      if (converted) return converted;
+      try {
+        return await converted.load(d);
+      } catch (e) {
+        warn(`asset registry: ${e instanceof Error ? e.message : String(e)}; drawing the placeholder`);
+      }
     }
     return buildPlaceholder(d);
   };
@@ -72,6 +82,6 @@ export function createAssetRegistry(opts: AssetRegistryOptions): AssetRegistry {
     async preload(refs) {
       await Promise.all(refs.map((ref) => get(ref)));
     },
-    hasConverted,
+    hasConverted: (ref) => converted.has(ref),
   };
 }

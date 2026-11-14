@@ -43,7 +43,7 @@ xr/
     compose.ts          composeModules: one pillar module out of its sub-modules
     contracts/          the shared types every pillar codes against (section 4)
     sim/                worker, handler wiring, SimBridge (shared service)
-    assets/             asset registry, placeholders from part descriptors, converted-asset seam (shared service)
+    assets/             asset registry: converted glTF items, else placeholders from descriptors (shared service)
     input/              InputService over IWSDK pointers and grabs (shared service)
     project/            ProjectStore over iynk's session, TemplateSource
     ui/                 canvas text labels, the overlay layer, a tiny observable value
@@ -147,8 +147,18 @@ then builds the real one in its own folder.
 The asset format is docs/XR_ASSETS.md: one binary glTF plus a JSON sidecar per item, written by `tools/xr-assets`,
 with the ink look (three-band shading, inverted-hull outlines, flat shadow, no post-processing). The registry returns
 the converted item when there is one, else a placeholder built from the part descriptor with a sidecar of the same
-shape (`source: 'placeholder'`, one warning saying so). The converted path is a seam today
-(`xr/src/assets/converted.ts`); filling it is pillar 7 work with the bench.
+shape (`source: 'placeholder'`, one warning saying so).
+
+Converted items (`xr/src/assets/converted.ts`) come from `./xr-assets/` next to the page: `xr/vite.config.ts` serves
+that folder in dev and copies it into `dist/xr-assets/` at build, from `tools/xr-assets/out/` when it has been built,
+else from the committed `tools/xr-assets/samples/`. The registry reads its `index.json` once when it is made; an
+explicit table maps descriptor refs to items (today the Blink ones: `core.uno-r3`, `core.breadboard-half`,
+`core.led-5mm`, `core.resistor`). Each item's glb loads once; a placement is a clone (geometry shared) in the
+pipeline's ink look (`tools/xr-assets/material/xr-asset.js`, picked up through `import.meta.glob`, its own lazy
+chunk), else in the glb's vertex colours. The footprint is the descriptor's layout rectangle through
+`frame.fromSource`, moved onto the descriptor's pins when the figure is drawn elsewhere on its page (the LED, the
+resistor). Any failure (missing file, bad sidecar, a descriptor pin without an anchor) draws the placeholder with a
+console warning naming the item.
 
 Placeholders today: boards, breadboards, leaded parts and generic boxes, at real size, with every positioned pin as an
 anchor and holes and pins as one instanced mesh each. Ten boards have no pin positions in their descriptors and get no
