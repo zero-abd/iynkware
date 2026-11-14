@@ -30,6 +30,18 @@
    "warnings": 1
   },
   {
+   "id": "lab/bunsen-burner",
+   "kind": "lab",
+   "name": "Bunsen burner",
+   "glb": "lab/bunsen-burner.glb",
+   "sidecar": "lab/bunsen-burner.json",
+   "triangles": 1476,
+   "drawCalls": 7,
+   "anchors": 4,
+   "channels": 3,
+   "warnings": 2
+  },
+  {
    "id": "parts/breadboard",
    "kind": "part",
    "name": "Breadboard",

@@ -16,7 +16,7 @@ const sigOf = (o) => JSON.stringify(o, (k, v) => (typeof v === 'number' ? R2(v) 
 /** One capture of the page's current state: every draw with its part, geometry and signatures. */
 export function capture(page, adapter) {
   const s = page.scene();
-  const { draws, dropped } = walk(s.svg, s);
+  const { draws, dropped } = walk(s.svg, s, { notDrawn: adapter.notDrawn || null });
   const out = [];
   for (const d of draws) {
     let g, geo, col;
@@ -95,7 +95,10 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
       const scope = (list) => (ch.parts ? list.filter((d) => ch.parts.includes(d.part)) : list);
       const R = scope(rest.draws), A = scope(act.draws);
       let moved;
-      if (ch.kind === 'emissive') {
+      if (ch.fromActive) {
+        // a piece drawn only while the channel is active (a flame): its node holds the active drawing
+        moved = minus(A, R, 'geo');
+      } else if (ch.kind === 'emissive') {
         // same geometry, other colours: pair rest and active draws by geometry, keep the ones whose colour changed
         const byGeo = new Map();
         for (const d of A) { const k = d.part + '\u0001' + d.geo; if (!byGeo.has(k)) byGeo.set(k, []); byGeo.get(k).push(d); }
@@ -111,7 +114,9 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
         if (!ch.color && lit.size) ch.color = [...lit.entries()].sort((a, b) => b[1] - a[1])[0][0];
       } else {
         const gone = minus(R, A, 'geo'), came = minus(A, R, 'geo');
-        moved = gone;
+        // whole: the node takes every piece of the channel's parts (a knob turns as one, though only its pointer is
+        // drawn differently)
+        moved = ch.whole ? R : gone;
         if (!ch.axis && gone.length && gone.length === came.length) {
           const { P, Q } = pairMoved(gone, came);
           if (P.length >= 3) {
@@ -122,13 +127,16 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
           }
         } else if (!ch.axis && gone.length !== came.length) warn(`${ch.id}: the moved pieces did not pair up (${gone.length} at rest, ${came.length} moved), so no axis was fitted`);
       }
+      if (ch.keep) moved = moved.filter(ch.keep);
       if (!moved.length) { warn(`${ch.id}: nothing changed when it was driven, so it has no node`); continue; }
       chans.push({ ch, moved });
       log(`  ${ch.id}: ${moved.length} draws`);
     }
 
     // the xray layer: drawn only in see-through
-    const xray = minus(xr.draws, rest.draws, 'col').filter((d) => d.faces.length || d.lines.length || d.text || d.marks.length);
+    let xray = minus(xr.draws, rest.draws, 'col').filter((d) => d.faces.length || d.lines.length || d.text || d.marks.length);
+    // the adapter may give an xray piece another part than the one it is drawn under (insides drawn under a cover)
+    if (adapter.xrayPart) xray = xray.map((d) => { const p = adapter.xrayPart(d); return p == null || p === d.part ? d : { ...d, part: p }; });
     const hiddenInXr = minus(rest.draws, xr.draws, 'col').length;
     if (hiddenInXr) log(`  ${hiddenInXr} draws disappear in see-through (kept in base)`);
 
@@ -186,6 +194,17 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
     const nodeCover = new MeshBatch('static.cover', { explode: anyExplode, extras: { layer: 'cover' } });
     const nodeXray = new MeshBatch('static.xray', { explode: anyExplode, extras: { layer: 'xray' } });
     const chanNodes = new Map();
+    // static nodes of their own the adapter asks for (a glass item's liquid, its translucent glass): adapter.staticNode(d)
+    // names one for a draw, adapter.nodeOpacity(name) gives its opacity at see-through 0 and 1 when it is not opaque
+    const ownBatches = new Map(), ownParts = new Map(), nodeOpacity = {};
+    const ownBatch = (name) => {
+      if (!ownBatches.has(name)) {
+        const op = adapter.nodeOpacity ? adapter.nodeOpacity(name) : null, extras = { layer: 'base' };
+        if (op) { extras.opacity = op[0]; extras.opacitySeeThrough = op[1]; nodeOpacity[name] = op; }
+        ownBatches.set(name, new MeshBatch(name, { explode: anyExplode, extras }));
+      }
+      return ownBatches.get(name);
+    };
     const texts = [];
     const marks = [];
     const put = (batch, d, origin = [0, 0, 0], layer = 'base') => {
@@ -209,8 +228,9 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
     };
     for (const d of rest.draws) {
       if (taken.has(d)) continue;
-      const part = byId.get(d.part);
-      put(part.cover ? nodeCover : nodeStatic, d);
+      const part = byId.get(d.part), own = !part.cover && adapter.staticNode ? adapter.staticNode(d) : null;
+      if (own) { put(ownBatch(own), d); if (!ownParts.has(own)) ownParts.set(own, new Set()); ownParts.get(own).add(d.part); }
+      else put(part.cover ? nodeCover : nodeStatic, d);
     }
     for (const d of xray) put(nodeXray, d, [0, 0, 0], 'xray');
     for (const { ch, moved } of chans) {
@@ -223,8 +243,9 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
       for (const d of mine) put(node, d, origin);
       chanNodes.set(ch.id, { node, ch, origin, pivotCore, parts: [...new Set(mine.map((d) => d.part))] });
     }
-    const batches = [nodeStatic, nodeCover, nodeXray, ...[...chanNodes.values()].map((c) => c.node)];
+    const batches = [nodeStatic, ...ownBatches.values(), nodeCover, nodeXray, ...[...chanNodes.values()].map((c) => c.node)];
     for (const b of batches) flush(b);
+    for (const [name, ids] of ownParts) if (!ownBatches.get(name).empty) for (const id of ids) { const p = byId.get(id); (p.nodes || (p.nodes = [])).push(name); }
     const lifted = batches.reduce((s, b) => s + b.lifted, 0);
     if (lifted) log(`  ${lifted} coplanar faces lifted over the faces they are drawn on`);
 
@@ -280,7 +301,7 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
     const lo = toAsset(all.min), hi = toAsset(all.max);
     const bounds = { min: round6(lo.map((v, i) => Math.min(v, hi[i]))), max: round6(lo.map((v, i) => Math.max(v, hi[i]))) };
 
-    const layers = [{ id: 'base', nodes: ['static', ...[...chanNodes.values()].filter((c) => !c.node.empty).map((c) => c.ch.id)].filter((n) => n !== 'static' || !nodeStatic.empty), opacity: [1, 1] }];
+    const layers = [{ id: 'base', nodes: ['static', ...[...ownBatches.values()].filter((b) => !b.empty).map((b) => b.name), ...[...chanNodes.values()].filter((c) => !c.node.empty).map((c) => c.ch.id)].filter((n) => n !== 'static' || !nodeStatic.empty), opacity: [1, 1] }];
     if (!nodeCover.empty) layers.push({ id: 'cover', nodes: ['static.cover'], opacity: [1, 0.28] });
     if (!nodeXray.empty) layers.push({ id: 'xray', nodes: ['static.xray'], opacity: [0, 1] });
 
@@ -303,6 +324,8 @@ export async function convert(item, adapter, { log = () => {} } = {}) {
       bounds, stats, look, parts, anchors, channels, layers, texts, warnings,
     };
     if (info.extras) sidecar.extras = info.extras;
+    const translucent = Object.entries(nodeOpacity).filter(([n]) => !ownBatches.get(n).empty);
+    if (translucent.length) sidecar.extras = { ...(sidecar.extras || {}), nodeOpacity: Object.fromEntries(translucent) };
     log(`  ${item}: ${stats.triangles} tris, ${stats.drawCalls} draws, ${anchors.length} anchors, ${channels.length} channels, ${Date.now() - t0} ms`);
     return { glb, sidecar };
   } finally {

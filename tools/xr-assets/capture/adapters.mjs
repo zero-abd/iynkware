@@ -20,10 +20,19 @@
 //                             +1 / -1 about the asset axis) }]
 //   anchors(page, ctx)        anchors with position and normal in the Colorfigures world and depth in mm; ctx gives
 //                             { marks: label points the figure drew (tags, callouts) in asset metres, warn, toAsset, rest }
+// Optional, used by the lab adapter:
+//   a channel's whole: true   its node takes every rest piece of its parts, not only those drawn differently
+//   a channel's keep(draw)    only the changed pieces it keeps go into its node (a lamp drawn on a bigger part)
+//   a channel's fromActive    its node is what is drawn only while active (a flame not drawn at rest)
+//   xrayPart(draw)            the part a see-through-only piece belongs to, when not the one it is drawn under
+//   staticNode(draw)          a static node of its own for a rest piece ('static.liquid', 'static.glass'), or null
+//   nodeOpacity(name)         [at see-through 0, at 1] for such a node drawn translucent, or null
+//   notDrawn(attrs)           true for a 2D path that is not the item (a mat grid), so it is not counted as dropped
 import bench from './bench.mjs';
 import drone from './drone.mjs';
+import lab from './lab.mjs';
 
-const ADAPTERS = [bench, drone];
+const ADAPTERS = [bench, drone, lab];
 
 export function adapterFor(item) {
   const make = ADAPTERS.find((a) => a.matches(item));
