@@ -5,8 +5,9 @@
      servos sweep)  anchors=1 (anchor dots)  texts=1 (printed text)  lines=fat|gl  ortho=1 (orthographic camera)
      yaw=deg pitch=deg (turn the default view)  zoom=1  ink=1 (ink width scale)  shot=1 (no UI)
      copies=N (N of the item side by side: a rough draw-call check for a bench of items)
-     logdepth=1 (a logarithmic depth buffer, to check the ink shaders under it). An Enter VR button appears where
-     WebXR immersive-vr is supported: the item then stands at table height half a metre in front.
+     logdepth=1 (a logarithmic depth buffer, to check the ink shaders under it)  glow=0 (no halos on lit LEDs)
+     An Enter VR button appears where WebXR immersive-vr is supported: the item then stands at table height half a
+     metre in front.
    window.__viewer exposes { asset, renderer, scene, camera, ready }; <html data-ready="1"> once a frame is drawn. */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -85,7 +86,7 @@ async function open(id) {
   note('loading ' + it.id + ' ...');
   let asset;
   try {
-    const opts = { lines: state.lines, inkScale: state.ink, hull: Q.get('hull') === 'all' ? 'all' : 'back' };
+    const opts = { lines: state.lines, inkScale: state.ink, hull: Q.get('hull') === 'all' ? 'all' : 'back', glow: Q.get('glow') !== '0' };
     if (it.from === 'fixture') { const f = buildFixture(); asset = await loadXrAsset('fixture:/' + FIXTURE + '.json', { ...opts, sidecar: f.sidecar, glb: f.glb }); }
     else asset = await loadXrAsset(it.url, opts);
   } catch (e) { fail('could not load ' + it.id + ': ' + (e && e.message)); return; }
@@ -98,7 +99,7 @@ async function open(id) {
   if (copies > 1) {
     const b = asset.sidecar.bounds, sx = (b.max[0] - b.min[0]) * 1.15, sz = (b.max[2] - b.min[2]) * 1.15, cols = Math.ceil(Math.sqrt(copies));
     for (let i = 1; i < copies; i++) {
-      const opts = { lines: state.lines, inkScale: state.ink, hull: Q.get('hull') === 'all' ? 'all' : 'back' };
+      const opts = { lines: state.lines, inkScale: state.ink, hull: Q.get('hull') === 'all' ? 'all' : 'back', glow: Q.get('glow') !== '0' };
       const c = it.from === 'fixture' ? await loadXrAsset('fixture:/c.json', { ...opts, ...buildFixture() }) : await loadXrAsset(it.url, opts);
       c.object.position.set((i % cols) * sx, 0, -Math.floor(i / cols) * sz);
       c.object.rotation.y = (i % 3) * 0.4;
@@ -172,7 +173,7 @@ function syncUrl() {
   if (state.spin) p.set('spin', 1);
   if (state.anchors) p.set('anchors', 1);
   if (state.texts) p.set('texts', 1);
-  for (const k of ['lines', 'ortho', 'yaw', 'pitch', 'zoom', 'ink', 'shot', 'w', 'h', 'copies', 'logdepth', 'hull']) if (Q.has(k)) p.set(k, Q.get(k));
+  for (const k of ['lines', 'ortho', 'yaw', 'pitch', 'zoom', 'ink', 'shot', 'w', 'h', 'copies', 'logdepth', 'hull', 'glow']) if (Q.has(k)) p.set(k, Q.get(k));
   history.replaceState(null, '', '?' + p.toString().replace(/%2F/g, '/'));
 }
 

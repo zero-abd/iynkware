@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
-  createInkUniforms, createInkMaterial, createLineMaterial, createFatLines, createOutline, createShadow,
+  createInkUniforms, createInkMaterial, createLineMaterial, createFatLines, createOutline, createShadow, createGlow, setGlow,
   setInkOpacity, setInkEmissive, shadeOf, updateInkLights, hull2d, hullWeight, viewBasis, clamp01, smoothstep,
   withLogDepthVertex, withLogDepthFragment, HULL_MAX, INK, PAPER, SHADOW,
 } from './ink.js';
@@ -23,6 +23,10 @@ import {
 export { INK, PAPER, SHADOW };
 
 const STATIC_NODES = ['static', 'static.cover', 'static.xray'];
+/** a lit LED's outer glow radius at full level: GLOW_K x its node's bounding-box diagonal + GLOW_R0 metres (a 2 mm
+    SMD LED gets about 3 mm, a 5 mm through-hole one about 6.5 mm) */
+export const GLOW_K = 0.4, GLOW_R0 = 0.0018;
+export const glowRadius = (diag) => GLOW_K * diag + GLOW_R0;
 const absUrl = (u) => {
   try { return new URL(u).href; } catch { /* relative */ }
   const base = (globalThis.location && globalThis.location.href) || 'file:///';
@@ -126,9 +130,10 @@ export function partWeights(sidecar) {
  *   or more, default) | 'all' | 'none'
  *   inkScale: 1 (multiplies the ink widths); xrayPull: metres the xray layer is drawn towards the eye (default
  *   from the item's size); planeY: 0 (the shadow plane in the root frame); texts: false (draw sidecar.texts)
+ *   glow: true (a lit emissive channel draws a halo, one draw call per lit node, none while off; ink.js createGlow)
  */
 export function createXrAsset(gltf, sidecar, options = {}) {
-  const opts = { lines: 'fat', outlines: true, hull: 'back', shadows: true, channelShadows: 'moving', inkScale: 1, planeY: 0, texts: false, ...options };
+  const opts = { lines: 'fat', outlines: true, hull: 'back', shadows: true, channelShadows: 'moving', inkScale: 1, planeY: 0, texts: false, glow: true, ...options };
   const look = sidecar.look || {};
   const object = gltf.scene || gltf;
   // glTF node names (userData.name) first, three's sanitised names as a fallback
@@ -214,7 +219,7 @@ export function createXrAsset(gltf, sidecar, options = {}) {
   };
   for (const ch of sidecar.channels || []) {
     const ns = (ch.nodes || []).map((n) => byName.get(n)).filter(Boolean);
-    const st = { ch, nodes: ns, value: ch.value ? ch.value.rest : 0, angle: null, offset: null, rpm: 0, axis: vec(ch.axis, [0, 1, 0]).normalize(), pivot: ch.pivot ? vec(ch.pivot) : null, materials: [] };
+    const st = { ch, nodes: ns, value: ch.value ? ch.value.rest : 0, angle: null, offset: null, rpm: 0, axis: vec(ch.axis, [0, 1, 0]).normalize(), pivot: ch.pivot ? vec(ch.pivot) : null, materials: [], glows: [] };
     if (ch.kind === 'emissive') {
       for (const n of ns) n.traverse((o) => { if (o.material && o.material.userData && o.material.userData.inkRole === 'body') st.materials.push(o.material); });
     } else {
@@ -251,6 +256,29 @@ export function createXrAsset(gltf, sidecar, options = {}) {
     // every triangle casts, flat fills too: a PCB's top is an ink.flat fill over its side walls
     const wantShadow = opts.shadows && (isStatic || opts.channelShadows === 'all' || (opts.channelShadows === 'moving' && moving));
     if (wantShadow) e.shadows.push(createShadow(e.bodies.length === 1 ? e.bodies[0] : e.bodies, { look, root, planeY: opts.planeY, uniforms }));
+  }
+
+  // a halo per emissive channel node, at the channel's anchor (or the node's centre), sized from the node's bounds;
+  // drawn only while lit
+  if (opts.glow) {
+    for (const st of chans.values()) {
+      if (st.ch.kind !== 'emissive') continue;
+      const anchor = anchors.get(st.ch.id) || [...anchors.values()].find((a) => a.channel === st.ch.id);
+      for (const n of st.nodes) {
+        const meshes = [];
+        n.traverse((o) => { if (o.isMesh && o.material && o.material.userData.inkRole === 'body') meshes.push(o); });
+        if (!meshes.length) continue;
+        const box = new THREE.Box3();
+        for (const o of meshes) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); box.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); }
+        const center = anchor && st.nodes.length === 1 ? vec(anchor.position).applyMatrix4(root.matrixWorld) : box.getCenter(new THREE.Vector3());
+        n.worldToLocal(center);
+        const scale = new THREE.Vector3().setFromMatrixScale(n.matrixWorld).x || 1;
+        const glow = createGlow({ center, radius: glowRadius(box.getSize(new THREE.Vector3()).length()) / scale, uniforms, look, color: st.ch.color || '#ffffff' });
+        glow.userData.inkScale = opts.inkScale;
+        n.add(glow);
+        st.glows.push(glow);
+      }
+    }
   }
 
   // optional printed text
@@ -296,6 +324,7 @@ export function createXrAsset(gltf, sidecar, options = {}) {
         const { color, level } = emissiveOf(ch, value);
         s.value = value;
         for (const m of s.materials) setInkEmissive(m, color, level);
+        for (const g of s.glows) setGlow(g, color, level);
         return true;
       }
       if (ch.kind === 'spin') { s.value = s.rpm = clampValue(ch, value); return true; }
@@ -392,8 +421,8 @@ export function createXrAsset(gltf, sidecar, options = {}) {
     },
     isPartVisible: (id) => !hiddenParts.has(id),
     /** multiplies every ink width (silhouettes, fat lines) */
-    setInkScale(s) { opts.inkScale = s; object.traverse((o) => { if (o.userData.inkRole === 'outline' || o.userData.inkRole === 'line') o.userData.inkScale = s; }); return api; },
-    /** draw calls this item issues per eye now (body + line + outline + shadow) */
+    setInkScale(s) { opts.inkScale = s; object.traverse((o) => { if (o.userData.inkRole === 'outline' || o.userData.inkRole === 'line' || o.userData.inkRole === 'glow') o.userData.inkScale = s; }); return api; },
+    /** draw calls this item issues per eye now (body + line + outline + shadow, + glow per lit LED) */
     drawCalls() {
       let n = 0;
       object.traverseVisible((o) => { if ((o.isMesh || o.isLine) && o.material && o.material.visible !== false) n++; });

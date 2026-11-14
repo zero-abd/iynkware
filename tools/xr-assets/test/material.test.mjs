@@ -9,9 +9,9 @@ import * as THREE from 'three';
 import {
   bandOf, bandColor, mixHex, matOf, SOFT, SHADES, smoothstep, blendBands, hexToRgb, srgbToLinear, linearToSrgb,
   hullWeight, hull2d, shadowOffset, projectShadow, createInkMaterial, createLineMaterial, createOutline, createShadow,
-  createFatLines, createInkUniforms, updateInkLights, shadeOf, HULL_MAX, HULL_MIN,
+  createFatLines, createInkUniforms, updateInkLights, shadeOf, createGlow, setGlow, HULL_MAX, HULL_MIN,
 } from '../material/ink.js';
-import { loadXrAsset, clampValue, rotateAngle, spinRate, translateOffset, emissiveOf, nodePose, partWeights } from '../material/xr-asset.js';
+import { loadXrAsset, clampValue, rotateAngle, spinRate, translateOffset, emissiveOf, nodePose, partWeights, GLOW_K, GLOW_R0, glowRadius } from '../material/xr-asset.js';
 import { buildFixture } from '../viewer/fixture.js';
 
 const CORE = readFileSync(fileURLToPath(new URL('../../../figures/vendor/colorfigures/core.js', import.meta.url)), 'utf8');
@@ -188,7 +188,8 @@ test('loadXrAsset applies the ink look to a hand-built glb in Node', async () =>
     assert.ok(o.material.isShaderMaterial, `${o.name} has an ink material`);
     const r = o.material.userData.inkRole; roles[r] = (roles[r] || 0) + 1;
   });
-  assert.deepEqual(roles, { body: 10, line: 14, outline: 6, shadow: 4 }, 'GL lines (hidden) + fat lines; one hull per node with solids; shadows: static, cover, servo, prop');
+  assert.deepEqual(roles, { body: 10, line: 14, outline: 6, shadow: 4, glow: 1 },
+    'GL lines (hidden) + fat lines; one hull per node with solids; shadows: static, cover, servo, prop; a halo for led:L (drawn only while lit)');
   // at rest: xray hidden; bodies + fat lines of base and cover, plus 6 hulls and 4 shadows
   assert.equal(a.drawCalls(), 25);
   assert.equal(a.drawCalls() - 10, a.sidecar.stats.drawCalls);
@@ -278,4 +279,79 @@ test('highlight and part visibility use the shared uniforms (bitmask of 512 part
   assert.equal(a.uniforms.uHidden.value[0], 0);
   assert.equal(a.node('servo:SRV1').visible, true);
   a.dispose();
+});
+
+/** the names of the nodes (direct children of the root) whose geometry casts a shadow */
+const castingNodes = (a) => {
+  const out = new Set();
+  a.root.traverse((o) => {
+    if (o.userData.inkRole !== 'shadow') return;
+    let n = o.userData.source;
+    while (n.parent && n.parent !== a.root) n = n.parent;
+    out.add(n.userData.name);
+  });
+  return [...out].sort();
+};
+
+test('a channel node casts a shadow when it turns, or when it is at least a quarter of the item\'s size', async () => {
+  const a = await fixtureAsset();
+  assert.deepEqual(castingNodes(a), ['prop:M1', 'servo:SRV1', 'static', 'static.cover'], 'turning nodes cast; the small LED and button do not');
+  a.dispose();
+  // the servo (15 mm, 0.2 of the item's 78 mm) and the prop (26 mm, 0.34) made emissive, so neither turns
+  const { sidecar, glb } = buildFixture();
+  for (const c of sidecar.channels) {
+    if (c.id === 'servo:SRV1' || c.id === 'prop:M1') Object.assign(c, { kind: 'emissive', value: { unit: 'level', min: 0, max: 1, rest: 0 }, color: '#ffffff' });
+  }
+  const b = await loadXrAsset('mem://fixture/fixtures/ink-board.json', { sidecar, glb });
+  assert.deepEqual(castingNodes(b), ['prop:M1', 'static', 'static.cover'], 'the big still node casts, the small one does not');
+  b.dispose();
+  const c = await fixtureAsset({ channelShadows: 'none' });
+  assert.deepEqual(castingNodes(c), ['static', 'static.cover']);
+  c.dispose();
+});
+
+test('a lit LED draws one halo: hidden at level 0, one draw call more when lit, in the channel\'s colour', async () => {
+  const a = await fixtureAsset();
+  const glow = a.node('led:L').children.find((o) => o.userData.inkRole === 'glow');
+  assert.ok(glow, 'a halo on the LED node');
+  assert.equal(glow.material.blending, THREE.CustomBlending);
+  assert.equal(glow.material.depthWrite, false);
+  assert.equal(glow.renderOrder, 3);
+  assert.equal(glow.visible, false, 'off: nothing drawn');
+  const off = a.drawCalls();
+  a.set('led:L', 1);
+  assert.equal(glow.visible, true);
+  assert.equal(a.drawCalls(), off + 1, 'one draw call per lit LED');
+  const want = new THREE.Color().setRGB(...hexToRgb('#ffb52e').map(srgbToLinear)), c = glow.material.uniforms.uColor.value;
+  assert.ok(Math.abs(c.r - want.r) + Math.abs(c.g - want.g) + Math.abs(c.b - want.b) < 1e-6, 'the channel colour');
+  assert.equal(glow.material.uniforms.uLevel.value, 1);
+  a.set('led:L', 0.4);
+  assert.equal(glow.material.uniforms.uLevel.value, 0.4, 'intensity follows the level');
+  a.set('led:L', 0);
+  assert.equal(glow.visible, false);
+  assert.equal(a.drawCalls(), off);
+  // at the channel's anchor (5.4 mm up; the node stands on the board's top at 4.6 mm), sized from the node's bounds
+  assert.deepEqual(glow.material.uniforms.uCenter.value.toArray().map((v) => +v.toFixed(9) + 0), [0, 0.0008, 0]);
+  assert.ok(Math.abs(glow.material.uniforms.uRadius.value - glowRadius(Math.hypot(1.6e-3, 0.8e-3, 0.8e-3))) < 1e-9);
+  assert.ok(Math.abs(glowRadius(0.01) - (GLOW_K * 0.01 + GLOW_R0)) < 1e-12);
+  // it goes with its part
+  a.set('led:L', 1);
+  a.setPartVisible('L', false);
+  assert.equal(a.drawCalls(), off - 3, 'the LED node (body, fat line, hull) and its halo');
+  a.dispose();
+  // glow: false draws none
+  const b = await fixtureAsset({ glow: false });
+  b.set('led:L', 1);
+  let n = 0;
+  b.object.traverse((o) => { if (o.userData.inkRole === 'glow') n++; });
+  assert.equal(n, 0);
+  assert.equal(b.drawCalls(), off);
+  b.dispose();
+  // setGlow on its own: colour and visibility
+  const g = createGlow({ color: '#ff0000', level: 0 });
+  assert.equal(g.visible, false);
+  setGlow(g, '#00ff00', 0.5);
+  assert.equal(g.visible, true);
+  assert.deepEqual(g.material.uniforms.uColor.value.toArray(), [0, 1, 0]);
+  assert.equal(g.material.uniforms.uLevel.value, 0.5);
 });
