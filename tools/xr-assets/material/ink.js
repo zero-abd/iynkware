@@ -361,6 +361,7 @@ attribute vec3 iStart;
 attribute vec3 iEnd;
 attribute vec3 iColor;
 attribute float iWidth;
+attribute float iLayer;                          // how many earlier segments of this line lie on the same points
 #ifdef HAS_PART
 attribute float iPart;
 #endif
@@ -387,8 +388,11 @@ void main() {
     else if (mb.z > -near && ma.z <= -near) mb = mix(mb, ma, (-near - mb.z) / (ma.z - mb.z));
   }
   vec3 ea = persp ? normalize(-ma.xyz) : vec3(0.0, 0.0, 1.0), eb = persp ? normalize(-mb.xyz) : vec3(0.0, 0.0, 1.0);
-  ma.xyz += ea * (uLinePush * max(-ma.z, 0.0) + uDepthPull);
-  mb.xyz += eb * (uLinePush * max(-mb.z, 0.0) + uDepthPull);
+  // a stroke painted over an earlier one on the same points (a highlight over an ink edge) comes one push nearer
+  // per layer, so it wins the depth test the way it wins in the figure's paint order
+  float push = uLinePush * (1.0 + iLayer);
+  ma.xyz += ea * (push * max(-ma.z, 0.0) + uDepthPull);
+  mb.xyz += eb * (push * max(-mb.z, 0.0) + uDepthPull);
   vec4 ca = projectionMatrix * ma, cb = projectionMatrix * mb;
   vec2 sa = ca.xy / ca.w * uResolution, sb = cb.xy / cb.w * uResolution;
   vec2 dir = sb - sa;
@@ -645,10 +649,17 @@ export function createFatLines(lines, { uniforms = null, look = {}, opacity = 1,
   const S = new Float32Array(n * 3), E = new Float32Array(n * 3), C = new Float32Array(n * 3), W = new Float32Array(n);
   const P = part ? new Float32Array(n) : null, XA = exp ? new Float32Array(n * 3) : null, XB = exp ? new Float32Array(n * 3) : null;
   const inkLin = hexToRgb(look.ink || INK).map(srgbToLinear);
+  // coincident segments (either direction, to 0.01 mm) are layered in draw order; see iLayer in FAT_LINE_VERT
+  const L = new Float32Array(n), seen = new Map();
+  const q = (v) => Math.round(v * 1e5);
   for (let i = 0; i < n; i++) {
     const a = idx ? idx[2 * i] : 2 * i, b = idx ? idx[2 * i + 1] : 2 * i + 1;
     S[3 * i] = pos.getX(a); S[3 * i + 1] = pos.getY(a); S[3 * i + 2] = pos.getZ(a);
     E[3 * i] = pos.getX(b); E[3 * i + 1] = pos.getY(b); E[3 * i + 2] = pos.getZ(b);
+    const ka = `${q(S[3 * i])},${q(S[3 * i + 1])},${q(S[3 * i + 2])}`, kb = `${q(E[3 * i])},${q(E[3 * i + 1])},${q(E[3 * i + 2])}`;
+    const key = ka < kb ? ka + '|' + kb : kb + '|' + ka;
+    L[i] = seen.get(key) || 0;
+    seen.set(key, L[i] + 1);
     if (col) { C[3 * i] = col.getX(a); C[3 * i + 1] = col.getY(a); C[3 * i + 2] = col.getZ(a); } else C.set(inkLin, 3 * i);
     W[i] = wid ? (wid.getX(a) + wid.getX(b)) / 2 : FACE_LINE;
     if (P) P[i] = part.getX(a);
@@ -661,6 +672,7 @@ export function createFatLines(lines, { uniforms = null, look = {}, opacity = 1,
   g.setAttribute('iEnd', new THREE.InstancedBufferAttribute(E, 3));
   g.setAttribute('iColor', new THREE.InstancedBufferAttribute(C, 3));
   g.setAttribute('iWidth', new THREE.InstancedBufferAttribute(W, 1));
+  g.setAttribute('iLayer', new THREE.InstancedBufferAttribute(L, 1));
   if (P) g.setAttribute('iPart', new THREE.InstancedBufferAttribute(P, 1));
   if (XA) { g.setAttribute('iExpA', new THREE.InstancedBufferAttribute(XA, 3)); g.setAttribute('iExpB', new THREE.InstancedBufferAttribute(XB, 3)); }
   g.instanceCount = n;

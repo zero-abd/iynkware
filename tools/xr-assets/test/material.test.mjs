@@ -170,6 +170,15 @@ test('fat lines: one instance per segment with the figure\'s width and colour', 
   assert.equal(fat.geometry.instanceCount, 2);
   assert.deepEqual(Array.from(fat.geometry.attributes.iWidth.array).map((v) => +v.toFixed(3)), [0.5, 2.8]);
   assert.deepEqual(Array.from(fat.geometry.attributes.iEnd.array.slice(3)), [0, 1, 1]);
+  assert.deepEqual(Array.from(fat.geometry.attributes.iLayer.array), [0, 0]);
+});
+
+test('fat lines: a stroke painted over an earlier one on the same points is layered above it (#133)', () => {
+  // an ink edge, a highlight on the same edge given the other way round, a third stroke on it, and a separate edge
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0.01, 0, 0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0.01, 0.01, 0], 3));
+  const fat = createFatLines(new THREE.LineSegments(g));
+  assert.deepEqual(Array.from(fat.geometry.attributes.iLayer.array), [0, 1, 2, 0]);
 });
 
 const fixtureAsset = async (opts = {}) => {

@@ -200,7 +200,9 @@ Zhu; the notice is kept in the file):
   light with the figure's thresholds and its 0.18 soft step, from the vertex band colours. The light is fixed in the
   world (the figure's light stays fixed to the viewer; in a headset that would swim). `look.sun` gives the direction
   that makes the item's default view match its figure.
-- **Face edges**: the line primitives, in ink `#231e16`, or their own colour for traces and wires.
+- **Face edges**: the line primitives, in ink `#231e16`, or their own colour for traces and wires. Fat lines (the
+  default) draw a segment that repeats an earlier one's points (a prop's highlight stroked over its ink edge) one
+  depth push nearer per repeat, so the later stroke wins as it does in the figure.
 - **Silhouette**: an inverted hull, pushed out along `_OUTLINE_NORMAL` by a constant screen width. No
   post-processing.
 - **Shadow**: the static meshes drawn again flattened onto y = 0 along the sun, in `#41538f`, with a polygon offset.
