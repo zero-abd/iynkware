@@ -101,8 +101,9 @@ pillar's implementation.
 | [sim.ts](../xr/src/contracts/sim.ts) | `SimBridge`: load, run, pause, step, stop, speed, world inputs, analog watch (merged per owner), meter, robot physics (`lastMech`, `onMech`, `onMechState`); `SimFrame`, `RunState`, `PhysicsFrame`, `MechStatus` | `xr/src/sim/bridge.ts` |
 | [project.ts](../xr/src/contracts/project.ts) | `ProjectStore` (ops, undo, redo, `as(author)` for the co-builder, subscribe), `Selection`, `TemplateSource`, `ProjectRepository` | `xr/src/project/store.ts` |
 | [assets.ts](../xr/src/contracts/assets.ts) | `AssetRegistry`, `PartAsset` with the pipeline's sidecar (imported from `tools/xr-assets/schema/xr-asset.ts`) and `footprint` | `xr/src/assets/registry.ts` |
-| [space.ts](../xr/src/contracts/space.ts) | `BenchSpace`: bench pose and scale, document mm to board frame to world, `worldOf(target)`, `objectOf`, `onLayout` | `xr/src/bench/space.ts` |
+| [space.ts](../xr/src/contracts/space.ts) | `BenchSpace`: bench pose and scale, document mm to board frame to world, `worldOf(target)`, `wirePath(wire)`, `objectOf`, `onLayout` | `xr/src/bench/space.ts` |
 | [input.ts](../xr/src/contracts/input.ts) | `InputService`: `bind`, sources, `pose` (each hand or controller every frame: pinch point or grip, palm normal, pinching, open hand, target ray), stick, pulse, `onAny`, `button` (A/X, B/Y, thumbstick click: pressed, down, up), `freeHold` (a pinch or grip that began on no bound target); `InteractionEvent` | `xr/src/input/service.ts` |
+| [feedback.ts](../xr/src/contracts/feedback.ts) | `FeedbackService` on `XrApp.feedback`: `play(event, at, hand)` for the section 4 table of docs/XR_DESIGN.md (controller haptics, the pop ring for hands or with sound off, synthesized positional sounds per bus, following the sound settings) | `xr/src/ui/feedback/` |
 | [part-view.ts](../xr/src/contracts/part-view.ts) | `PartView`, `PartViewFactory`, `PartViewRegistry` | `xr/src/run/views/` |
 | [overlay.ts](../xr/src/contracts/overlay.ts) | `OverlayLayer`: glows, pins and labels on board targets, per owner | `xr/src/ui/overlay.ts` |
 | [lesson.ts](../xr/src/contracts/lesson.ts) | `LessonGuide`, `GuideStep`, `GuideCheck`, `ProgressStore`, `LessonLauncher` (catalogue and opening lessons, `app.lessons`) | `xr/src/learn/` (fake guide; `launcher.ts` slot) |
@@ -220,7 +221,10 @@ Ported (rewritten in `xr/`, because the iynk file pulls in the browser app or th
 
 ## 10. Running it
 
-Everything below runs from `xr/` with Node 24.
+Everything below runs from `xr/` with Node 24, and needs only `xr`'s own install: the repository root's `npm ci` is
+not needed (iynk code that names `react` for types resolves to `xr`'s `@types/react` through `tsconfig.json` `paths`).
+The firmware engines and rapier are `xr` dependencies, so the production build bundles them; Playwright 1.65.1 is pinned
+for the emulator scripts.
 
 ```bash
 cd xr && npm ci

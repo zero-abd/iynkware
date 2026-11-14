@@ -6,6 +6,7 @@
 import type { World } from '@iwsdk/core';
 import type { AssetRegistry } from './assets';
 import type { ReadonlyValue, Unsubscribe } from './common';
+import type { FeedbackService } from './feedback';
 import type { InputService } from './input';
 import type { LessonGuide, LessonLauncher, ProgressStore } from './lesson';
 import type { OverlayLayer } from './overlay';
@@ -29,6 +30,8 @@ export interface XrApp {
   readonly sim: SimBridge;
   readonly assets: AssetRegistry;
   readonly input: InputService;
+  /** The design's feedback table (section 4): haptics, the pop ring for hands and the event sounds. */
+  readonly feedback: FeedbackService;
   readonly bench: BenchSpace;
   readonly views: PartViewRegistry;
   readonly overlay: OverlayLayer;

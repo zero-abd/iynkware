@@ -5,7 +5,13 @@
      servos sweep)  anchors=1 (anchor dots)  texts=1 (printed text)  lines=fat|gl  ortho=1 (orthographic camera)
      yaw=deg pitch=deg (turn the default view)  zoom=1  ink=1 (ink width scale)  shot=1 (no UI)
      copies=N (N of the item side by side: a rough draw-call check for a bench of items)
+     seat=parts/led@c10,parts/resistor@e11 (other items seated in this one: each item's first pin's tip at that
+     anchor, unturned; the Blink breadboard with its LED and resistor)
      logdepth=1 (a logarithmic depth buffer, to check the ink shaders under it)  glow=0 (no halos on lit LEDs)
+     A headset-like close-up: scale=3 (the item's scale; 3 is the app's work scale)  dist=0.5 (the camera's distance in
+     metres)  fov=45 (vertical degrees; 45 over 900 px is about a Quest 3S's 20 px per degree)  focus=<anchor id>
+     (look at that anchor rather than the item's centre)
+     bg=#rrggbb (the background; default paper)
      An Enter VR button appears where WebXR immersive-vr is supported: the item then stands at table height half a
      metre in front.
    window.__viewer exposes { asset, renderer, scene, camera, ready }; <html data-ready="1"> once a frame is drawn. */
@@ -28,7 +34,7 @@ renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 renderer.info.autoReset = true;
 renderer.xr.enabled = true;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(PAPER);
+scene.background = new THREE.Color(/^#[0-9a-f]{6}$/i.test(Q.get('bg') || '') ? Q.get('bg') : PAPER);
 // in a headset the items stand on a table-height plane in front of the viewer
 const world = new THREE.Group();
 scene.add(world);
@@ -39,7 +45,7 @@ if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr').then((ok) => {
   import('three/addons/webxr/VRButton.js').then(({ VRButton }) => { const b = VRButton.createButton(renderer); b.style.position = 'static'; b.style.transform = 'none'; $('xrrow').append(b); });
 }).catch(() => {});
 const ortho = Q.get('ortho') === '1';
-const camera = ortho ? new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, 100) : new THREE.PerspectiveCamera(18, 1, 0.001, 100);
+const camera = ortho ? new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, 100) : new THREE.PerspectiveCamera(Math.min(120, Math.max(5, num('fov', 18))), 1, 0.001, 100);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.12;
@@ -49,6 +55,7 @@ const state = {
   explode: num('explode', 0), xr: num('xr', 0), leds: Q.get('leds') === '1', spin: Q.get('spin') === '1',
   anchors: Q.get('anchors') === '1', texts: Q.get('texts') === '1', lines: Q.get('lines') === 'gl' ? 'gl' : 'fat',
   yaw: num('yaw', 0), pitch: num('pitch', 0), zoom: num('zoom', 1), ink: num('ink', 1),
+  scale: Math.max(0.01, num('scale', 1)), dist: num('dist', 0), focus: Q.get('focus') || '',
 };
 const viewer = { asset: null, renderer, scene, camera, controls, ready: false, items: [], state };
 window.__viewer = viewer;
@@ -107,6 +114,18 @@ async function open(id) {
       viewer.copies.push(c);
     }
   }
+  // seat=<item>@<anchor>,...: items seated in this one, their first pin on that anchor
+  for (const s of (Q.get('seat') || '').split(',').filter(Boolean)) {
+    const [sid, at] = s.split('@');
+    const sit = viewer.items.find((x) => x.id === sid && x.url);
+    const hole = (asset.sidecar.anchors || []).find((x) => x.id === at);
+    if (!sit || !hole) { fail('cannot seat ' + s); continue; }
+    const c = await loadXrAsset(sit.url, { lines: state.lines, inkScale: state.ink, hull: Q.get('hull') === 'all' ? 'all' : 'back', glow: Q.get('glow') !== '0' });
+    const pin = (c.sidecar.anchors || []).find((x) => x.kind === 'pin') || { position: [0, 0, 0] };
+    c.object.position.set(...hole.position).sub(new THREE.Vector3(...pin.position));
+    asset.object.add(c.object);
+    viewer.copies.push(c);
+  }
   if (anchorsObj) { anchorsObj.geometry.dispose(); anchorsObj.material.dispose(); anchorsObj.removeFromParent(); anchorsObj = null; }
   textsObj = null;
   viewer.asset = asset;
@@ -121,15 +140,21 @@ async function open(id) {
 function frame() {
   const a = viewer.asset, sc = a.sidecar;
   const b = sc.bounds || { min: [-0.05, 0, -0.05], max: [0.05, 0.05, 0.05] };
-  const min = new THREE.Vector3(...b.min), max = new THREE.Vector3(...b.max);
-  const c = min.clone().add(max).multiplyScalar(0.5), r = Math.max(1e-3, max.clone().sub(min).length() / 2);
+  a.object.scale.setScalar(state.scale);
+  a.object.updateMatrixWorld(true);
+  const min = new THREE.Vector3(...b.min).multiplyScalar(state.scale), max = new THREE.Vector3(...b.max).multiplyScalar(state.scale);
+  let c = min.clone().add(max).multiplyScalar(0.5);
+  const r = Math.max(1e-3, max.clone().sub(min).length() / 2);
+  const at = state.focus && a.anchor(state.focus);
+  if (state.focus && !at) fail('unknown anchor ' + state.focus);
+  if (at) c = at.position.clone();
   const v = new THREE.Vector3(...((sc.look && sc.look.defaultView) || [0.577, 0.577, 0.577])).normalize();
   if (state.yaw) v.applyAxisAngle(new THREE.Vector3(0, 1, 0), state.yaw * Math.PI / 180);
   if (state.pitch) { const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), v).normalize(); v.applyAxisAngle(side, -state.pitch * Math.PI / 180); }
   const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
   const fov = (camera.isPerspectiveCamera ? camera.fov : 18) * Math.PI / 180;
   const fit = Math.min(1, aspect);                         // fit the bounding sphere in the narrower side
-  const dist = r / Math.sin(Math.atan(Math.tan(fov / 2) * fit)) * 1.02 / state.zoom;
+  const dist = state.dist > 0 ? state.dist : r / Math.sin(Math.atan(Math.tan(fov / 2) * fit)) * 1.02 / state.zoom;
   camera.position.copy(c).addScaledVector(v, dist);
   camera.up.set(0, 1, 0);
   camera.near = dist / 200; camera.far = dist * 20;
@@ -173,7 +198,7 @@ function syncUrl() {
   if (state.spin) p.set('spin', 1);
   if (state.anchors) p.set('anchors', 1);
   if (state.texts) p.set('texts', 1);
-  for (const k of ['lines', 'ortho', 'yaw', 'pitch', 'zoom', 'ink', 'shot', 'w', 'h', 'copies', 'logdepth', 'hull', 'glow']) if (Q.has(k)) p.set(k, Q.get(k));
+  for (const k of ['lines', 'ortho', 'yaw', 'pitch', 'zoom', 'ink', 'shot', 'w', 'h', 'copies', 'seat', 'logdepth', 'hull', 'glow', 'scale', 'dist', 'fov', 'focus', 'bg']) if (Q.has(k)) p.set(k, Q.get(k));
   history.replaceState(null, '', '?' + p.toString().replace(/%2F/g, '/'));
 }
 
