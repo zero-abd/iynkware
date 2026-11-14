@@ -3,27 +3,87 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="data:," />
-    <title>iynkware</title>
-    <style>
-      html, body { margin: 0; height: 100%; background: #f2efe7; color: #231e16; font-family: system-ui, sans-serif; }
-      #scene-container { position: fixed; inset: 0; }
-      #shell { position: fixed; left: 0; right: 0; bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 1; pointer-events: none; padding: 0 16px; }
-      #shell > * { pointer-events: auto; }
-      #shell button { min-height: 48px; font: inherit; font-size: 20px; padding: 10px 28px; border-radius: 14px; border: 3px solid #231e16; color: #231e16; cursor: pointer; box-shadow: 4px 4px 0 #41538f; }
-      #enter { background: #e4694e; }
-      #flat { background: #f2efe7; }
-      #shell button[disabled] { opacity: 0.5; cursor: default; }
-      #shell button:focus-visible { outline: 3px solid #1d4fd8; outline-offset: 3px; }
-      #status { font-size: 15px; background: #f2efe7; padding: 6px 12px; border-radius: 8px; text-align: center; }
-    </style>
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#e4ddcf" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2efe7" />
+    <meta name="description" content="iynk’s hardware lab in your headset. Build real circuits on a bench in your room, run them, break them and find out why." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23231e16'/%3E%3Crect x='25.5' y='27' width='13' height='25' fill='%23f2efe7'/%3E%3Ccircle cx='32' cy='16.5' r='6.5' fill='%23e4694e'/%3E%3C/svg%3E" />
+    <title>iynkware: iynk’s hardware lab in your headset</title>
+    <link rel="preload" as="image" href="/entry/bench.webp" type="image/webp" fetchpriority="high" />
+    <link rel="stylesheet" href="/src/shell/entry/entry.css" />
   </head>
   <body>
     <div id="scene-container"></div>
     <div id="shell">
-      <button id="enter" type="button">Enter</button>
-      <button id="flat" type="button">Open on this screen</button>
-      <div id="status" role="status" aria-live="polite"></div>
+      <header class="top">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#231e16" /><rect x="25.5" y="27" width="13" height="25" fill="#f2efe7" /><circle class="mark-dot" cx="32" cy="16.5" r="6.5" fill="#e4694e" /></svg>
+          <span class="brand-name">iynkware</span>
+        </div>
+        <label class="lang">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.4 3.9 5.4 3.9 9s-1.3 6.6-3.9 9c-2.6-2.4-3.9-5.4-3.9-9S9.4 5.4 12 3z" /></svg>
+          <span class="sr" data-k="lang">Language</span>
+          <select id="lang">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="hi">हिन्दी</option>
+            <option value="zh">中文</option>
+          </select>
+        </label>
+      </header>
+
+      <main class="page">
+        <div id="update-slot"></div>
+        <section class="hero">
+          <div class="intro">
+            <h1 data-k="headline">iynk’s hardware lab, in your headset.</h1>
+            <p class="lede" data-k="lede">Build real circuits on a bench in your room, with your hands or the controllers. Run them, break them and find out why.</p>
+          </div>
+
+          <figure class="bench">
+            <div class="bench-art">
+              <img class="bench-still" src="/entry/bench.webp" width="1156" height="862" fetchpriority="high" decoding="async" data-k-alt="figAlt" alt="The first project on the bench: an Arduino Uno beside a half breadboard with a red LED, a resistor and two wires. The LED blinks." />
+              <!-- The lit LED and the board's L LED, cut from the same file (bench.webp: scene above, lit patches below). -->
+              <span class="lit" aria-hidden="true" style="--x: 646; --y: 62; --w: 156; --h: 148; --sx: 0; --sy: 862"></span>
+              <span class="lit" aria-hidden="true" style="--x: 310; --y: 470; --w: 52; --h: 60; --sx: 156; --sy: 862"></span>
+            </div>
+            <figcaption data-k="figCaption">Your first project: wire this LED and make it blink.</figcaption>
+          </figure>
+
+          <div class="act">
+            <div id="notice" class="banner" hidden></div>
+            <div class="actions">
+              <button id="enter" class="btn primary" type="button"><span data-k="enter">Enter</span></button>
+              <button id="flat" class="btn" type="button"><span data-k="flat">Open on this screen</span></button>
+              <button id="back" class="btn back" type="button" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6" /></svg>
+                <span class="back-label" data-k="back">Back to the start page</span>
+              </button>
+            </div>
+            <div class="progress" hidden><i></i><i></i><i></i><i></i></div>
+            <div id="status" role="status" aria-live="polite"></div>
+            <p class="note" id="no-immersive" data-k="noImmersive" hidden>This browser has no headset mode, so the bench opens on this screen.</p>
+          </div>
+
+          <section class="device" aria-labelledby="device-title">
+            <h2 id="device-title" data-k="deviceTitle">This device</h2>
+            <ul class="rows" id="device-rows"></ul>
+          </section>
+        </section>
+
+        <section class="can" aria-labelledby="can-title">
+          <h2 id="can-title" data-k="stripTitle">What you can do</h2>
+          <ul class="can-list">
+            <li data-draw="build"><span data-k="doBuild">Build on a bench with your hands or the controllers</span></li>
+            <li data-draw="run"><span data-k="doRun">Run it and watch it work</span></li>
+            <li data-draw="break"><span data-k="doBreak">Break it and see why</span></li>
+            <li data-draw="inside"><span data-k="doInside">Look inside at room size</span></li>
+            <li data-draw="fly"><span data-k="doFly">Fly drones and drive robots</span></li>
+          </ul>
+        </section>
+      </main>
     </div>
     <script type="module" src="/src/shell/entry/index.ts"></script>
   </body>
