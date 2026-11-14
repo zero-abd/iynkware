@@ -9,7 +9,7 @@
 // - a part page (figures/parts/*): the page draws the part in a breadboard view, often several of it (five LED colours,
 //   four resistor values). The asset is its first circuit part alone, with the page's params (a demo param at its
 //   first, resting value; colour duties and presses off): the breadboard, the other instances and the mat are left
-//   out, and y = 0 is the breadboard's top (the leads go into it) or the mat for a part that lies on the mat. The
+//   out, and y = 0 is the breadboard's top, where the leads go in (a part that lies on the mat sits below it). The
 //   breadboard page itself is the bare half breadboard on the mat. The jumper-wire page keeps its first wire.
 // The cutting mat is never in an asset: anything drawn at or below the mat's top is left out.
 import { descriptorFor, descriptorName, matchPins, matchLegs } from './bench-desc.mjs';
@@ -25,6 +25,14 @@ const PORT_KINDS = /^(usb-b|usb-micro|usb-mini|usb-c|usb-a|barrel|pi-hdmi|pi-rj4
 // the drawings shorten the cap rather than move it, which no rigid fit recovers, so the press axis and travel are given
 const PRESS_MM = { tact: .6, 'button-smd': .3, 'microbit-back-tact': .6, 'push-button': .25 };
 const TOUCH = /^(pad|microbit-logo)$/;      // touch pads: pressing changes a colour, nothing moves (no press channel)
+// parts with no channel: the micro:bit's back-side parts are drawn only in see-through (microbit-v2.js backDraw), and
+// the Nucleo's COM LED lights only through 2D glows; a channel is captured at rest and would find nothing to drive
+const UNLIT = /^microbit-back-|^nucleo-com$/;
+const RAIL_LED = /^(traffic-light-led|uln2003-led)$/;
+// a turning knob whose drawing moves only its indicator line (too few points to fit): its axis is the part's vertical
+// through the shaft, in the drawing's leg frame (figures/parts/potentiometer.js: shaft 2.6 mm behind the legs, knob
+// top 13.6 mm up, angle (pos - 0.5) x 300 degrees, increasing right-handed about +z in the figure's world)
+const KNOBS = { potentiometer: { b: -2.6, z: 13.6, sweep: 300 } };
 const MOTOR_PARTS = new Set(['tt-motor', 'dc-motor', 'fan', 'nema17', 'stepper-28byj48']);
 const ROLE_OF_PART = { 'push-button': 'control', potentiometer: 'control', 'servo-sg90': 'motor', wire: 'wire', 'traffic-light': 'led', 'rgb-led': 'led', led: 'led' };
 // displays: the active area in the part's own frame (centre origin, x along size[0]) and its pixels; else the top face
@@ -77,6 +85,7 @@ const create = () => ({
     this.info = JSON.parse(page.eval(`(${pageInfo})()`));
     this.ledColors = page.eval('JSON.stringify(SL.bench.LED_COLORS || {})');
     this.ledColors = JSON.parse(this.ledColors);
+    this.supply = page.eval('(() => { const p = SL.bench.md.power || {}; return p.default || Object.keys(p.sources || {})[0] || null; })()');
     page.eval(`SL.bench.__xr.snap = JSON.stringify((() => { const st = SL.bench.st; return { ctl: st.ctl, o: { pins: st.o.pins, leds: st.o.leds }, cparams: st.cparams || {}, readings: st.readings || {}, meas: st.meas || {}, drv: st.drv || {}, t: st.t || 0 }; })())`);
     const G = { ...B.G };
     this.G = G;
@@ -107,14 +116,14 @@ const create = () => ({
       source: 'board-mm', origin: 'footprint-centre', restZ: G.matH - G.top,
       coreToSource: ([X, Y, Z]) => [G.oy + G.pw - Y, G.ox + G.ph - X, Z - G.top],
     };
-    if (this.pagePart && this.keep && this.keep !== 'BB') {
-      const q = I.circuit.parts.find((x) => x.id === this.keep);
-      if (q && !q.at) frame.restZ = I.circuit.zTop;     // a part in the breadboard stands on its top
-    }
+    // every part page but the breadboard's own has y = 0 at the breadboard's top, where the part's leads enter the
+    // holes: a part that lies on the mat (a motor, a battery pack) sits below y = 0 with its leads up to the breadboard
+    if (this.pagePart && this.keep !== 'BB' && I.circuit) frame.restZ = I.circuit.zTop;
     const extras = {};
     const used = Object.fromEntries(Object.entries(this.descs).filter(([, d]) => d).map(([k, d]) => [k, descriptorName(d)]));
     if (Object.keys(used).length > 1 || (Object.keys(used).length && !used[''])) extras.descriptors = used;
     if (this.pagePart && this.keep && this.keep !== 'BB') extras.partPage = { instance: this.keep };
+    else if (this.pagePart && this.keepWire) extras.partPage = { instance: this.keepWire };
     return {
       name: I.base.name, kind: KIND[dir], az: st.az, frame,
       ...(own && (this.pagePart ? this.pagePart !== 'wire' : true) ? { descriptor: descriptorName(own) } : {}),
@@ -147,6 +156,7 @@ const create = () => ({
   async explode(page, on) { const st = this.B.st; st.exploded = on; st.exK = on ? 1 : 0; },
   async reset(page) {
     page.eval(`(() => { const B = SL.bench, st = B.st, s = JSON.parse(B.__xr.snap);
+      if (B.__xr.powered) { st.power = null; B.refresh(); B.__xr.powered = false; }
       st.ctl = s.ctl; st.o.pins = s.o.pins; st.o.leds = s.o.leds; st.cparams = s.cparams; st.readings = s.readings; st.meas = s.meas; st.drv = s.drv; st.t = s.t;
       st.xr = st.xrT = 0; st.exploded = false; st.exK = 0; B.__xr.lit = {}; B.__xr.on = {}; })()`);
   },
@@ -187,16 +197,19 @@ const create = () => ({
     for (const b of this.boards) {
       for (const p of b.md.parts) {
         const id = b.prefix + p.id;
-        if (p.led) {
+        if (p.led && !UNLIT.test(p.kind)) {
           const L = p.led, key = (k) => b.prefix + k;
           const rgb = p.kind === 'rgb';
           const bind = L.net ? { source: 'net', key: key(L.net) } : L.rail ? { source: 'rail', key: key(L.rail) } : L.serial ? { source: 'serial', key: key(String(L.serial)) } : undefined;
           const lit = p.kind === 'matrix' ? `st.o.pins[${js(L.net || 'MATRIX')}] = '1'.repeat(${(p.rows || 5) * (p.cols || 5)});` : rgb ? `st.o.pins[${js((L.net || '') + '.rgb')}] = '#ffffff';` : '';
+          // an LED whose drawing works out its own current from a rail (traffic-light-led, uln2003-led) is lit with the
+          // board on its default supply, so the engine's evaluate() gives that rail its voltage; reset() unplugs it
+          const power = !b.prefix && RAIL_LED.test(p.kind) ? `if (!st.power) { st.power = ${js(this.supply)}; SL.bench.refresh(); SL.bench.__xr.powered = true; }` : '';
           out.push({ id: `led:${id}`, kind: 'emissive', part: id, parts: [id], value: rgb ? { unit: 'rgb', min: 0, max: 1, rest: 0 } : { unit: 'level', min: 0, max: 1, rest: 0 },
             ...(rgb ? {} : { color: (L.color || '#f7a531').toLowerCase() }), bind,
-            apply: () => ev(b.prefix ? `SL.bench.__xr.lit[${js(id)}] = 1; (() => { const st = SL.bench.st; ${lit} })()` : `(() => { const st = SL.bench.st; st.o.leds[${js(p.id)}] = 1; ${lit} })()`) });
+            apply: () => ev(b.prefix ? `SL.bench.__xr.lit[${js(id)}] = 1; (() => { const st = SL.bench.st; ${lit} })()` : `(() => { const st = SL.bench.st; ${power} st.o.leds[${js(p.id)}] = 1; ${lit} })()`) });
         }
-        if (p.control && p.control.type === 'button' && !TOUCH.test(p.kind)) {
+        if (p.control && p.control.type === 'button' && !TOUCH.test(p.kind) && !UNLIT.test(p.kind)) {
           const mm = PRESS_MM[p.kind];
           out.push({ id: `press:${id}`, kind: 'translate', part: id, parts: [id], value: { unit: 'press', min: 0, max: 1, rest: 0 }, bind: { source: 'press', key: id },
             ...(mm ? { axis: p.side === 'bottom' ? [0, 0, 1] : [0, 0, -1], amount: mm } : {}),
@@ -212,7 +225,10 @@ const create = () => ({
     for (const q of circuit) {
       const id = q.id;
       if (q.part === 'rgb-led') {
-        out.push({ id: `led:${id}`, kind: 'emissive', part: id, parts: [id], value: { unit: 'rgb', min: 0, max: 1, rest: 0 }, apply: () => ev(cp(id, { r: 1, g: 1, b: 1 })) });
+        // in a circuit the drawing takes each die's current from the solver (m.ch), which outranks the duty params
+        const die = { state: 'ok', i_mA: 13.6 };
+        out.push({ id: `led:${id}`, kind: 'emissive', part: id, parts: [id], value: { unit: 'rgb', min: 0, max: 1, rest: 0 },
+          apply: () => ev(`${cp(id, { r: 1, g: 1, b: 1 })}; SL.bench.st.meas[${js(id)}] = { kind: 'rgb', state: 'ok', ch: ${js({ R: die, G: die, B: die })} }`) });
       } else if (q.elec.includes('led')) {
         out.push({ id: `led:${id}`, kind: 'emissive', part: id, parts: [id], value: { unit: 'level', min: 0, max: 1, rest: 0 },
           color: (this.ledColors[q.color || 'red'] || '#e8392e').toLowerCase(),
@@ -224,9 +240,18 @@ const create = () => ({
           ...(mm ? { axis: [0, 0, -1], amount: mm } : {}), apply: () => ev(cp(id, { pressed: 1 })) });
       }
       if (q.params.includes('pos') && q.elec.includes('pot')) {
-        const pos = +cur(id).pos || 0, sweep = 300, to = pos > .5 ? pos - .25 : pos + .25;
-        out.push({ id: `turn:${id}`, kind: 'rotate', part: id, parts: [id], value: { unit: 'deg', min: -sweep / 2, max: sweep / 2, rest: +((pos - .5) * sweep).toFixed(3) },
-          active: (to - .5) * sweep, bind: { source: 'param', key: `${id}.pos` }, extras: { param: 'pos', deg: `(pos - 0.5) * ${sweep}` }, apply: () => ev(cp(id, { pos: to })) });
+        const kn = KNOBS[q.part], sweep = kn ? kn.sweep : 300;
+        const pos = +cur(id).pos || 0, to = pos > .5 ? pos - .25 : pos + .25;
+        const ch = { id: `turn:${id}`, kind: 'rotate', part: id, parts: [id], value: { unit: 'deg', min: -sweep / 2, max: sweep / 2, rest: +((pos - .5) * sweep).toFixed(3) },
+          active: (to - .5) * sweep, bind: { source: 'param', key: `${id}.pos` }, extras: { param: 'pos', deg: `(pos - 0.5) * ${sweep}` }, apply: () => ev(cp(id, { pos: to })) };
+        const legs = (q.legW || []).map((e) => e && e.w);
+        if (kn && legs.length >= 2 && legs.every(Boolean)) {
+          const o = mean3(legs), d = sub3(legs[legs.length - 1], legs[0]), l = Math.hypot(d[0], d[1]) || 1, ux = d[0] / l, uy = d[1] / l;
+          ch.axis = [0, 0, 1];
+          ch.pivot = [o[0] - uy * kn.b, o[1] + ux * kn.b, o[2] + kn.z];
+          ch.angle = (to - pos) * sweep * Math.PI / 180;
+        }
+        out.push(ch);
       }
       if (q.elec.includes('servo') || q.part === 'servo-sg90') {
         const a0 = JSON.parse(ev(`JSON.stringify(((SL.bench.st.drv || {})[${js(id)}] || {}).a ?? null)`));
@@ -244,13 +269,14 @@ const create = () => ({
         // is a mirror of the figure's world (det -1), so a turn about the fitted axis there is the opposite turn here
         get scale() { const s = Math.sign(this.fitAngle || 0); return s ? -s : 1; },
         // live with no speed and the shaft turned on by 60 degrees: a positive speed turns it the same way (the drawings
-        // add rpm x dt to the angle)
-        apply: () => ev(`(() => { const st = SL.bench.st, r = { kind: 'motor', state: 'ok', v: 0, i_mA: 0, rpm: 0 };
+        // add rpm x dt to the angle). The 28BYJ-48 draws its shaft from its demo instead: 'turning' sets it 40 degrees on.
+        apply: () => ev(m.part === 'stepper-28byj48' ? cp(id, { demo: 'turning' }) : `(() => { const st = SL.bench.st, r = { kind: 'motor', state: 'ok', v: 0, i_mA: 0, rpm: 0 };
           (st.meas = st.meas || {})[${js(id)}] = r; (st.readings = st.readings || {})[${js(id)}] = Object.assign({}, r);
           (st.drv = st.drv || {})[${js(id)}] = Object.assign({ rpm: 0, h: 0, on: {}, state: 'ok' }, st.drv[${js(id)}] || {}, { rpm: 0, a: 60, h: 60, t: st.t || 0 }); })()`) };
       out.push(ch); m.ch = ch;
     }
     void warn;
+    this.chans = out;
     return out;
   },
 
@@ -300,9 +326,10 @@ const create = () => ({
         const zs = over(part, X, Y);
         let z, n = UP, depth = null;
         if (p.side === 'bottom') {
-          // a pin through the board from below: its stub on top is where the figure's wires end; else its tip below
+          // a pin through the board from below: its stub on top is where the figure's wires end (bench.js matEnd seats
+          // a jumper 0.5 mm over the board there); else its tip below
           const above = zs.filter((v) => v >= b.off[2] - .01);
-          if (above.length) z = Math.max(...above); else { z = zs.length ? Math.min(...zs) : b.off[2] - b.md.pcb.thick - p.z - p.h; n = DOWN; }
+          if (above.length) z = Math.max(...above, b.off[2] + .5); else { z = zs.length ? Math.min(...zs) : b.off[2] - b.md.pcb.thick - p.z - p.h; n = DOWN; }
         } else {
           z = zs.length ? Math.max(...zs) : b.off[2] + p.z + p.h;
           if (z - b.off[2] - p.z >= WIRE_SEAT) depth = WIRE_SEAT;
@@ -310,7 +337,7 @@ const create = () => ({
         pinIds.set(pin.id, id);
         const aliases = [pin.net, pin.label, dp ? pin.id : null, dp && dp.designator, ...(twinOf.get(pin.id) || [])].filter((a) => a && a !== (dp ? dp.id : pin.id)).map((a) => b.prefix + a);
         out.push({ id, kind: 'pin', part, position: W([X, Y, z]), normal: n, aliases: [...new Set(aliases)], ...(depth ? { depth } : {}),
-          extras: { figurePin: b.prefix + pin.id } });
+          extras: { figurePin: b.prefix + pin.id, ...(pin.net ? { net: b.prefix + pin.net } : {}) } });
       }
       for (const [t, prim] of twins) pinIds.set(t, pinIds.get(prim));
       for (const p of b.md.parts) {
@@ -447,7 +474,10 @@ const create = () => ({
     // aliases never name another anchor
     const ids = new Set(out.map((a) => a.id));
     for (const a of out) if (a.aliases) { a.aliases = a.aliases.filter((x) => !ids.has(x)); if (!a.aliases.length) delete a.aliases; }
-    for (const a of out) if (a.channel === undefined) delete a.channel;
+    // an anchor names its channel only when there is one: offered, and with something the core found to drive (a
+    // spin or rotate it fitted or was given an axis for, an emissive whose colour changed)
+    const live = new Set((this.chans || []).filter((c) => c.kind === 'emissive' ? geo.has(c.part) : (c.axis || c.fitAxis)).map((c) => c.id));
+    for (const a of out) if (a.channel === undefined || !live.has(a.channel)) delete a.channel;
     return out;
   },
 });

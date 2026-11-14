@@ -43,53 +43,73 @@ const TOL = 0.3;   // mm: a figure pin and a positioned descriptor pin closer th
 /** Figure pins -> descriptor pins.
     pins: [{ id, part, n, at: [x, y], net, label }] (the figure's md.pins); parts: { id: { pins: [...] } } (header nets in
     order). Returns { map: Map(figurePinId -> descriptorPin), twins: Map(figurePinId -> the co-located figure pin that
-    stands for it), unmatched: physical descriptor pins no figure pin took }. Order of the rules: position, then a
-    connector whose id is a header part's id with the same pin count, then a header that is a run of a connector, then
-    the net name equal to a descriptor pin id, then the silkscreen label equal to a descriptor designator (each only
-    when unambiguous). */
+    stands for it), unmatched: physical descriptor pins no figure pin took }. Order of the rules: position (unless the
+    names say otherwise), then a connector whose id is a header part's id with the same pin count (or signal count),
+    then a header that is a run of a connector either way round, then an Arduino header's Dn as IO n, then the net name
+    equal to a descriptor pin id, then the silkscreen label equal to a descriptor designator (each only when
+    unambiguous). */
 export function matchPins(desc, pins, parts) {
   const map = new Map(), used = new Set();
   const dps = desc.pins || [];
   const take = (fp, dp) => { map.set(fp.id, dp); used.add(dp.id); };
-  // 1. position, nearest first
+  const key = (s) => String(s == null ? '' : s).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const agree = (fp, dp) => { const d = [dp.id, dp.designator].map(key).filter(Boolean); return [fp.net, fp.label].map(key).some((x) => x && d.includes(x)); };
+  const byPart = new Map();
+  for (const fp of pins) { if (!byPart.has(fp.part)) byPart.set(fp.part, []); byPart.get(fp.part).push(fp); }
+  for (const list of byPart.values()) list.sort((a, b) => a.n - b.n);
+  // 1. position, nearest first; but not against the names: a descriptor pin that another pin of the same figure part
+  //    names stays for that pin (the L298N descriptor puts ENA where the figure's JEA header has its 5V pin, and the
+  //    figure's ENA pin next to it)
   const pairs = [];
   for (const fp of pins) for (const dp of dps) if (dp.position && Number.isFinite(dp.position.x)) {
     const d = Math.hypot(dp.position.x - fp.at[0], dp.position.y - fp.at[1]);
-    if (d < TOL) pairs.push([d, fp, dp]);
+    if (d < TOL && (agree(fp, dp) || !(byPart.get(fp.part) || []).some((q) => q !== fp && agree(q, dp)))) pairs.push([d, fp, dp]);
   }
   pairs.sort((a, b) => a[0] - b[0]);
   for (const [, fp, dp] of pairs) if (!map.has(fp.id) && !used.has(dp.id)) take(fp, dp);
-  // 2. connector order: descriptor connector C lists its pins in order; figure part C has as many pins
-  const byPart = new Map();
-  for (const fp of pins) { if (!byPart.has(fp.part)) byPart.set(fp.part, []); byPart.get(fp.part).push(fp); }
+  // 2. connector order: descriptor connector C lists its pins in order; figure part C has as many pins, or as many
+  //    once its supply pins are left out (a Basys 3 Pmod: 12 pins, 8 signals JA[0..7] on pins 1-4 and 7-10)
+  const SUPPLY = /^(GND|3V3|3\.3V|VCC|VDD|5V)$/i;
   for (const c of desc.connectors || []) {
     const part = parts[c.id] || Object.values(parts).find((p) => p.id.toLowerCase() === String(c.id).toLowerCase());
-    if (!part || !Array.isArray(part.pins) || part.pins.length !== (c.pins || []).length) continue;
-    const list = byPart.get(part.id) || [];
+    if (!part || !Array.isArray(part.pins)) continue;
+    let list = byPart.get(part.id) || [];
+    const n = (c.pins || []).length;
+    if (list.length !== n) list = list.filter((q) => !SUPPLY.test(q.net || ''));
+    if (list.length !== n) continue;
     c.pins.forEach((pid, i) => {
-      const fp = list.find((q) => q.n === i + 1), dp = dps.find((q) => q.id === pid);
+      const fp = list[i], dp = dps.find((q) => q.id === pid);
       if (fp && dp && !map.has(fp.id) && !used.has(dp.id)) take(fp, dp);
     });
   }
-  // 3. a figure header that is a run of a descriptor connector (the Pico's castellated PINS1 is edge pins 1-20, the
-  //    Uno R4's JANALOG_P and JANALOG_A are JANALOG 1-8 and 9-14): the offset where the figure pins' nets or labels
-  //    agree with the connector's ids or designators, taken when at least 3 of 4 agree and no other offset does as well
-  const key = (s) => String(s == null ? '' : s).toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const agree = (fp, dp) => { const d = [dp.id, dp.designator].map(key).filter(Boolean); return [fp.net, fp.label].map(key).some((x) => x && d.includes(x)); };
+  // 3. a figure header that is a run of a descriptor connector, either way round (the Pico's castellated PINS1 is edge
+  //    pins 1-20; the Uno R4's JANALOG_P and JANALOG_A are JANALOG 1-8 and 9-14; its JDIGITAL_H is JDIGITAL 18 down to
+  //    9): the offset and direction where the figure pins' nets or labels agree with the connector's ids or
+  //    designators, taken when at least 3 of 4 agree and no other fit does as well
   for (const c of desc.connectors || []) {
     const cps = (c.pins || []).map((pid) => dps.find((q) => q.id === pid) || null);
     for (const part of Object.values(parts)) {
-      const list = (byPart.get(part.id) || []).slice().sort((a, b) => a.n - b.n);
+      const list = byPart.get(part.id) || [];
       if (list.length < 3 || list.length > cps.length || list.every((fp) => map.has(fp.id))) continue;
       const score = [];
-      for (let o = 0; o + list.length <= cps.length; o++) score.push([list.reduce((t, fp, i) => t + (cps[o + i] && agree(fp, cps[o + i]) ? 1 : 0), 0), o]);
+      for (const rev of [false, true]) {
+        const seq = rev ? list.slice().reverse() : list;
+        for (let o = 0; o + seq.length <= cps.length; o++) score.push([seq.reduce((t, fp, i) => t + (cps[o + i] && agree(fp, cps[o + i]) ? 1 : 0), 0), o, seq]);
+      }
       score.sort((a, b) => b[0] - a[0]);
       if (!score.length || score[0][0] < list.length * .75 || (score[1] && score[1][0] === score[0][0])) continue;
-      const o = score[0][1];
-      list.forEach((fp, i) => { const dp = cps[o + i]; if (dp && !map.has(fp.id) && !used.has(dp.id)) take(fp, dp); });
+      const [, o, seq] = score[0];
+      seq.forEach((fp, i) => { const dp = cps[o + i]; if (dp && !map.has(fp.id) && !used.has(dp.id)) take(fp, dp); });
     }
   }
-  // 4. net == descriptor id, 5. label == designator: only when one figure pin and one descriptor pin are left
+  // 4. an Arduino-shield header named by index (the DE10-Lite's ARDUINO_IO[n]): the figure's Dn is IO n
+  for (const fp of pins) {
+    const m = /^D(\d{1,2})$/.exec(fp.net || '');
+    if (!m || map.has(fp.id)) continue;
+    const hits = dps.filter((dp) => !used.has(dp.id) && new RegExp(`_IO${m[1]}$`).test(dp.id));
+    if (hits.length === 1 && pins.filter((q) => q.net === fp.net && !map.has(q.id)).length === 1) take(fp, hits[0]);
+  }
+  // 5. net == descriptor id, 6. label == designator: only when one figure pin and one descriptor pin are left
   const rule = (fkey, dkey) => {
     const left = pins.filter((fp) => !map.has(fp.id)), free = dps.filter((dp) => !used.has(dp.id));
     for (const dp of free) {
