@@ -1,5 +1,6 @@
 /**
- * Paper plate buttons and plates for the pillar's controls, until the platform's UI kit (issue #23) lands. One quad and
+ * Paper plate buttons and plates for the pillar's controls, until the platform's UI kit (issue #23) and the Art lead's
+ * visual direction (`xr/src/look/**`) land; anything visible moves onto those then. One quad and
  * one canvas texture per plate, so a button is one draw call: the plate, its ink outline, its label and caption are all
  * drawn into the canvas, which is redrawn only when the label or the state changes (design 9.1 to 9.4).
  *

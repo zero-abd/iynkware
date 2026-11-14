@@ -48,7 +48,7 @@ export interface ScaleService {
   readonly view: ReadonlyValue<'bench' | 'room'>;
   /** True while the view or the room is fading from one to the other; view requests made meanwhile are ignored. */
   readonly fading: ReadonlyValue<boolean>;
-  /** The stage the board is drawn on now. */
+  /** The stage the board is drawn on now. A new value (a new object) whenever the room copy is rebuilt. */
   readonly stage: ReadonlyValue<ScaleStage>;
   /** `shell.go('room')`: Room size, by a fade. Ignored while fading, or while nothing offers the room place. */
   enterRoom(): void;
@@ -69,6 +69,9 @@ export interface ScaleService {
   /** The part whose inspector card is open (name, pins, ratings, live readings), or null. */
   readonly inspected: ReadonlyValue<string | null>;
   inspect(part: string | null): void;
+  /** The inspect lens: while on, selecting a part (on the bench or at Room size) opens its card. */
+  readonly inspecting: ReadonlyValue<boolean>;
+  setInspecting(on: boolean): void;
 
   /** The room around the bench. Persisted as `XrSettings.space` (`mr` passthrough, `vr` paper room). */
   readonly room: ReadonlyValue<RoomKind>;

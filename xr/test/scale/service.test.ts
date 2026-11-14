@@ -116,8 +116,10 @@ describe('lenses', () => {
     const { scale } = make();
     scale.setFlow(true);
     scale.inspect('cmp_r1');
+    scale.setInspecting(true);
     expect(scale.flow.value).toBe(true);
     expect(scale.inspected.value).toBe('cmp_r1');
+    expect(scale.inspecting.value).toBe(true);
   });
 });
 

@@ -73,6 +73,7 @@ export function createScaleService(opts: ScaleServiceOptions): ScaleService {
   const explode = value<LensSetting>({ amount: 0, part: null });
   const flow = value(false);
   const inspected = value<string | null>(null);
+  const inspecting = value(false);
 
   const roomOf = (): RoomKind => (mode.value === 'vr' || settings.xr.value.space === 'vr' ? 'paper' : 'passthrough');
   const room = value<RoomKind>(roomOf());
@@ -111,6 +112,8 @@ export function createScaleService(opts: ScaleServiceOptions): ScaleService {
     setFlow: (on) => flow.set(on),
     inspected,
     inspect: (part) => inspected.set(part),
+    inspecting,
+    setInspecting: (on) => inspecting.set(on),
     room,
     roomSwitchable,
     setRoom(next) {
