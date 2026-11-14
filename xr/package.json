@@ -16,15 +16,17 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
     "@iwsdk/core": "1.1.0",
+    "avr8js": "0.21.1",
+    "rp2040js": "1.4.1",
     "three": "npm:super-three@0.185.0"
   },
   "devDependencies": {
-    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
     "@iwsdk/vite-plugin-dev": "1.1.0",
     "@types/node": "24.19.2",
-    "avr8js": "0.21.1",
-    "rp2040js": "1.4.1",
+    "@types/react": "19.3.0",
+    "playwright": "1.65.1",
     "typescript": "5.9.3",
     "vite": "7.3.7",
     "vitest": "5.0.3"

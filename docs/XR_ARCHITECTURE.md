@@ -220,7 +220,10 @@ Ported (rewritten in `xr/`, because the iynk file pulls in the browser app or th
 
 ## 10. Running it
 
-Everything below runs from `xr/` with Node 24.
+Everything below runs from `xr/` with Node 24, and needs only `xr`'s own install: the repository root's `npm ci` is
+not needed (iynk code that names `react` for types resolves to `xr`'s `@types/react` through `tsconfig.json` `paths`).
+The firmware engines and rapier are `xr` dependencies, so the production build bundles them; Playwright 1.65.1 is pinned
+for the emulator scripts.
 
 ```bash
 cd xr && npm ci
