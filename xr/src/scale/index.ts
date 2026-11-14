@@ -1,7 +1,7 @@
-/** Pillar 4, Scale and insight: grow a board to room size, see-through and current-flow overlays, shrink back. */
-import type { FeatureModule } from '../contracts/app';
+/** Pillar 4, Scale and insight. */
+import { composeModules } from '../compose';
+import { zoomModule } from './zoom';
+import { insightModule } from './insight';
+import { probeModule } from './probe';
 
-export const scaleModule: FeatureModule = {
-  id: 'scale',
-  mount: () => () => undefined,
-};
+export const scaleModule = composeModules('scale', [zoomModule, insightModule, probeModule]);

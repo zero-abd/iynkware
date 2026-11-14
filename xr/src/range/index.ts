@@ -1,7 +1,6 @@
-/** Pillar 5, Range: fly the drones in the room, crash replay, drive the physics robots on the floor. */
-import type { FeatureModule } from '../contracts/app';
+/** Pillar 5, Range: drones and robots. */
+import { composeModules } from '../compose';
+import { flightModule } from './flight';
+import { robotsModule } from './robots';
 
-export const rangeModule: FeatureModule = {
-  id: 'range',
-  mount: () => () => undefined,
-};
+export const rangeModule = composeModules('range', [flightModule, robotsModule]);

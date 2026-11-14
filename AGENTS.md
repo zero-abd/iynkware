@@ -2,19 +2,23 @@
 
 iynkware is the immersive headset version of iynk, a hardware lab in the browser. On a Meta Quest 3S (controllers and
 hand tracking) a person builds hardware projects on a spatial workbench, runs and stress tests them, and learns along
-the way. It will be WebXR on three.js, reusing iynk's simulation, project, content and i18n code.
+the way. It is WebXR on Meta's Immersive Web SDK (three.js), reusing iynk's simulation, project, content and i18n code.
 
-The code was copied from iynk on 2026-11-14 with no shared history. Today it is the full 2D iynk product (Next.js 16,
-React 19, TypeScript, all simulation in the browser) and no XR code exists. The XR architecture, its folder layout and
-the list of shared contract files land in `docs/XR_ARCHITECTURE.md` with the foundation PR. Do not invent them.
+The code was copied from iynk on 2026-11-14 with no shared history. It holds the full 2D iynk product (Next.js 16,
+React 19, TypeScript, all simulation in the browser) and, in `xr/`, the headset app: its own Vite package that imports
+iynk's `src/` and `content/`. Today `xr/` is a walking skeleton (Uno Blink on a bench, Run and Stop by controller or
+hand). Its layout, data flow, shared contract files and run commands are in
+[docs/XR_ARCHITECTURE.md](docs/XR_ARCHITECTURE.md). Work on it is on the issue board, one `ws:<pillar>` label per
+pillar; an issue names the folders it owns.
 
 Four people each run a fleet of agents against this repo at once. Read, in this order:
 
 1. [docs/COLLABORATION.md](docs/COLLABORATION.md): the whole process (claiming, worktrees, ports, checks, PRs).
 2. [docs/STATE.md](docs/STATE.md): what exists today and what does not.
-3. [CONTRIBUTING.md](CONTRIBUTING.md): strings in six languages, lessons, parts.
-4. `node_modules/next/dist/docs/`: this Next.js differs from the one you remember.
-5. [docs/XR_DESIGN.md](docs/XR_DESIGN.md): the interaction and experience spec every headset feature builds to.
+3. [docs/XR_ARCHITECTURE.md](docs/XR_ARCHITECTURE.md): the headset app, for any issue labelled `ws:*`.
+4. [docs/XR_DESIGN.md](docs/XR_DESIGN.md): the interaction and experience spec every headset feature builds to.
+5. [CONTRIBUTING.md](CONTRIBUTING.md): strings in six languages, lessons, parts.
+6. `node_modules/next/dist/docs/`: this Next.js differs from the one you remember.
 
 [HANDOFF.md](HANDOFF.md) is iynk's handoff, kept for reference. Its paths, services, ports and commit rules belong to
 iynk's owner, not to this project.
@@ -53,6 +57,18 @@ gh pr merge <pr> --squash && git push origin --delete <handle>/<n>-<slug>   # 8.
 
 Then remove the worktree (`docs/COLLABORATION.md`, section 3). When the full gate is required instead of the fast
 set, and every trap, is in section 6 of that file.
+
+For a `ws:*` issue, steps 4 and 5 happen in `xr/` (it has its own `package.json`; run `npm ci` there too):
+
+```bash
+cd xr && npm ci
+npx vite --mode http --port $((23000 + <n>))                            # 4. IWER emulator in the page
+npm run typecheck && npx vitest run < /dev/null && npm run build        # 5. check
+node scripts/emulator-check.mjs http://localhost:$((23000 + <n>))/      #    the skeleton still works
+```
+
+Headset steps are in `docs/COLLABORATION.md` section 7. Agents never accept a consent dialog, licence or terms on the
+headset, and never install a root certificate.
 
 The block below is written by `next dev`. Leave it exactly as it is, or every dev run dirties the tree.
 
