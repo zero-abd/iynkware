@@ -1,6 +1,6 @@
-// The walking skeleton in the IWER emulator, headless: the flat page draws the bench, Enter MR starts a session, a
-// controller ray and trigger on Run starts Blink in the worker, the LED toggles every 500 ms, a hand pinch on Stop stops
-// it and a hand pinch on Run starts it again from zero.
+// The walking skeleton in the IWER emulator, headless: the entry page loads no engine, Open on this screen draws the
+// bench on the flat page, Enter starts a session, a controller ray and trigger on Run starts Blink in the worker, the
+// LED toggles every 500 ms, a hand pinch on Stop stops it and a hand pinch on Run starts it again from zero.
 //
 //   npm run dev:http                                  # in another terminal (IWER is injected by the dev plugin)
 //   node scripts/emulator-check.mjs [url] [shot.png]  # url defaults to http://localhost:8081/
@@ -30,6 +30,9 @@ const check = (name, ok, detail) => {
 };
 
 await page.goto(URL, { waitUntil: 'load' });
+// The entry page loads no engine until asked: Open on this screen boots the bench on the flat page.
+check('no engine before a press', await page.evaluate(() => window.iynkware === undefined && !document.querySelector('#scene-container canvas')));
+await page.click('#flat');
 await page.waitForFunction(() => window.iynkware?.ready, null, { timeout: 60000 });
 await page.evaluate(async () => {
   await window.iynkware.ready;

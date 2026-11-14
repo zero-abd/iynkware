@@ -1,0 +1,4577 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "boards/uno-r3",
+ "kind": "board",
+ "name": "Arduino Uno R3",
+ "glb": "uno-r3.glb",
+ "source": {
+  "figure": "figures/boards/uno-r3.js",
+  "engine": "bench",
+  "pageSha256": "8c3c86bf3ae8d0b3c09742d9199dcb8d48b7c5506448cfb82ed8be1d37e5ed56",
+  "descriptor": "uno-r3"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "footprint-centre",
+  "source": "board-mm",
+  "fromSource": [
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -0.001,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   -0.03119,
+   0.0056,
+   0.02667,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.03755,
+   0,
+   -0.026789
+  ],
+  "max": [
+   0.03755,
+   0.0165,
+   0.026789
+  ]
+ },
+ "stats": {
+  "triangles": 4285,
+  "trianglesXray": 130,
+  "drawCalls": 13,
+  "lineSegments": 6380,
+  "nodes": 8,
+  "bytes": 899396
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   -0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   -0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "Arduino Uno R3",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "min": [
+     -0.03119,
+     0,
+     -0.026789
+    ],
+    "max": [
+     0.03755,
+     0.00564,
+     0.026789
+    ]
+   }
+  },
+  {
+   "id": "ZU4",
+   "index": 1,
+   "name": "ATmega328P microcontroller",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.019,
+    0
+   ],
+   "group": "last",
+   "bounds": {
+    "min": [
+     -0.002615,
+     0.006,
+     0.006087
+    ],
+    "max": [
+     0.032945,
+     0.01201,
+     0.014487
+    ]
+   }
+  },
+  {
+   "id": "SK1",
+   "index": 2,
+   "name": "DIP-28 socket",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.009,
+    0
+   ],
+   "group": "low",
+   "bounds": {
+    "min": [
+     -0.003115,
+     0.0056,
+     0.005237
+    ],
+    "max": [
+     0.033445,
+     0.00861,
+     0.015337
+    ]
+   }
+  },
+  {
+   "id": "U3",
+   "index": 3,
+   "name": "ATmega16U2 USB-to-serial bridge",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.014001,
+     0.0056,
+     -0.010751
+    ],
+    "max": [
+     -0.008501,
+     0.00651,
+     -0.005251
+    ]
+   }
+  },
+  {
+   "id": "Y1",
+   "index": 4,
+   "name": "16 MHz crystal for the 16U2 (HC-49/S, through-hole)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.009,
+    0
+   ],
+   "group": "low",
+   "bounds": {
+    "min": [
+     -0.017967,
+     0.0056,
+     -0.001792
+    ],
+    "max": [
+     -0.006567,
+     0.0092,
+     0.002808
+    ]
+   }
+  },
+  {
+   "id": "Y2",
+   "index": 5,
+   "name": "16 MHz ceramic resonator for the 328P",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.008485,
+     0.0056,
+     0.000978
+    ],
+    "max": [
+     0.011685,
+     0.0066,
+     0.002578
+    ]
+   }
+  },
+  {
+   "id": "U1",
+   "index": 6,
+   "name": "NCP1117 5 V regulator",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.027093,
+     0.0056,
+     0.006021
+    ],
+    "max": [
+     -0.019993,
+     0.0073,
+     0.012521
+    ]
+   }
+  },
+  {
+   "id": "U2",
+   "index": 7,
+   "name": "LP2985 3.3 V regulator",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.010619,
+     0.0056,
+     0.00998
+    ],
+    "max": [
+     -0.007819,
+     0.0067,
+     0.01288
+    ]
+   }
+  },
+  {
+   "id": "U5",
+   "index": 8,
+   "name": "LMV358 op-amp: USB/VIN switch and L buffer",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.01454,
+     0.0056,
+     0.00485
+    ],
+    "max": [
+     -0.00974,
+     0.00671,
+     0.00785
+    ]
+   }
+  },
+  {
+   "id": "T1",
+   "index": 9,
+   "name": "FDN340P MOSFET: USB power switch",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.024462,
+     0.0056,
+     -0.001323
+    ],
+    "max": [
+     -0.021662,
+     0.0067,
+     0.001577
+    ]
+   }
+  },
+  {
+   "id": "F1",
+   "index": 10,
+   "name": "500 mA resettable polyfuse",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.028726,
+     0.0056,
+     -0.002123
+    ],
+    "max": [
+     -0.025526,
+     0.0066,
+     0.002377
+    ]
+   }
+  },
+  {
+   "id": "D1",
+   "index": 11,
+   "name": "M7 diode: reverse-polarity protection",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.0118,
+     0.0056,
+     0.022076
+    ],
+    "max": [
+     -0.0074,
+     0.00781,
+     0.025676
+    ]
+   }
+  },
+  {
+   "id": "D2",
+   "index": 12,
+   "name": "Reset clamp diode (328P)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.027526,
+     0.00558,
+     -0.00302
+    ],
+    "max": [
+     0.028966,
+     0.00702,
+     0.00048
+    ]
+   }
+  },
+  {
+   "id": "D3",
+   "index": 13,
+   "name": "Reset clamp diode (16U2)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.018829,
+     0.00558,
+     -0.021308
+    ],
+    "max": [
+     -0.017389,
+     0.00702,
+     -0.017808
+    ]
+   }
+  },
+  {
+   "id": "PC1",
+   "index": 14,
+   "name": "47 µF capacitor on VIN",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.008963,
+     0.0056,
+     0.014226
+    ],
+    "max": [
+     -0.002363,
+     0.01142,
+     0.020826
+    ]
+   }
+  },
+  {
+   "id": "PC2",
+   "index": 15,
+   "name": "47 µF capacitor on 5 V",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.016075,
+     0.0056,
+     0.014226
+    ],
+    "max": [
+     -0.009475,
+     0.01142,
+     0.020826
+    ]
+   }
+  },
+  {
+   "id": "L2",
+   "index": 16,
+   "name": "10 µH inductor: AVCC filter",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.006926,
+     0.0056,
+     0.017917
+    ],
+    "max": [
+     0.008926,
+     0.0064,
+     0.019167
+    ]
+   }
+  },
+  {
+   "id": "L1",
+   "index": 17,
+   "name": "Ferrite bead on the USB shield",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.02457,
+     0.0056,
+     -0.01904
+    ],
+    "max": [
+     -0.02257,
+     0.0064,
+     -0.01779
+    ]
+   }
+  },
+  {
+   "id": "C1",
+   "index": 18,
+   "name": "100 nF capacitor (3.3 V regulator in)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.013175,
+     0.0056,
+     0.010503
+    ],
+    "max": [
+     -0.012375,
+     0.0061,
+     0.012103
+    ]
+   }
+  },
+  {
+   "id": "C2",
+   "index": 19,
+   "name": "100 nF capacitor (USB power)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.019925,
+     0.0056,
+     -0.003575
+    ],
+    "max": [
+     -0.018325,
+     0.0061,
+     -0.002775
+    ]
+   }
+  },
+  {
+   "id": "C3",
+   "index": 20,
+   "name": "1 µF capacitor (3.3 V out)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.006063,
+     0.0056,
+     0.010503
+    ],
+    "max": [
+     -0.005263,
+     0.0061,
+     0.012103
+    ]
+   }
+  },
+  {
+   "id": "C4",
+   "index": 21,
+   "name": "100 nF capacitor (16U2 reset)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.00405,
+     0.0056,
+     -0.01818
+    ],
+    "max": [
+     -0.00245,
+     0.0061,
+     -0.01738
+    ]
+   }
+  },
+  {
+   "id": "C5",
+   "index": 22,
+   "name": "100 nF auto-reset capacitor (DTR to RESET)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.00405,
+     0.0056,
+     -0.003575
+    ],
+    "max": [
+     -0.00245,
+     0.0061,
+     -0.002775
+    ]
+   }
+  },
+  {
+   "id": "C6",
+   "index": 23,
+   "name": "100 nF decoupling capacitor (328P)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.01373,
+     0.0056,
+     0.00341
+    ],
+    "max": [
+     0.01533,
+     0.0061,
+     0.00421
+    ]
+   }
+  },
+  {
+   "id": "C7",
+   "index": 24,
+   "name": "100 nF decoupling capacitor (16U2)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.00405,
+     0.0056,
+     -0.005226
+    ],
+    "max": [
+     -0.00245,
+     0.0061,
+     -0.004426
+    ]
+   }
+  },
+  {
+   "id": "C8",
+   "index": 25,
+   "name": "1 µF capacitor (16U2 UCAP)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.01929,
+     0.0056,
+     -0.01564
+    ],
+    "max": [
+     -0.01769,
+     0.0061,
+     -0.01484
+    ]
+   }
+  },
+  {
+   "id": "C9",
+   "index": 26,
+   "name": "22 pF crystal capacitor",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.015988,
+     0.0056,
+     -0.003321
+    ],
+    "max": [
+     -0.014388,
+     0.0061,
+     -0.002521
+    ]
+   }
+  },
+  {
+   "id": "C10",
+   "index": 27,
+   "name": "100 nF capacitor (AVCC)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.012333,
+     0.0056,
+     0.015729
+    ],
+    "max": [
+     0.013933,
+     0.0061,
+     0.016529
+    ]
+   }
+  },
+  {
+   "id": "C11",
+   "index": 28,
+   "name": "22 pF crystal capacitor",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.009765,
+     0.0056,
+     -0.003321
+    ],
+    "max": [
+     -0.008165,
+     0.0061,
+     -0.002521
+    ]
+   }
+  },
+  {
+   "id": "R1",
+   "index": 29,
+   "name": "1 MΩ resistor across the crystal",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.01294,
+     0.0056,
+     -0.003321
+    ],
+    "max": [
+     -0.01134,
+     0.0061,
+     -0.002521
+    ]
+   }
+  },
+  {
+   "id": "R2",
+   "index": 30,
+   "name": "1 MΩ resistor across the resonator",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.009285,
+     0.0056,
+     0.003537
+    ],
+    "max": [
+     0.010885,
+     0.0061,
+     0.004337
+    ]
+   }
+  },
+  {
+   "id": "RN1",
+   "index": 31,
+   "name": "10 kΩ resistor array (reset pull-ups)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.00405,
+     0.0056,
+     0.001194
+    ],
+    "max": [
+     -0.00245,
+     0.0061,
+     0.004394
+    ]
+   }
+  },
+  {
+   "id": "RN2",
+   "index": 32,
+   "name": "1 kΩ resistor array (L, TX, RX LEDs)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.00405,
+     0.0056,
+     -0.0143
+    ],
+    "max": [
+     -0.00245,
+     0.0061,
+     -0.0111
+    ]
+   }
+  },
+  {
+   "id": "RN3",
+   "index": 33,
+   "name": "22 Ω resistor array (USB data lines)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.019163,
+     0.0056,
+     -0.01176
+    ],
+    "max": [
+     -0.017563,
+     0.0061,
+     -0.00856
+    ]
+   }
+  },
+  {
+   "id": "RN4",
+   "index": 34,
+   "name": "1 kΩ resistor array (ON LED)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     0.02643,
+     0.0056,
+     -0.008712
+    ],
+    "max": [
+     0.02803,
+     0.0061,
+     -0.005512
+    ]
+   }
+  },
+  {
+   "id": "Z1",
+   "index": 35,
+   "name": "Varistor: ESD guard on USB D+",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.01929,
+     0.0056,
+     -0.0131
+    ],
+    "max": [
+     -0.01769,
+     0.0061,
+     -0.0123
+    ]
+   }
+  },
+  {
+   "id": "Z2",
+   "index": 36,
+   "name": "Varistor: ESD guard on USB D−",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.01929,
+     0.0056,
+     -0.007385
+    ],
+    "max": [
+     -0.01769,
+     0.0061,
+     -0.006585
+    ]
+   }
+  },
+  {
+   "id": "L",
+   "index": 37,
+   "name": "L LED (pin 13)",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "nodes": [
+    "led:L"
+   ],
+   "bounds": {
+    "min": [
+     -0.00425,
+     0.0056,
+     -0.016119
+    ],
+    "max": [
+     -0.00225,
+     0.0064,
+     -0.014869
+    ]
+   }
+  },
+  {
+   "id": "TX",
+   "index": 38,
+   "name": "TX LED",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "nodes": [
+    "led:TX"
+   ],
+   "bounds": {
+    "min": [
+     -0.00425,
+     0.0056,
+     -0.010531
+    ],
+    "max": [
+     -0.00225,
+     0.0064,
+     -0.009281
+    ]
+   }
+  },
+  {
+   "id": "RX",
+   "index": 39,
+   "name": "RX LED",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "nodes": [
+    "led:RX"
+   ],
+   "bounds": {
+    "min": [
+     -0.00425,
+     0.0056,
+     -0.008245
+    ],
+    "max": [
+     -0.00225,
+     0.0064,
+     -0.006995
+    ]
+   }
+  },
+  {
+   "id": "ON",
+   "index": 40,
+   "name": "ON LED (5 V)",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "nodes": [
+    "led:ON"
+   ],
+   "bounds": {
+    "min": [
+     0.026605,
+     0.0056,
+     -0.010906
+    ],
+    "max": [
+     0.027855,
+     0.0064,
+     -0.008906
+    ]
+   }
+  },
+  {
+   "id": "RESET",
+   "index": 41,
+   "name": "RESET button",
+   "parent": "",
+   "role": "control",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "nodes": [
+    "press:RESET"
+   ],
+   "bounds": {
+    "min": [
+     -0.02784,
+     0.0056,
+     -0.025733
+    ],
+    "max": [
+     -0.02184,
+     0.0091,
+     -0.019733
+    ]
+   }
+  },
+  {
+   "id": "JP2",
+   "index": 42,
+   "name": "16U2 spare pins PB4-PB7 (no header fitted)",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.013739,
+     0.00563,
+     -0.016598
+    ],
+    "max": [
+     -0.009525,
+     0.00564,
+     -0.012358
+    ]
+   }
+  },
+  {
+   "id": "RESET-EN",
+   "index": 43,
+   "name": "RESET-EN solder jumper (cut it to stop auto-reset)",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.004,
+    0
+   ],
+   "group": "smd",
+   "bounds": {
+    "min": [
+     -0.0044,
+     0.00563,
+     -0.001127
+    ],
+    "max": [
+     -0.0021,
+     0.00564,
+     -0.000143
+    ]
+   }
+  },
+  {
+   "id": "ICSP1",
+   "index": 44,
+   "name": "ICSP header for the 16U2",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.009,
+    0
+   ],
+   "group": "low",
+   "bounds": {
+    "min": [
+     -0.016712,
+     0.0056,
+     -0.022098
+    ],
+    "max": [
+     -0.009092,
+     0.0141,
+     -0.017018
+    ]
+   }
+  },
+  {
+   "id": "ICSP",
+   "index": 45,
+   "name": "ICSP header for the 328P",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.009,
+    0
+   ],
+   "group": "low",
+   "bounds": {
+    "min": [
+     0.031167,
+     0.0056,
+     -0.00508
+    ],
+    "max": [
+     0.036247,
+     0.0141,
+     0.00254
+    ]
+   }
+  },
+  {
+   "id": "X2",
+   "index": 46,
+   "name": "USB-B socket",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     -0.03755,
+     0.0056,
+     -0.01743
+    ],
+    "max": [
+     -0.02124,
+     0.0165,
+     -0.00543
+    ]
+   }
+  },
+  {
+   "id": "X1",
+   "index": 47,
+   "name": "2.1 mm barrel jack, centre positive, 7-12 V",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     -0.03302,
+     0.0056,
+     0.01447
+    ],
+    "max": [
+     -0.01879,
+     0.0161,
+     0.02337
+    ]
+   }
+  },
+  {
+   "id": "IOH",
+   "index": 48,
+   "name": "Digital header D8-D13, GND, AREF, SDA, SCL",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     -0.013664,
+     0.0056,
+     -0.0254
+    ],
+    "max": [
+     0.011736,
+     0.01411,
+     -0.02286
+    ]
+   }
+  },
+  {
+   "id": "IOL",
+   "index": 49,
+   "name": "Digital header D0-D7",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     0.01326,
+     0.0056,
+     -0.0254
+    ],
+    "max": [
+     0.03358,
+     0.01411,
+     -0.02286
+    ]
+   }
+  },
+  {
+   "id": "POWER",
+   "index": 50,
+   "name": "Power header",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     -0.00452,
+     0.0056,
+     0.02286
+    ],
+    "max": [
+     0.0158,
+     0.01411,
+     0.0254
+    ]
+   }
+  },
+  {
+   "id": "AD",
+   "index": 51,
+   "name": "Analog header A0-A5",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.014,
+    0
+   ],
+   "group": "tall",
+   "bounds": {
+    "min": [
+     0.01834,
+     0.0056,
+     0.02286
+    ],
+    "max": [
+     0.03358,
+     0.01411,
+     0.0254
+    ]
+   }
+  }
+ ],
+ "anchors": [
+  {
+   "id": "JP2.1",
+   "kind": "pin",
+   "part": "JP2",
+   "position": [
+    -0.012902,
+    0.00564,
+    -0.013208
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "PB4"
+   ],
+   "extras": {
+    "figurePin": "JP2.1"
+   }
+  },
+  {
+   "id": "JP2.2",
+   "kind": "pin",
+   "part": "JP2",
+   "position": [
+    -0.010362,
+    0.00564,
+    -0.013208
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "PB6"
+   ],
+   "extras": {
+    "figurePin": "JP2.2"
+   }
+  },
+  {
+   "id": "JP2.3",
+   "kind": "pin",
+   "part": "JP2",
+   "position": [
+    -0.012902,
+    0.00564,
+    -0.015748
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "PB5"
+   ],
+   "extras": {
+    "figurePin": "JP2.3"
+   }
+  },
+  {
+   "id": "JP2.4",
+   "kind": "pin",
+   "part": "JP2",
+   "position": [
+    -0.010362,
+    0.00564,
+    -0.015748
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "PB7"
+   ],
+   "extras": {
+    "figurePin": "JP2.4"
+   }
+  },
+  {
+   "id": "RESET-EN.1",
+   "kind": "pin",
+   "part": "RESET-EN",
+   "position": [
+    -0.0039,
+    0.00564,
+    -0.000635
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "DTR"
+   ],
+   "extras": {
+    "figurePin": "RESET-EN.1"
+   }
+  },
+  {
+   "id": "RESET-EN.2",
+   "kind": "pin",
+   "part": "RESET-EN",
+   "position": [
+    -0.0026,
+    0.00564,
+    -0.000635
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "extras": {
+    "figurePin": "RESET-EN.2"
+   }
+  },
+  {
+   "id": "MISO2",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.010362,
+    0.0141,
+    -0.020828
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "MISO",
+    "ICSP1.1"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP1_2",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.010362,
+    0.0141,
+    -0.018288
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "5V",
+    "ICSP1.2"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "SCK2",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.012902,
+    0.0141,
+    -0.020828
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "SCK",
+    "ICSP1.3"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "MOSI2",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.012902,
+    0.0141,
+    -0.018288
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "MOSI",
+    "ICSP1.4"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "RESET2",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.015442,
+    0.0141,
+    -0.020828
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "ICSP1.5"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP1_6",
+   "kind": "pin",
+   "part": "ICSP1",
+   "position": [
+    -0.015442,
+    0.0141,
+    -0.018288
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "ICSP1.6"
+   ],
+   "extras": {
+    "figurePin": "ICSP1.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_1",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.032437,
+    0.0141,
+    -0.00381
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "MISO",
+    "ICSP.1"
+   ],
+   "extras": {
+    "figurePin": "ICSP.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_2",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.034977,
+    0.0141,
+    -0.00381
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "5V",
+    "ICSP.2"
+   ],
+   "extras": {
+    "figurePin": "ICSP.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_3",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.032437,
+    0.0141,
+    -0.00127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "SCK",
+    "ICSP.3"
+   ],
+   "extras": {
+    "figurePin": "ICSP.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_4",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.034977,
+    0.0141,
+    -0.00127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "MOSI",
+    "ICSP.4"
+   ],
+   "extras": {
+    "figurePin": "ICSP.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_5",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.032437,
+    0.0141,
+    0.00127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "ICSP.5"
+   ],
+   "extras": {
+    "figurePin": "ICSP.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "ICSP_6",
+   "kind": "pin",
+   "part": "ICSP",
+   "position": [
+    0.034977,
+    0.0141,
+    0.00127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "ICSP.6"
+   ],
+   "extras": {
+    "figurePin": "ICSP.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "SCL",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    -0.012394,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "IOH.1"
+   ],
+   "extras": {
+    "figurePin": "IOH.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "SDA",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    -0.009854,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "IOH.2"
+   ],
+   "extras": {
+    "figurePin": "IOH.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "AREF",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    -0.007314,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "IOH.3"
+   ],
+   "extras": {
+    "figurePin": "IOH.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "GND",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    -0.004774,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "IOH.4"
+   ],
+   "extras": {
+    "figurePin": "IOH.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D13",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    -0.002234,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "13",
+    "IOH.5"
+   ],
+   "extras": {
+    "figurePin": "IOH.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D12",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    0.000306,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "12",
+    "IOH.6"
+   ],
+   "extras": {
+    "figurePin": "IOH.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D11",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    0.002846,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~11",
+    "IOH.7",
+    "~D11"
+   ],
+   "extras": {
+    "figurePin": "IOH.7"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D10",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    0.005386,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~10",
+    "IOH.8",
+    "~D10"
+   ],
+   "extras": {
+    "figurePin": "IOH.8"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D9",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    0.007926,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~9",
+    "IOH.9",
+    "~D9"
+   ],
+   "extras": {
+    "figurePin": "IOH.9"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D8",
+   "kind": "pin",
+   "part": "IOH",
+   "position": [
+    0.010466,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "8",
+    "IOH.10"
+   ],
+   "extras": {
+    "figurePin": "IOH.10"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D7",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.01453,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "7",
+    "IOL.1"
+   ],
+   "extras": {
+    "figurePin": "IOL.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D6",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.01707,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~6",
+    "IOL.2",
+    "~D6"
+   ],
+   "extras": {
+    "figurePin": "IOL.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D5",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.01961,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~5",
+    "IOL.3",
+    "~D5"
+   ],
+   "extras": {
+    "figurePin": "IOL.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D4",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.02215,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "4",
+    "IOL.4"
+   ],
+   "extras": {
+    "figurePin": "IOL.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D3",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.02469,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "~3",
+    "IOL.5",
+    "~D3"
+   ],
+   "extras": {
+    "figurePin": "IOL.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D2",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.02723,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "2",
+    "IOL.6"
+   ],
+   "extras": {
+    "figurePin": "IOL.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D1",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.02977,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "TX→1",
+    "IOL.7"
+   ],
+   "extras": {
+    "figurePin": "IOL.7"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "D0",
+   "kind": "pin",
+   "part": "IOL",
+   "position": [
+    0.03231,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "RX←0",
+    "IOL.8"
+   ],
+   "extras": {
+    "figurePin": "IOL.8"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "NC",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    -0.00325,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.1"
+   ],
+   "extras": {
+    "figurePin": "POWER.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "IOREF",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    -0.00071,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.2"
+   ],
+   "extras": {
+    "figurePin": "POWER.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "RESET",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.00183,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.3"
+   ],
+   "extras": {
+    "figurePin": "POWER.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "P3V3",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.00437,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "3V3",
+    "3.3V",
+    "POWER.4"
+   ],
+   "extras": {
+    "figurePin": "POWER.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "P5V",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.00691,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "5V",
+    "POWER.5"
+   ],
+   "extras": {
+    "figurePin": "POWER.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "POWER_6",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.00945,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.6"
+   ],
+   "extras": {
+    "figurePin": "POWER.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "POWER_7",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.01199,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.7"
+   ],
+   "extras": {
+    "figurePin": "POWER.7"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "VIN",
+   "kind": "pin",
+   "part": "POWER",
+   "position": [
+    0.01453,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "POWER.8"
+   ],
+   "extras": {
+    "figurePin": "POWER.8"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A0",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.01961,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.1"
+   ],
+   "extras": {
+    "figurePin": "AD.1"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A1",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.02215,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.2"
+   ],
+   "extras": {
+    "figurePin": "AD.2"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A2",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.02469,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.3"
+   ],
+   "extras": {
+    "figurePin": "AD.3"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A3",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.02723,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.4"
+   ],
+   "extras": {
+    "figurePin": "AD.4"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A4",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.02977,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.5"
+   ],
+   "extras": {
+    "figurePin": "AD.5"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "A5",
+   "kind": "pin",
+   "part": "AD",
+   "position": [
+    0.03231,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "aliases": [
+    "AD.6"
+   ],
+   "extras": {
+    "figurePin": "AD.6"
+   },
+   "depth": 0.002
+  },
+  {
+   "id": "led:L",
+   "kind": "led",
+   "part": "L",
+   "position": [
+    -0.00325,
+    0.0064,
+    -0.015494
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "L LED (pin 13)",
+   "channel": "led:L"
+  },
+  {
+   "id": "led:TX",
+   "kind": "led",
+   "part": "TX",
+   "position": [
+    -0.00325,
+    0.0064,
+    -0.009906
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "TX LED",
+   "channel": "led:TX"
+  },
+  {
+   "id": "led:RX",
+   "kind": "led",
+   "part": "RX",
+   "position": [
+    -0.00325,
+    0.0064,
+    -0.00762
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "RX LED",
+   "channel": "led:RX"
+  },
+  {
+   "id": "led:ON",
+   "kind": "led",
+   "part": "ON",
+   "position": [
+    0.02723,
+    0.0064,
+    -0.009906
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "ON LED (5 V)",
+   "channel": "led:ON"
+  },
+  {
+   "id": "control:RESET",
+   "kind": "control",
+   "part": "RESET",
+   "position": [
+    -0.02484,
+    0.0091,
+    -0.022733
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "RESET button",
+   "channel": "press:RESET",
+   "extras": {
+    "type": "button"
+   }
+  },
+  {
+   "id": "header:JP2",
+   "kind": "header",
+   "part": "JP2",
+   "position": [
+    -0.011632,
+    0.00564,
+    -0.014478
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "JP2.1",
+    "JP2.2",
+    "JP2.3",
+    "JP2.4"
+   ],
+   "text": "16U2 spare pins PB4-PB7 (no header fitted)"
+  },
+  {
+   "id": "header:RESET-EN",
+   "kind": "header",
+   "part": "RESET-EN",
+   "position": [
+    -0.00325,
+    0.00564,
+    -0.000635
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "RESET-EN.1",
+    "RESET-EN.2"
+   ],
+   "text": "RESET-EN solder jumper (cut it to stop auto-reset)"
+  },
+  {
+   "id": "header:ICSP1",
+   "kind": "header",
+   "part": "ICSP1",
+   "position": [
+    -0.012902,
+    0.0141,
+    -0.019558
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "MISO2",
+    "ICSP1_2",
+    "SCK2",
+    "MOSI2",
+    "RESET2",
+    "ICSP1_6"
+   ],
+   "text": "ICSP header for the 16U2"
+  },
+  {
+   "id": "header:ICSP",
+   "kind": "header",
+   "part": "ICSP",
+   "position": [
+    0.033707,
+    0.0141,
+    -0.00127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "ICSP_1",
+    "ICSP_2",
+    "ICSP_3",
+    "ICSP_4",
+    "ICSP_5",
+    "ICSP_6"
+   ],
+   "text": "ICSP header for the 328P"
+  },
+  {
+   "id": "port:X2",
+   "kind": "port",
+   "part": "X2",
+   "position": [
+    -0.03754,
+    0.01105,
+    -0.01143
+   ],
+   "normal": [
+    -1,
+    0,
+    0
+   ],
+   "text": "USB-B socket",
+   "extras": {
+    "source": "usb",
+    "label": "USB cable"
+   }
+  },
+  {
+   "id": "port:X1",
+   "kind": "port",
+   "part": "X1",
+   "position": [
+    -0.03299,
+    0.01165,
+    0.01892
+   ],
+   "normal": [
+    -1,
+    0,
+    0
+   ],
+   "text": "2.1 mm barrel jack, centre positive, 7-12 V",
+   "extras": {
+    "source": "jack",
+    "label": "Barrel jack"
+   }
+  },
+  {
+   "id": "header:IOH",
+   "kind": "header",
+   "part": "IOH",
+   "position": [
+    -0.000964,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "SCL",
+    "SDA",
+    "AREF",
+    "GND",
+    "D13",
+    "D12",
+    "D11",
+    "D10",
+    "D9",
+    "D8"
+   ],
+   "text": "Digital header D8-D13, GND, AREF, SDA, SCL"
+  },
+  {
+   "id": "header:IOL",
+   "kind": "header",
+   "part": "IOL",
+   "position": [
+    0.02342,
+    0.01411,
+    -0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "D7",
+    "D6",
+    "D5",
+    "D4",
+    "D3",
+    "D2",
+    "D1",
+    "D0"
+   ],
+   "text": "Digital header D0-D7"
+  },
+  {
+   "id": "header:POWER",
+   "kind": "header",
+   "part": "POWER",
+   "position": [
+    0.00564,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "NC",
+    "IOREF",
+    "RESET",
+    "P3V3",
+    "P5V",
+    "POWER_6",
+    "POWER_7",
+    "VIN"
+   ],
+   "text": "Power header"
+  },
+  {
+   "id": "header:AD",
+   "kind": "header",
+   "part": "AD",
+   "position": [
+    0.02596,
+    0.01411,
+    0.02413
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "members": [
+    "A0",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5"
+   ],
+   "text": "Analog header A0-A5"
+  },
+  {
+   "id": "label:ZU4",
+   "kind": "label",
+   "part": "ZU4",
+   "position": [
+    0.015165,
+    0.012,
+    0.010287
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "MCU",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:U3",
+   "kind": "label",
+   "part": "U3",
+   "position": [
+    -0.011251,
+    0.0065,
+    -0.008001
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "USB-SERIAL",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:X2",
+   "kind": "label",
+   "part": "X2",
+   "position": [
+    -0.02939,
+    0.0165,
+    -0.01143
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "USB-B",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:X1",
+   "kind": "label",
+   "part": "X1",
+   "position": [
+    -0.02589,
+    0.0166,
+    0.01892
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "POWER JACK",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:RESET",
+   "kind": "label",
+   "part": "RESET",
+   "position": [
+    -0.02484,
+    0.0091,
+    -0.022733
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "RESET",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:L",
+   "kind": "label",
+   "part": "L",
+   "position": [
+    -0.00325,
+    0.0064,
+    -0.015494
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "L LED",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:ON",
+   "kind": "label",
+   "part": "ON",
+   "position": [
+    0.02723,
+    0.0064,
+    -0.009906
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "ON LED",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:U1",
+   "kind": "label",
+   "part": "U1",
+   "position": [
+    -0.023443,
+    0.0073,
+    0.009271
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "5V REG",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:Y1",
+   "kind": "label",
+   "part": "Y1",
+   "position": [
+    -0.012267,
+    0.0092,
+    0.000508
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "16 MHz CRYSTAL",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:ZU4.1",
+   "kind": "label",
+   "part": "ZU4",
+   "position": [
+    0.015165,
+    0.012,
+    0.010287
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "SILICON DIE",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:U3.1",
+   "kind": "label",
+   "part": "U3",
+   "position": [
+    -0.011251,
+    0.0065,
+    -0.008001
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "USB BRIDGE",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:Y1.1",
+   "kind": "label",
+   "part": "Y1",
+   "position": [
+    -0.012267,
+    0.0092,
+    0.000508
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "QUARTZ",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:U1.1",
+   "kind": "label",
+   "part": "U1",
+   "position": [
+    -0.023443,
+    0.0073,
+    0.009271
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "5V REGULATOR",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "id": "label:F1.1",
+   "kind": "label",
+   "part": "F1",
+   "position": [
+    -0.027126,
+    0.0066,
+    0.000127
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "POLYFUSE",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  }
+ ],
+ "channels": [
+  {
+   "id": "led:L",
+   "kind": "emissive",
+   "part": "L",
+   "nodes": [
+    "led:L"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#f2b12e",
+   "bind": {
+    "source": "net",
+    "key": "D13"
+   }
+  },
+  {
+   "id": "led:TX",
+   "kind": "emissive",
+   "part": "TX",
+   "nodes": [
+    "led:TX"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#f2b12e",
+   "bind": {
+    "source": "serial",
+    "key": "tx"
+   }
+  },
+  {
+   "id": "led:RX",
+   "kind": "emissive",
+   "part": "RX",
+   "nodes": [
+    "led:RX"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#f2b12e",
+   "bind": {
+    "source": "serial",
+    "key": "rx"
+   }
+  },
+  {
+   "id": "led:ON",
+   "kind": "emissive",
+   "part": "ON",
+   "nodes": [
+    "led:ON"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#4cc65a",
+   "bind": {
+    "source": "rail",
+    "key": "5V"
+   }
+  },
+  {
+   "id": "press:RESET",
+   "kind": "translate",
+   "part": "RESET",
+   "nodes": [
+    "press:RESET"
+   ],
+   "value": {
+    "unit": "press",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    -1,
+    0
+   ],
+   "scale": 0.0006,
+   "bind": {
+    "source": "press",
+    "key": "RESET"
+   }
+  }
+ ],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static",
+    "led:L",
+    "led:TX",
+    "led:RX",
+    "led:ON",
+    "press:RESET"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  },
+  {
+   "id": "xray",
+   "nodes": [
+    "static.xray"
+   ],
+   "opacity": [
+    0,
+    1
+   ]
+  }
+ ],
+ "texts": [
+  {
+   "part": "",
+   "text": "DIGITAL (PWM~)",
+   "position": [
+    0.00981,
+    0.00565,
+    -0.01793
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.00144,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "POWER",
+   "position": [
+    0.00221,
+    0.00565,
+    0.01727
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001296,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ANALOG IN",
+   "position": [
+    0.02601,
+    0.00565,
+    0.01727
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001296,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ARDUINO",
+   "position": [
+    0.00821,
+    0.00565,
+    -0.00593
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.002448,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "UNO R3",
+   "position": [
+    0.01301,
+    0.00565,
+    -0.00093
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.002448,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ARDUINO.CC",
+   "position": [
+    0.02531,
+    0.00565,
+    0.00327
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "L",
+   "position": [
+    -0.00599,
+    0.00565,
+    -0.01513
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001224,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "TX",
+   "position": [
+    -0.00659,
+    0.00565,
+    -0.00953
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001224,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "RX",
+   "position": [
+    -0.00659,
+    0.00565,
+    -0.00723
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001224,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ON",
+   "position": [
+    0.03021,
+    0.00565,
+    -0.00953
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001224,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ICSP",
+   "position": [
+    0.03371,
+    0.00565,
+    -0.00563
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001152,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "ICSP",
+   "position": [
+    -0.01289,
+    0.00565,
+    -0.02293
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "RESET",
+   "position": [
+    -0.02859,
+    0.00565,
+    -0.02013
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "RST EN",
+   "position": [
+    -0.00059,
+    0.00565,
+    -0.00033
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.000864,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "SCL",
+   "position": [
+    -0.011944,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "SDA",
+   "position": [
+    -0.009404,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "AREF",
+   "position": [
+    -0.006864,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "GND",
+   "position": [
+    -0.004324,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "13",
+   "position": [
+    -0.001784,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "12",
+   "position": [
+    0.000756,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~11",
+   "position": [
+    0.003296,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~10",
+   "position": [
+    0.005836,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~9",
+   "position": [
+    0.008376,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "8",
+   "position": [
+    0.010916,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "7",
+   "position": [
+    0.01498,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~6",
+   "position": [
+    0.01752,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~5",
+   "position": [
+    0.02006,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "4",
+   "position": [
+    0.0226,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "~3",
+   "position": [
+    0.02514,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "2",
+   "position": [
+    0.02768,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "TX→1",
+   "position": [
+    0.03022,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "RX←0",
+   "position": [
+    0.03276,
+    0.00565,
+    -0.01993
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "IOREF",
+   "position": [
+    -0.00026,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "RESET",
+   "position": [
+    0.00228,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "3.3V",
+   "position": [
+    0.00482,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "5V",
+   "position": [
+    0.00736,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "GND",
+   "position": [
+    0.0099,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "GND",
+   "position": [
+    0.01244,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "VIN",
+   "position": [
+    0.01498,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A0",
+   "position": [
+    0.02006,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A1",
+   "position": [
+    0.0226,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A2",
+   "position": [
+    0.02514,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A3",
+   "position": [
+    0.02768,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A4",
+   "position": [
+    0.03022,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "",
+   "text": "A5",
+   "position": [
+    0.03276,
+    0.00565,
+    0.02207
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#f4f6ef",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "U3",
+   "text": "ATMEGA",
+   "position": [
+    -0.011251,
+    0.00651,
+    -0.008161
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.000504,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "U3",
+   "text": "16U2",
+   "position": [
+    -0.011251,
+    0.00651,
+    -0.007361
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.000504,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "Y1",
+   "text": "16.000",
+   "position": [
+    -0.012267,
+    0.00921,
+    0.001008
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.001008,
+   "color": "#6d7476",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "ZU4",
+   "text": "ATMEGA328P-PU",
+   "position": [
+    0.015165,
+    0.01202,
+    0.010712
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    1
+   ],
+   "size": 0.001008,
+   "color": "#d9d4c6",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "ZU4",
+   "text": "ATMEL",
+   "position": [
+    0.015165,
+    0.01202,
+    0.009012
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    1
+   ],
+   "size": 0.001008,
+   "color": "#d9d4c6",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "U5",
+   "text": "358",
+   "position": [
+    -0.01174,
+    0.00671,
+    0.00605
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.000648,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "U2",
+   "text": "L33",
+   "position": [
+    -0.008919,
+    0.00671,
+    0.01143
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.000576,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "U1",
+   "text": "1117",
+   "position": [
+    -0.022943,
+    0.00731,
+    0.009271
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.000792,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "PC1",
+   "text": "47",
+   "position": [
+    -0.005663,
+    0.01143,
+    0.018336
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    1
+   ],
+   "size": 0.000864,
+   "color": "#4b5052",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "PC2",
+   "text": "47",
+   "position": [
+    -0.012775,
+    0.01143,
+    0.018336
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    1
+   ],
+   "size": 0.000864,
+   "color": "#4b5052",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "D1",
+   "text": "M7",
+   "position": [
+    -0.0092,
+    0.00782,
+    0.024176
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    0,
+    0,
+    -1
+   ],
+   "size": 0.000576,
+   "color": "#d8d2c0",
+   "weight": 800,
+   "layer": "base"
+  }
+ ],
+ "warnings": [
+  "uno-r3: 6 figure pins match no descriptor pin and keep the figure's id",
+  "1 screen-space path element (glows, halos, 2D marks) have no 3D and were left out"
+ ]
+}

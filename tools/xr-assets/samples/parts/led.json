@@ -1,0 +1,245 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "parts/led",
+ "kind": "part",
+ "name": "LED",
+ "glb": "led.glb",
+ "source": {
+  "figure": "figures/parts/led.js",
+  "engine": "bench",
+  "pageSha256": "feb377c312ed404e4dff9257a43c3ed119a434cea828d5c752e6f42ea93cfe81",
+  "descriptor": "led-5mm"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "footprint-centre",
+  "source": "board-mm",
+  "fromSource": [
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -0.001,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   -0.00649,
+   -0.0029,
+   0.02122,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.0029,
+   -0.000014,
+   -0.0029
+  ],
+  "max": [
+   0.0029,
+   0.0144,
+   0.0029
+  ]
+ },
+ "stats": {
+  "triangles": 424,
+  "trianglesXray": 0,
+  "drawCalls": 4,
+  "lineSegments": 224,
+  "nodes": 3,
+  "bytes": 53728
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   -0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   -0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "LED",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "LED1",
+   "index": 1,
+   "name": "LED LED1",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "nodes": [
+    "led:LED1"
+   ],
+   "bounds": {
+    "min": [
+     -0.0029,
+     -0.000014,
+     -0.0029
+    ],
+    "max": [
+     0.0029,
+     0.0144,
+     0.0029
+    ]
+   }
+  }
+ ],
+ "anchors": [
+  {
+   "id": "A",
+   "kind": "pin",
+   "part": "LED1",
+   "position": [
+    -0.00127,
+    0,
+    0
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "extras": {
+    "leg": "A",
+    "hole": "e2"
+   }
+  },
+  {
+   "id": "K",
+   "kind": "pin",
+   "part": "LED1",
+   "position": [
+    0.00127,
+    0,
+    0
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "extras": {
+    "leg": "K",
+    "hole": "e3"
+   }
+  },
+  {
+   "id": "led:LED1",
+   "kind": "led",
+   "part": "LED1",
+   "position": [
+    0,
+    0.0144,
+    0
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "LED",
+   "channel": "led:LED1"
+  },
+  {
+   "id": "label:LED1",
+   "kind": "label",
+   "part": "LED1",
+   "position": [
+    -0.002286,
+    0.008195,
+    0
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "LED1",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    -1
+   ]
+  }
+ ],
+ "channels": [
+  {
+   "id": "led:LED1",
+   "kind": "emissive",
+   "part": "LED1",
+   "nodes": [
+    "led:LED1"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#e8392e"
+  }
+ ],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static",
+    "led:LED1"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  }
+ ],
+ "texts": [],
+ "warnings": [
+  "2 screen-space path elements (glows, halos, 2D marks) have no 3D and were left out"
+ ],
+ "extras": {
+  "bench": {
+   "partPage": {
+    "instance": "LED1"
+   }
+  }
+ }
+}

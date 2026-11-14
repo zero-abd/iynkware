@@ -1,10 +1,11 @@
 /**
  * The XR app's sim handler: iynk's `createSimHandler` (imported, not copied) with the interpreter engine, the digital
- * nets, the circuit solver, the probe tap (for `meter.read`) and the fault rules. Firmware engines (avr8js, rp2040js)
- * and robot physics are not wired yet (see docs/XR_ARCHITECTURE.md, "Imported and ported").
+ * nets, the circuit solver, the probe tap (for `meter.read`), the fault rules and robot physics (rapier). Firmware
+ * engines (avr8js, rp2040js) are not wired yet (see docs/XR_ARCHITECTURE.md, "Imported and ported").
  *
  * Pure: runs in the worker (sim.worker.ts) and inline in the headless test, so both see the same handler.
  */
+import { fail } from '@/core/result';
 import { INTERP_LANGUAGE } from '@/lib/interp';
 import type { Descriptor } from '@/parts/descriptor';
 import { builtinRegistry } from '@/parts/builtin';
@@ -21,7 +22,9 @@ import type { Registry } from '@/sim/registry/types';
 import { bindAnalog, wiredI2cDevices } from '@/sim-host/engines/bind';
 import { createInterpEngine, type InterpEngine } from '@/sim-host/engines/interp-engine';
 import { createSimHandler } from '@/sim-host/handler';
-import { rangersOf } from '@/sim-host/mech';
+import { packRunIo, prepareMech, rangersOf, robotReport, type MechDeps } from '@/sim-host/mech';
+import type { RapierModule } from '@/sim/mech/rapier';
+import { buildSimNetlist } from '@/sim/netlist';
 import type { SimEv, SimReq } from '@/sim-host/protocol';
 
 export interface XrHandlerOptions {
@@ -44,6 +47,25 @@ const noSolver = {
   },
 };
 
+/** The physics engine, imported once per worker and only for a robot project. */
+let physics: Promise<RapierModule> | null = null;
+
+/**
+ * Brings rapier in from the app's own bundle (a lazy chunk; the compat build carries its wasm inline), so nothing is
+ * fetched from a CDN and a board project never loads it. Tells the Run bar `loading-physics` the first time.
+ */
+async function physicsModule(onState: MechDeps['onState']): Promise<RapierModule> {
+  if (!physics) {
+    onState('loading-physics');
+    physics = import('@dimforge/rapier3d-deterministic-compat');
+    physics.catch(() => (physics = null));
+  }
+  return physics;
+}
+
+/** Never called: `prepareMech` is always handed the module, so it has nothing to download. */
+const noDownload: MechDeps['loadEngine'] = () => Promise.reject(new Error('the headset loads physics from its own bundle'));
+
 export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq, SimEv> {
   const parts = builtinRegistry();
   const describe = (id: string): Descriptor | undefined => {
@@ -52,6 +74,7 @@ export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq
   };
   let fidelity: Registry | null = null;
   const fidelityRegistry = (): Registry => (fidelity ??= loadRegistry());
+  const latestPart = (ref: string): Descriptor | undefined => parts.latest(ref);
 
   return createSimHandler({
     diag: false,
@@ -87,6 +110,21 @@ export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq
         registry: fidelityRegistry(),
         modelOf: (id) => [...modelIdsOf(net.parts.find((p) => p.id === id)?.descriptor ?? '')],
       }),
+    mech: {
+      prepare: async (doc, net, onState) => {
+        let module: RapierModule;
+        try {
+          module = await physicsModule(onState);
+        } catch (error) {
+          const message = `the physics engine did not load: ${error instanceof Error ? error.message : String(error)}`;
+          onState('failed', { reason: message });
+          return fail({ code: 'load-failed' as const, message });
+        }
+        return prepareMech(doc, net, { loadEngine: noDownload, module, describe: latestPart, onState });
+      },
+      runIo: (net) => packRunIo(net, latestPart),
+      report: (doc) => robotReport(doc, latestPart, buildSimNetlist(doc, parts).net),
+    },
     faults: { describe, rules: defaultRules },
   });
 }

@@ -1,0 +1,1648 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "drones/quad5",
+ "kind": "drone",
+ "name": "5-inch freestyle quad",
+ "glb": "quad5.glb",
+ "source": {
+  "figure": "figures/drones/quad5.js",
+  "engine": "drone",
+  "pageSha256": "f6d65f8b4eb198bd9fd34d3dc22ed3fcc800a780bb17bb0fdc6695f46d9ba4b6"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "craft-centre",
+  "source": "flu-mm",
+  "fromSource": [
+   0,
+   0,
+   0.001,
+   0,
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.142349,
+   0,
+   -0.139699
+  ],
+  "max": [
+   0.142576,
+   0.074,
+   0.143063
+  ]
+ },
+ "stats": {
+  "triangles": 4843,
+  "trianglesXray": 240,
+  "drawCalls": 18,
+  "lineSegments": 2759,
+  "nodes": 12,
+  "bytes": 782080
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   -0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "5-inch freestyle quad",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "FRAME",
+   "index": 1,
+   "name": "Carbon frame: bottom plate and arms",
+   "parent": "",
+   "role": "frame",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "short": "FRAME",
+    "z": 0,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.09505,
+     0,
+     -0.09505
+    ],
+    "max": [
+     0.09505,
+     0.00501,
+     0.09505
+    ]
+   }
+  },
+  {
+   "id": "MOTORS",
+   "index": 2,
+   "name": "4 brushless motors (2306)",
+   "parent": "",
+   "role": "motor",
+   "explode": [
+    0,
+    0.0192,
+    0
+   ],
+   "after": [
+    "FRAME"
+   ],
+   "extras": {
+    "short": "MOTORS",
+    "z": 1.6,
+    "explodeMm": 12
+   },
+   "nodes": [
+    "motor:M1",
+    "motor:M2",
+    "motor:M3",
+    "motor:M4"
+   ],
+   "bounds": {
+    "min": [
+     -0.093358,
+     0.005,
+     -0.0935
+    ],
+    "max": [
+     0.093358,
+     0.02351,
+     0.0935
+    ]
+   }
+  },
+  {
+   "id": "ESC",
+   "index": 3,
+   "name": "45 A 4-in-1 ESC (AM32)",
+   "parent": "",
+   "role": "board",
+   "explode": [
+    0,
+    0.012,
+    0
+   ],
+   "after": [
+    "FRAME"
+   ],
+   "extras": {
+    "short": "4-IN-1 ESC",
+    "z": 1,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.02,
+     0.005,
+     -0.02
+    ],
+    "max": [
+     0.02,
+     0.0117,
+     0.02
+    ]
+   }
+  },
+  {
+   "id": "WIRES",
+   "index": 4,
+   "name": "Motor phase wires, soldered to the ESC pads",
+   "parent": "",
+   "role": "wire",
+   "explode": [
+    0,
+    0.0156,
+    0
+   ],
+   "after": [
+    "MOTORS",
+    "ESC"
+   ],
+   "extras": {
+    "short": "MOTOR WIRES",
+    "z": 1.3,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.070852,
+     0.00525,
+     -0.070852
+    ],
+    "max": [
+     0.070852,
+     0.01225,
+     0.070852
+    ]
+   }
+  },
+  {
+   "id": "FC",
+   "index": 5,
+   "name": "F405 flight controller (Betaflight)",
+   "parent": "",
+   "role": "board",
+   "explode": [
+    0,
+    0.036,
+    0
+   ],
+   "after": [
+    "ESC"
+   ],
+   "extras": {
+    "short": "FLIGHT CTRL",
+    "z": 3,
+    "explodeMm": 12,
+    "polar": [
+     "arrow forward",
+     "arrow backward"
+    ]
+   },
+   "bounds": {
+    "min": [
+     -0.0185,
+     0.01105,
+     -0.02195
+    ],
+    "max": [
+     0.0206,
+     0.0208,
+     0.0185
+    ]
+   }
+  },
+  {
+   "id": "XT60",
+   "index": 6,
+   "name": "XT60 pigtail and 1000 µF 35 V low-ESR capacitor",
+   "parent": "",
+   "role": "connector",
+   "explode": [
+    0,
+    0.024,
+    0
+   ],
+   "after": [
+    "ESC"
+   ],
+   "extras": {
+    "short": "XT60 + CAP",
+    "z": 2,
+    "explodeMm": 12,
+    "polar": [
+     "stripe to minus",
+     "stripe to plus"
+    ]
+   },
+   "bounds": {
+    "min": [
+     -0.00775,
+     0.005,
+     -0.08
+    ],
+    "max": [
+     0.020068,
+     0.015475,
+     -0.017
+    ]
+   }
+  },
+  {
+   "id": "CAM",
+   "index": 7,
+   "name": "19 mm analog FPV camera, 30° uptilt",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.024,
+    0
+   ],
+   "after": [
+    "FRAME"
+   ],
+   "extras": {
+    "short": "CAMERA",
+    "z": 2,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.013,
+     0.005,
+     0.0165
+    ],
+    "max": [
+     0.013,
+     0.032775,
+     0.061057
+    ]
+   }
+  },
+  {
+   "id": "RX",
+   "index": 8,
+   "name": "ExpressLRS 2.4 GHz receiver (CRSF)",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.03,
+    0
+   ],
+   "after": [
+    "FC"
+   ],
+   "extras": {
+    "short": "RECEIVER",
+    "z": 2.5,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.018849,
+     0.005,
+     -0.076952
+    ],
+    "max": [
+     -0.006159,
+     0.037746,
+     -0.0325
+    ]
+   }
+  },
+  {
+   "id": "VTX",
+   "index": 9,
+   "name": "5.8 GHz analog VTX and antenna",
+   "parent": "",
+   "role": "board",
+   "explode": [
+    0,
+    0.048,
+    0
+   ],
+   "after": [
+    "FC"
+   ],
+   "extras": {
+    "short": "VTX",
+    "z": 4,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.018,
+     0.019,
+     -0.087656
+    ],
+    "max": [
+     0.018,
+     0.064316,
+     0.018
+    ]
+   }
+  },
+  {
+   "id": "TOP",
+   "index": 10,
+   "name": "Top plate and 27.5 mm standoffs",
+   "parent": "",
+   "role": "cover",
+   "explode": [
+    0,
+    0.066,
+    0
+   ],
+   "cover": true,
+   "after": [
+    "FC",
+    "CAM",
+    "RX",
+    "VTX"
+   ],
+   "extras": {
+    "short": "TOP PLATE",
+    "z": 5.5,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.02,
+     0.005,
+     -0.052
+    ],
+    "max": [
+     0.02,
+     0.0345,
+     0.052
+    ]
+   }
+  },
+  {
+   "id": "BATT",
+   "index": 11,
+   "name": "LiPo battery, strap and grip pad",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.084,
+    0
+   ],
+   "cover": true,
+   "after": [
+    "TOP",
+    "XT60"
+   ],
+   "extras": {
+    "short": "BATTERY",
+    "z": 7,
+    "explodeMm": 12
+   },
+   "bounds": {
+    "min": [
+     -0.0187,
+     0.0345,
+     -0.0375
+    ],
+    "max": [
+     0.0185,
+     0.074,
+     0.0375
+    ]
+   }
+  },
+  {
+   "id": "PROPS",
+   "index": 12,
+   "name": "5-inch tri-blade props, 2 CW + 2 CCW",
+   "parent": "",
+   "role": "prop",
+   "explode": [
+    0,
+    0.0432,
+    0
+   ],
+   "after": [
+    "MOTORS",
+    "TOP"
+   ],
+   "extras": {
+    "short": "PROPS",
+    "z": 3.6,
+    "explodeMm": 12,
+    "polar": [
+     "props in (correct)",
+     "swapped CW/CCW"
+    ]
+   },
+   "nodes": [
+    "prop:M1",
+    "prop:M2",
+    "prop:M3",
+    "prop:M4"
+   ],
+   "bounds": {
+    "min": [
+     -0.142349,
+     0.0235,
+     -0.139699
+    ],
+    "max": [
+     0.142576,
+     0.0335,
+     0.143063
+    ]
+   }
+  }
+ ],
+ "anchors": [
+  {
+   "id": "motor:M1",
+   "kind": "motor",
+   "part": "MOTORS",
+   "position": [
+    -0.07955,
+    0.02351,
+    -0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CW",
+   "channel": "motor:M1"
+  },
+  {
+   "id": "prop:M1",
+   "kind": "prop",
+   "part": "PROPS",
+   "position": [
+    -0.07955,
+    0.0335,
+    -0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CW",
+   "channel": "prop:M1"
+  },
+  {
+   "id": "motor:M2",
+   "kind": "motor",
+   "part": "MOTORS",
+   "position": [
+    -0.07955,
+    0.02351,
+    0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CCW",
+   "channel": "motor:M2"
+  },
+  {
+   "id": "prop:M2",
+   "kind": "prop",
+   "part": "PROPS",
+   "position": [
+    -0.07955,
+    0.0335,
+    0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CCW",
+   "channel": "prop:M2"
+  },
+  {
+   "id": "motor:M3",
+   "kind": "motor",
+   "part": "MOTORS",
+   "position": [
+    0.07955,
+    0.02351,
+    -0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CCW",
+   "channel": "motor:M3"
+  },
+  {
+   "id": "prop:M3",
+   "kind": "prop",
+   "part": "PROPS",
+   "position": [
+    0.07955,
+    0.0335,
+    -0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CCW",
+   "channel": "prop:M3"
+  },
+  {
+   "id": "motor:M4",
+   "kind": "motor",
+   "part": "MOTORS",
+   "position": [
+    0.07955,
+    0.02351,
+    0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CW",
+   "channel": "motor:M4"
+  },
+  {
+   "id": "prop:M4",
+   "kind": "prop",
+   "part": "PROPS",
+   "position": [
+    0.07955,
+    0.0335,
+    0.07955
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "dir": "CW",
+   "channel": "prop:M4"
+  },
+  {
+   "id": "label:FRAME",
+   "kind": "label",
+   "part": "FRAME",
+   "position": [
+    0.062,
+    0.005,
+    -0.062
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "FRAME",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:MOTORS",
+   "kind": "label",
+   "part": "MOTORS",
+   "position": [
+    0.0795,
+    0.0235,
+    0.0795
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "MOTORS",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:ESC",
+   "kind": "label",
+   "part": "ESC",
+   "position": [
+    0.018,
+    0.0106,
+    0.018
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "4-IN-1 ESC",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:WIRES",
+   "kind": "label",
+   "part": "WIRES",
+   "position": [
+    -0.048,
+    0.0065,
+    0.048
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "MOTOR WIRES",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:FC",
+   "kind": "label",
+   "part": "FC",
+   "position": [
+    0.016,
+    0.0176,
+    0.016
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "FLIGHT CTRL",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:XT60",
+   "kind": "label",
+   "part": "XT60",
+   "position": [
+    0,
+    0.013,
+    -0.072
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "XT60 + CAP",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:CAM",
+   "kind": "label",
+   "part": "CAM",
+   "position": [
+    0,
+    0.022,
+    0.053
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "CAMERA",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:RX",
+   "kind": "label",
+   "part": "RX",
+   "position": [
+    -0.013,
+    0.008,
+    -0.039
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "RECEIVER",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:VTX",
+   "kind": "label",
+   "part": "VTX",
+   "position": [
+    0.008,
+    0.029,
+    -0.008
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "VTX",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:TOP",
+   "kind": "label",
+   "part": "TOP",
+   "position": [
+    -0.016,
+    0.0345,
+    0.048
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "TOP PLATE",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:BATT",
+   "kind": "label",
+   "part": "BATT",
+   "position": [
+    0,
+    0.073,
+    -0.01
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "BATTERY",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:PROPS",
+   "kind": "label",
+   "part": "PROPS",
+   "position": [
+    -0.0795,
+    0.026,
+    0.118
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "PROPS",
+   "layer": "base",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:MOTORS.1",
+   "kind": "label",
+   "part": "MOTORS",
+   "position": [
+    -0.0795,
+    0.015,
+    0.0795
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "STATOR 12N14P",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:ESC.1",
+   "kind": "label",
+   "part": "ESC",
+   "position": [
+    -0.014,
+    0.0115,
+    0.017
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "MOSFETS x12",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:FC.1",
+   "kind": "label",
+   "part": "FC",
+   "position": [
+    -0.008,
+    0.0185,
+    -0.002
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "GYRO ICM-42688-P",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:FC.2",
+   "kind": "label",
+   "part": "FC",
+   "position": [
+    0.005,
+    0.019,
+    0.006
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "MCU STM32F405",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:FC.3",
+   "kind": "label",
+   "part": "FC",
+   "position": [
+    -0.0152,
+    0.0145,
+    -0.0216
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "ESC HARNESS 8-PIN",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:XT60.1",
+   "kind": "label",
+   "part": "XT60",
+   "position": [
+    0.015,
+    0.0156,
+    -0.035
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "1000 µF CAP",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "label:RX.1",
+   "kind": "label",
+   "part": "RX",
+   "position": [
+    -0.013,
+    0.008,
+    -0.039
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "text": "ELRS RX ON UART2",
+   "layer": "xray",
+   "up": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "id": "port:FC",
+   "kind": "port",
+   "part": "FC",
+   "position": [
+    0.0206,
+    0.0192,
+    0
+   ],
+   "normal": [
+    1,
+    0,
+    0
+   ],
+   "extras": {
+    "connector": "USB"
+   }
+  },
+  {
+   "id": "led:FC",
+   "kind": "led",
+   "part": "FC",
+   "position": [
+    0.013,
+    0.0182,
+    -0.013
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "extras": {
+    "color": "#4aa3ff"
+   }
+  },
+  {
+   "id": "port:XT60",
+   "kind": "port",
+   "part": "XT60",
+   "position": [
+    0,
+    0.009,
+    -0.08
+   ],
+   "normal": [
+    0,
+    0,
+    -1
+   ],
+   "extras": {
+    "connector": "XT60"
+   }
+  },
+  {
+   "id": "led:RX",
+   "kind": "led",
+   "part": "RX",
+   "position": [
+    -0.01,
+    0.0084,
+    -0.035
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "extras": {
+    "color": "#43c463"
+   }
+  },
+  {
+   "id": "led:VTX",
+   "kind": "led",
+   "part": "VTX",
+   "position": [
+    -0.013,
+    0.0262,
+    -0.013
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "extras": {
+    "color": "#e2483d"
+   }
+  }
+ ],
+ "channels": [
+  {
+   "id": "prop:M1",
+   "kind": "spin",
+   "part": "PROPS",
+   "nodes": [
+    "prop:M1"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    -0.07955,
+    0.026146,
+    -0.07955
+   ],
+   "scale": -1,
+   "bind": {
+    "source": "motor",
+    "key": "M1"
+   },
+   "extras": {
+    "dir": "CW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "motor:M1",
+   "kind": "spin",
+   "part": "MOTORS",
+   "nodes": [
+    "motor:M1"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    -0.07955,
+    0.0235,
+    -0.07955
+   ],
+   "scale": -1,
+   "bind": {
+    "source": "motor",
+    "key": "M1"
+   },
+   "extras": {
+    "dir": "CW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "prop:M2",
+   "kind": "spin",
+   "part": "PROPS",
+   "nodes": [
+    "prop:M2"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    -0.07955,
+    0.026224,
+    0.07955
+   ],
+   "scale": 1,
+   "bind": {
+    "source": "motor",
+    "key": "M2"
+   },
+   "extras": {
+    "dir": "CCW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "motor:M2",
+   "kind": "spin",
+   "part": "MOTORS",
+   "nodes": [
+    "motor:M2"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    -0.07955,
+    0.0235,
+    0.07955
+   ],
+   "scale": 1,
+   "bind": {
+    "source": "motor",
+    "key": "M2"
+   },
+   "extras": {
+    "dir": "CCW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "prop:M3",
+   "kind": "spin",
+   "part": "PROPS",
+   "nodes": [
+    "prop:M3"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    0.07955,
+    0.026224,
+    -0.07955
+   ],
+   "scale": 1,
+   "bind": {
+    "source": "motor",
+    "key": "M3"
+   },
+   "extras": {
+    "dir": "CCW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "motor:M3",
+   "kind": "spin",
+   "part": "MOTORS",
+   "nodes": [
+    "motor:M3"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    0.07955,
+    0.0235,
+    -0.07955
+   ],
+   "scale": 1,
+   "bind": {
+    "source": "motor",
+    "key": "M3"
+   },
+   "extras": {
+    "dir": "CCW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "prop:M4",
+   "kind": "spin",
+   "part": "PROPS",
+   "nodes": [
+    "prop:M4"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    0.07955,
+    0.026146,
+    0.07955
+   ],
+   "scale": -1,
+   "bind": {
+    "source": "motor",
+    "key": "M4"
+   },
+   "extras": {
+    "dir": "CW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  },
+  {
+   "id": "motor:M4",
+   "kind": "spin",
+   "part": "MOTORS",
+   "nodes": [
+    "motor:M4"
+   ],
+   "value": {
+    "unit": "rpm",
+    "min": 0,
+    "max": 44100,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    0.07955,
+    0.0235,
+    0.07955
+   ],
+   "scale": -1,
+   "bind": {
+    "source": "motor",
+    "key": "M4"
+   },
+   "extras": {
+    "dir": "CW",
+    "kv": 1750,
+    "volts": 25.2
+   }
+  }
+ ],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static",
+    "prop:M1",
+    "motor:M1",
+    "prop:M2",
+    "motor:M2",
+    "prop:M3",
+    "motor:M3",
+    "prop:M4",
+    "motor:M4"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  },
+  {
+   "id": "cover",
+   "nodes": [
+    "static.cover"
+   ],
+   "opacity": [
+    1,
+    0.28
+   ]
+  },
+  {
+   "id": "xray",
+   "nodes": [
+    "static.xray"
+   ],
+   "opacity": [
+    0,
+    1
+   ]
+  }
+ ],
+ "texts": [
+  {
+   "part": "RX",
+   "text": "ELRS",
+   "position": [
+    -0.01192,
+    0.00802,
+    -0.039
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.00216,
+   "color": "#f2efe7",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "ESC",
+   "text": "AT32",
+   "position": [
+    0.000504,
+    0.01152,
+    0.006
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.001008,
+   "color": "#d9d3c6",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "FC",
+   "text": "F405",
+   "position": [
+    0.006008,
+    0.01902,
+    0.006
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.002016,
+   "color": "#d9d3c6",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "BATT",
+   "text": "6S 1100",
+   "position": [
+    0.00252,
+    0.07305,
+    -0.0225
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.00504,
+   "color": "#f2efe7",
+   "weight": 800,
+   "layer": "base"
+  },
+  {
+   "part": "BATT",
+   "text": "22.2 V",
+   "position": [
+    0.00216,
+    0.07305,
+    0.02175
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "up": [
+    -1,
+    0,
+    0
+   ],
+   "size": 0.00432,
+   "color": "#e2b33a",
+   "weight": 800,
+   "layer": "base"
+  }
+ ],
+ "warnings": [
+  "5 screen-space circle elements (glows, halos, 2D marks) have no 3D and were left out"
+ ],
+ "extras": {
+  "craft": "quad5",
+  "layout": "quad-x",
+  "numbering": "betaflight",
+  "design": {
+   "batt": "6s1100",
+   "motor": "2306-1750",
+   "prop": "5x4.3x3"
+  },
+  "explodeMm": 12,
+  "mirroredFigure": true,
+  "motors": [
+   {
+    "id": "M1",
+    "at": [
+     -79.55,
+     -79.55,
+     null
+    ],
+    "dir": "CW",
+    "tilt": 0
+   },
+   {
+    "id": "M2",
+    "at": [
+     79.55,
+     -79.55,
+     null
+    ],
+    "dir": "CCW",
+    "tilt": 0
+   },
+   {
+    "id": "M3",
+    "at": [
+     -79.55,
+     79.55,
+     null
+    ],
+    "dir": "CCW",
+    "tilt": 0
+   },
+   {
+    "id": "M4",
+    "at": [
+     79.55,
+     79.55,
+     null
+    ],
+    "dir": "CW",
+    "tilt": 0
+   }
+  ],
+  "battery": {
+   "cells": 6,
+   "chem": "lipo"
+  }
+ }
+}

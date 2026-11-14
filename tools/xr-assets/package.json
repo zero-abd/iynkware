@@ -1,0 +1,25 @@
+{
+  "name": "iynkware-xr-assets",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Turns iynk's figures into glTF assets with sidecar JSON for the headset (docs/XR_ASSETS.md).",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check",
+    "samples": "node build.mjs --samples",
+    "test": "node --test --test-concurrency=1",
+    "viewer": "node viewer/serve.mjs"
+  },
+  "dependencies": {
+    "jsdom": "30.1.2",
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

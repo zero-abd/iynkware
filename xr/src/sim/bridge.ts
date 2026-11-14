@@ -2,15 +2,27 @@
  * Render-thread side of the simulation (contract: src/contracts/sim.ts). Posts requests to the sim worker and fans its
  * events out. Never runs the solver itself, except through `inlinePort` in tests.
  */
-import { createInlinePort, createRpcPort, type RpcPort, type WorkerLike } from '@/protocol';
+import { createInlinePort, createRpcPort, WorkerError, type RpcPort, type WorkerLike } from '@/protocol';
 import { builtinRegistry } from '@/parts/builtin';
 import type { Project } from '@/project/generated/types';
 import { simDiag } from '@/sim/core/diagnostic';
-import type { HostInput, ProgramImage, SimDiagnostic, WorkLimits } from '@/sim/engine';
+import type { HostInput, ProgramImage, SimDiagnostic, SimNetlist, WorkLimits } from '@/sim/engine';
 import { buildSimNetlist } from '@/sim/netlist';
-import type { SimEv, SimReq } from '@/sim-host/protocol';
+import type { IgnoredReply, ProbeAddReply, SimEv, SimReq, StaticCheckReply } from '@/sim-host/protocol';
+import { needsPhysics } from '@/sim-host/robot-doc';
 import type { Unsubscribe } from '../contracts/common';
-import type { AnalogWatch, Finding, LoadResult, Reading, RunState, SimBridge, SimFrame, WorldInput } from '../contracts/sim';
+import type {
+  AnalogWatch,
+  Finding,
+  LoadResult,
+  MechStatus,
+  PhysicsFrame,
+  Reading,
+  RunState,
+  SimBridge,
+  SimFrame,
+  WorldInput,
+} from '../contracts/sim';
 import { createXrSimHandler, type XrHandlerOptions } from './handler-deps';
 
 export type SimPort = RpcPort<SimReq, SimEv>;
@@ -86,6 +98,9 @@ function frameOf(ev: Extract<SimEv, { t: 'frame' }>): SimFrame {
 /** Built once: the registry is rebuilt from every descriptor on each `builtinRegistry()` call. */
 let parts: ReturnType<typeof builtinRegistry> | null = null;
 
+/** Every source of the document, path to text, as iynk's 2D Check sends them (faultLink.ts). */
+const sourcesOf = (doc: Project): Record<string, string> => Object.fromEntries(doc.sources.map((s) => [s.path, s.content]));
+
 const blocking = (diagnostics: readonly SimDiagnostic[]) => diagnostics.some((d) => d.severity === 'error');
 
 function listeners<T>() {
@@ -122,6 +137,8 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
   let state: RunState = 'unloaded';
   let lastFrame: SimFrame | null = null;
   let findings: readonly Finding[] = [];
+  let netlist: SimNetlist | null = null;
+  let lastMech: PhysicsFrame | null = null;
   let speed = 1;
   let watch: AnalogWatch | null = null;
   let disposed = false;
@@ -130,6 +147,13 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
   const states = listeners<RunState>();
   const findingsFns = listeners<readonly Finding[]>();
   const diagnostics = listeners<{ kind: string; message: string; atNs: number }>();
+  const mechFrames = listeners<PhysicsFrame>();
+  const mechStates = listeners<MechStatus>();
+
+  const setMech = (frame: PhysicsFrame) => {
+    lastMech = frame;
+    mechFrames.emit(frame);
+  };
 
   const setState = (next: RunState) => {
     if (next === state) return;
@@ -152,6 +176,16 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       } else if (e.kind !== 'paused') {
         diagnostics.emit({ kind: e.kind, message: e.message, atNs: e.at });
       }
+    } else if (ev.t === 'mech_frame') {
+      setMech(ev.frame);
+    } else if (ev.t === 'mech_status') {
+      if (ev.state !== 'failed') mechStates.emit(ev.state === 'ready' ? { state: 'ready' } : { state: ev.state, wireBytes: ev.wireBytes });
+      // The physics prepare posts a bare `failed` and the handler follows it with the refusal and its code; only that
+      // one goes out, so a refused robot is a single `failed`.
+      else if (ev.refusal) mechStates.emit({ state: 'failed', reason: ev.reason ?? ev.refusal.message, code: ev.refusal.code });
+    } else if (ev.t === 'mech_halt') {
+      setMech(ev.frame);
+      mechStates.emit({ state: 'failed', reason: `${ev.code} on ${ev.body}`, code: ev.code, body: ev.body });
     }
   });
 
@@ -201,6 +235,12 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
     get findings() {
       return findings;
     },
+    get netlist() {
+      return netlist;
+    },
+    get lastMech() {
+      return lastMech;
+    },
 
     async load(doc) {
       if (disposed) throw new Error('the sim bridge was disposed');
@@ -210,7 +250,9 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       const id = ++run;
       if (state === 'running') await call({ t: 'control', run: old, op: 'cancel' }).catch(() => undefined);
       lastFrame = null;
+      lastMech = null;
       findings = [];
+      netlist = null;
       watch = null;
       const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
       const program = programOf(doc);
@@ -224,11 +266,13 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
           net,
           opts: { seed: doc.simulation.seed, speed, limits: WORK_LIMITS, tier: 'T1' },
           program,
+          ...(needsPhysics(doc) ? { robot: doc } : {}),
         });
         const loadDiags = (ack.result as { diagnostics?: SimDiagnostic[] } | undefined)?.diagnostics ?? [];
         const all = [...netDiags, ...loadDiags];
         if (id !== run) return { ok: !blocking(all), diagnostics: all };
         if (blocking(loadDiags)) return refuse(all);
+        netlist = net;
         setState('idle');
         return { ok: true, diagnostics: all };
       } catch (err) {
@@ -290,15 +334,43 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       return ack.result as Reading;
     },
 
+    async check(doc) {
+      if (disposed) throw new Error('the sim bridge was disposed');
+      // Netlist diagnostics do not stop a check: the rules report what they find in whatever the document wires.
+      const { net } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
+      const ack = await call({ t: 'static-check', net, sources: sourcesOf(doc) });
+      return { findings: (ack.result as StaticCheckReply).findings };
+    },
+
+    async addProbe(spec) {
+      const ack = await call({ t: 'probe.add', run: live(), spec });
+      const reply = (ack.result ?? {}) as ProbeAddReply | IgnoredReply;
+      // Only while a load waits for the old run's pump to stop: the worker still holds the old run.
+      if ('ignored' in reply) throw new Error('a new load replaced the run before the probe was added');
+      return reply.error ? { id: spec.id, error: reply.error } : { id: spec.id };
+    },
+
+    async removeProbe(id) {
+      if (!loaded()) return;
+      try {
+        await call({ t: 'probe.remove', run, probe: id });
+      } catch (err) {
+        // The worker refuses an id its run does not have; load, stop and a restart clear probes without telling us.
+        if (!(err instanceof WorkerError && err.kind === 'bad_message')) throw err;
+      }
+    },
+
     onFrame: (fn) => frames.add(fn),
     onState: (fn) => states.add(fn),
     onFindings: (fn) => findingsFns.add(fn),
     onDiagnostic: (fn) => diagnostics.add(fn),
+    onMech: (fn) => mechFrames.add(fn),
+    onMechState: (fn) => mechStates.add(fn),
 
     async dispose() {
       if (disposed) return;
       disposed = true;
-      for (const l of [frames, states, findingsFns, diagnostics]) l.clear();
+      for (const l of [frames, states, findingsFns, diagnostics, mechFrames, mechStates]) l.clear();
       await port.kill(0);
     },
   };
