@@ -67,18 +67,21 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 
 What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
 each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
-`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `f3469c6`.
+`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-14, `main` at `7e4e62a`.
 
-- **Can do:** press Enter (or Open on this screen); see Uno Blink in passthrough on a sage work mat with a mustard rail
-  (#152), drawn from the converted models (Uno R3, breadboard, LED, resistor, inked wires) with two fixed callouts; point a controller ray and pull the
-  trigger, or point a hand and pinch, on the run cluster: Run (LED blinks every 500 ms, with glow), Pause, Step
-  (+10 ms), Reset (t = 0) and the speed button.
-- **Rough:** the bench is anchored where the headset was when the session began (re-enter to move it); parts cannot be
-  grabbed or moved; no menu, home, project switcher or way back out besides the system button.
-- **Merged but not reachable:** bench build actions, targeting and layout (shelf, edit, wire and pose modules are
-  stubs); "Build it with me" (`xr/src/assistant`, not wired into the app); the learn catalogue and a lesson step panel (the lesson session from #141 runs behind the Blink bench and runs its checks on Run, but nothing draws its steps yet); flight core and the
-  drone bench model (`range/flight` is a stub); scale and room size. Other templates open only by `?project=`, and
-  their parts other than the Blink set are placeholders.
+- **Blink (the default page):** press Enter (or Open on this screen). Uno Blink sits in passthrough on a sage work
+  mat with a mustard rail, drawn from the converted models, with the lesson guide panel beside it: Back, Show me and
+  Next through four steps, with highlights on the bench. Run, Pause, Step (+10 ms), Reset and the speed button take a
+  controller ray and trigger, or a hand point and pinch; Run blinks the LED with its halo, and the lesson's three
+  checks run and pass.
+- **Build it with me:** the pill on the bench starts the co-builder. It proposes each step on a card (Accept, Accept
+  all, Skip, Undo, Stop) and places the part with a ghost and carry.
+- **Drone (`?project=prj_drone-quad5`):** a design panel beside the bench (part plates, numbers, arming rules) and a
+  Fly plate. Fly goes to the room: a five-gate course, A arms, and the controller sticks fly the drone and count gates.
+- **Not yet:** building by hand (shelf, edit, wire and pose are stubs); finishing a lesson (its `edit` and `quiz`
+  gates have no headset UI: #169, #53); home, menu and mode switch (stubs), so other projects open only by
+  `?project=`; hand sticks for flying; scale controls. The bench is anchored where the headset was at entry. The
+  emulator walk's Step check is flaky (#151).
 
 ## What works today
 
