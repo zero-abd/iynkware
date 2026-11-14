@@ -32,6 +32,20 @@ const up = new Vector3();
 const front = new Vector3();
 const rel = new Vector3();
 
+const corner = new Vector3();
+
+/** The largest world z of the part's bounds (the edge nearest the person, with the object's matrixWorld current). */
+function nearZ(part: LivePart): number {
+  const b = part.asset.sidecar.bounds;
+  if (!b) return -Infinity;
+  let z = -Infinity;
+  for (let i = 0; i < 8; i++) {
+    corner.set(i & 1 ? b.max[0] : b.min[0], i & 2 ? b.max[1] : b.min[1], i & 4 ? b.max[2] : b.min[2]).applyMatrix4(part.object.matrixWorld);
+    if (corner.z > z) z = corner.z;
+  }
+  return z;
+}
+
 /** A hand held this close to a temperature or humidity sensor (bench metres) is holding it. */
 const HOLD_M = 0.12;
 const BREATH_M = 0.1;
@@ -171,8 +185,10 @@ export function moisturePiece(host: Host, part: LivePart): Piece {
   // Beside the part, towards the person, on the bench top.
   part.object.updateWorldMatrix(true, false);
   top.set(part.topAt[0], 0, part.topAt[2]).applyMatrix4(part.object.matrixWorld);
+  // The plate goes past the part's near edge (world +z is towards the person), whichever way the part is turned.
+  const reach = Math.max(0.04, nearZ(part) - top.z) + 0.05;
   app.bench.table.worldToLocal(top);
-  plate.group.position.set(top.x, top.y + 0.001, top.z + 0.09);
+  plate.group.position.set(top.x, top.y + 0.001, top.z + reach);
   const soil: Soil = { value: spec.rest, target: spec.rest };
   const lim = limiter(0.5, undefined, spec.rest);
   const send = () => {

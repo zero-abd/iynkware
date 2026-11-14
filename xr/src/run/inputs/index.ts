@@ -11,7 +11,7 @@
  *
  * This file keeps the part list (rebuilt on every bench layout), the hover rings, the readout chip and the live state.
  */
-import { Mesh, MeshBasicMaterial, RingGeometry, Vector3, type Object3D } from '@iwsdk/core';
+import { Mesh, MeshBasicMaterial, Path, Shape, ShapeGeometry, Vector3, type Object3D } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { PartAsset } from '../../contracts/assets';
 import { ACCENT, hexNum } from '../../look/palette';
@@ -37,6 +37,29 @@ interface Built {
   ring: Mesh;
   level: Animated;
   hot: boolean;
+}
+
+function roundedRect(path: Path, hx: number, hy: number): void {
+  const r = Math.min(hx, hy) * 0.8;
+  path.moveTo(-hx + r, -hy);
+  path.lineTo(hx - r, -hy);
+  path.quadraticCurveTo(hx, -hy, hx, -hy + r);
+  path.lineTo(hx, hy - r);
+  path.quadraticCurveTo(hx, hy, hx - r, hy);
+  path.lineTo(-hx + r, hy);
+  path.quadraticCurveTo(-hx, hy, -hx, hy - r);
+  path.lineTo(-hx, -hy + r);
+  path.quadraticCurveTo(-hx, -hy, -hx + r, -hy);
+}
+
+/** A rounded rectangle outline `width` thick, centred on the origin, in the XY plane. */
+function outline(hx: number, hy: number, width: number): Shape {
+  const shape = new Shape();
+  roundedRect(shape, hx, hy);
+  const hole = new Path();
+  roundedRect(hole, hx - width, hy - width);
+  shape.holes.push(hole);
+  return shape;
 }
 
 function livePartOf(id: string, object: Object3D, asset: PartAsset, specs: readonly InputSpec[]): LivePart {
@@ -144,8 +167,9 @@ export const inputsModule: FeatureModule = {
 
     /** A thin ring on the surface round the part, in the accent: where to reach while the run is live. */
     const ringOf = (part: LivePart): Mesh => {
-      const r = Math.max(0.012, Math.hypot(part.size[0], part.size[1]) / 2) * 1.1;
-      const geometry = new RingGeometry(r, r + 0.0016, 40);
+      const hx = Math.max(0.012, part.size[0] / 2) * 1.12 + 0.004;
+      const hz = Math.max(0.012, part.size[1] / 2) * 1.12 + 0.004;
+      const geometry = new ShapeGeometry(outline(hx, hz, 0.0016));
       geometry.rotateX(-Math.PI / 2);
       const material = new MeshBasicMaterial({
         color: hexNum(ACCENT),
