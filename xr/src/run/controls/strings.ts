@@ -1,0 +1,112 @@
+/**
+ * The run cluster's words in six languages. Run and Reset are iynk's own (`studioRun.json` `bar`), so the headset and
+ * the 2D Studio say the same; the rest is new here. Badges are short: they sit on the top edge of a 64 mm plate.
+ */
+import en from '@/i18n/messages/en/studioRun.json';
+import de from '@/i18n/messages/de/studioRun.json';
+import es from '@/i18n/messages/es/studioRun.json';
+import fr from '@/i18n/messages/fr/studioRun.json';
+import hi from '@/i18n/messages/hi/studioRun.json';
+import zh from '@/i18n/messages/zh/studioRun.json';
+import { defineStrings } from '../kit/strings';
+
+export const controlStrings = defineStrings({
+  en: {
+    run: en.bar.run,
+    reset: en.bar.reset,
+    pause: 'Pause',
+    step: 'Step',
+    compiling: 'Compiling',
+    uploading: 'Uploading',
+    restart: 'Restart to apply',
+    away: 'Away',
+    'no-code': 'No code',
+    refused: en.phase.error,
+    limit: 'Limit reached',
+    halted: 'Halted',
+    contention: 'Outputs clash',
+    stuck: 'Endless loop',
+  },
+  de: {
+    run: de.bar.run,
+    reset: de.bar.reset,
+    pause: 'Pause',
+    step: 'Schritt',
+    compiling: 'Wird kompiliert',
+    uploading: 'Wird hochgeladen',
+    restart: 'Neu starten zum Anwenden',
+    away: 'Abwesend',
+    'no-code': 'Kein Code',
+    refused: de.phase.error,
+    limit: 'Grenze erreicht',
+    halted: 'Angehalten',
+    contention: 'Ausgänge im Konflikt',
+    stuck: 'Endlosschleife',
+  },
+  es: {
+    run: es.bar.run,
+    reset: es.bar.reset,
+    pause: 'Pausa',
+    step: 'Paso',
+    compiling: 'Compilando',
+    uploading: 'Subiendo',
+    restart: 'Reinicia para aplicar',
+    away: 'Ausente',
+    'no-code': 'Sin código',
+    refused: es.phase.error,
+    limit: 'Límite alcanzado',
+    halted: 'Detenido',
+    contention: 'Salidas en conflicto',
+    stuck: 'Bucle sin fin',
+  },
+  fr: {
+    run: fr.bar.run,
+    reset: fr.bar.reset,
+    pause: 'Pause',
+    step: 'Pas à pas',
+    compiling: 'Compilation',
+    uploading: 'Téléversement',
+    restart: 'Relancer pour appliquer',
+    away: 'Absent',
+    'no-code': 'Pas de code',
+    refused: fr.phase.error,
+    limit: 'Limite atteinte',
+    halted: 'Interrompu',
+    contention: 'Sorties en conflit',
+    stuck: 'Boucle sans fin',
+  },
+  hi: {
+    run: hi.bar.run,
+    reset: hi.bar.reset,
+    pause: 'रोकें',
+    step: 'एक कदम',
+    compiling: 'कंपाइल हो रहा है',
+    uploading: 'अपलोड हो रहा है',
+    restart: 'लागू करने के लिए फिर चलाएँ',
+    away: 'दूर',
+    'no-code': 'कोड नहीं है',
+    refused: hi.phase.error,
+    limit: 'सीमा पूरी हुई',
+    halted: 'रुक गया',
+    contention: 'आउटपुट टकरा रहे हैं',
+    stuck: 'अंतहीन लूप',
+  },
+  zh: {
+    run: zh.bar.run,
+    reset: zh.bar.reset,
+    pause: '暂停',
+    step: '单步',
+    compiling: '正在编译',
+    uploading: '正在上传',
+    restart: '重新运行以应用',
+    away: '已离开',
+    'no-code': '没有代码',
+    refused: zh.phase.error,
+    limit: '已达上限',
+    halted: '已中止',
+    contention: '输出冲突',
+    stuck: '死循环',
+  },
+});
+
+export type ControlKey = keyof typeof controlStrings.table.en;
