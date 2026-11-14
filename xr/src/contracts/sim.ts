@@ -119,8 +119,15 @@ export interface SimBridge {
   setSpeed(x: number): Promise<void>;
   /** World inputs (gestures on parts). Ignored while unloaded. */
   input(i: WorldInput): Promise<void>;
-  /** Chooses what frames carry in `analog`. The fault lab and the current-flow overlay call this. */
-  watchAnalog(watch: AnalogWatch): Promise<void>;
+  /**
+   * Chooses what frames carry in `analog`. Each `owner` keeps its own watch: a later call with the same owner replaces
+   * it, and a call with no owner is the owner `default` (the old single watch). The bridge sends the union of every
+   * owner's watch, and sends it again after every `load`, so a pillar watches once. Waveform ids are capped at 8 in the
+   * union, earliest owners first.
+   */
+  watchAnalog(watch: AnalogWatch, owner?: string): Promise<void>;
+  /** Drops one owner's watch and sends the union of the rest. */
+  unwatchAnalog(owner: string): Promise<void>;
   /** One multimeter reading now (`meter.read`). Rejects when the run has no circuit solver. */
   meter(id: string, settings: Record<string, unknown>, probes: MeterProbes): Promise<Reading>;
   /**
