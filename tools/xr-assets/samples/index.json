@@ -1,0 +1,81 @@
+{
+ "schema": "iynkware.xr-asset-index/1",
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "items": [
+  {
+   "id": "boards/uno-r3",
+   "kind": "board",
+   "name": "Arduino Uno R3",
+   "glb": "boards/uno-r3.glb",
+   "sidecar": "boards/uno-r3.json",
+   "triangles": 4285,
+   "drawCalls": 13,
+   "anchors": 79,
+   "channels": 5,
+   "warnings": 2
+  },
+  {
+   "id": "drones/quad5",
+   "kind": "drone",
+   "name": "5-inch freestyle quad",
+   "glb": "drones/quad5.glb",
+   "sidecar": "drones/quad5.json",
+   "triangles": 4843,
+   "drawCalls": 18,
+   "anchors": 32,
+   "channels": 8,
+   "warnings": 1
+  },
+  {
+   "id": "parts/breadboard",
+   "kind": "part",
+   "name": "Breadboard",
+   "glb": "parts/breadboard.glb",
+   "sidecar": "parts/breadboard.json",
+   "triangles": 814,
+   "drawCalls": 3,
+   "anchors": 464,
+   "channels": 0,
+   "warnings": 1
+  },
+  {
+   "id": "parts/led",
+   "kind": "part",
+   "name": "LED",
+   "glb": "parts/led.glb",
+   "sidecar": "parts/led.json",
+   "triangles": 424,
+   "drawCalls": 4,
+   "anchors": 4,
+   "channels": 1,
+   "warnings": 1
+  },
+  {
+   "id": "parts/resistor",
+   "kind": "part",
+   "name": "Resistor",
+   "glb": "parts/resistor.glb",
+   "sidecar": "parts/resistor.json",
+   "triangles": 540,
+   "drawCalls": 2,
+   "anchors": 3,
+   "channels": 0,
+   "warnings": 1
+  },
+  {
+   "id": "parts/wire",
+   "kind": "part",
+   "name": "Jumper wire",
+   "glb": "parts/wire.glb",
+   "sidecar": "parts/wire.json",
+   "triangles": 984,
+   "drawCalls": 2,
+   "anchors": 2,
+   "channels": 0,
+   "warnings": 1
+  }
+ ]
+}

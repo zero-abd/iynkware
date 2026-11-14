@@ -102,6 +102,31 @@ const CF_CSS = `
   if (CF_EMBED && CF_Q.get('bare') === '1') h.classList.add('cf-bare');
   if (CF_Q.get('theme') === 'dark') h.classList.add('cf-dark');
   h.lang = CF_LANG === 'zh' ? 'zh-Hans' : CF_LANG; }
+// P8 capture mode (tools/xr-assets, docs/XR_ASSETS.md): off unless window.CF_CAPTURE is an object before the core
+// runs. Then vis() is always true (every face is drawn), tone/toneI remember the material behind each colour, pd()
+// remembers the 3D points behind each path, txM() the 3D frame of each text, and the 3D primitives record their
+// arguments in CF_CAP.prims and wrap their SVG in <g data-cfp="index">. A normal page never takes these branches.
+const CF_CAP = typeof window !== 'undefined' && window.CF_CAPTURE && typeof window.CF_CAPTURE === 'object' ? window.CF_CAPTURE : null;
+const CF_CAPMAT = m => m && typeof m === 'object' && typeof m.l === 'string' ? { l: m.l, m: m.m, d: m.d }
+  : typeof m === 'string' && /^#[0-9a-f]{6}$/i.test(m) ? matOf(m) : null;
+if (CF_CAP){
+  CF_CAP.reset = () => { CF_CAP.prims = []; CF_CAP.paths = new Map(); CF_CAP.texts = new Map(); CF_CAP.depth = 0; CF_CAP.last = null; CF_CAP.strips = null; };
+  CF_CAP.shades = new Map(); CF_CAP.txn = 0; CF_CAP.pr = { a: [], i: 0 }; CF_CAP.dr = { a: [], i: 0 }; CF_CAP.reset(); }
+// the last 256 results of P() and Dv() with their 3D inputs, so txM() can find the 3D point and directions it was given
+const CF_RING = (g, r, v) => { g.a[g.i] = [r[0], r[1], v]; g.i = (g.i + 1) & 255; };
+const CF_FIND = (g, r) => { for (let k = 1; k <= 256; k++){ const e = g.a[(g.i - k) & 255]; if (e && e[0] === r[0] && e[1] === r[1]) return e[2]; } return null; };
+const CF_SHADE = (c, n, m, cls) => { if (CF_CAP){ CF_CAP.last = { n: [n[0], n[1], n[2]], m: CF_CAPMAT(m), cls, c };
+  if (typeof c === 'string' && !CF_CAP.shades.has(c)) CF_CAP.shades.set(c, CF_CAP.last); } return c; };
+const CF_PD = (pts, close, d) => { if (CF_CAP && !CF_CAP.depth) CF_CAP.paths.set(d, { pts: pts.map(p => [p[0], p[1], p[2]]), close }); return d; };
+const CF_REC = (rec, fn) => {
+  CF_CAP.depth++; if (rec.t === 'loft') CF_CAP.strips = rec.strips; let s;
+  try { s = fn(); } finally { CF_CAP.depth--; CF_CAP.strips = null; }
+  if ('m' in rec) rec.m = CF_CAPMAT(rec.m) || CF_CAPMAT(DARK);
+  if ('shade' in rec){ rec.cls = rec.shade === tone ? 'sun' : rec.shade === toneI ? 'fixed' : CF_CAP.last ? CF_CAP.last.cls : 'fixed'; delete rec.shade; }
+  const id = CF_CAP.prims.length; CF_CAP.prims.push(JSON.parse(JSON.stringify(rec)));
+  return `<g data-cfp="${id}">${s}</g>`; };
+const CF_TXM = (o, U, V) => { const t = CF_TXM0(o, U, V) + ' cfT' + (++CF_CAP.txn);
+  CF_CAP.texts.set(t, { o: CF_FIND(CF_CAP.pr, o), U: CF_FIND(CF_CAP.dr, U), V: CF_FIND(CF_CAP.dr, V) }); return t; };
 
 /* ---------- projection (x = depth toward viewer-right, y = toward viewer-left, z = up) ---------- */
 const C = Math.cos(Math.PI/6), S = Math.sin(Math.PI/6);
@@ -131,8 +156,8 @@ const yawTurn = ([x,y]) => { const t = (YAW - YAW0)*Math.PI/180, c = Math.cos(t)
 const rotXY = (x,y) => [x, y];                                                // kept for old callers
 const P0 = (x,y,z) => [(x-y)*C + OX, (x+y)*S - z + OY];                       // raw iso
 const P  = (x,y,z) => { const q = [x-RC[0], y-RC[1], z-RCZ];
-  return [CAM_K*camDot(q,CAM_R) + (RC[0]-RC[1])*C + OX, CAM_K*camDot(q,CAM_D) + (RC[0]+RC[1])*S - RCZ + OY]; };
-const Dv = (x,y,z) => [CAM_K*camDot([x,y,z],CAM_R), CAM_K*camDot([x,y,z],CAM_D)];
+  const r = [CAM_K*camDot(q,CAM_R) + (RC[0]-RC[1])*C + OX, CAM_K*camDot(q,CAM_D) + (RC[0]+RC[1])*S - RCZ + OY]; if (CF_CAP) CF_RING(CF_CAP.pr, r, [x,y,z]); return r; };
+const Dv = (x,y,z) => { const r = [CAM_K*camDot([x,y,z],CAM_R), CAM_K*camDot([x,y,z],CAM_D)]; if (CF_CAP) CF_RING(CF_CAP.dr, r, [x,y,z]); return r; };
 // distance toward the viewer: draw parts with smaller depth first
 const depthOf = p => camDot(p, CAM_V);
 // sort [{at:[x,y,z], svg}] back-to-front for the current camera. A part may also give box:[[x0,y0,z0],[x1,y1,z1]]:
@@ -148,7 +173,7 @@ const nearHalf = () => [YAW - 90, YAW + 90], farHalf = () => [YAW + 90, YAW + 27
 // an open container (cup, bin, cone, drum) between two rings: far inner wall, then its contents, then the near outer wall
 const openShell = (A, B, colour, contents = '') => loft(A, B, colour, true) + contents + loft(A, B, colour);
 const f  = v => v.toFixed(1);
-const pd = (pts, close=true) => 'M' + pts.map(p => { const q = P(p[0],p[1],p[2]); return f(q[0])+' '+f(q[1]); }).join('L') + (close ? 'Z' : '');
+const pd = (pts, close=true) => CF_PD(pts, close, 'M' + pts.map(p => { const q = P(p[0],p[1],p[2]); return f(q[0])+' '+f(q[1]); }).join('L') + (close ? 'Z' : ''));
 const sp = pts => 'M' + pts.map(q => f(q[0])+' '+f(q[1])).join('L') + 'Z';
 
 /* ---------- 2D shapes in a plane's (u,v) coords (v up), mapped to 3D by a plane ---------- */
@@ -166,7 +191,7 @@ const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot=(a,b)=>a[0]*b[0]+a[1]*b[1]
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 const norm=a=>{ const l=Math.hypot(...a)||1; return a.map(v=>v/l); };
 const avg=ps=>ps.reduce((s,p)=>[s[0]+p[0]/ps.length,s[1]+p[1]/ps.length,s[2]+p[2]/ps.length],[0,0,0]);
-const vis = n => { const r = rotV(n); return r[0]+r[1]+r[2] > 1e-6; };   // viewer looks from (+1,+1,+1) after the turn
+const vis = n => { if (CF_CAP) return true; const r = rotV(n); return r[0]+r[1]+r[2] > 1e-6; };   // viewer looks from (+1,+1,+1) after the turn
 const facing = vis;                                                       // readable alias: is this face toward the viewer?
 const SHADOW_K = 0.85, AZ_MIN = 20, AZ_MAX = 160;
 // cast shadows are drawn shorter than the shading light implies (0.45 × height instead of 0.85 ×): long shadows of tall
@@ -181,8 +206,8 @@ const SOFT = .18;
 const step3 = (d, hi, lo, m) => { if (!m || typeof m !== 'object') m = CF_MAT(m); const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a)/(b - a))); return k*k*(3 - 2*k); };
   const a = ss(hi - SOFT, hi + SOFT, d), b = ss(lo - SOFT, lo + SOFT, d);
   return a >= 1 ? m.l : b <= 0 ? m.d : a > 0 ? mix(m.m, m.l, a) : b < 1 ? mix(m.d, m.m, b) : m.m; };
-const tone  = (n,m) => step3(dot(rotV(n),L),   -.15, -.45, m);   // exterior, follows the sun
-const toneI = (n,m) => step3(dot(rotV(n),LIN),  .6,   .05, m);   // interior / props
+const tone  = (n,m) => CF_SHADE(step3(dot(rotV(n),L),   -.15, -.45, m), n, m, 'sun');   // exterior, follows the sun
+const toneI = (n,m) => CF_SHADE(step3(dot(rotV(n),LIN),  .6,   .05, m), n, m, 'fixed');   // interior / props
 const mix = (a,b,t) => '#' + [1,3,5].map(i => Math.round(parseInt(a.substr(i,2),16)*(1-t) + parseInt(b.substr(i,2),16)*t).toString(16).padStart(2,'0')).join('');
 const matOf = hex => ({ l:hex, m:mix(hex,'#000000',.16), d:mix(hex,'#000000',.42) });
 const ease = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
@@ -191,10 +216,11 @@ const ease = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
 const ink   = (d,w=1.0) => `<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
 const fill  = (d,c,extra='') => `<path d="${d}" fill="${c}" ${extra}/>`;
 const face  = (d,c) => `<path d="${d}" fill="${c}" stroke="${c}" stroke-width=".7" stroke-linejoin="round"/>`;
-const shape = (pts,c,w=.9) => fill(pd(pts),c) + (w ? ink(pd(pts),w) : '');
-const line  = (pts,w=.9) => ink(pd(pts,false),w);
+const shape = (pts,c,w=.9) => CF_CAP && !CF_CAP.depth ? CF_REC({ t:'shape', pts, c, w, hint: CF_CAP.last }, () => shape(pts,c,w)) : fill(pd(pts),c) + (w ? ink(pd(pts),w) : '');
+const line  = (pts,w=.9) => CF_CAP && !CF_CAP.depth ? CF_REC({ t:'line', pts, w }, () => line(pts,w)) : ink(pd(pts,false),w);
 // Loft between two rings of equal length (closed). colour(n) picks each strip's fill; flip = seen from inside.
 function loft(A, B, colour, flip=false){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'loft', strips: [] }, () => loft(A, B, colour, flip));
   const n=A.length, cen=avg(A.concat(B)); let s='';
   for (let i=0;i<n;i++){
     const a0=A[i], a1=A[(i+1)%n], b1=B[(i+1)%n], b0=B[i];
@@ -202,7 +228,7 @@ function loft(A, B, colour, flip=false){
     if (!isFinite(nr[0])) continue;
     if (dot(nr, sub(avg([a0,a1,b1,b0]), cen)) < 0) nr = nr.map(v=>-v);
     if (flip) nr = nr.map(v=>-v);
-    if (vis(nr)) s += face(pd([a0,a1,b1,b0]), colour(nr));
+    if (vis(nr)){ const cc = colour(nr); if (CF_CAP && CF_CAP.strips) CF_CAP.strips.push({ q: [a0,a1,b1,b0], n: nr, c: cc, s: CF_CAP.last }); s += face(pd([a0,a1,b1,b0]), cc); }
   }
   return s;
 }
@@ -217,12 +243,13 @@ function hull(pts){
 // Thickness = 2 × area / perimeter of the outline (a rod's diameter, about half a box's width), as a share of the
 // frame width. A long thin rod, a handle or a knob stays light (~1–1.5); a grinder, kettle or machine body gets the
 // heavy ~2.4–2.8. Thin parts stay thin and parts keep air between them.
-const hullInk = (pts3, w=1.4) => { const h = hull(pts3.map(p=>P(...p))); let a = 0, per = 0;
+const hullInk = (pts3, w=1.4) => { if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'skip', why:'hullInk' }, () => ''); const h = hull(pts3.map(p=>P(...p))); let a = 0, per = 0;
   for (let i = 0; i < h.length; i++){ const p = h[i], q = h[(i+1) % h.length]; a += p[0]*q[1] - q[0]*p[1]; per += Math.hypot(q[0]-p[0], q[1]-p[1]); }
   const thick = per ? Math.abs(a) / per / (INK_K * INK_REF_VB) : 0;
   return ink(sp(h), Math.min(w, .9 + 20*thick)); };
 // Axis-aligned box: three visible faces, shaded, each outlined. shade = tone (sunlit) or toneI (interior).
 function box(x0,y0,z0,x1,y1,z1,m,shade=toneI,w=.9){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'box', a:[x0,y0,z0,x1,y1,z1], m, shade, w }, () => box(x0,y0,z0,x1,y1,z1,m,shade,w));
   // all six faces, drawn only when they face the viewer (sides first, then top) — correct in every VIEW
   const F = [
     [[0,1,0],  [[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]]],
@@ -233,14 +260,16 @@ function box(x0,y0,z0,x1,y1,z1,m,shade=toneI,w=.9){
   return F.filter(([n]) => vis(n)).map(([n,q]) => shape(q, shade(n,m), w)).join('');
 }
 // Rounded-profile extrusion: profile (u=y, v=z) swept along x from x0 to x1. Body of most machines.
-function extrude(profileUV, x0, x1, m, shade=tone){ return loft(on(PX(x0),profileUV), on(PX(x1),profileUV), n=>shade(n,m)); }
+function extrude(profileUV, x0, x1, m, shade=tone){ if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'extrude', profile: profileUV, x0, x1, m, shade }, () => extrude(profileUV, x0, x1, m, shade)); return loft(on(PX(x0),profileUV), on(PX(x1),profileUV), n=>shade(n,m)); }
 // Vertical cylinder (axis z) centred (x,y), radius r from z0 to z1, with top cap.
 function cyl(x,y,z0,z1,r,m,shade=toneI,w=1.2,n=24){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'cyl', a:[x,y,z0,z1,r], m, shade, w, n }, () => cyl(x,y,z0,z1,r,m,shade,w,n));
   const A=on(PZ(z0),ellUV(x,y,r,r,n)), B=on(PZ(z1),ellUV(x,y,r,r,n));
   return loft(A,B,nr=>shade(nr,m)) + fill(pd(B),shade([0,0,1],m)) + hullInk([...A,...B],w) + ink(pd(B),w*.8);
 }
 // Cylinder lying along x (e.g. a knob or dial sticking out of a front face): centred (y,z), from x0 to x1.
 function cylX(x0,x1,y,z,r,m,shade=toneI,w=1.1,n=20){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'cylX', a:[x0,x1,y,z,r], m, shade, w, n }, () => cylX(x0,x1,y,z,r,m,shade,w,n));
   const A=on(PX(x0),ellUV(y,z,r,r,n)), B=on(PX(x1),ellUV(y,z,r,r,n));
   // cap on whichever end faces the viewer (the +x end in VIEW 0)
   const capB = vis([1,0,0]), cap = capB ? B : A, cn = capB ? [1,0,0] : [-1,0,0];
@@ -249,6 +278,7 @@ function cylX(x0,x1,y,z,r,m,shade=toneI,w=1.1,n=20){
 // Cylinder between any two 3D points a and b (a lamp arm, a rod, a pipe at an angle, a handle bar), radius r.
 // The end facing the viewer gets a cap. For a tapered part (a cone, a lamp shade) pass r1 for the radius at b.
 function rod(a, b, r, m, shade=toneI, w=1, r1=r, n=16){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'rod', a, b, r, r1, m, shade, w, n }, () => rod(a, b, r, m, shade, w, r1, n));
   const d = norm(sub(b, a)), u = norm(cross(d, Math.abs(d[2]) < .9 ? [0,0,1] : [1,0,0])), v = cross(d, u);
   const ring = (p, rr) => Array.from({length:n}, (_,i) => { const t = i/n*2*Math.PI, c = Math.cos(t)*rr, s2 = Math.sin(t)*rr;
     return [p[0] + u[0]*c + v[0]*s2, p[1] + u[1]*c + v[1]*s2, p[2] + u[2]*c + v[2]*s2]; });
@@ -257,7 +287,8 @@ function rod(a, b, r, m, shade=toneI, w=1, r1=r, n=16){
 }
 // Text lying flat on a front plane x = const, centred at (y,z) baseline; reads left-to-right on screen.
 // text sits on a face: if its reading direction comes out mirrored (or edge-on), that face is turned away, so the text is hidden
-const txM = (o, U, V) => (U[0]*V[1] - U[1]*V[0]) <= .02 * Math.hypot(...U) * Math.hypot(...V) ? `matrix(0 0 0 0 ${f(o[0])} ${f(o[1])})` : `matrix(${U[0].toFixed(4)} ${U[1].toFixed(4)} ${V[0].toFixed(4)} ${V[1].toFixed(4)} ${f(o[0])} ${f(o[1])})`;
+const txM = (o, U, V) => CF_CAP ? CF_TXM(o, U, V) : CF_TXM0(o, U, V);
+const CF_TXM0 = (o, U, V) => (U[0]*V[1] - U[1]*V[0]) <= .02 * Math.hypot(...U) * Math.hypot(...V) ? `matrix(0 0 0 0 ${f(o[0])} ${f(o[1])})` : `matrix(${U[0].toFixed(4)} ${U[1].toFixed(4)} ${V[0].toFixed(4)} ${V[1].toFixed(4)} ${f(o[0])} ${f(o[1])})`;
 const tx = (x,y,z,str,size,col=INK,weight=700) => { const o=P(x,y,z);
   return `<text transform="${txM(o, Dv(0,-1,0), Dv(0,0,-1))}" font-size="${size}" fill="${col}" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-weight="${weight}" letter-spacing=".04em">${str}</text>`; };
 // Text on a side plane y = const, centred at (x,z).
@@ -267,7 +298,7 @@ const txY = (x,y,z,str,size,col=INK,weight=700) => { const o=P(x,y,z);
 // the light stays put relative to the viewer, so the shadow is cast in turned coordinates
 // z0: the surface it falls on (a board, a counter); clip it to that surface with clipTo(...) if it could spill off.
 // clip: the 3D outline of the surface it falls on (e.g. boardTop(...)), so it can't spill over the edge.
-const castShadow = (pts3, z0=0, clip=null) => { const k = SHADOW_LEN / SHADOW_K, [sx, sy] = yawTurn(SH);
+const castShadow = (pts3, z0=0, clip=null) => { if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'skip', why:'shadow' }, () => ''); const k = SHADOW_LEN / SHADOW_K, [sx, sy] = yawTurn(SH);
   const s = fill(sp(hull(pts3.map(([x,y,z]) => P(x+(z-z0)*sx*k, y+(z-z0)*sy*k, z0)))), SHADOW);
   return clip ? clipTo(clip, s) : s; };
 // A board for the object to stand on (a tray, a desk top, a counter): a rounded slab from (x0,y0) to (x1,y1), h thick.
@@ -275,6 +306,7 @@ const castShadow = (pts3, z0=0, clip=null) => { const k = SHADOW_LEN / SHADOW_K,
 const BOARD = { l:'#e6e1d4', m:'#cfc8b8', d:'#aaa293' }, WOOD = { l:'#d9a86c', m:'#bf8a4f', d:'#8e6236' };
 const boardTop = (x0,y0,x1,y1,h=3,r=5) => on(PZ(h), rrUV(x0,y0,x1,y1,r));
 function board(x0,y0,x1,y1,h=3,r=5,m=BOARD){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'board', a:[x0,y0,x1,y1,h,r], m }, () => board(x0,y0,x1,y1,h,r,m));
   const A = on(PZ(0), rrUV(x0,y0,x1,y1,r)), B = boardTop(x0,y0,x1,y1,h,r);
   return loft(A, B, n => toneI(n, m)) + fill(pd(B), m.l) + ink(pd(B), 1) + hullInk([...A, ...B], 1.8);
 }
@@ -285,6 +317,7 @@ let _clipN = 0;
 // dx, dy = where the pill sits, in screen units at the reference zoom (they scale with the figure like stroke widths).
 // on = that part is working right now (the pill turns the accent colour). Labels can be hidden with the Labels switch.
 function tag(p3, dx, dy, text, on=false){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'tag', p: p3, text }, () => '');
   const t = CF_T(text), te = CF_ESC(t);
   // on a phone (LBL_U = drawing units per screen px) the pill is a numbered badge and the names go in a legend under the figure
   const u = window.LBL_U ? LBL_U() : 0, n = ((window.__ln || (window.__ln = {}))[text] || (__ln[text] = Object.keys(__ln).length + 1));
@@ -590,6 +623,7 @@ function mountFigure(cfg){
    xrGhost(body, mech, k, OUTp, x0, x1, m): far walls faintly, the working parts, then the case as a ghost over them.
    xrMount(getUI, caption): the See-through / Labels switches (top right), the caption under the figure, label hiding. */
 function xrCallouts(items, B){
+  if (CF_CAP && !CF_CAP.depth) return CF_REC({ t:'callouts', items: (items || []).map(c => ({ at: c.at, text: c.text })) }, () => '');
   const pts = []; for (const x of [B[0], B[1]]) for (const y of [B[2], B[3]]) for (const z of [B[4], B[5]]) pts.push(P(x, y, z));
   const xmin = Math.min(...pts.map(p => p[0])), xmax = Math.max(...pts.map(p => p[0])), cx = (xmin + xmax)/2;
   // on a phone (LBL_U = drawing units per screen px) each label is a numbered badge and the names go in a legend under the figure

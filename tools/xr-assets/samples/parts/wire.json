@@ -1,0 +1,176 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "parts/wire",
+ "kind": "part",
+ "name": "Jumper wire",
+ "glb": "wire.glb",
+ "source": {
+  "figure": "figures/parts/wire.js",
+  "engine": "bench",
+  "pageSha256": "6c7103e0e5be28e126c7d4cf80ce678bffbb8ed1a34b500cdee213e21f2478f1"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "footprint-centre",
+  "source": "board-mm",
+  "fromSource": [
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -0.001,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   -0.01411,
+   0.0056,
+   0.01741,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.01014,
+   0.0087,
+   -0.01522
+  ],
+  "max": [
+   0.01014,
+   0.022009,
+   0.01522
+  ]
+ },
+ "stats": {
+  "triangles": 984,
+  "trianglesXray": 0,
+  "drawCalls": 2,
+  "lineSegments": 536,
+  "nodes": 2,
+  "bytes": 116492
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   -0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   -0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "Jumper wire",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "wire:a2-j9",
+   "index": 1,
+   "name": "Wire from a2 to j9",
+   "parent": "",
+   "role": "wire",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "min": [
+     -0.01014,
+     0.0087,
+     -0.01522
+    ],
+    "max": [
+     0.01014,
+     0.022009,
+     0.01522
+    ]
+   }
+  }
+ ],
+ "anchors": [
+  {
+   "id": "1",
+   "kind": "pin",
+   "part": "wire:a2-j9",
+   "position": [
+    -0.00889,
+    0.0085,
+    -0.01397
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "extras": {
+    "hole": "a2"
+   }
+  },
+  {
+   "id": "2",
+   "kind": "pin",
+   "part": "wire:a2-j9",
+   "position": [
+    0.00889,
+    0.0085,
+    0.01397
+   ],
+   "normal": [
+    0,
+    -1,
+    0
+   ],
+   "extras": {
+    "hole": "j9"
+   }
+  }
+ ],
+ "channels": [],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  }
+ ],
+ "texts": [],
+ "warnings": [
+  "2 screen-space path elements (glows, halos, 2D marks) have no 3D and were left out"
+ ]
+}
