@@ -48,8 +48,6 @@ __pycache__/
 
 # Internal notes and agent working files: kept locally, not published.
 # HANDOFF.md is tracked while the repository is private; decide on it before the code goes public.
-/CLAUDE.md
-/AGENTS.md
 /.audit/
 /docs/handoff/
 /docs/hacktx/
