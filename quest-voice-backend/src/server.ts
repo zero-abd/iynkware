@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { encodePcm16Wav, extractPcm16Mono } from "./audio.ts";
 import { readConfig } from "./config.ts";
+import { VoiceInputError } from "./errors.ts";
 import { runGeminiLive } from "./gemini-live-client.ts";
 import { RequestGate } from "./request-gate.ts";
 import { MemorySessionStore } from "./session-store.ts";
@@ -9,7 +10,7 @@ import { parseVoiceContext } from "./types.ts";
 
 const config = readConfig();
 const sessions = new MemorySessionStore(config.sessionTtlMs, config.maxHistoryTurns);
-const requestGate = new RequestGate(config.maxRequestsPerMinute, config.maxConcurrentTurns);
+const requestGate = new RequestGate(config.maxRequestsPerMinute, config.maxRequestsPerDay, config.maxConcurrentTurns);
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,64}$/;
 const COMMON_HEADERS = {
   "cache-control": "no-store",
@@ -73,7 +74,7 @@ function setCors(request: IncomingMessage, response: ServerResponse): boolean {
   if (!origin) return true;
   if (!config.allowedOrigins.includes(origin)) return false;
   response.setHeader("access-control-allow-origin", origin);
-  response.setHeader("access-control-expose-headers", "retry-after, x-request-id, iynk-api-version");
+  response.setHeader("access-control-expose-headers", "retry-after, server-timing, x-request-id, iynk-api-version");
   response.setHeader("vary", "Origin");
   response.setHeader("access-control-allow-headers", "authorization, content-type, iynk-client, x-request-id");
   response.setHeader("access-control-allow-methods", "POST, DELETE, OPTIONS");
@@ -90,6 +91,7 @@ const server = createServer(async (request, response) => {
     if (!response.writableFinished) aborter.abort();
   });
   let status = 500;
+  let geminiTiming: { setupMs: number; firstAudioMs: number; totalMs: number } | undefined;
   try {
     if (!setCors(request, response)) {
       status = 403;
@@ -120,7 +122,7 @@ const server = createServer(async (request, response) => {
       } catch {}
       if (!validSessionId(sessionId)) {
         status = 400;
-        return sendError(response, status, "bad_request", "The session ID is invalid.", id);
+        return sendError(response, status, "invalid_session_id", "The session ID is invalid.", id);
       }
       sessions.clear(sessionId);
       status = 200;
@@ -135,39 +137,41 @@ const server = createServer(async (request, response) => {
       status = 415;
       return sendError(response, status, "unsupported_media_type", "Send multipart form data with an audio file.", id);
     }
+    const body = await readBody(request, config.maxAudioBytes + 100_000);
+    let form: FormData;
+    try {
+      form = await new Response(Uint8Array.from(body), { headers: { "content-type": contentType } }).formData();
+    } catch {
+      status = 400;
+      return sendError(response, status, "invalid_multipart", "The multipart request is malformed.", id);
+    }
+    const audio = form.get("audio");
+    if (!(audio instanceof File) || audio.size === 0 || audio.size > config.maxAudioBytes) {
+      status = 400;
+      return sendError(response, status, "invalid_audio", "Send one non-empty WAV file within the configured size limit.", id);
+    }
+    let context;
+    let pcm;
+    try {
+      context = parseVoiceContext(form);
+      pcm = extractPcm16Mono(Buffer.from(await audio.arrayBuffer()));
+    } catch (error) {
+      status = 400;
+      const code = error instanceof VoiceInputError ? error.code : "invalid_audio";
+      return sendError(response, status, code, error instanceof Error ? error.message : "The voice turn is invalid.", id);
+    }
+    const maximumPcmBytes = config.maxAudioSeconds * 16_000 * 2;
+    if (pcm.length < 8_000 || pcm.length > maximumPcmBytes) {
+      status = 400;
+      return sendError(response, status, "invalid_audio_duration", `Record between 0.25 and ${config.maxAudioSeconds} seconds of speech.`, id);
+    }
     const admission = requestGate.admit();
     if (!admission.ok) {
       status = 429;
-      return sendError(response, status, admission.reason, "Too many voice turns are running. Try again shortly.", id, { "retry-after": "60" });
+      const retryAfter = admission.reason === "daily_limit_reached" ? "86400" : "60";
+      return sendError(response, status, admission.reason, "The voice usage limit was reached. Try again later.", id, { "retry-after": retryAfter });
     }
     try {
-      const body = await readBody(request, config.maxAudioBytes + 100_000);
-      let form: FormData;
-      try {
-        form = await new Response(Uint8Array.from(body), { headers: { "content-type": contentType } }).formData();
-      } catch {
-        status = 400;
-        return sendError(response, status, "bad_request", "The multipart request is malformed.", id);
-      }
-      const audio = form.get("audio");
-      if (!(audio instanceof File) || audio.size === 0 || audio.size > config.maxAudioBytes) {
-        status = 400;
-        return sendError(response, status, "bad_audio", "Send one non-empty WAV file within the configured size limit.", id);
-      }
-      let context;
-      let pcm;
-      try {
-        context = parseVoiceContext(form);
-        pcm = extractPcm16Mono(Buffer.from(await audio.arrayBuffer()));
-      } catch (error) {
-        status = 400;
-        return sendError(response, status, "bad_request", error instanceof Error ? error.message : "The voice turn is invalid.", id);
-      }
-      const maximumPcmBytes = config.maxAudioSeconds * 16_000 * 2;
-      if (pcm.length < 8_000 || pcm.length > maximumPcmBytes) {
-        status = 400;
-        return sendError(response, status, "bad_audio_duration", `Record between 0.25 and ${config.maxAudioSeconds} seconds of speech.`, id);
-      }
       let spoken;
       try {
         spoken = await runGeminiLive(config, pcm, context, sessions.get(context.sessionId), aborter.signal);
@@ -177,6 +181,7 @@ const server = createServer(async (request, response) => {
         status = 502;
         return sendError(response, status, "voice_upstream_failed", "The voice assistant is temporarily unavailable.", id);
       }
+      geminiTiming = spoken.timing;
       sessions.append(context.sessionId, { user: spoken.transcript, assistant: spoken.responseText });
       const wav = encodePcm16Wav(spoken.pcm);
       status = 200;
@@ -187,6 +192,8 @@ const server = createServer(async (request, response) => {
         audioBase64: wav.toString("base64"),
         audioMimeType: "audio/wav",
         fallback: false,
+      }, {
+        "server-timing": `gemini_setup;dur=${spoken.timing.setupMs}, gemini_first_audio;dur=${spoken.timing.firstAudioMs}, gemini_total;dur=${spoken.timing.totalMs}`,
       });
     } finally {
       admission.release();
@@ -201,7 +208,15 @@ const server = createServer(async (request, response) => {
     return sendError(response, status, "internal_error", "The service could not complete the request.", id);
   } finally {
     active.delete(aborter);
-    console.log(JSON.stringify({ event: "request", requestId: id, method: request.method, path: request.url?.split("?", 1)[0], status, ms: Date.now() - started }));
+    console.log(JSON.stringify({
+      event: "request",
+      requestId: id,
+      method: request.method,
+      path: request.url?.split("?", 1)[0],
+      status,
+      ms: Date.now() - started,
+      ...(geminiTiming ? { gemini: geminiTiming } : {}),
+    }));
   }
 });
 

@@ -9,6 +9,7 @@ export type VoiceConfig = {
   sessionTtlMs: number;
   maxHistoryTurns: number;
   maxRequestsPerMinute: number;
+  maxRequestsPerDay: number;
   maxConcurrentTurns: number;
   liveModel: string;
   liveVoice: string;
@@ -42,13 +43,16 @@ export function readConfig(env: Env = process.env): VoiceConfig {
     apiKey: required(env, "GEMINI_API_KEY", 20),
     clientToken: required(env, "IYNK_VOICE_CLIENT_TOKEN", 32),
     host: env.IYNK_VOICE_HOST?.trim() || "0.0.0.0",
-    port: integer(env, "PORT", 8787, 1, 65_535),
+    port: env.IYNK_VOICE_PORT
+      ? integer(env, "IYNK_VOICE_PORT", 8790, 1, 65_535)
+      : integer(env, "PORT", 8790, 1, 65_535),
     maxAudioBytes: integer(env, "IYNK_VOICE_MAX_AUDIO_BYTES", 2_000_000, 1_024, 25_000_000),
     maxAudioSeconds: integer(env, "IYNK_VOICE_MAX_AUDIO_SECONDS", 30, 1, 120),
     maxResponseBytes: integer(env, "IYNK_VOICE_MAX_RESPONSE_BYTES", 4_000_000, 1_024, 25_000_000),
     sessionTtlMs: integer(env, "IYNK_VOICE_SESSION_TTL_MINUTES", 30, 1, 1_440) * 60_000,
     maxHistoryTurns: integer(env, "IYNK_VOICE_MAX_HISTORY_TURNS", 6, 1, 20),
     maxRequestsPerMinute: integer(env, "IYNK_VOICE_MAX_REQUESTS_PER_MINUTE", 30, 1, 1_000),
+    maxRequestsPerDay: integer(env, "IYNK_VOICE_MAX_REQUESTS_PER_DAY", 300, 1, 100_000),
     maxConcurrentTurns: integer(env, "IYNK_VOICE_MAX_CONCURRENT_TURNS", 2, 1, 20),
     liveModel: env.GEMINI_LIVE_MODEL?.trim() || "gemini-3.8-live",
     liveVoice: env.GEMINI_LIVE_VOICE?.trim() || "Puck",

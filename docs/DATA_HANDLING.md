@@ -51,16 +51,15 @@ The AI partner and the builders refuse to help make weapons or other craft built
 
 The provider keeps its own records under its own terms. Delete the key at the provider if you want it gone there.
 
-## Optional Quest voice companion
+## Experimental Quest voice service
 
-The hackathon [Quest voice companion](QUEST_VOICE_BACKEND.md) is separate from the canonical server described above.
-For each push-to-talk turn, the native adapter sends the recording plus the scenario, learning objective, learner
-level, current step, last in-world action and locale to the companion over HTTPS. The companion sends that material
-and recent in-memory conversation turns to Gemini Live. It returns the input transcript, response transcript and
-generated audio to the headset.
+The [Quest voice service](QUEST_VOICE_BACKEND.md) is separate from the canonical server and has no headset client or
+deployment yet. In a local experiment, each turn sends a recording plus the lab item, learning objective, learner
+level, current step, last in-world action and locale to Gemini Live. The service returns the input transcript,
+response transcript and generated audio.
 
-The companion keeps at most six recent turns in process memory for 30 minutes by default. It does not write audio,
-transcripts or conversation history to disk, and a restart clears them. Its logs contain request IDs, status, timing
-and upstream error categories, not recordings, transcripts, lesson context, API keys or client tokens. The operator's
-Gemini key lives only in the host's secret environment. The native adapter contains a replaceable demo client token;
-it is not production identity and should be rotated after the event.
+It keeps at most six recent turns in process memory for 30 minutes by default and writes none of that material to
+disk. A restart clears the history and its in-memory usage counters. Logs contain request IDs, status and timings,
+not recordings, transcripts, lesson context, API keys, client tokens or upstream exception text. An operator Gemini
+key would live only in the service's secret environment. The identity, durable quota and hosting model must be
+approved before a browser client or public deployment is added.
