@@ -14,8 +14,9 @@ export type Hex = string;
 
 export const XR_ASSET_SCHEMA = 'iynkware.xr-asset/1';
 
-/** What the item is, as figures/<dir>/<id>.js names it: boards, parts, modules, robotics (benches), drones, flight. */
-export type ItemKind = 'board' | 'part' | 'module' | 'bench' | 'drone' | 'flight';
+/** What the item is, as figures/<dir>/<id>.js names it: boards, parts, modules, robotics (benches), drones, flight,
+    lab (lab equipment: glassware, burners, instruments, physics apparatus; drawn by the bench engine). */
+export type ItemKind = 'board' | 'part' | 'module' | 'bench' | 'drone' | 'flight' | 'lab';
 
 export interface XrAsset {
   schema: typeof XR_ASSET_SCHEMA;

@@ -8,7 +8,7 @@
   "required": ["schema", "id", "kind", "name", "glb", "source", "generator", "frame", "bounds", "stats", "look", "parts", "anchors", "channels", "layers", "texts", "warnings"],
   "properties": {
     "schema": { "const": "iynkware.xr-asset/1" },
-    "id": { "type": "string", "pattern": "^(boards|parts|modules|robotics|drones|flight)/[a-z0-9][a-z0-9-]*$" },
+    "id": { "type": "string", "pattern": "^(boards|parts|modules|robotics|drones|flight|lab)/[a-z0-9][a-z0-9-]*$" },
     "kind": { "$ref": "#/$defs/itemKind" },
     "name": { "type": "string", "minLength": 1 },
     "glb": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*\\.glb$" },
@@ -80,7 +80,7 @@
     "extras": { "type": "object" }
   },
   "$defs": {
-    "itemKind": { "enum": ["board", "part", "module", "bench", "drone", "flight"] },
+    "itemKind": { "enum": ["board", "part", "module", "bench", "drone", "flight", "lab"] },
     "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
     "hex": { "type": "string", "pattern": "^#[0-9a-f]{6}$" },
     "count": { "type": "integer", "minimum": 0 },
