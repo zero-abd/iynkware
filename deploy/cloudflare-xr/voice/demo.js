@@ -5,7 +5,7 @@ import {
 } from './policy.mjs';
 import { controllerTalkPressed, runtimeBridge, untrustedContext } from './client-core.mjs';
 
-const SOCKET = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
+const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v1';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold B in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
@@ -107,6 +107,10 @@ function endQuestion() {
 }
 function onMessage(event) {
   let message; try { message = JSON.parse(event.data); } catch { return; }
+  if (message.proxyReady) {
+    socket.send(JSON.stringify({setup:{model:MODEL}}));
+    return;
+  }
   if (message.setupComplete) {
     clearTimeout(connectTimer); connectTimer = undefined;
     socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:untrustedContext(bridge.context())}]}],turnComplete:true}}));
@@ -140,7 +144,7 @@ async function beginQuestion() {
     ui.status.textContent = 'Opening Gemini Live…';
     socket = new WebSocket(`${SOCKET}?access_token=${encodeURIComponent(grant.token)}`);
     connectTimer = setTimeout(() => failTurn('Gemini connection timed out. Check Quest Wi-Fi and try again.'), 8000);
-    socket.addEventListener('open', () => socket.send(JSON.stringify({setup:{model:MODEL}})));
+    socket.addEventListener('open', () => socket.send(JSON.stringify({authToken:grant.token})));
     socket.addEventListener('message', onMessage); socket.addEventListener('error', () => failTurn());
     socket.addEventListener('close', () => { if (active) failTurn(); });
   } catch (error) { failTurn(error.message === 'quota' ? quota : failed); }

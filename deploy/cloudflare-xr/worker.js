@@ -17,6 +17,7 @@ const JSON_HEADERS = {
   "X-Content-Type-Options": "nosniff",
   "X-Robots-Tag": "noindex",
 };
+const GEMINI_LIVE_SOCKET = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained";
 
 function json(body, status = 200, extra = {}) {
   return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...extra } });
@@ -174,10 +175,62 @@ async function createToken(request, env) {
   );
 }
 
+function liveProxy(request) {
+  if (!sameOrigin(request)) return error("cross_origin_refused", 403, crypto.randomUUID());
+  if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
+    return error("websocket_upgrade_required", 426, crypto.randomUUID());
+  }
+
+  const [client, server] = Object.values(new WebSocketPair());
+  server.accept();
+  let upstream = null;
+  let authenticating = true;
+  const authTimer = setTimeout(() => server.close(1008, "authentication timeout"), 5_000);
+
+  const close = (socket, code = 1011, reason = "relay closed") => {
+    if (socket?.readyState === 0 || socket?.readyState === 1) socket.close(code, reason.slice(0, 120));
+  };
+  server.addEventListener("message", (event) => {
+    if (authenticating) {
+      authenticating = false;
+      clearTimeout(authTimer);
+      if (typeof event.data !== "string" || event.data.length > 4_096) {
+        server.close(1008, "invalid authentication");
+        return;
+      }
+      let token;
+      try {
+        token = JSON.parse(event.data)?.authToken;
+      } catch {
+        token = null;
+      }
+      if (typeof token !== "string" || token.length < 20 || token.length > 4_000) {
+        server.close(1008, "invalid authentication");
+        return;
+      }
+
+      upstream = new WebSocket(`${GEMINI_LIVE_SOCKET}?access_token=${encodeURIComponent(token)}`);
+      upstream.addEventListener("open", () => server.send(JSON.stringify({ proxyReady: true })));
+      upstream.addEventListener("message", (message) => {
+        if (server.readyState === 1) server.send(message.data);
+      });
+      upstream.addEventListener("close", (closed) => close(server, closed.code || 1011, closed.reason || "Gemini closed"));
+      upstream.addEventListener("error", () => close(server, 1011, "Gemini connection failed"));
+      return;
+    }
+    if (upstream?.readyState === 1) upstream.send(event.data);
+  });
+  server.addEventListener("close", (closed) => close(upstream, closed.code || 1000, closed.reason || "client closed"));
+  server.addEventListener("error", () => close(upstream));
+
+  return new Response(null, { status: 101, webSocket: client });
+}
+
 const worker = {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/voice/token") return createToken(request, env);
+    if (url.pathname === "/api/voice/live") return liveProxy(request);
     if (url.pathname.startsWith("/api/voice/")) return notFound();
     return notFound();
   },
