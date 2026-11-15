@@ -5,7 +5,7 @@
  * right, each row a whole button with a status icon; both paged to fit, no scrolling. Drawn into one canvas through
  * learn's kit; redrawn when progress, language, preferences or the open lesson change, never per frame.
  */
-import { Vector3, type Object3D } from '@iwsdk/core';
+import { Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import { buttonWidth, drawButton, roundRect, type ButtonFace, type DrawCtx } from '../kit/button';
@@ -75,7 +75,6 @@ export function createCataloguePanel(app: XrApp, lab: 'board' | 'robotics' | 'al
       moved = true;
     },
   });
-  app.world.scene.add(panel.group);
   const P = panel.pxPerDmm;
 
   // ---- state: the tab, the pick on each tab and the two page indexes ----
@@ -294,17 +293,6 @@ export function createCataloguePanel(app: XrApp, lab: 'board' | 'robotics' | 'al
   return () => {
     offs.forEach((off) => off());
     offFrame();
-    // The kit's `hits.dispose` takes the hit quads off the panel before `releaseEntities` looks for them, so IWSDK puts
-    // them back under the level root. Note them first and finish the job here.
-    const list: Object3D[] = [];
-    panel.group.traverse((o) => void list.push(o));
     panel.dispose();
-    for (let i = list.length - 1; i >= 0; i--) {
-      const o = list[i]!;
-      const idx = (o as Object3D & { entityIdx?: number }).entityIdx;
-      const e = idx === undefined ? undefined : app.world.entityManager.getEntityByIndex(idx);
-      if (e && e.active && e.object3D === o) e.destroy();
-      o.removeFromParent();
-    }
   };
 }

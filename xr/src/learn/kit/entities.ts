@@ -18,3 +18,5 @@ export function releaseEntities(world: World, root: Object3D): void {
     if (e && e.active && e.object3D === o) e.destroy();
   }
 }
+
+export { dropEntities, ownEntity } from '../../shell/kit/entity';

@@ -6,12 +6,14 @@
 import type { Lang } from '../../../contracts/common';
 import { buttonWidth, drawButton, roundRect, type ButtonFace, type DrawCtx } from '../../kit/button';
 import { drawDots } from '../../kit/dots';
+import { lineHeight } from '../../kit/dmm';
 import { drawIcon } from '../../kit/icons';
 import type { Region } from '../../kit/panel';
 import { drawFitted, drawText, fontOf, measureText, type Box } from '../../kit/text';
 import { pick } from '../../text';
 import type { LessonSessionState } from '../../types';
 import { nextHint, openHints, type StepsCard } from './finish';
+import { clampPage, hintPaging, pageRange } from './hint-pages';
 import { drawQuizCard, type QuizActions } from './quiz-card';
 import { drawStatus } from './status';
 import { t } from './strings';
@@ -58,6 +60,9 @@ export interface StepsFinish {
   readonly card: StepsCard;
   readonly quiz: QuizActions;
   hint(): void;
+  /** The hint card's page (0 based) and its setter; the card clamps it. */
+  readonly hintPage: number;
+  setHintPage(page: number): void;
 }
 
 export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSessionState, c: DrawCtx, a: StepsActions, tick: boolean, fin: StepsFinish): { regions: Region[]; fallback: boolean } {
@@ -135,8 +140,9 @@ export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSe
   if (!step) return { regions, fallback };
 
   // What is left, or the done band, above the buttons.
-  // One line while a hint is open (the hint card needs the room), two otherwise.
-  const statusH = drawStatus(g, area.x, row.y - 6 * P, area.w, s, c, true, openHints(s).length > 0 ? 1 : 2);
+  // While a hint is open (the hint card and the step text need the room) it is left out unless the lesson is done; two lines otherwise.
+  const hintOpen = openHints(s).length > 0;
+  const statusH = hintOpen && !s.done ? 0 : drawStatus(g, area.x, row.y - 6 * P, area.w, s, c, true, hintOpen ? 1 : 2);
 
   // The step: title, text, hint, problem and the English notice, bottom up.
   let top = area.y + rowH + 6 * P;
@@ -148,16 +154,34 @@ export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSe
     const body = hint.text.replace(/\s+/g, ' ').trim();
     const pad = 6 * P;
     const iconW = 26 * P;
-    // The hint keeps one line at least, the step text up to two lines; the hint takes what the step text leaves, at most three lines.
-    const stepStyle = { role: 'body' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 2 };
-    const style = { role: 'label' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 3, weight: 500 };
+    // The step text gets what it needs but leaves the hint two lines and its page row; the hint takes the rest,
+    // wrapped whole at its role's size and paged when it does not fit.
+    const stepStyle = { role: 'body' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 6 };
+    const style = { role: 'label' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, weight: 500 };
     const hintText = `${latest.level}/${s.hints.length} · ${body}`;
     const hintW = area.w - 2 * pad - iconW;
-    const oneLine = measureText(g, hintText, { x: 0, y: 0, w: hintW, h: 1e6 }, { ...style, maxLines: 1 }).height + 2 * pad;
-    const stepH = measureText(g, pick(step.text, lang).text, { x: 0, y: 0, w: area.w, h: Math.max(0, bottom - top - oneLine - 6 * P) }, stepStyle).height;
-    const room = Math.min(100 * P, bottom - top - stepH - 6 * P);
-    const bf = measureText(g, hintText, { x: 0, y: 0, w: hintW, h: Math.max(0, room - 2 * pad) }, style);
-    const h = bf.height + 2 * pad;
+    const whole = measureText(g, hintText, { x: 0, y: 0, w: hintW, h: 1e9 }, style);
+    const lh = whole.size * lineHeight(lang);
+    const bh = 32 * P;
+    const bw = 44 * P;
+    const numW = 56 * P;
+    // Page controls sit at the card's right end, so a page keeps every line the card has room for.
+    const ctrlW = 2 * bw + numW + 8 * P;
+    const stepH = measureText(g, pick(step.text, lang).text, { x: 0, y: 0, w: area.w, h: Math.max(0, bottom - top - (2 * lh + 2 * pad) - 6 * P) }, stepStyle).height;
+    const room = Math.max(0, bottom - top - stepH - 6 * P);
+    const cap = Math.floor((room - 2 * pad) / lh);
+    let lines = whole.lines;
+    let paging = hintPaging(lines.length, cap, cap);
+    let textW = hintW;
+    if (paging.paged) {
+      textW = hintW - ctrlW;
+      lines = measureText(g, hintText, { x: 0, y: 0, w: textW, h: 1e9 }, style).lines;
+      paging = hintPaging(lines.length, 0, cap);
+    }
+    const pageNow = clampPage(fin.hintPage, paging.pages);
+    const [from, to] = pageRange(paging, pageNow, lines.length);
+    const shown = lines.slice(from, to);
+    const h = 2 * pad + Math.max(paging.paged ? paging.perPage * lh : shown.length * lh, paging.paged ? bh : 0);
     const plate: Box = { x: area.x, y: bottom - h, w: area.w, h };
     const line = 2 * P * k.outline;
     roundRect(g, { x: plate.x + line / 2, y: plate.y + line / 2, w: plate.w - line, h: plate.h - line }, 8 * P);
@@ -166,8 +190,23 @@ export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSe
     g.lineWidth = line;
     g.strokeStyle = k.ink;
     g.stroke();
-    drawIcon(g, 'info', plate.x + pad + 10 * P, plate.y + pad + (bf.size * 1.35) / 2, 20 * P, k, k.info);
-    drawFitted(g, bf, { x: plate.x + pad + iconW, y: plate.y + pad, w: plate.w - 2 * pad - iconW, h: bf.height }, style);
+    drawIcon(g, 'info', plate.x + pad + 10 * P, plate.y + pad + (whole.size * 1.35) / 2, 20 * P, k, k.info);
+    drawFitted(g, { lines: shown, size: whole.size, truncated: false, height: shown.length * lh }, { x: plate.x + pad + iconW, y: plate.y + pad, w: textW, h: shown.length * lh }, style);
+    if (paging.paged) {
+      // "1/2" with previous and next, centred in the card's right end.
+      const by = plate.y + (plate.h - bh) / 2;
+      const nextR: Box = { x: plate.x + plate.w - pad - bw, y: by, w: bw, h: bh };
+      const prevR: Box = { x: nextR.x - numW - bw, y: by, w: bw, h: bh };
+      const prevFace: ButtonFace = { label: t(lang, 'hintPrev'), icon: 'back', iconOnly: true, kind: 'plain', disabled: pageNow <= 0 };
+      const nextFace: ButtonFace = { label: t(lang, 'hintNext'), icon: 'next', iconOnly: true, kind: 'plain', disabled: pageNow >= paging.pages - 1 };
+      drawButton(g, prevR, prevFace, c);
+      drawButton(g, nextR, nextFace, c);
+      drawText(g, `${pageNow + 1}/${paging.pages}`, { x: prevR.x + bw, y: by, w: numW, h: bh }, { role: 'caption', lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 1, valign: 'middle', align: 'center' });
+      regions.push(
+        { id: 'hint-prev', rect: prevR, face: prevFace, disabled: prevFace.disabled, onSelect: () => fin.setHintPage(pageNow - 1) },
+        { id: 'hint-next', rect: nextR, face: nextFace, disabled: nextFace.disabled, onSelect: () => fin.setHintPage(pageNow + 1) },
+      );
+    }
     bottom = plate.y - 6 * P;
   }
   const text = pick(step.text, lang);
