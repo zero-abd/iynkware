@@ -48,7 +48,7 @@ test("locks a single-use token to Gemini Live audio", () => {
   assert.deepEqual(LOCKED_LIVE_CONFIG.outputAudioTranscription, {});
   assert.equal(LOCKED_LIVE_CONFIG.realtimeInputConfig.automaticActivityDetection.disabled, true);
   assert.match(SYSTEM_INSTRUCTION, /RESPOND IN ENGLISH/);
-  assert.equal(TOOLS_VERSION, "agent-v9");
+  assert.equal(TOOLS_VERSION, "agent-v10");
   assert.deepEqual(LOCKED_LIVE_CONFIG.tools, [{ functionDeclarations: FUNCTION_DECLARATIONS }]);
   assert.deepEqual(request.bidiGenerateContentSetup.tools, LOCKED_LIVE_CONFIG.tools);
   assert.deepEqual(FUNCTION_DECLARATIONS, JSON.parse(readFileSync(new URL("../../xr/src/agent/tools/declarations.json", import.meta.url), "utf8")));
