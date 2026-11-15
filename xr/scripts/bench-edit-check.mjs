@@ -1,7 +1,8 @@
 // Carrying, seating and pulling parts in the IWER emulator, headless, the way a person does it: a hand pinches the LED,
 // lifts it past one pitch, carries it over free holes (a ghost shows), releases (the document's placement has new legs),
 // then a controller grips the resistor and carries it past the end of the breadboard (no fit: it lies loose beside the
-// board and says why), the LED is dropped off the bench (nothing changes), and undo puts everything back.
+// board and says why), the LED is dropped off the bench (it falls to the floor and stays there, out of the circuit), and
+// undo puts everything back.
 //
 //   npx vite --mode http --port 23150          # in another terminal
 //   node scripts/bench-edit-check.mjs [url] [ghost.png]
@@ -276,10 +277,12 @@ await sleep(1200);
 const back = await page.evaluate(() => {
   const { app } = window.iynkware;
   const o = app.bench.objectOf('cmp_led1');
-  const t = app.bench.worldOf({ kind: 'pin', part: 'cmp_led1', pin: 'A' });
-  return { rev: app.project.revision, legs: window.__placement('cmp_led1').legs, dy: o.position.y };
+  o.updateWorldMatrix(true, false);
+  const w = o.getWorldPosition(o.position.clone());
+  return { rev: app.project.revision, legs: window.__placement('cmp_led1').legs ?? null, world: [w.x, w.y, w.z] };
 });
-check('released off the bench: nothing changes and the LED is back', back.rev === rev3 && back.legs.A === 'c14' && Math.abs(back.dy - 0.0085) < 0.0003, back);
+const unseated = !back.legs || Object.keys(back.legs).length === 0;
+check('released off the bench: the LED stays where it was let go, on the floor, out of the circuit', back.rev > rev3 && unseated && Math.abs(back.world[1]) < 0.02, back);
 
 // ---------------------------------------------------------------------------------------------------- 4. a whole board
 const unoAt = await page.evaluate(() => window.__centre('brd_main'));
@@ -301,6 +304,35 @@ await page.evaluate(() => window.iynkware.app.project.undo());
 await sleep(700);
 const uno2 = await page.evaluate(() => ({ ...window.__placement('brd_main') }));
 check('and undo puts it back', uno2.x_mm === uno0.x_mm && uno2.y_mm === uno0.y_mm, uno2);
+
+// ---------------------------------------------------------------------------------------------------- 5. the breadboard to the floor
+const bbAt = await page.evaluate(() => window.__centre('cmp_bb'));
+const bbRev = await page.evaluate(() => window.iynkware.app.project.revision);
+const aimB = sub(bbAt, gripC);
+let ctl4 = await place('controller-left', 'left', add(aimB, [0, 0.04, 0]));
+ctl4 = await glide('controller-left', 'left', ctl4, aimB, 5);
+await sleep(300);
+await press('controller-left', true);
+await sleep(300);
+ctl4 = await glide('controller-left', 'left', ctl4, add(ctl4, [0, 0.15, 0]), 6);
+ctl4 = await glide('controller-left', 'left', ctl4, add(ctl4, [-0.9, 0, 0.3]), 14);
+await sleep(300);
+await press('controller-left', false);
+await sleep(1500);
+const bbDown = await page.evaluate(() => {
+  const { app } = window.iynkware;
+  const w = (id) => {
+    const o = app.bench.objectOf(id);
+    o.updateWorldMatrix(true, false);
+    const p = o.getWorldPosition(o.position.clone());
+    return [+p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)];
+  };
+  const res = window.__placement('cmp_res1');
+  const pin = app.bench.worldOf({ kind: 'pin', part: 'cmp_res1', pin: Object.keys(res.legs ?? {})[0] ?? 'P1' });
+  return { rev: app.project.revision, bb: w('cmp_bb'), res: w('cmp_res1'), resLegs: res.legs, pinY: pin && +pin[1].toFixed(3) };
+});
+check('the breadboard set down on the floor stays there, its parts riding in their holes, document unchanged',
+  bbDown.rev === bbRev && Math.abs(bbDown.bb[1]) < 0.02 && bbDown.bb[0] < -0.5 && !!bbDown.resLegs && bbDown.pinY !== null && bbDown.pinY < 0.1, bbDown);
 
 await browser.close();
 console.log(fails ? `${fails} FAILED` : 'ALL PASS');

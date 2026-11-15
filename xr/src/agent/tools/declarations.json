@@ -145,5 +145,128 @@
     "name": "next_step_hint",
     "description": "The current experiment or lesson step and its hint, with a callout on the item it is about. Refused in an exam.",
     "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "bench_actions",
+    "description": "List the build actions edit_bench can run on the circuit bench, each with its arguments and what it does.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {}
+    }
+  },
+  {
+    "name": "edit_bench",
+    "description": "Change the circuit on the bench with one build action (add, move, seat, pull, turn or remove a part; add, move, recolour or remove a wire). Applied at once as one change the person can undo. Call bench_actions for the argument shapes. Name parts by refdes (LED1) or id. Use it when the person asks for a change; say what you changed.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "action": {
+          "type": "STRING",
+          "enum": [
+            "placePart",
+            "seatPart",
+            "movePart",
+            "pullPart",
+            "turnPart",
+            "removePart",
+            "addWire",
+            "moveWireEnd",
+            "recolourWire",
+            "routeWire",
+            "straightenWire",
+            "removeWire"
+          ],
+          "description": "The build action."
+        },
+        "args_json": {
+          "type": "STRING",
+          "description": "The action's arguments as a JSON object, e.g. {\"part\":\"LED1\",\"step\":1} for turnPart or {\"part\":\"RES1\"} for removePart."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "undo",
+    "description": "Take back the last change: on the circuit bench the person's or your own last edit or fix, in a lab the last change to a lab item, else the co-builder's last step. Refused in an exam.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "times": {
+          "type": "INTEGER",
+          "description": "How many changes to take back, 1 to 10 (default 1)."
+        }
+      }
+    }
+  },
+  {
+    "name": "redo",
+    "description": "Put back a change that undo took back on the circuit bench.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "times": {
+          "type": "INTEGER",
+          "description": "How many, 1 to 10 (default 1)."
+        }
+      }
+    }
+  },
+  {
+    "name": "explain_problems",
+    "description": "Check what is wrong: on the circuit bench the simulator's circuit check (no run needed) and the last run's findings, each with a title, why it is a problem, how to fix it and the fixes that can be applied; in a lab the tutor's active mistakes. Shows callouts on the parts unless point is false. Refused in an exam.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "point": {
+          "type": "BOOLEAN",
+          "description": "Show callouts on what each problem is about (default true)."
+        }
+      }
+    }
+  },
+  {
+    "name": "apply_fix",
+    "description": "Apply a problem's ready-made fix from explain_problems (one undoable change each), or every safe fix at once. Only when the person agrees.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "problem": {
+          "type": "INTEGER",
+          "description": "The problem's number n from explain_problems (default 1)."
+        },
+        "fix": {
+          "type": "INTEGER",
+          "description": "Which of its fixes, by n (default the first that can be applied)."
+        },
+        "all_safe": {
+          "type": "BOOLEAN",
+          "description": "Apply every fix marked safe instead."
+        }
+      }
+    }
+  },
+  {
+    "name": "run_circuit",
+    "description": "Run, pause or stop the circuit simulation on the bench (a run starts from the circuit as it is now). Run-time problems show in explain_problems after a pause or the end.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "action": {
+          "type": "STRING",
+          "enum": [
+            "run",
+            "pause",
+            "stop"
+          ],
+          "description": "What to do."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
   }
 ]

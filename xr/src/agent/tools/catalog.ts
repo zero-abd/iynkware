@@ -11,6 +11,8 @@
  *                                                              bench edits through it: edit.ts)
  *         open_lab, leave_lab, start_experiment, set_lab_control, request_item, next_step_hint
  *                                                             (the lab's own context and store, undoable, seen by the tutor)
+ *         edit_bench, undo, redo, apply_fix, run_circuit      (tools/bench.ts: the project itself, one undo each)
+ *   read  bench_actions, explain_problems                     (tools/bench.ts: the build actions, the circuit check)
  *
  * Every result is a small JSON object: `{ ok: true, ... }` or `{ ok: false, error }`. Arguments are checked against the
  * declaration (unknown keys, missing or mistyped ones are refused). In an exam the acting lab tools and hints refuse.
@@ -32,6 +34,7 @@ import type { CalloutList, CalloutTone, Conversation, PointTarget } from '../bub
 import type { Observation } from '../coach/coach';
 import DECLARATIONS from './declarations.json';
 import { createEditBuilder, planEdits, type EditSpec } from './edit';
+import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
 
 export type SchemaType = 'OBJECT' | 'STRING' | 'NUMBER' | 'INTEGER' | 'BOOLEAN' | 'ARRAY';
 export interface Schema {
@@ -68,6 +71,8 @@ export interface ToolHost {
   observations(n: number): readonly Observation[];
   /** World point of a bench target, or null when it is not on the bench; absent in tests without a bench. */
   locate?(t: BoardTarget): unknown;
+  /** The project store and the simulator, for editing, undo, redo and the circuit check (tools/bench.ts). */
+  readonly bench?: BenchToolHost;
 }
 
 export const DECLS = DECLARATIONS as unknown as readonly FunctionDeclaration[];
@@ -90,6 +95,7 @@ export const KIND_OF: Readonly<Record<string, ToolKind>> = {
   set_lab_control: 'act',
   request_item: 'act',
   next_step_hint: 'act',
+  ...BENCH_KINDS,
 };
 
 /** How long a callout from `point_at` stays, ms. */
@@ -326,6 +332,7 @@ const coerce = (v: unknown): Prim | undefined => {
 };
 
 const RUNS: Readonly<Record<string, Run>> = {
+  ...BENCH_RUNS,
   look: (h) => ({ ok: true, ...lookNow(h) }),
   list_targets(h) {
     const lab = labOpen(h);

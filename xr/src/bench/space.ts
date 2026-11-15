@@ -125,6 +125,14 @@ export interface BenchInternals {
   setTransition(hook: Transition | null): void;
   /** Sends an item's object back to its target as a `move` transition (after a hand moved it and the edit was refused or changed nothing). */
   restore(partId: string): void;
+  /**
+   * Sets an item down somewhere in the room, off the mat (on the floor, the bench edge, anywhere): its pose in the
+   * bench root's frame, kept until a later edit puts it back on the mat (null). Not in the document: the document keeps
+   * the item where it was, unseated; a restart brings it back to the mat. Lays out again (a `move` transition).
+   */
+  setFree(partId: string, pose: BenchPose | null, opts?: { relayout?: boolean }): void;
+  /** The item's set-down pose in the room, or undefined when the document places it. */
+  freeOf(partId: string): BenchPose | undefined;
   settled(): Promise<void>;
 }
 
@@ -306,6 +314,8 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
   let generation = 0;
   let laidOut = 0;
   let last: { view: View | undefined; boards: unknown; components: unknown; deps: unknown } | null = null;
+  /** Items set down in the room (root frame), by id: `setFree`. */
+  const free = new Map<string, { position: Vector3; quaternion: Quaternion }>();
   let viewId: string | undefined;
   let surfaceId: string | undefined;
   let settleFns: Array<() => void> = [];
@@ -375,8 +385,9 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       const fp = asset.footprint;
       // The footprint corner sits on (x_mm, y_mm); the part turns about it.
       _w.set(-fp.x, 0, -fp.z).applyAxisAngle(Y_AXIS, yaw);
-      const position = new Vector3(p.x_mm / 1000 + _w.x, 0, p.y_mm / 1000 + _w.z);
-      const quaternion = new Quaternion().setFromAxisAngle(Y_AXIS, yaw);
+      const f = free.get(p.c);
+      const position = f ? f.position.clone() : new Vector3(p.x_mm / 1000 + _w.x, 0, p.y_mm / 1000 + _w.z);
+      const quaternion = f ? f.quaternion.clone() : new Quaternion().setFromAxisAngle(Y_AXIS, yaw);
       out.set(p.c, {
         id: p.c, role: roleOf(p.c, key), key, asset, seated: false, legs: undefined,
         position, quaternion, matrix: new Matrix4().compose(position, quaternion, ONE),
@@ -448,6 +459,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
     const transits: Array<[Rec, TransitionKind, BenchPose | null]> = [];
     for (const rec of [...items.values()]) {
       if (next.has(rec.id)) continue;
+      free.delete(rec.id);
       release(rec);
       removed.push(rec.id);
       transits.push([rec, 'remove', poseOf(rec.object)]);
@@ -490,6 +502,7 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       recentre = false;
       const box = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
       for (const rec of items.values()) {
+        if (free.has(rec.id)) continue;
         const { min, max } = rec.asset.sidecar.bounds;
         for (const x of [min[0], max[0]]) for (const z of [min[2], max[2]]) {
           _v.set(x, 0, z).applyQuaternion(rec.target.quaternion).add(rec.target.position);
@@ -571,7 +584,10 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
   }
 
   const unsub = opts.project.subscribe((change: DocChange) => {
-    if (change.origin === 'load') recentre = true;
+    if (change.origin === 'load') {
+      recentre = true;
+      free.clear();
+    }
     void layout();
   });
   void layout();
@@ -674,9 +690,18 @@ export function createBenchSpace(opts: BenchSpaceOptions): BenchSpaceImpl {
       transition = hook;
     },
     restore(partId) {
+      // A set-down pose changed without a layout: lay out again, which moves the item to its new target.
+      if (last === null) return void layout();
       const rec = items.get(partId);
       if (rec) transit(rec, 'move', poseOf(rec.object));
     },
+    setFree(partId, pose, o = {}) {
+      if (pose) free.set(partId, { position: pose.position.clone(), quaternion: pose.quaternion.clone() });
+      else if (!free.delete(partId)) return;
+      last = null;
+      if (o.relayout !== false) void layout();
+    },
+    freeOf: (partId) => free.get(partId),
     settled() {
       return laidOut === generation ? Promise.resolve() : new Promise<void>((r) => settleFns.push(r));
     },

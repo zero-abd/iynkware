@@ -5,18 +5,19 @@
  *
  *   grab    an invisible box over the item's foot, bound with grab 'both' (near grab or ray grab, hands, controllers,
  *           the mouse). IWSDK's grab handle moves the box; the drawn item follows it with damping (smooth, no jitter),
- *           turning only about up, and on release settles upright on the bench top at the new place (`store.move`).
+ *           tilting and turning with the hand like a real object. Let go, it falls straight down onto what is under
+ *           it (the bench top, or the floor anywhere in the room) and stands upright there (`store.move`).
  *   select  each control is a hit box bound for ray and poke; a knob is two halves (down, up). Hover lights its label.
  *   look    `ItemVisualSource`: the converted glb when the asset index lists `lab/<kind>`, else primitives.
  *
  * While a lab is open the circuit bench (`bench.root`) is hidden and takes no pointers; leaving the lab shows it again
  * exactly as it was (the project is never touched).
  */
-import { BoxGeometry, BufferAttribute, BufferGeometry, Euler, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Vector3, type Object3D } from '@iwsdk/core';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Euler, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Quaternion, Vector3, type Object3D } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import type { InteractionEvent } from '../../contracts/input';
-import { benchGeometry } from '../../bench/core/geometry';
+import { restBelow } from '../../bench/core/rest';
 import { inkKit, loadInk, type InkKit } from '../../look/ink';
 import { ACCENT, INK, PAPER } from '../../look/palette';
 import { onLookFrame } from '../../look/runner';
@@ -35,6 +36,10 @@ import type { ItemVisual, ItemVisualSource } from './visual';
 const DEG = Math.PI / 180;
 /** Damping rate of the follow, per second: about 90 % of the way in 0.16 s. */
 const FOLLOW = 14;
+/** Free fall after a release, m/s² (table frame). */
+const GRAVITY = 9.81;
+const UP = new Vector3(0, 1, 0);
+const upright = new Quaternion();
 /** Controls win over the item's grab box when both are under the pointer. */
 const CONTROL_ORDER = 2;
 /** The loop's tip (its ring) in the loop group's frame, and where the flame is on the burner. */
@@ -51,6 +56,8 @@ interface Holder {
   readonly half: number;
   visual: ItemVisual | null;
   grabbing: boolean;
+  /** Falling speed after a release, m/s (table frame). */
+  vy: number;
   readonly offs: Unsubscribe[];
   readonly labels: Array<{ label: TextLabel; key?: keyof typeof CONTROL_LABELS; symbol?: string }>;
   /** The per-frame channel setter, made once. */
@@ -107,13 +114,8 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     }
   };
 
-  const bounds = () => {
-    const top = benchGeometry(app.settings.xr.value.posture, app.settings.xr.value.dominantHand).top;
-    return { hx: (top.w / 2) * 1000, hz: (top.d / 2) * 1000 };
-  };
-
   const placeProxy = (h: Holder, item: PlacedItem) => {
-    h.proxy.position.set(item.pose.x / 1000, h.half, item.pose.z / 1000);
+    h.proxy.position.set(item.pose.x / 1000, (item.pose.y ?? 0) / 1000 + h.half, item.pose.z / 1000);
     h.proxy.rotation.set(0, item.pose.yaw * DEG, 0);
   };
 
@@ -180,7 +182,7 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     const [w, d, ht] = model.foot;
     const group = new Group();
     group.name = `lab-item:${item.id}`;
-    group.position.set(item.pose.x / 1000, 0, item.pose.z / 1000);
+    group.position.set(item.pose.x / 1000, (item.pose.y ?? 0) / 1000, item.pose.z / 1000);
     group.rotation.y = item.pose.yaw * DEG;
     root.add(group);
     const proxy = new Mesh(new BoxGeometry((w / 1000) * 0.96, ht / 1000, (d / 1000) * 0.96), hit);
@@ -194,6 +196,7 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
       half: ht / 2000,
       visual: null,
       grabbing: false,
+      vy: 0,
       offs: [],
       labels: [],
       live: (ch, v) => h.visual?.set(ch, v),
@@ -201,14 +204,20 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     placeProxy(h, item);
     h.offs.push(
       app.input.bind(proxy, { id: proxy.name, ray: true, grab: 'both' }, (e) => {
-        if (e.type === 'grab-start') h.grabbing = true;
+        if (e.type === 'grab-start') {
+          h.grabbing = true;
+          h.vy = 0;
+        }
         if (e.type !== 'grab-end') return;
         h.grabbing = false;
-        const { hx, hz } = bounds();
-        const x = Math.max(-hx + w / 2, Math.min(hx - w / 2, proxy.position.x * 1000));
-        const z = Math.max(-hz + d / 2, Math.min(hz - d / 2, proxy.position.z * 1000));
+        // straight down from where it was let go, onto the bench top or the floor
+        root.updateWorldMatrix(true, false);
+        const foot = root.localToWorld(_rel.set(proxy.position.x, proxy.position.y - h.half, proxy.position.z));
+        const rest = restBelow(app, foot);
+        foot.y = rest.y;
+        root.worldToLocal(foot);
         yaw.setFromQuaternion(proxy.quaternion, 'YXZ');
-        store.move(h.id, { x, z, yaw: yaw.y / DEG });
+        store.move(h.id, { x: proxy.position.x * 1000, z: proxy.position.z * 1000, yaw: yaw.y / DEG, y: rest.onBench ? 0 : foot.y * 1000 });
       }),
     );
     // Controls on the item itself go on the group now; those on a moving node wait for the visual.
@@ -246,6 +255,7 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
   };
 
   const yaw = new Euler();
+  const _rel = new Vector3();
   const offStore = store.subscribe((c) => {
     switch (c.type) {
       case 'place': {
@@ -308,14 +318,30 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     for (let i = 0; i < list.length; i++) {
       const h = list[i]!;
       const g = h.group;
-      target.copy(h.proxy.position);
-      target.y = Math.max(0, target.y - h.half);
-      g.position.lerp(target, k);
-      yaw.setFromQuaternion(h.proxy.quaternion, 'YXZ');
-      let dy = yaw.y - g.rotation.y;
-      dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-      g.rotation.set(0, g.rotation.y + dy * k, 0);
       const item = store.get(h.id);
+      if (h.grabbing) {
+        // in the hand: the foot hangs below the grab box's centre, tilted and turned as the hand holds it
+        target.set(0, -h.half, 0).applyQuaternion(h.proxy.quaternion).add(h.proxy.position);
+        g.position.lerp(target, k);
+        g.quaternion.slerp(h.proxy.quaternion, k);
+      } else {
+        // let go: upright again, and falling onto the surface under it
+        const floorY = item ? (item.pose.y ?? 0) / 1000 : 0;
+        target.set(h.proxy.position.x, floorY, h.proxy.position.z);
+        g.position.x += (target.x - g.position.x) * k;
+        g.position.z += (target.z - g.position.z) * k;
+        if (g.position.y > floorY + 1e-4) {
+          h.vy += GRAVITY * Math.min(dt, 0.05);
+          g.position.y = Math.max(floorY, g.position.y - h.vy * Math.min(dt, 0.05));
+          if (g.position.y === floorY) h.vy = 0;
+        } else {
+          h.vy = 0;
+          g.position.y += (floorY - g.position.y) * k;
+        }
+        yaw.setFromQuaternion(h.proxy.quaternion, 'YXZ');
+        upright.setFromAxisAngle(UP, yaw.y);
+        g.quaternion.slerp(upright, k);
+      }
       if (!item || !h.visual) continue;
       liveChannels(h.kind, item.state, h.live);
       h.visual.update(dt);

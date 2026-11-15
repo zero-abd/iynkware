@@ -5,6 +5,7 @@
 import type { FeatureModule } from '../../contracts/app';
 import { agentOf } from '../hub';
 import { mountCallouts } from './callouts';
+import { mountFlatConversation } from './flat';
 import { mountSpeech } from './speech';
 
 export const bubblesModule: FeatureModule = {
@@ -13,9 +14,11 @@ export const bubblesModule: FeatureModule = {
     const hub = agentOf(app.world);
     const offSpeech = mountSpeech(app, hub.conversation, (text) => void hub.bridge?.ask(text), () => hub.micLevel?.() ?? null);
     const offCallouts = mountCallouts(app, hub.callouts);
+    const offFlat = mountFlatConversation(app, hub.conversation, (text) => void hub.bridge?.ask(text));
     return () => {
       offSpeech();
       offCallouts();
+      offFlat();
     };
   },
 };

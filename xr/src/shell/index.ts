@@ -7,9 +7,10 @@ import { composeModules } from '../compose';
 import { libraryModule } from './library';
 import { pwaModule } from './pwa';
 import { homeModule } from './home';
+import { homeBarModule } from './home/bar';
 import { menuModule } from './menu';
 import { projectsModule } from './projects';
 import { prefsModule } from './prefs';
 import { noticesModule } from './notices';
 
-export const shellModule = composeModules('shell', [libraryModule, pwaModule, homeModule, menuModule, projectsModule, prefsModule, noticesModule]);
+export const shellModule = composeModules('shell', [libraryModule, pwaModule, homeModule, homeBarModule, menuModule, projectsModule, prefsModule, noticesModule]);
