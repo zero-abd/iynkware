@@ -10,7 +10,7 @@
  * Per frame `update` allocates nothing while the anchor stays over one hole; iynk's rule runs again only when the hole
  * under the anchor, the rotation or the document changes. Pure: no IWSDK, no three.js.
  */
-import { builtinRegistry } from '@/parts/builtin';
+import { getAppRegistry } from '@/parts/builtin';
 import { interfaceOf } from '@/parts/pins';
 import type { InterfaceSnapshot } from '@/parts/pins';
 import type { PartRegistry } from '@/parts/registry';
@@ -120,7 +120,7 @@ export interface GhostFit {
 }
 
 let defaultRegistry: PartRegistry | undefined;
-const registryOr = (r?: PartRegistry): PartRegistry => r ?? (defaultRegistry ??= builtinRegistry());
+const registryOr = (r?: PartRegistry): PartRegistry => r ?? (defaultRegistry ??= getAppRegistry());
 
 /** The breadboard of the document's breadboard view, read once per document. */
 interface Surface {

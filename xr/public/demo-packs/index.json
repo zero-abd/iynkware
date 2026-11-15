@@ -1,0 +1,46 @@
+{
+  "packs": [
+    {
+      "file": "blue-led-10mm.iynkpack",
+      "id": "demo.blue-led-10mm",
+      "version": "1.0.0",
+      "manufacturer": "Brightcell (demo brand)",
+      "model": "10 mm blue LED"
+    },
+    {
+      "file": "photoresistor-module.iynkpack",
+      "id": "demo.photoresistor-module",
+      "version": "1.0.0",
+      "manufacturer": "Lumen Labs (demo brand)",
+      "model": "Photoresistor light sensor"
+    },
+    {
+      "file": "piezo-buzzer.iynkpack",
+      "id": "demo.piezo-buzzer",
+      "version": "1.0.0",
+      "manufacturer": "Tonewell (demo brand)",
+      "model": "12 mm piezo buzzer"
+    },
+    {
+      "file": "bme280-breakout.iynkpack",
+      "id": "demo.bme280-breakout",
+      "version": "1.0.0",
+      "manufacturer": "Sensorly (demo brand)",
+      "model": "BME280 environment breakout"
+    },
+    {
+      "file": "mpu6050-board.iynkpack",
+      "id": "demo.mpu6050-board",
+      "version": "1.0.0",
+      "manufacturer": "Motionworks (demo brand)",
+      "model": "MPU-6050 motion board"
+    },
+    {
+      "file": "oled-096.iynkpack",
+      "id": "demo.oled-096",
+      "version": "1.0.0",
+      "manufacturer": "Pixelbay (demo brand)",
+      "model": "0.96 inch OLED display"
+    }
+  ]
+}

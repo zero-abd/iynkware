@@ -3,7 +3,7 @@
  * events out. Never runs the solver itself, except through `inlinePort` in tests.
  */
 import { createInlinePort, createRpcPort, WorkerError, type RpcPort, type WorkerLike } from '@/protocol';
-import { builtinRegistry } from '@/parts/builtin';
+import { getAppRegistry } from '@/parts/builtin';
 import type { Project } from '@/project/generated/types';
 import { simDiag } from '@/sim/core/diagnostic';
 import type { HostInput, ProgramImage, SimDiagnostic, SimNetlist, WorkLimits } from '@/sim/engine';
@@ -96,8 +96,8 @@ function frameOf(ev: Extract<SimEv, { t: 'frame' }>): SimFrame {
   };
 }
 
-/** Built once: the registry is rebuilt from every descriptor on each `builtinRegistry()` call. */
-let parts: ReturnType<typeof builtinRegistry> | null = null;
+/** The app's shared registry (`getAppRegistry`): core parts plus imported ones, which simulate as their core twin. */
+let parts: ReturnType<typeof getAppRegistry> | null = null;
 
 /** Every source of the document, path to text, as iynk's 2D Check sends them (faultLink.ts). */
 const sourcesOf = (doc: Project): Record<string, string> => Object.fromEntries(doc.sources.map((s) => [s.path, s.content]));
@@ -257,7 +257,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       lastMech = null;
       findings = [];
       netlist = null;
-      const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
+      const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= getAppRegistry()));
       const program = programOf(doc);
       if (!program) return refuse([...netDiags, simDiag('no-firmware', 'error', {}, { message: 'the project has no code to run' })]);
       if (blocking(netDiags)) return refuse(netDiags);
@@ -351,7 +351,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
     async check(doc) {
       if (disposed) throw new Error('the sim bridge was disposed');
       // Netlist diagnostics do not stop a check: the rules report what they find in whatever the document wires.
-      const { net } = buildSimNetlist(doc, (parts ??= builtinRegistry()));
+      const { net } = buildSimNetlist(doc, (parts ??= getAppRegistry()));
       const ack = await call({ t: 'static-check', net, sources: sourcesOf(doc) });
       return { findings: (ack.result as StaticCheckReply).findings };
     },
