@@ -72,7 +72,7 @@ describe('default place of the cluster', () => {
     expect(off).toBeGreaterThan(45);
     // below eye level, but well above the bench top (eye height minus 0.47 m)
     expect(p[1]).toBeCloseTo(1.5 - CLUSTER.distance * Math.sin(CLUSTER.belowDeg * DEG), 9);
-    expect(p[1]).toBeLessThan(1.5 - 0.1);
+    expect(p[1]).toBeLessThan(1.5 - 0.05);
     expect(p[1]).toBeGreaterThan(1.5 - 0.4);
     expect(faceTo).toEqual(eye);
   });

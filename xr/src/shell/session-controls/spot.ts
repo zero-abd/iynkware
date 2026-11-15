@@ -12,9 +12,12 @@ export const CLUSTER = {
   /** Eyes to the cluster's centre, metres: past touch range, read and pressed by ray or hand ray. */
   distance: 0.85,
   /** Towards the left of the heading (negative is left): clear of the bench's run cluster and the forward view. */
-  sideDeg: -55,
-  /** Under eye level: an easy glance down and to the left. */
-  belowDeg: 20,
+  sideDeg: -60,
+  /**
+   * A little under eye level: above the companion on the bench's front-left corner (about 46 degrees left, 12 to 30
+   * below from the eyes), which would otherwise stand in front of Exit.
+   */
+  belowDeg: 6,
 } as const;
 
 /** The yaw (bench convention) of a forward vector; keeps `fallback` when the head looks straight up or down. */

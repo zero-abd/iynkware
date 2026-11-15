@@ -87,7 +87,7 @@ const clusterFrom = (deg) =>
     const left = -(dx * Math.cos(a) - dz * Math.sin(a));
     return { d: +Math.hypot(dx, p[1] - e[1], dz).toFixed(3), leftDeg: +((Math.atan2(left, along) * 180) / Math.PI).toFixed(1), below: +(e[1] - p[1]).toFixed(3) };
   }, deg);
-const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg > 45 && c.leftDeg < 65 && c.below > 0.1 && c.below < 0.4;
+const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg > 45 && c.leftDeg < 70 && c.below > 0.05 && c.below < 0.4;
 
 // Turn the head about the y axis and aim a controller ray at a button.
 const turn = async (deg, pos = { x: 0, y: 1.2, z: 0 }) => {
@@ -110,9 +110,12 @@ const aimAt = async (name, back, device = 'controller-right') => {
   return { o, q };
 };
 const trigger = async (v, device = 'controller-right') => page.evaluate(([x, dev]) => window.__x('set_select_value', { device: dev, value: x }), [v, device]);
-/** Holds select on `device` aimed at the grip, glides it by `delta` in steps (keeping its turn), lets go. */
-const dragGrip = async (device, delta, steps = 8) => {
-  const { o, q } = await aimAt(GRIP, 0.25, device);
+/**
+ * Holds select on `device` aimed at the grip from `back` metres, glides it by `delta` in steps (keeping its turn), lets
+ * go. Near the bench's end, hold the controller near the body (a larger `back`): a poke target in reach wins over the ray.
+ */
+const dragGrip = async (device, delta, back = 0.25, steps = 8) => {
+  const { o, q } = await aimAt(GRIP, back, device);
   await trigger(1, device);
   await sleep(250);
   for (let i = 1; i <= steps; i++) {
@@ -216,13 +219,18 @@ await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
 await page.evaluate(() => window.iynkware.app.shell.closeHome());
 await sleep(800);
 
-// 6. The menu's Tidy up puts a moved cluster back where it was put for the person.
-// The head stays at the height it recentred from: the cluster's place beside the bench assumes it.
+// 6. The menu's Tidy up puts a moved cluster back where it was put for the person. Recentre facing ahead first (the
+// controller held near the body), so the cluster is on the left of this heading again, clear of the bench's ends.
 await turn(0);
 await sleep(800);
-await dragGrip('controller-right', [0.1, 0.05, 0]);
+await press('button:session/recentre', 'controller-right', 0.6);
+await sleep(1200);
+const ahead = await clusterFrom(0);
+check('Recentre facing ahead puts the cluster on the left again', atDefault(ahead), ahead);
+const pHome = await page.evaluate(() => window.__spot('session-controls'));
+await dragGrip('controller-right', [0.1, 0.05, 0], 0.6);
 const p6 = await page.evaluate(() => window.__spot('session-controls'));
-check('moved again before Tidy up', dist(p6, pRec) > 0.05, { home: r3(pRec), moved: r3(p6) });
+check('moved again before Tidy up', dist(p6, pHome) > 0.05, { home: r3(pHome), moved: r3(p6) });
 await page.evaluate(() => window.__x('set_transform', { device: 'controller-right', position: { x: 0.2, y: 1.3, z: -0.3 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }));
 const stick = async () => {
   await page.evaluate(() => window.__x('set_gamepad_state', { device: 'controller-left', buttons: [{ index: 2, value: 1 }], axes: [] }));
@@ -244,11 +252,11 @@ for (let p = 0; p < Math.floor(slot / 6); p++) {
 await press(`button:menu/item-${slot}`, 'controller-right', 0.35);
 await sleep(800);
 const p7 = await page.evaluate(() => window.__spot('session-controls'));
-check('Tidy up puts the cluster back in its place beside the person', dist(p7, pRec) < 0.01, { home: r3(pRec), now: r3(p7) });
+check('Tidy up puts the cluster back in its place beside the person', dist(p7, pHome) < 0.01, { home: r3(pHome), now: r3(p7) });
 check('Tidy up forgets its stored place', !(await page.evaluate((id) => window.__stored()?.places?.[id], ID)));
 
-// 7. Move it once more, up and away from the bench's end; it must come back there after a reload (step 9).
-await dragGrip('controller-right', [0, 0.1, 0.12]);
+// 7. Move it once more, up and to the left; it must come back there after a reload (step 9).
+await dragGrip('controller-right', [-0.08, 0.08, 0], 0.6);
 const local8 = await page.evaluate(() => window.__local('session-controls'));
 check('moved before the reload, and stored', !!(await page.evaluate((id) => window.__stored()?.places?.[id], ID)));
 
