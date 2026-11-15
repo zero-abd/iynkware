@@ -19,6 +19,7 @@ export const LOCKED_LIVE_CONFIG = Object.freeze({
   speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } },
   inputAudioTranscription: {},
   outputAudioTranscription: {},
+  realtimeInputConfig: { automaticActivityDetection: { disabled: true } },
   historyConfig: { initialHistoryInClientContent: true },
   systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
   tools: [],
@@ -33,6 +34,7 @@ export const LOCKED_BIDI_SETUP = Object.freeze({
   systemInstruction: LOCKED_LIVE_CONFIG.systemInstruction,
   inputAudioTranscription: LOCKED_LIVE_CONFIG.inputAudioTranscription,
   outputAudioTranscription: LOCKED_LIVE_CONFIG.outputAudioTranscription,
+  realtimeInputConfig: LOCKED_LIVE_CONFIG.realtimeInputConfig,
   historyConfig: LOCKED_LIVE_CONFIG.historyConfig,
   tools: LOCKED_LIVE_CONFIG.tools,
 });

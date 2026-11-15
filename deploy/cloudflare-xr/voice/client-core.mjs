@@ -43,6 +43,7 @@ export function rawSetup(model, config) {
     systemInstruction: config.systemInstruction,
     inputAudioTranscription: config.inputAudioTranscription,
     outputAudioTranscription: config.outputAudioTranscription,
+    realtimeInputConfig: config.realtimeInputConfig,
     historyConfig: config.historyConfig,
     tools: config.tools,
   };

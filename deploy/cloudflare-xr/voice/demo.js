@@ -106,7 +106,7 @@ function sendEnd() {
   }
   endSent = true;
   node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
-  socket.send(JSON.stringify({realtimeInput:{audioStreamEnd:true}}));
+  socket.send(JSON.stringify({realtimeInput:{activityEnd:{}}}));
   ui.status.textContent = speaking; bridge.state('thinking');
   responseTimer = setTimeout(() => failTurn('Gemini received audio but did not answer. Try a slightly longer question.'), 15000);
 }
@@ -133,6 +133,7 @@ function onMessage(event) {
     clearTimeout(connectTimer); connectTimer = undefined;
     socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:untrustedContext(bridge.context())}]}],turnComplete:true}}));
     setupReady = true;
+    socket.send(JSON.stringify({realtimeInput:{activityStart:{}}}));
     for (const chunk of pendingAudio) sendAudio(chunk);
     pendingAudio = [];
     if (released) sendEnd();
