@@ -53,7 +53,7 @@
   },
   {
     "name": "accept_step",
-    "description": "Perform the proposed co-build step (the person said yes). Set all to do every remaining step.",
+    "description": "Perform the proposed co-build step (the person said yes). Set all to do every remaining step; for several steps or going back, use go_to_step.",
     "parameters": { "type": "OBJECT", "properties": { "all": { "type": "BOOLEAN" } } }
   },
   {
@@ -64,6 +64,23 @@
   {
     "name": "undo_step",
     "description": "Take back the co-builder's last performed step.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "go_to_step",
+    "description": "Move the running co-build (Build it with me, or propose_edit) several steps at once, in one call: forward performs each step in turn (shown, then done), back takes the co-builder's steps back. Use it whenever the person asks for more than one step: do all of them or finish (to end), go back to the start or start over (to start), go to step N (step), or the next N or back N steps (by). Give exactly one of to, step or by. It returns at once and the steps keep running on the bench; stop_steps stops them where they are.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "to": { "type": "STRING", "enum": ["start", "end"], "description": "start: take every co-builder step back. end: do every remaining step." },
+        "step": { "type": "INTEGER", "description": "The step to show next, counted from 1 (step 1 is the start)." },
+        "by": { "type": "INTEGER", "description": "Steps to move: positive goes forward, negative goes back." }
+      }
+    }
+  },
+  {
+    "name": "stop_steps",
+    "description": "Stop a run of steps (go_to_step, or accept_step with all) at the step it has reached, when the person says stop, wait or pause.",
     "parameters": { "type": "OBJECT", "properties": {} }
   },
   {

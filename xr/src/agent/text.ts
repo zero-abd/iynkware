@@ -75,6 +75,13 @@ export const AGENT_TEXT = {
     cannotGo: l6('I could not open {where}.', 'Ich konnte {where} nicht öffnen.', 'No pude abrir {where}.', 'Je n’ai pas pu ouvrir {where}.', 'मैं {where} नहीं खोल सका।', '我没能打开{where}。'),
     running: l6('The circuit is running.', 'Die Schaltung läuft.', 'El circuito está en marcha.', 'Le circuit tourne.', 'सर्किट चल रहा है।', '电路正在运行。'),
     stopped: l6('The circuit is stopped.', 'Die Schaltung ist angehalten.', 'El circuito está detenido.', 'Le circuit est arrêté.', 'सर्किट रुक गया है।', '电路已停止。'),
+    goingEnd: l6('Doing the rest of the steps. Say “stop” to pause.', 'Ich mache die restlichen Schritte. Sag „stopp“ zum Anhalten.', 'Hago el resto de los pasos. Di «para» para detenerme.', 'Je fais le reste des étapes. Dis « stop » pour mettre en pause.', 'बाकी कदम कर रहा हूँ। रोकने के लिए “रुको” कहो।', '正在完成剩下的步骤。说“停”可以暂停。'),
+    goingStart: l6('Going back to the start.', 'Ich gehe zurück zum Anfang.', 'Vuelvo al principio.', 'Je reviens au début.', 'शुरुआत पर वापस जा रहा हूँ।', '正在回到开头。'),
+    goingTo: l6('Going to step {step}.', 'Ich gehe zu Schritt {step}.', 'Voy al paso {step}.', 'Je vais à l’étape {step}.', 'कदम {step} पर जा रहा हूँ।', '正在前往第 {step} 步。'),
+    alreadyThere: l6('We are already there.', 'Da sind wir schon.', 'Ya estamos ahí.', 'On y est déjà.', 'हम पहले से वहीं हैं।', '我们已经在那里了。'),
+    pausedAt: l6('Stopped at step {step}.', 'Bei Schritt {step} angehalten.', 'Detenido en el paso {step}.', 'Arrêté à l’étape {step}.', 'कदम {step} पर रुक गया।', '已停在第 {step} 步。'),
+    pausedDone: l6('Stopped: every step is done.', 'Angehalten: Alle Schritte sind erledigt.', 'Detenido: todos los pasos están hechos.', 'Arrêté : toutes les étapes sont faites.', 'रुक गया: सभी कदम हो गए।', '已停止：所有步骤都完成了。'),
+    nothingRunning: l6('No steps are running.', 'Es laufen keine Schritte.', 'No hay pasos en marcha.', 'Aucune étape n’est en cours.', 'कोई कदम नहीं चल रहा।', '没有正在进行的步骤。'),
     finding: l6('A problem was found here. Stop the run and check this part.', 'Hier wurde ein Problem gefunden. Halte den Lauf an und prüfe dieses Teil.', 'Se encontró un problema aquí. Detén la ejecución y revisa esta pieza.', 'Un problème a été trouvé ici. Arrête l’exécution et vérifie cette pièce.', 'यहाँ एक समस्या मिली। रन रोको और यह हिस्सा जाँचो।', '这里发现了问题。停止运行并检查这个零件。'),
   },
 } as const;

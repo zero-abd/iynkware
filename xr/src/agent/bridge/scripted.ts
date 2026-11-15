@@ -8,6 +8,7 @@ import { LAB_NAMES } from '../../lab/model/catalogue';
 import type { LabId } from '../../lab/model/types';
 import { fill, say as sayL6, type L6 } from '../../lab/text';
 import { AGENT_TEXT } from '../text';
+import type { StepTarget } from '../tools/steps';
 import type { Brain, BrainIO } from './bridge';
 
 export type Intent =
@@ -15,6 +16,8 @@ export type Intent =
   | { readonly kind: 'edit'; readonly action: 'removePart' | 'pullPart' | 'turnPart'; readonly thing: string; readonly half?: boolean }
   | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
   | { readonly kind: 'go'; readonly where: string }
+  | { readonly kind: 'goto'; readonly target: StepTarget }
+  | { readonly kind: 'stopSteps' }
   | { readonly kind: 'where'; readonly thing: string }
   | { readonly kind: 'build'; readonly request: string }
   | { readonly kind: 'open'; readonly lab: LabId }
@@ -36,6 +39,38 @@ const EXPERIMENT_WORDS: ReadonlyArray<readonly [RegExp, string]> = [
 ];
 /** German nouns to the English the tools resolve. */
 const NOUNS: Readonly<Record<string, string>> = { widerstand: 'resistor', brenner: 'burner', steckbrett: 'breadboard', becherglas: 'beaker', kolben: 'flask' };
+/** A count in words or digits, English or German, one to twenty; null when it is not one. */
+const NUMBER_WORDS: Readonly<Record<string, number>> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eins: 1, ein: 1, einen: 1, zwei: 2, drei: 3, vier: 4, fünf: 5, sechs: 6, sieben: 7, acht: 8, neun: 9, zehn: 10,
+};
+const countOf = (w: string | undefined): number | null => {
+  if (!w) return null;
+  const n = /^\d+$/.test(w) ? Number(w) : NUMBER_WORDS[w];
+  return n !== undefined && n >= 1 && n <= 20 ? n : null;
+};
+const N = '(\\d+|[a-zäöü]+)';
+
+/** A request to move a step-by-step build several steps at once, or to stop one; null when the sentence is not one. */
+function stepIntent(t: string): Intent | null {
+  if (/^(?:stop|pause|halt) (?:the )?(?:build|building|steps?)\b|^(?:wait|hold on)\b|^(?:stopp|warte)\b/.test(t)) return { kind: 'stopSteps' };
+  if (/back to (?:the )?(?:start|beginning)|start over|from the (?:start|beginning)|reset the build|zurück zum (?:anfang|start)|von vorne/.test(t)) return { kind: 'goto', target: { to: 'start' } };
+  const to = new RegExp(`\\bto step ${N}\\b|\\bzu schritt ${N}\\b`).exec(t);
+  const toN = countOf(to?.[1] ?? to?.[2]);
+  if (toN) return { kind: 'goto', target: { step: toN } };
+  const back = new RegExp(`\\bback ${N} steps?\\b|${N} schritte? zurück`).exec(t);
+  const backN = countOf(back?.[1] ?? back?.[2]);
+  if (backN) return { kind: 'goto', target: { by: -backN } };
+  const fwd = new RegExp(`\\bnext ${N} steps\\b|\\b(?:forward|ahead) ${N} steps?\\b|\\bdo ${N} (?:more )?steps\\b|nächsten ${N} schritte`).exec(t);
+  const fwdN = countOf(fwd?.[1] ?? fwd?.[2] ?? fwd?.[3] ?? fwd?.[4]);
+  if (fwdN) return { kind: 'goto', target: { by: fwdN } };
+  if (/^(?:go |step )?back(?: one step| a step)?$|^einen schritt zurück$/.test(t)) return { kind: 'goto', target: { by: -1 } };
+  if (/\b(?:do|run|go through|accept) (?:all|every)(?: of)?(?: the)? steps?\b|\bdo (?:it )?all\b|do everything|finish (?:it|the build|building)|build the rest|run through|do the rest|accept all|alle schritte|mach alles|mach den rest|alle annehmen/.test(t)) {
+    return { kind: 'goto', target: { to: 'end' } };
+  }
+  return null;
+}
+
 const WHERE = /^(?:where(?:'s| is| are)|show me|which is|find|wo (?:ist|sind)|zeig mir|finde)\s+/;
 const ARTICLE = /^(?:the|a|an|der|die|das|den|dem|ein|eine)\s+/;
 
@@ -47,6 +82,8 @@ export function intentOf(raw: string): Intent {
   if (/\bundo\b|take (?:that|it) back|rückgängig/.test(t)) return { kind: 'undo' };
   if (/what(?:'s| is) wrong|why (?:does|doesn't|won't|isn't|is it not|is)|not working|doesn't work|check (?:the |my )?circuit|explain|problem|was ist falsch|warum|funktioniert nicht|prüfe/.test(t)) return { kind: 'wrong' };
   if (/^(?:fix|repair|repariere|reparier)\b|\bfix (?:it|that|this|them|everything|all)\b/.test(t)) return { kind: 'fix' };
+  const steps = stepIntent(t);
+  if (steps) return steps;
   if (/^(?:run|start)(?: the)? (?:circuit|sim|simulation|it)\b|^starte die schaltung/.test(t)) return { kind: 'sim', action: 'run' };
   if (/^(?:stop|halt)(?: the)? (?:circuit|sim|simulation|it|run)?\b|^stopp/.test(t)) return { kind: 'sim', action: 'stop' };
   if (/^pause\b/.test(t)) return { kind: 'sim', action: 'pause' };
@@ -59,7 +96,6 @@ export function intentOf(raw: string): Intent {
     if (/pull|unplug|zieh/.test(verb)) return { kind: 'edit', action: 'pullPart', thing: named };
     return { kind: 'edit', action: 'turnPart', thing: named, half: /around|flip|reverse|herum|um/.test(t) || !!edit[3] };
   }
-  if (/do the rest|accept all|alle annehmen|mach den rest/.test(t)) return { kind: 'all' };
   if (short && /^(?:yes|yeah|yep|accept|do it|ok|okay|sure|ja|annehmen|mach es|mach das)\b/.test(t)) return { kind: 'yes' };
   if (short && /^(?:no|nope|skip|nein|überspring)/.test(t)) return { kind: 'no' };
   if (/\b(?:start|begin|run|starte|beginne|mach)\b/.test(t)) {
@@ -127,6 +163,19 @@ export function scriptedBrain(): Brain {
           const r = await io.call('accept_step', intent.kind === 'all' ? { all: true } : {});
           const label = String(r.performed ?? r.first ?? '');
           return done(r.ok ? t(io, R.did, { label }) : t(io, R.nothingWaiting));
+        }
+        case 'goto': {
+          const r = await io.call('go_to_step', intent.target);
+          if (!r.ok) return done(t(io, R.nothingWaiting));
+          if (!r.running) return done(t(io, R.alreadyThere));
+          if (r.to === 'end') return done(t(io, R.goingEnd));
+          if (r.to === 1) return done(t(io, R.goingStart));
+          return done(t(io, R.goingTo, { step: String(r.to) }));
+        }
+        case 'stopSteps': {
+          const r = await io.call('stop_steps');
+          if (!r.ok) return done(t(io, R.nothingRunning));
+          return done(r.done ? t(io, R.pausedDone) : t(io, R.pausedAt, { step: String(r.step) }));
         }
         case 'no': {
           const r = await io.call('reject_step');

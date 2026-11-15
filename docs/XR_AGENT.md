@@ -33,7 +33,7 @@ xr/src/agent/
 
 Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_text { text, suggestions? }`,
 `clear_callouts`. Act: `propose_build { request, template? }`, `propose_edit { summary, steps }`, `accept_step { all? }`,
-`reject_step`, `undo_step`,
+`reject_step`, `undo_step`, `go_to_step { to? | step? | by? }`, `stop_steps`,
 `open_lab { lab }`, `leave_lab`, `start_experiment { id, mode? }`, `set_lab_control { item, action, value? }`,
 `request_item { name }`, `next_step_hint`. Schemas are in `tools/declarations.json`.
 
@@ -48,6 +48,12 @@ Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_te
   carry all apply unchanged. The steps are dry-run in order, so a later step sees the earlier ones. A step the
   person does by hand counts as done when the session plans again. An edit that cannot be done returns in
   `unreachable` with the reason (a bad pin lists the part's pins).
+- `go_to_step` moves a running co-build several steps at once (`tools/steps.ts`):
+  - `to: "end"` does every remaining step, and `to: "start"` takes every co-builder step back.
+  - `step: N` shows step N next, counted from 1.
+  - `by: ±N` moves relative to the current step.
+
+  It answers at once and walks in the background. Forward steps go through `accept()`, with the companion's carry and one undo entry each; back steps go through the co-builder's own `undo()`. A new walk, a single `accept_step`, `reject_step`, `undo_step` or `stop_steps` ends the running walk where it is. `accept_step { all: true }` is the same walk to the end.
 - Lab tools go through the lab context and `LabStore.apply`, so the tutor and the run log see them.
 - In an exam `set_lab_control`, `request_item` and `next_step_hint` refuse.
 - `point_at` targets: a lab item id, kind or name when a lab is open; else a bench refdes (`RES1`), a pin
@@ -77,7 +83,7 @@ longer injected.
   `xr/.env.local` (git-ignored) opens the plain v1beta endpoint with the same setup. A production build contains
   neither that endpoint nor the variable.
 - The Worker locks `tools: [{ functionDeclarations }]` from `xr/src/agent/tools/declarations.json` into the token,
-  and `TOOLS_VERSION` is `agent-v2` (v2 added `propose_edit`).
+  and `TOOLS_VERSION` is `agent-v5` (v2 added `propose_edit`, v3 the bench tools, v4 navigation (#259), v5 `go_to_step` and `stop_steps`).
 
 ## Wiring another Gemini Live client
 

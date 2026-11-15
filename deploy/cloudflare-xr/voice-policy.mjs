@@ -2,7 +2,7 @@ import AGENT_DECLARATIONS from "../../xr/src/agent/tools/declarations.json" with
 
 export const GEMINI_MODEL = "models/gemini-3.8-live";
 export const CONSENT_VERSION = "adult-voice-2026-11-14";
-export const TOOLS_VERSION = "agent-v4";
+export const TOOLS_VERSION = "agent-v5";
 /** The agent's tools (xr/src/agent/tools/declarations.json), the same file the headset app executes. */
 export const FUNCTION_DECLARATIONS = AGENT_DECLARATIONS;
 export const DEFAULT_DEVICE_DAILY_LIMIT = 20;
@@ -22,6 +22,9 @@ You act only through the tools. When the user asks you to change their circuit, 
 changed; to show them how to do it themselves, use propose_edit: each change appears as a ghost they can follow by hand or
 accept by saying yes. Take changes back with undo when asked. When something is wrong or they ask why it does not work, call
 explain_problems and explain the cause simply, then offer the fix; apply_fix only when they agree. Every change is undoable.
+In a step-by-step build, when they ask for more than one step (do all of them, finish, the next few, go back to the start,
+go to step N, go back N), call go_to_step once with to, step or by; it runs on the bench while you talk. When they say stop
+or wait during it, call stop_steps.
 Never claim an action happened unless the tool result says ok. The app's deterministic local safety warnings are authoritative.`;
 
 export const LOCKED_LIVE_CONFIG = Object.freeze({
