@@ -14,6 +14,7 @@ import type { IconName } from '../../look/icons';
 import { loadInk } from '../../look/ink';
 import { benchGeometry } from '../core/geometry';
 import { onLang, say } from '../core/text';
+import { movable } from '../../ui/panels';
 import { benchPlate, bindPlate, type Plate } from '../core/ui';
 import { builtinRegistry } from '@/parts/builtin';
 import { createBins } from './bins';
@@ -44,6 +45,9 @@ export const shelfModule: FeatureModule = {
     header.name = 'bench:shelf-header';
     shelf.add(header);
     const bins = createBins(app, shelf);
+    // The grip bar on the shelf's front lip moves the whole shelf (flat on the bench, keeping its turn): its bins, tabs
+    // and body are all children of `shelf`. Place and Tidy up are the shared ones (ui/panels).
+    const grip = movable(app, { id: 'bench/shelf', group: shelf, width: 0.2, height: 0.05, distanceM: 0.4, flat: true });
     const offs: Array<() => void> = [];
 
     // ---- the tabs and the pager -----------------------------------------------------------------------------------
@@ -133,6 +137,9 @@ export const shelfModule: FeatureModule = {
       body?.dispose();
       body = ink === undefined ? null : createShelfBody(ink, app.bench.table, shelf, layout);
       bins.layout(layout);
+      // on the front lip, leaning back towards the eyes so it reads from standing
+      grip.grip.position.set(0, 0.012, layout.d / 2 + 0.03);
+      grip.grip.rotation.x = -0.9;
       refresh();
     };
     place();
@@ -148,6 +155,7 @@ export const shelfModule: FeatureModule = {
       disposed = true;
       for (const off of offs) off();
       body?.dispose();
+      grip.dispose();
       bins.dispose();
       shelf.visible = false;
     };
