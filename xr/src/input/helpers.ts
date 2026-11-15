@@ -2,7 +2,8 @@
  * Pure helpers behind the input service: press classification and the hand's virtual stick. No three.js or IWSDK
  * runtime imports, so the tests run them in Node.
  */
-import type { BindOptions, PointerMode, PointerSource } from '../contracts/input';
+import { TARGET_ORDER } from '../contracts/input';
+import type { BindOptions, PointerMode, PointerSource, TargetKind } from '../contracts/input';
 
 /**
  * Which IWSDK pointer produced an event. `ray`, `grab` and `touch` are a hand's sub-pointers
@@ -21,6 +22,22 @@ export function grabFlags(grab: BindOptions['grab']): GrabFlags {
     near: grab === 'near' || grab === 'both',
     distance: grab === 'distance' || grab === 'both',
   };
+}
+
+/** The grab mode a binding really has: `nearSelect` turns the near grab into a select and leaves a distance grab. */
+export function effectiveGrab(grab: BindOptions['grab'], nearSelect: boolean | undefined): BindOptions['grab'] {
+  if (!nearSelect) return grab;
+  return grab === 'distance' || grab === 'both' ? 'distance' : 'none';
+}
+
+/** `pointerEventsOrder` for a bound object: from its kind, or undefined to leave the object's own order alone. */
+export function orderOfKind(kind: TargetKind | undefined): number | undefined {
+  return kind === undefined ? undefined : TARGET_ORDER[kind];
+}
+
+/** A press that is a near select: from the grab sub-pointer (pinch or grip) on a `nearSelect` binding. */
+export function isNearSelectPress(kind: PointerKind, nearSelect: boolean | undefined): boolean {
+  return !!nearSelect && kind === 'grab';
 }
 
 /**

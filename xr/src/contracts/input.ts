@@ -57,6 +57,19 @@ export interface InteractionEvent {
   readonly instance?: number;
 }
 
+/** What a bound object is, for target priority (XR_DESIGN 3.1): the higher kind wins under one pointer. */
+export type TargetKind = 'cell' | 'control' | 'wire-end' | 'body' | 'edge' | 'panel';
+
+/** `pointerEventsOrder` per kind: cell 5, control 4, wire-end 3, body 2, edge 1, panel 0. */
+export const TARGET_ORDER: Readonly<Record<TargetKind, number>> = {
+  cell: 5,
+  control: 4,
+  'wire-end': 3,
+  body: 2,
+  edge: 1,
+  panel: 0,
+};
+
 export interface BindOptions {
   /** Reported as `InteractionEvent.target`. Usually an entity id (`cmp_led1`) or a control id (`run`). */
   id: string;
@@ -66,6 +79,18 @@ export interface BindOptions {
   poke?: boolean;
   /** It can be picked up: `near` (grip or pinch within reach), `distance` (ray grab), or both. Default none. */
   grab?: 'none' | 'near' | 'distance' | 'both';
+  /**
+   * Sets the object's `pointerEventsOrder` from `TARGET_ORDER`, so under one pointer (ray, poke or the grab sphere)
+   * the higher kind wins over a nearer lower one. Unset: the object's own order is left alone.
+   */
+  kind?: TargetKind;
+  /**
+   * A near press (hand pinch or controller grip or trigger at the object, within reach) selects instead of grabbing:
+   * `select-start`, `drag-move` while held (pointer pose at the pinch point or grip), `select-end`, then `select` when
+   * it ends on the same target. The object never moves, and the grab sphere can hit it without `grab: 'near'` (which
+   * `nearSelect` overrides). Rays keep their behaviour: `ray` selects, `grab: 'distance'` still grabs. Default false.
+   */
+  nearSelect?: boolean;
 }
 
 /**

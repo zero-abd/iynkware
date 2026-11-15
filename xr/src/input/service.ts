@@ -12,6 +12,7 @@
  *   poke: true       PokeInteractable   the fingertip can touch it
  *   grab: near       OneHandGrabbable   the grab sphere can hit it, GrabSystem's handle moves it
  *   grab: distance   DistanceGrabbable  (MoveFromTarget) a ray press moves it
+ *   nearSelect       OneHandGrabbable   only so the grab sphere can hit it; the gate turns its presses into selects
  *
  * A press is a grab or a select, never both: grab-sub-pointer presses grab a `near` object, ray presses (and the mouse)
  * grab a `distance` object, everything else selects. IWSDK's grab handle takes every press that reaches its object,
@@ -63,12 +64,15 @@ import {
   type Stick,
   POSE_JOINTS,
   clampUnit,
+  effectiveGrab,
   fingersOpen,
   grabFlags,
   headingOf,
   isGrabPress,
+  isNearSelectPress,
   modeOf,
   newHoldState,
+  orderOfKind,
   palmNormal,
   sourceOf,
   stepButton,
@@ -157,6 +161,7 @@ interface Binding {
   readonly entity: Entity;
   readonly flags: GrabFlags;
   readonly hasGrab: boolean;
+  readonly nearSelect: boolean;
   readonly handler: (e: InteractionEvent) => void;
   readonly hovered: Set<number>;
   readonly presses: Map<number, Press>;
@@ -357,7 +362,7 @@ export function createInputService(world: World): InputService {
     if (b.presses.has(e.pointerId)) return;
     const pointer = newPointer(e, i);
     let captured = grab;
-    if (!grab && (i.kind === 'ray' || i.kind === 'gaze' || i.kind === 'mouse')) {
+    if (!grab && (i.kind === 'ray' || i.kind === 'gaze' || i.kind === 'mouse' || isNearSelectPress(i.kind, b.nearSelect))) {
       // Keep the ray on this object while held: drags report off the object, and the release comes back here.
       b.object.setPointerCapture(e.pointerId);
       captured = true;
@@ -485,8 +490,14 @@ export function createInputService(world: World): InputService {
     }
     const ray = opts.ray ?? true;
     const poke = opts.poke ?? false;
-    const flags = grabFlags(opts.grab);
+    const nearSelect = opts.nearSelect ?? false;
+    const flags = grabFlags(effectiveGrab(opts.grab, nearSelect));
     const hasGrab = flags.near || flags.distance;
+    // nearSelect needs OneHandGrabbable (the grab sphere only hits grabbables) and the gate, but never a grab.
+    const usesHandle = hasGrab || nearSelect;
+    const order = orderOfKind(opts.kind);
+    const prevOrder = object.pointerEventsOrder;
+    if (order !== undefined) object.pointerEventsOrder = order;
     if (hasGrab && !world.getSystem(GrabSystem) && !warnedNoGrab) {
       warnedNoGrab = true;
       console.warn('[input] grab needs IWSDK grabbing (World.create features.grabbing); grabs will not start');
@@ -498,6 +509,7 @@ export function createInputService(world: World): InputService {
       entity,
       flags,
       hasGrab,
+      nearSelect,
       handler,
       hovered: new Set(),
       presses: new Map(),
@@ -517,7 +529,7 @@ export function createInputService(world: World): InputService {
       startPress(b, e, i, false);
     };
     const handleBefore = entity.getComponents().some((c) => c.id === 'Handle');
-    if (hasGrab) {
+    if (usesHandle) {
       if (handleBefore) console.warn(`[input] "${opts.id}" was grabbable before bind; ray and poke presses may also grab it`);
       on(object, 'pointerdown', gate);
     }
@@ -534,11 +546,11 @@ export function createInputService(world: World): InputService {
     // DistanceGrabbable first: the first grab component decides the handle, and a distance handle in MoveFromTarget
     // moves with any one pointer, so `both` can share it with the near grab sphere.
     if (flags.distance) add(DistanceGrabbable, { movementMode: MovementMode.MoveFromTarget });
-    if (flags.near) add(OneHandGrabbable);
+    if (flags.near || nearSelect) add(OneHandGrabbable);
     // GrabSystem hides a near grabbable from rays ({ deny: 'ray' }) and a distance one from the grab sphere
     // ({ deny: 'grab' }). Open it up where the binding asks for both.
     let overrodeType = false;
-    if (flags.near && (ray || flags.distance)) {
+    if ((flags.near || nearSelect) && (ray || flags.distance)) {
       object.pointerEventsType = 'all';
       overrodeType = true;
     }
@@ -605,7 +617,8 @@ export function createInputService(world: World): InputService {
       if (done) return;
       done = true;
       if (bindings.get(object) === b) bindings.delete(object);
-      if (hasGrab) off(object, 'pointerdown', gate);
+      if (usesHandle) off(object, 'pointerdown', gate);
+      if (order !== undefined) object.pointerEventsOrder = prevOrder;
       for (const [type, fn] of listeners) off(object, type, fn);
 
       const grabSystem = world.getSystem(GrabSystem);
@@ -623,7 +636,7 @@ export function createInputService(world: World): InputService {
         entity.hasComponent(OneHandGrabbable) ||
         entity.hasComponent(TwoHandsGrabbable) ||
         entity.hasComponent(DistanceGrabbable);
-      if (hasGrab && !handleBefore && !stillGrabbable) droppedHandle = dropHandle(entity, object);
+      if (usesHandle && !handleBefore && !stillGrabbable) droppedHandle = dropHandle(entity, object);
       if (overrodeType || droppedHandle) object.pointerEventsType = prevPointerEventsType;
       // InputSystem keeps one listener set per object and drops it when either tag leaves; give a remaining
       // (pre-existing) tag its listeners back.
