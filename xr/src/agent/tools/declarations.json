@@ -331,5 +331,25 @@
         "control"
       ]
     }
+  },
+  {
+    "name": "set_mode",
+    "description": "Switch the companion between assist mode (explain, point and suggest only) and build mode (it may change things). In assist mode this is the only action allowed: use it when the person asks to switch to build mode.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "mode": {
+          "type": "STRING",
+          "enum": [
+            "assist",
+            "build"
+          ],
+          "description": "The mode to switch to."
+        }
+      },
+      "required": [
+        "mode"
+      ]
+    }
   }
 ]

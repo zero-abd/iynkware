@@ -15,7 +15,8 @@
  *   read  bench_actions, explain_problems                     (tools/bench.ts: the build actions, the circuit check)
  *
  * The companion's mode (`ToolHost.mode`): in `assist` it talks, reads, points, shows ghosts (propose_edit) and moves
- * around (go_to, open_lab, leave_lab), and every tool in `CHANGES` refuses; in `build` everything runs.
+ * nothing else: every tool in `CHANGES` refuses (moving around too). The one action Assist takes is `set_mode` to build,
+ * when the person asks; in `build` everything runs.
  *
  * Every result is a small JSON object: `{ ok: true, ... }` or `{ ok: false, error }`. Arguments are checked against the
  * declaration (unknown keys, missing or mistyped ones are refused). In an exam the acting lab tools and hints refuse.
@@ -83,6 +84,8 @@ export interface ToolHost {
   readonly nav?: NavHost;
   /** Assist (advise only) or build (may act); absent means build. */
   mode?(): CompanionMode;
+  /** Switches the companion's mode (the `set_mode` tool). */
+  setMode?(m: CompanionMode): void;
 }
 
 export type CompanionMode = 'assist' | 'build';
@@ -104,13 +107,18 @@ export const CHANGES: ReadonlySet<string> = new Set([
   'apply_fix',
   'run_circuit',
   'use_control',
+  // moving the person around is an action too
+  'go_to',
+  'open_lab',
+  'leave_lab',
 ]);
-export const ASSIST_REFUSAL = 'assist mode: I can explain, point and suggest (propose_edit shows a ghost), but not change anything. Ask the person to switch the companion to build mode (the button over the bunny) if they want me to do it.';
+export const ASSIST_REFUSAL = 'assist mode: do not do this. Say in one short sentence that you are in Assist mode and cannot do it directly, then offer one way to help (explain the steps, point at it, or show a ghost with propose_edit), and that saying "build mode" lets you do it. The only action allowed in assist mode is set_mode to build when the person asks.';
 
 export const DECLS = DECLARATIONS as unknown as readonly FunctionDeclaration[];
 export const functionDeclarations = (): readonly FunctionDeclaration[] => DECLS;
 
 export const KIND_OF: Readonly<Record<string, ToolKind>> = {
+  set_mode: 'act',
   look: 'read',
   list_targets: 'read',
   point_at: 'show',
@@ -370,6 +378,13 @@ const coerce = (v: unknown): Prim | undefined => {
 };
 
 const RUNS: Readonly<Record<string, Run>> = {
+  set_mode(h, a) {
+    if (!h.setMode) return fail('the mode cannot be changed here');
+    const want = a.mode as CompanionMode;
+    if (h.mode?.() === want) return { ok: true, mode: want, unchanged: true };
+    h.setMode(want);
+    return { ok: true, mode: want };
+  },
   ...BENCH_RUNS,
   ...NAV_RUNS,
   look: (h) => ({ ok: true, ...lookNow(h) }),

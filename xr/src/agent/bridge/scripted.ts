@@ -16,6 +16,7 @@ export type Intent =
   | { readonly kind: 'edit'; readonly action: 'removePart' | 'pullPart' | 'turnPart'; readonly thing: string; readonly half?: boolean }
   | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
   | { readonly kind: 'go'; readonly where: string }
+  | { readonly kind: 'mode'; readonly mode: 'build' | 'assist' }
   | { readonly kind: 'goto'; readonly target: StepTarget }
   | { readonly kind: 'stopSteps' }
   | { readonly kind: 'where'; readonly thing: string }
@@ -106,6 +107,8 @@ export function intentOf(raw: string): Intent {
     const lab = LABS.find(([re]) => re.test(t));
     if (lab) return { kind: 'open', lab: lab[1] };
   }
+  const mode = /\b(build|assist(?:ant|ance)?|bau|hilfe)[- ]?(?:mode|modus)\b/.exec(t);
+  if (mode) return { kind: 'mode', mode: /^(build|bau)/.test(mode[1]!) ? 'build' : 'assist' };
   const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
   if (go && !/\bbuild\b/.test(t)) return { kind: 'go', where: go[1]! };
   if (/\bbuild\b|\bbau(?:e|en)?\b|aufbauen/.test(t)) return { kind: 'build', request: /with me|mit mir/.test(t) && !/blink/.test(t) ? 'build it with me' : t };
@@ -118,6 +121,9 @@ export function intentOf(raw: string): Intent {
   return { kind: 'unknown' };
 }
 
+/** What Assist mode still answers: reading, pointing, explaining and the mode switch itself. */
+const ASSIST_OK: ReadonlySet<Intent['kind']> = new Set(['next', 'where', 'wrong', 'unknown', 'mode']);
+
 const QUESTIONS = (io: BrainIO) => AGENT_TEXT.questions.map((q) => sayL6(q, io.lang()));
 
 export function scriptedBrain(): Brain {
@@ -128,6 +134,12 @@ export function scriptedBrain(): Brain {
     async turn({ text }, io) {
       const intent = intentOf(text);
       const done = (s: string, suggestions?: readonly string[]) => io.say(s, { final: true, suggestions });
+      if (intent.kind === 'mode') {
+        const r = await io.call('set_mode', { mode: intent.mode });
+        return done(r.ok ? t(io, intent.mode === 'build' ? R.modeBuild : R.modeAssist) : t(io, R.cannotChange, { why: String(r.error) }));
+      }
+      // Assist mode takes no action but switching to build: say so in one line and offer help instead.
+      if (!ASSIST_OK.has(intent.kind) && (await io.call('look')).companion === 'assist') return done(t(io, R.assistNo), [t(io, R.buildModeChip)]);
       switch (intent.kind) {
         case 'next': {
           const r = await io.call('next_step_hint');
