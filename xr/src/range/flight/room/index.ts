@@ -41,6 +41,43 @@ import {
   type FlyingBuild,
 } from './model';
 import { ROOM_STRINGS as S } from './strings';
+import { nextSize, volumeFor, type CourseSize } from './size';
+import { value, type Value } from '../../../ui/value';
+
+/** The course size the person chose on the Size plate, per app; Room (the volume as it always was) until then. */
+const sizes = new WeakMap<object, Value<CourseSize>>();
+export function courseSizeOf(app: XrApp): Value<CourseSize> {
+  let v = sizes.get(app.world);
+  if (!v) sizes.set(app.world, (v = value<CourseSize>('room')));
+  return v;
+}
+
+/**
+ * Best effort, Room size only: the guardian's floor outline in the world's reference space (world x, z), or null (no
+ * session, no room-scale guardian, or no answer within half a second). The bounds come in the `bounded-floor` space,
+ * so they are moved into the world's space through one XR frame.
+ */
+async function readGuardian(app: XrApp): Promise<Array<[number, number]> | null> {
+  const session = app.world.session;
+  const ref = (app.world.renderer as unknown as { xr?: { getReferenceSpace(): XRReferenceSpace | null } }).xr?.getReferenceSpace();
+  if (!session || !ref) return null;
+  try {
+    const bounded = (await session.requestReferenceSpace('bounded-floor')) as XRReferenceSpace & { boundsGeometry?: ReadonlyArray<DOMPointReadOnly> };
+    const pts = bounded.boundsGeometry ?? [];
+    if (pts.length < 3) return null;
+    const m = await new Promise<Float32Array | null>((resolve) => {
+      const t = setTimeout(() => resolve(null), 500);
+      session.requestAnimationFrame((_time, frame) => {
+        clearTimeout(t);
+        resolve(frame.getPose(bounded, ref)?.transform.matrix ?? null);
+      });
+    });
+    if (!m) return null;
+    return pts.map((p) => [m[0]! * p.x + m[8]! * p.z + m[12]!, m[2]! * p.x + m[10]! * p.z + m[14]!] as [number, number]);
+  } catch {
+    return null;
+  }
+}
 
 /** Plates stand this far ahead of the head, this far below it and this far to the left. */
 const PLATE_AHEAD_M = 0.45;
@@ -93,6 +130,12 @@ export const roomModule: FeatureModule = {
       } else if (!inRange && (session || entering)) leave();
     };
     const offPlace = app.shell.place.subscribe(sync);
+    // a new size lays the course out again from where the person stands now
+    const offSize = courseSizeOf(app).subscribe(() => {
+      if (!session && !entering) return;
+      leave();
+      sync();
+    });
     const offRange = rangeOf(app).subscribe(sync);
     const offChoice = courseChoiceOf(app).subscribe(sync);
     sync();
@@ -100,6 +143,7 @@ export const roomModule: FeatureModule = {
       offChoice();
       offPlace();
       offRange();
+      offSize();
       leave();
     };
   },
@@ -130,7 +174,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   if (!content || !flight || !alive()) return null;
   const course = pickCourse(flight.courses, courseChoiceOf(app).value)!;
   const build: FlyingBuild = buildThatFlies(content, app.project.doc);
-  const volume = roomVolume(head.x, head.z, head.heading);
+  const size = courseSizeOf(app).value;
+  const volume = volumeFor(size, head, size === 'room' ? await readGuardian(app) : null);
   const map = mapCourse(volume, course.field, course.ceiling ?? flight.craft.ceiling, course.pad);
   const runner: FlightRunner = createRunner(flight.craft, course, build.calc, { mode: startMode(content, course.id), faults: build.faults });
   const drone = await loadDrone(project.contentId);
@@ -207,14 +252,14 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const grip = movable(app, { id: 'range/readout', group: label.mesh, width: 1.7, height: 0.6, distanceM: 2.2, z: 0.004 });
   disposers.push(() => grip.dispose());
 
-  // the plates: Arm, Reset, Back, standing a little to the person's left at chest height
+  // the plates: Arm, Reset, Back, Craft (3), the screen's View (4, screen/index.ts) and Size (5), standing a little to the person's left at chest height
   const plates = new Group();
   plates.name = 'range-plates';
   plates.position.set(head.x + PLATE_AHEAD_M * fx - PLATE_LEFT_M * rx, head.y - PLATE_BELOW_M, head.z + PLATE_AHEAD_M * fz - PLATE_LEFT_M * rz);
   plates.rotation.y = Math.atan2(-fx, -fz);
   root.add(plates);
   const lang = () => langOf(app);
-  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart', primary: boolean, label: string): Plate => {
+  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope', primary: boolean, label: string): Plate => {
     const p = plateButton(app, { w: 0.11, d: 0.055, standing: true, primary }, { icon, label, lang: lang() });
     p.group.name = `room:${name}`;
     p.group.position.x = slot * PLATE_GAP_M;
@@ -229,6 +274,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const resetPlate = makePlate('reset', 1, 'reset', false, S.t(lang(), 'reset'));
   const backPlate = makePlate('back', 2, 'close', false, S.t(lang(), 'back'));
   const craftPlate = makePlate('craft', 3, 'restart', false, S.t(lang(), 'craft'));
+  const sizeLabel = () => S.t(lang(), 'size', { size: S.t(lang(), `size_${courseSizeOf(app).value}` as 'size_room') });
+  const sizePlate = makePlate('size', 5, 'scope', false, sizeLabel());
   dropIn(app.world, plates, { height: 0.04 });
 
   // what the label says
@@ -245,6 +292,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     resetPlate.set({ label: S.t(lang(), 'reset'), lang: lang() });
     backPlate.set({ label: S.t(lang(), 'back'), lang: lang() });
     craftPlate.set({ label: S.t(lang(), 'craft'), lang: lang() });
+    sizePlate.set({ label: sizeLabel(), lang: lang() });
   };
   let shownArmed = false;
   const offLang = app.settings.lang.subscribe((l) => {
@@ -306,6 +354,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   disposers.push(bindPlate(app, resetPlate, 'range/room/reset', reset));
   disposers.push(bindPlate(app, backPlate, 'range/room/back', () => void app.shell.go('bench')));
   disposers.push(bindPlate(app, craftPlate, 'range/room/craft', () => pickerOpenOf(app).set(!pickerOpenOf(app).value)));
+  // the next size (Room, Compact, Tabletop): the room flight lays out again (courseSizeOf's subscriber in the module)
+  disposers.push(bindPlate(app, sizePlate, 'range/room/size', () => courseSizeOf(app).set(nextSize(courseSizeOf(app).value))));
 
   // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks, read afresh every frame (`readController`)
   const claims: Array<{ owner: string; read: (out: Sticks) => void }> = [];
