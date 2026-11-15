@@ -6,6 +6,7 @@
 import type { FeatureModule, XrApp } from '../contracts/app';
 import type { LocalizedText, ReadonlyValue, Unsubscribe } from '../contracts/common';
 import { LANGS } from '../contracts/common';
+import { lastCraftOf, pickerPendingOf } from './flight/picker/model';
 import { defineStrings, watchRangeProject, type RangeProject } from './shared';
 
 /** The template the Drones tile opens: the craft whose figure is converted. */
@@ -40,11 +41,21 @@ export const activateModule: FeatureModule = {
   mount(app) {
     const range = rangeOf(app);
     let offer: Unsubscribe | null = null;
+    let offerKind: RangeProject['kind'] | null = null;
     const sync = (p: RangeProject | null) => {
-      if (p && !offer) offer = app.shell.offer('range', p.kind === 'drone' ? 'range/flight' : 'range/robots');
+      // a drone swapped for a robot (the picker's Robots row) is offered to the other module
+      if (p && offer && offerKind !== p.kind) {
+        offer();
+        offer = null;
+      }
+      if (p && !offer) {
+        offerKind = p.kind;
+        offer = app.shell.offer('range', p.kind === 'drone' ? 'range/flight' : 'range/robots');
+      }
       if (!p && offer) {
         offer();
         offer = null;
+        offerKind = null;
         if (app.shell.place.value === 'range') app.shell.go('bench');
       }
     };
@@ -56,7 +67,9 @@ export const activateModule: FeatureModule = {
       title: localized('drones'),
       detail: localized('dronesDetail'),
       open() {
-        void app.templates.load(DRONE_TEMPLATE).then((doc) => app.project.open(doc));
+        // the last craft (quad5 at first), and the picker opens when the person arrives in the Range
+        pickerPendingOf(app).set(true);
+        void app.templates.load(`prj_drone-${lastCraftOf(app).value}`).then((doc) => app.project.open(doc));
       },
     });
     return () => {

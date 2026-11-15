@@ -58,6 +58,17 @@ async function listed(read: ReadFile, contentId: string): Promise<boolean> {
   return (index.items ?? []).some((i) => i.id === `drones/${contentId}`);
 }
 
+/** The content ids of every converted drone (`drones/<id>` in `index.json`), in index order; empty when unreadable. */
+export async function convertedDrones(read: ReadFile | undefined = pageFolder()): Promise<string[]> {
+  if (!read) return [];
+  try {
+    const index = JSON.parse(decode(await read('index.json'))) as { items?: Array<{ id?: string }> };
+    return (index.items ?? []).flatMap((i) => (typeof i.id === 'string' && i.id.startsWith('drones/') ? [i.id.slice('drones/'.length)] : []));
+  } catch {
+    return [];
+  }
+}
+
 function loadItem(contentId: string, read: ReadFile): Promise<Item | null> {
   let p = items.get(contentId);
   if (!p) {
