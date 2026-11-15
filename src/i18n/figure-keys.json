@@ -334,6 +334,11 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -574,6 +579,16 @@
   ],
   "{part} is now {value}": [
     "figures/engine/bench.js",
+    "figures/engine/lab.js",
+    "figures/lab/bench-power-supply.js",
+    "figures/lab/bunsen-burner.js",
+    "figures/lab/soldering-station.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "parts/aa-holder-4",
     "parts/capacitor-ceramic",
     "parts/capacitor-electrolytic",
@@ -864,6 +879,10 @@
   ],
   "0 lx": [
     "parts/ldr"
+  ],
+  "0 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "0 Ω link on RXD0 (GPIO3)": [
     "boards/esp32-devkitc",
@@ -1181,6 +1200,10 @@
     "figures/boards/uno-r3.js",
     "robotics/uno-r3-build"
   ],
+  "10 Ω 5 W resistor": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "10-inch two-blade props, 2 CW + 2 CCW": [
     "drones/gpscam",
     "figures/drones/gpscam.js"
@@ -1201,6 +1224,10 @@
   "100 MHz MEMS oscillator IC9 (the clock on pin W5; silicon, no quartz)": [
     "boards/basys3",
     "figures/boards/basys3.js"
+  ],
+  "100 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "100 nF": [
     "parts/capacitor-ceramic"
@@ -1354,6 +1381,10 @@
     "boards/de10-lite",
     "figures/boards/de10-lite.js"
   ],
+  "100 Ω 2 W resistor": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "100 Ω resistor in the B1 debounce filter": [
     "boards/nucleo-f401re",
     "figures/boards/nucleo-f401re.js"
@@ -1462,6 +1493,10 @@
   "15-inch carbon props, 2 CW + 2 CCW": [
     "drones/delivery",
     "figures/drones/delivery.js"
+  ],
+  "150 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "155°, 15° up": [
     "drones/cinewhoop",
@@ -1625,6 +1660,10 @@
     "boards/pico",
     "figures/boards/pico.js"
   ],
+  "200 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "2004 1950KV": [
     "figures/drones/cinewhoop.js"
   ],
@@ -1747,6 +1786,18 @@
   "25-200 mW race VTX (SmartAudio)": [
     "drones/racer",
     "figures/drones/racer.js"
+  ],
+  "250 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
+  "250 mL beaker": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "250 mL conical flask": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
   ],
   "2596-SDC: LM2596S-ADJ, 4.5-40 V in, 1.25 V up to the input out, 2 A without a heatsink, with a 3-digit voltmeter": [
     "figures/modules/lm2596.js"
@@ -2003,6 +2054,10 @@
   ],
   "300 lx": [
     "parts/ldr"
+  ],
+  "300 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "3008 1100KV": [
     "figures/drones/longrange.js"
@@ -2650,6 +2705,10 @@
     "drones/longrange",
     "figures/drones/longrange.js"
   ],
+  "50 mL": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "500 mA resettable fuse on the Qwiic 3.3 V": [
     "boards/uno-r4",
     "figures/boards/uno-r4.js"
@@ -2899,6 +2958,9 @@
   "A 6-axis motion sensor on I2C (0x68): 3-axis gyroscope, 3-axis accelerometer and a 3.3 V regulator": [
     "figures/modules/mpu6050.js"
   ],
+  "A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame.": [
+    "figures/lab/bunsen-burner.js"
+  ],
   "A button and a knob": [
     "figures/boards/nano.js"
   ],
@@ -3066,6 +3128,10 @@
   "AIO BOARD: arrow forward": [
     "drones/whoop"
   ],
+  "Air collar": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "AIR UNIT": [
     "drones/cinewhoop",
     "figures/drones/cinewhoop.js"
@@ -3181,6 +3247,9 @@
   "amplifying": [
     "parts/lm358"
   ],
+  "Amps": [
+    "figures/lab/bench-power-supply.js"
+  ],
   "AMS1117": [
     "figures/boards/esp32-devkitc.js"
   ],
@@ -3282,6 +3351,9 @@
   "AOUT VCC GND": [
     "figures/modules/soil-moisture.js",
     "modules/soil-moisture"
+  ],
+  "Approximate graduations": [
+    "lab/beaker-250"
   ],
   "ArduCopter 4.7.2": [
     "drones/agrihex",
@@ -3603,6 +3675,10 @@
   "barely glowing": [
     "figures/robotics/led-resistor.js"
   ],
+  "Barrel": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Barrel jack": [
     "boards/uno-r3",
     "boards/uno-r4",
@@ -3787,6 +3863,10 @@
   "BCM2712, four Cortex-A76 cores at 2.4 GHz, RP1 for every port, 5 V 5 A over USB-C PD, 3.3 V GPIO": [
     "figures/boards/pi4-pi5.js"
   ],
+  "Beaker": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
   "Beating heart": [
     "boards/microbit-v2",
     "figures/boards/microbit-v2.js"
@@ -3817,6 +3897,10 @@
     "robotics/tb6612fng",
     "robotics/transistor-switch"
   ],
+  "Bench power supply": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Bench power: 5 V logic on VCC, 2S LiPo on VM": [
     "figures/modules/tb6612fng.js",
     "modules/tb6612fng"
@@ -3835,6 +3919,10 @@
   ],
   "black": [
     "parts/push-button"
+  ],
+  "Black - terminal": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "Blank flash (factory): the RP2350 drive": [
     "boards/pico",
@@ -3937,9 +4025,16 @@
     "parts/led",
     "parts/push-button"
   ],
+  "Blue": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Blue duty": [
     "figures/parts/rgb-led.js",
     "parts/rgb-led"
+  ],
+  "Blue flame": [
+    "figures/lab/bunsen-burner.js"
   ],
   "Blue LED on the board (D0)": [
     "boards/nodemcu",
@@ -3992,6 +4087,10 @@
     "robotics/tb6612fng",
     "robotics/transistor-switch",
     "robotics/uno-r3-build"
+  ],
+  "Bob": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Bond wires": [
     "parts/lm358",
@@ -4057,6 +4156,10 @@
     "boards/pico",
     "figures/boards/pico.js"
   ],
+  "Boss head and clamp rod": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
   "Both bridges on: IN1 high, IN2 low, both motors forward": [
     "figures/modules/l298n.js",
     "modules/l298n"
@@ -4095,6 +4198,10 @@
   "Brake (IN1 = IN2)": [
     "figures/modules/l298n.js",
     "modules/l298n"
+  ],
+  "Brass bob, 50 g": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Brass disc": [
     "parts/piezo-buzzer"
@@ -4384,6 +4491,10 @@
   ],
   "Built: every part on the right way round, the checks marked passed (not run)": [
     "figures/engine/drone.js"
+  ],
+  "Bunsen burner": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "burnt": [
     "parts/dc-motor",
@@ -5114,6 +5225,9 @@
   "CBE": [
     "parts/npn-2n2222"
   ],
+  "CC: current limit reached": [
+    "lab/bench-power-supply"
+  ],
   "CC1": [
     "figures/robotics/led-resistor.js"
   ],
@@ -5360,6 +5474,10 @@
     "robotics/transistor-switch",
     "robotics/uno-r3-build"
   ],
+  "Closed": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "CN1 · USB Mini-B socket (ST-LINK: power, programming, virtual COM port)": [
     "boards/nucleo-f401re"
   ],
@@ -5564,6 +5682,12 @@
     "drones/wing",
     "figures/engine/bench.js",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -5687,6 +5811,10 @@
     "boards/de10-lite",
     "figures/boards/de10-lite.js"
   ],
+  "Conical flask": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
+  ],
   "Connect over the Crazyradio first: cflib reads the decks and the position over the link": [
     "figures/drones/swarm.js"
   ],
@@ -5717,7 +5845,12 @@
     "figures/boards/uno-r3.js"
   ],
   "Control board": [
+    "lab/bench-power-supply",
     "parts/servo-sg90"
+  ],
+  "Control box": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
   ],
   "Control header (DIR, STEP, SLP, RST, MS3, MS2, MS1, EN)": [
     "figures/modules/a4988.js",
@@ -5755,6 +5888,11 @@
   ],
   "Cooling fan FAN1": [
     "parts/fan"
+  ],
+  "Copper sulfate solution": [
+    "figures/engine/lab.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "CORELESS BRUSHED: NO ESC": [
     "drones/swarm",
@@ -5849,6 +5987,14 @@
     "figures/robotics/led-resistor.js",
     "robotics/led-resistor"
   ],
+  "Current limit": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
+  "Current limit knob": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Current-limit trimpot (its rotor is VREF)": [
     "figures/modules/a4988.js",
     "modules/a4988",
@@ -5866,6 +6012,9 @@
   ],
   "CV · VCOMH capacitor": [
     "modules/ssd1306"
+  ],
+  "CV: holding the voltage": [
+    "lab/bench-power-supply"
   ],
   "CW/CCW alternating (correct)": [
     "drones/octo",
@@ -6112,6 +6261,15 @@
   "DAC out on A0, with ground beside it for a meter": [
     "figures/boards/uno-r4.js"
   ],
+  "Damp": [
+    "lab/soldering-station"
+  ],
+  "Damp sponge": [
+    "lab/soldering-station"
+  ],
+  "Dampen the sponge first: a dry one melts and does not clean the tip.": [
+    "figures/lab/soldering-station.js"
+  ],
   "dark": [
     "figures/boards/esp32-devkitc.js",
     "figures/boards/esp32-s3-devkitc-1.js",
@@ -6349,6 +6507,9 @@
     "drones/agrihex",
     "figures/drones/agrihex.js"
   ],
+  "Dry": [
+    "lab/soldering-station"
+  ],
   "Dry air": [
     "figures/modules/soil-moisture.js",
     "modules/soil-moisture"
@@ -6356,6 +6517,9 @@
   "Dry soil": [
     "figures/modules/soil-moisture.js",
     "modules/soil-moisture"
+  ],
+  "Dry sponge": [
+    "lab/soldering-station"
   ],
   "DS1 · 3-digit red LED voltmeter display": [
     "modules/lm2596",
@@ -6595,6 +6759,12 @@
   "Emitters off (LEDON low)": [
     "figures/modules/qtr-8rc.js",
     "modules/qtr-8rc"
+  ],
+  "Empty": [
+    "figures/lab/beaker-250.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "Empty crystal footprint Y1: the RA4M1 runs on its internal 48 MHz oscillator": [
     "boards/uno-r4",
@@ -6924,6 +7094,9 @@
     "drones/wing",
     "figures/engine/bench.js",
     "figures/engine/drone.js",
+    "figures/engine/lab.js",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -7199,6 +7372,12 @@
   "Ferrite magnet": [
     "parts/dc-motor"
   ],
+  "Fill 50 mL": [
+    "figures/lab/beaker-250.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "Fit the {part} first": [
     "figures/drones/cinewhoop.js"
   ],
@@ -7339,6 +7518,10 @@
   ],
   "Fix the fault first: unplug, then replace {name}": [
     "figures/robotics/led-resistor.js"
+  ],
+  "Flame": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "FLASH": [
     "boards/nodemcu",
@@ -7609,6 +7792,10 @@
     "figures/drones/tricopter.js",
     "figures/drones/vtol.js"
   ],
+  "Front panel and readouts": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Front view": [
     "boards/basys3",
     "boards/de10-lite",
@@ -7636,6 +7823,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -7752,6 +7945,37 @@
   "G473 MCU + GYRO": [
     "drones/whoop",
     "figures/drones/whoop.js"
+  ],
+  "Gas": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas inlet": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas is on but not lit. Turn the gas tap off now, then light it the right way.": [
+    "figures/lab/bunsen-burner.js"
+  ],
+  "Gas jet": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas tap": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas tap closed": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas tap on/off": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Gas tap open": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "GEAR DOWN AND LOCKED": [
     "figures/drones/octo.js"
@@ -7998,6 +8222,10 @@
     "figures/parts/rgb-led.js",
     "parts/rgb-led"
   ],
+  "Green earth terminal": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Green LED": [
     "figures/modules/traffic-light.js",
     "modules/traffic-light"
@@ -8127,6 +8355,10 @@
   "half on: hot (150 mA at 4 V)": [
     "parts/npn-2n2222"
   ],
+  "Half open": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Half speed (caps on)": [
     "figures/robotics/l298n.js",
     "robotics/l298n"
@@ -8185,6 +8417,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -8324,6 +8562,10 @@
     "figures/robotics/l298n.js",
     "robotics/l298n"
   ],
+  "Heavy base": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Heavy-lift cinema octocopter": [
     "drones/octo",
     "figures/drones/octo.js"
@@ -8398,6 +8640,28 @@
     "figures/modules/soil-moisture.js",
     "figures/modules/tb6612fng.js",
     "figures/modules/uln2003.js"
+  ],
+  "Hot plate": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "Hot plate off": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "Hot plate on": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "Hot plate on/off": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "Hot tip: it does not glow": [
+    "lab/soldering-station"
+  ],
+  "Hottest just above the inner cone": [
+    "lab/bunsen-burner"
   ],
   "I = {v} V / {r} = {ma} mA  {verdict}": [
     "figures/robotics/led-resistor.js"
@@ -8608,6 +8872,11 @@
   "Intel MAX 10 10M50 FPGA, 50 MHz clocks, 3.3 V I/O, USB-Blaster built in": [
     "figures/boards/de10-lite.js"
   ],
+  "Iodine solution": [
+    "figures/engine/lab.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "IOH · Digital header D8-D13, GND, AREF, SDA, SCL": [
     "boards/uno-r3",
     "robotics/uno-r3-build"
@@ -8620,12 +8889,37 @@
     "modules/qtr-8rc",
     "robotics/qtr-8rc"
   ],
+  "Iron back in its stand": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Iron cable": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Iron in its stand": [
+    "figures/lab/soldering-station.js"
+  ],
+  "Iron picked up": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Iron stand and sponge": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
   "ISL854102 buck converter (VIN to 5 V, 1.2 A)": [
     "boards/uno-r4",
     "figures/boards/uno-r4.js"
   ],
   "ISSI|IS42S16320D": [
     "figures/boards/de10-lite.js"
+  ],
+  "It is already lit": [
+    "figures/lab/bunsen-burner.js"
+  ],
+  "It will not light with the collar open. Turn the gas off, close the collar, then try again.": [
+    "figures/lab/bunsen-burner.js"
   ],
   "J1 · 11-pin header on the back: GND, VCC, LEDON, OUT1-OUT8": [
     "modules/qtr-8rc",
@@ -9225,6 +9519,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -9748,6 +10048,9 @@
     "figures/boards/esp32-s3-devkitc-1.js",
     "robotics/esp32-s3-build"
   ],
+  "Length L": [
+    "lab/pendulum-stand"
+  ],
   "LESD5D5.0 ESD diode on a USB data line": [
     "boards/esp32-devkitc",
     "figures/boards/esp32-devkitc.js"
@@ -9774,6 +10077,10 @@
   ],
   "Li-ion cells in the AA holder": [
     "robotics/transistor-switch"
+  ],
+  "Light": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "Light level": [
     "figures/engine/bench.js",
@@ -9873,6 +10180,24 @@
     "drones/gpscam",
     "figures/drones/gpscam.js"
   ],
+  "Liquid": [
+    "figures/engine/lab.js",
+    "figures/lab/beaker-250.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
+  "Liquid level": [
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
+  "Lit: a blue flame": [
+    "figures/lab/bunsen-burner.js"
+  ],
+  "Lit: a yellow safety flame": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "LM2596": [
     "figures/modules/lm2596.js",
     "figures/robotics/lm2596.js",
@@ -9913,7 +10238,9 @@
     "robotics/uno-r3-build"
   ],
   "Load": [
+    "figures/lab/bench-power-supply.js",
     "figures/parts/dc-motor.js",
+    "lab/bench-power-supply",
     "parts/dc-motor"
   ],
   "LOAD": [
@@ -10130,6 +10457,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -10206,6 +10539,9 @@
   "MAIN OUT 1-8 · PWM": [
     "drones/octo",
     "figures/drones/octo.js"
+  ],
+  "Mains transformer": [
+    "lab/bench-power-supply"
   ],
   "Make a sound": [
     "figures/boards/uno-r3.js"
@@ -10929,6 +11265,9 @@
     "figures/robotics/mpu6050.js",
     "robotics/mpu6050"
   ],
+  "Narrow neck": [
+    "lab/erlenmeyer-250"
+  ],
   "NCP1117 5 V regulator": [
     "boards/uno-r3",
     "figures/boards/uno-r3.js",
@@ -10996,6 +11335,8 @@
   ],
   "no": [
     "figures/engine/bench.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250",
     "parts/npn-2n2222",
     "parts/piezo-buzzer",
     "parts/push-button",
@@ -11078,6 +11419,10 @@
   ],
   "No flyback diode: the collector kicks to 60 V at every switch-off": [
     "figures/robotics/transistor-switch.js"
+  ],
+  "No gas: open the gas tap first": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "No IR: every sensor reads black": [
     "figures/modules/qtr-8rc.js",
@@ -11186,6 +11531,10 @@
     "parts/tmp36",
     "robotics/led-resistor"
   ],
+  "None": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "NOSE DIPS A LITTLE": [
     "figures/drones/wing.js"
   ],
@@ -11225,6 +11574,10 @@
   "notch right, as printed": [
     "boards/uno-r3",
     "robotics/uno-r3-build"
+  ],
+  "Nothing connected": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "Nothing in range": [
     "figures/modules/hc-sr04.js",
@@ -11398,6 +11751,14 @@
     "boards/uno-r3",
     "boards/uno-r4",
     "figures/engine/bench.js",
+    "figures/lab/beaker-250.js",
+    "figures/lab/bench-power-supply.js",
+    "figures/lab/bunsen-burner.js",
+    "figures/lab/soldering-station.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -11484,6 +11845,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -11544,6 +11911,14 @@
     "robotics/tb6612fng",
     "robotics/transistor-switch",
     "robotics/uno-r3-build"
+  ],
+  "ON": [
+    "figures/lab/beaker-250.js",
+    "figures/lab/bunsen-burner.js",
+    "figures/lab/soldering-station.js",
+    "lab/beaker-250",
+    "lab/bunsen-burner",
+    "lab/soldering-station"
   ],
   "ON · ON LED (5 V)": [
     "boards/uno-r3",
@@ -11624,6 +11999,10 @@
     "boards/uno-r4",
     "robotics/uno-r3-build"
   ],
+  "Open": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Oscillator": [
     "parts/piezo-buzzer"
   ],
@@ -11640,6 +12019,10 @@
   "osd: MSP DisplayPort, HD canvas 53 x 20, link quality on": [
     "figures/drones/cinewhoop.js"
   ],
+  "Out": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "OUT": [
     "figures/modules/lm2596.js",
     "figures/robotics/lm2596.js",
@@ -11654,6 +12037,10 @@
   "OUT shorted: the LM2596 holds 4.2 A, the SS34 carries it": [
     "figures/robotics/lm2596.js"
   ],
+  "Output": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "output high": [
     "parts/ne555"
   ],
@@ -11663,6 +12050,14 @@
   ],
   "output low": [
     "parts/ne555"
+  ],
+  "Output off": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
+  "Output on": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "Output shorted: current limit": [
     "figures/robotics/lm2596.js"
@@ -11695,6 +12090,9 @@
   ],
   "overheating (2 A, no heatsink)": [
     "parts/tip120"
+  ],
+  "Overloaded: too hot": [
+    "figures/lab/bench-power-supply.js"
   ],
   "OVP": [
     "figures/boards/de10-lite.js"
@@ -11893,6 +12291,10 @@
     "figures/modules/soil-moisture.js",
     "modules/soil-moisture"
   ],
+  "Period": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
   "Phone charger (5 V 2 A)": [
     "boards/pi4-pi5",
     "figures/boards/pi4-pi5.js",
@@ -12002,6 +12404,10 @@
   "Pick and place: pose {n}": [
     "figures/robotics/pca9685.js"
   ],
+  "Pick up / put back": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
   "PicoBlade 2-pin ×4": [
     "drones/swarm",
     "figures/drones/swarm.js"
@@ -12086,6 +12492,10 @@
   "Pitot tube + ASPD-4525 sensor": [
     "drones/vtol",
     "figures/drones/vtol.js"
+  ],
+  "Pivot": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Pivoting": [
     "figures/robotics/l298n.js"
@@ -12468,6 +12878,11 @@
   "Position pot (5 kΩ)": [
     "parts/servo-sg90"
   ],
+  "Potassium permanganate solution": [
+    "figures/engine/lab.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "Potentiometer": [
     "figures/parts/potentiometer.js",
     "parts/potentiometer"
@@ -12517,6 +12932,8 @@
     "boards/uno-r3",
     "boards/uno-r4",
     "figures/engine/bench.js",
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -12690,9 +13107,21 @@
   "POWER MODULE: cap stripe to plus": [
     "drones/gpscam"
   ],
+  "Power on/off": [
+    "figures/lab/bench-power-supply.js",
+    "figures/lab/soldering-station.js",
+    "lab/bench-power-supply",
+    "lab/soldering-station"
+  ],
   "Power pins − + (5-12 V)": [
     "figures/modules/uln2003.js",
     "modules/uln2003"
+  ],
+  "Power switch": [
+    "figures/lab/bench-power-supply.js",
+    "figures/lab/soldering-station.js",
+    "lab/bench-power-supply",
+    "lab/soldering-station"
   ],
   "Power switch SW16 (ON)": [
     "boards/basys3",
@@ -13284,6 +13713,9 @@
   "Put the driver down and wire it to the Nano": [
     "figures/robotics/qtr-8rc.js",
     "robotics/qtr-8rc"
+  ],
+  "Put the iron back in its stand when you are not soldering: a hot iron on the bench burns things.": [
+    "figures/lab/soldering-station.js"
   ],
   "Put the LiPo down and wire +12V and GND": [
     "figures/robotics/l298n.js",
@@ -14125,6 +14557,10 @@
     "figures/modules/traffic-light.js",
     "modules/traffic-light"
   ],
+  "Red + terminal": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Red 5 mm LED": [
     "figures/robotics/led-resistor.js",
     "robotics/led-resistor"
@@ -14306,6 +14742,9 @@
     "boards/esp32-devkitc",
     "figures/boards/esp32-devkitc.js"
   ],
+  "Regulator on its heatsink": [
+    "lab/bench-power-supply"
+  ],
   "Regulator output capacitor": [
     "figures/modules/soil-moisture.js",
     "modules/soil-moisture"
@@ -14313,6 +14752,18 @@
   "Regulator output capacitor (22 µF)": [
     "boards/esp32-devkitc",
     "figures/boards/esp32-devkitc.js"
+  ],
+  "Release / stop": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
+  "Release angle": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
+  "Released: count the swings": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Remove a part": [
     "boards/basys3",
@@ -14512,6 +14963,12 @@
     "drones/vtol",
     "drones/whoop",
     "drones/wing",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -14640,6 +15097,10 @@
     "figures/boards/nano.js",
     "figures/boards/uno-r3.js",
     "robotics/transistor-switch"
+  ],
+  "Retort stand base": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "RETRACT SERVO ON AUX 1 (SERVO9 = 29)": [
     "drones/octo",
@@ -14803,6 +15264,14 @@
     "boards/uno-r3",
     "robotics/uno-r3-build"
   ],
+  "Roaring blue": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "Roaring blue flame": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "Robot's 5 V buck on GPIO pins 2 and 4": [
     "figures/robotics/pi5-ros2.js",
     "robotics/pi5-ros2"
@@ -14950,6 +15419,10 @@
   ],
   "RTK MASTS: GPS1 at the front": [
     "drones/agrihex"
+  ],
+  "Rubber gas hose": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
   ],
   "Rubber seal": [
     "parts/capacitor-electrolytic"
@@ -15239,6 +15712,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -15299,6 +15778,18 @@
     "robotics/tb6612fng",
     "robotics/transistor-switch",
     "robotics/uno-r3-build"
+  ],
+  "See-through: gas rises from the jet and mixes with the air the collar lets in": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
+  "See-through: labels for the tip, the dial and the sponge": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "See-through: the arc of the swing and the length L, measured to the centre of the bob": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "See-through: the battery tray, the packs and the camera fade so the Pixhawk, the power board and the wiring show.": [
     "drones/octo",
@@ -15394,6 +15885,12 @@
     "drones/swarm",
     "figures/drones/swarm.js"
   ],
+  "See-through: the glass fades and the graduations and the level show": [
+    "figures/lab/beaker-250.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
+  ],
   "See-through: the top plate and battery fade so the stack, the power path and the signals show.": [
     "drones/quad5",
     "figures/drones/quad5.js"
@@ -15401,6 +15898,10 @@
   "See-through: the top plate and the battery fade so the power board, the servo lead and the signals show.": [
     "drones/tricopter",
     "figures/drones/tricopter.js"
+  ],
+  "See-through: the transformer, the regulator on its heatsink and the control board": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "See-through: the wing, the hatch and the pod walls fade so the pack, the flight controller and the power path show.": [
     "drones/vtol",
@@ -15530,6 +16031,12 @@
   "SERVOS: reversed (untested)": [
     "drones/wing"
   ],
+  "Set": [
+    "figures/lab/bench-power-supply.js",
+    "figures/lab/soldering-station.js",
+    "lab/bench-power-supply",
+    "lab/soldering-station"
+  ],
   "Set up the mat": [
     "figures/engine/bench.js",
     "robotics/a4988",
@@ -15585,6 +16092,10 @@
   ],
   "Short brake": [
     "figures/robotics/tb6612fng.js"
+  ],
+  "Short circuit": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "Short from {a} to {b}": [
     "boards/esp32-devkitc",
@@ -15709,6 +16220,10 @@
   "Silver fingers": [
     "parts/fsr402"
   ],
+  "Simple pendulum": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
   "Six 0603 capacitors: VMOT, charge pump, VDD and VREG decoupling": [
     "figures/modules/a4988.js",
     "modules/a4988",
@@ -15829,6 +16344,9 @@
   ],
   "Slightly nose-heavy: the nose dips a little. That is the safe side: stable, it just needs a bit more speed": [
     "figures/drones/wing.js"
+  ],
+  "Sloping sides": [
+    "lab/erlenmeyer-250"
   ],
   "Small 0402 resistors and capacitors around the buck and the MCU": [
     "boards/uno-r4",
@@ -16043,6 +16561,14 @@
     "robotics/qtr-8rc",
     "robotics/tb6612fng"
   ],
+  "Soldering iron": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Soldering station": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
   "Sound hole": [
     "parts/piezo-buzzer"
   ],
@@ -16074,6 +16600,13 @@
   ],
   "Spin the wheel": [
     "figures/boards/uno-r3.js"
+  ],
+  "Sponge": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Spout and rim": [
+    "lab/beaker-250"
   ],
   "SPRAYERPUMP ON AUX1 (SERVO9 = 22)": [
     "drones/agrihex",
@@ -16133,6 +16666,10 @@
     "parts/dc-motor",
     "parts/tt-motor"
   ],
+  "Stand rod": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
   "Stand the arm in front and plug its servos into channels 0-2": [
     "figures/robotics/pca9685.js",
     "robotics/pca9685"
@@ -16144,6 +16681,14 @@
   ],
   "Standby: outputs off": [
     "figures/robotics/tb6612fng.js"
+  ],
+  "Station off": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "Station on: the tip heats up": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
   ],
   "STATOR 12N14P": [
     "drones/cinewhoop",
@@ -16209,6 +16754,10 @@
   "Steady HIGH": [
     "figures/parts/piezo-buzzer.js",
     "parts/piezo-buzzer"
+  ],
+  "Steel case": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "Step at 200 per second": [
     "figures/modules/a4988.js",
@@ -16289,6 +16838,10 @@
     "parts/fan",
     "parts/tt-motor"
   ],
+  "Stopped": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
   "STORES ENERGY 150 000 TIMES A SECOND": [
     "modules/lm2596",
     "robotics/lm2596"
@@ -16303,6 +16856,14 @@
   "Stretched-X carbon race frame": [
     "drones/racer",
     "figures/drones/racer.js"
+  ],
+  "String": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
+  "String length": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Strip to bare PCB": [
     "boards/basys3",
@@ -16743,6 +17304,21 @@
     "figures/robotics/pca9685.js",
     "robotics/pca9685"
   ],
+  "Swinging": [
+    "figures/lab/pendulum-stand.js"
+  ],
+  "Swings": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
+  "Swirl": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
+  ],
+  "Swirling": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
+  ],
   "SWITCH + 1.23 V REFERENCE": [
     "modules/lm2596",
     "robotics/lm2596"
@@ -16935,11 +17511,19 @@
   ],
   "Temperature": [
     "boards/microbit-v2",
-    "figures/boards/microbit-v2.js"
+    "figures/boards/microbit-v2.js",
+    "figures/lab/beaker-250.js",
+    "figures/lab/soldering-station.js",
+    "lab/beaker-250",
+    "lab/soldering-station"
   ],
   "Temperature (°C)": [
     "figures/parts/tmp36.js",
     "parts/tmp36"
+  ],
+  "Temperature dial": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
   ],
   "Temperature sensor (TMP36)": [
     "figures/parts/tmp36.js",
@@ -16996,8 +17580,53 @@
     "boards/basys3",
     "figures/boards/basys3.js"
   ],
+  "That flask is too full to swirl: keep it under about half full or it will slop out.": [
+    "figures/lab/erlenmeyer-250.js"
+  ],
+  "That is a short with the current limit turned up. Turn the output off and turn the current limit down.": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
+  "That is hotter than you need. Around 330 °C is enough; hotter burns the tip and can lift the pads.": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
+  ],
+  "That is too full to heat: it can boil over. Pour some out first.": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "That swing is too big for the formula: release it from under about 15 degrees.": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
+  ],
+  "The beaker is empty on a hot plate: heating dry glass can crack it. Turn the plate off.": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "The beaker is filled past 250 mL: it will spill when you carry it.": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
+  "The beaker is full to the brim": [
+    "figures/lab/beaker-250.js",
+    "lab/beaker-250"
+  ],
   "The coil's spike went through the A4988": [
     "figures/robotics/a4988.js"
+  ],
+  "The current limit is at maximum, so it protects nothing. Set it just above what the circuit needs.": [
+    "figures/lab/bench-power-supply.js"
+  ],
+  "The flame lifted off and went out: close the air collar, then light it": [
+    "figures/lab/bunsen-burner.js"
+  ],
+  "The flask is filled past 250 mL: there is no room left to mix.": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
+  ],
+  "The flask is full to the neck": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
   ],
   "The meter reads {v} V": [
     "figures/robotics/lm2596.js"
@@ -17021,6 +17650,10 @@
   ],
   "The reflow oven is still running: wait for it": [
     "figures/engine/bench.js"
+  ],
+  "The resistor is burning more than its rating and will overheat. Lower the voltage or use a bigger resistor.": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
   ],
   "the right way round": [
     "drones/swarm",
@@ -17052,6 +17685,10 @@
   ],
   "The trimmer's wiper is off: FB sees 0 V and the output jumps to the input": [
     "figures/robotics/lm2596.js"
+  ],
+  "There is nothing in the flask to swirl": [
+    "figures/lab/erlenmeyer-250.js",
+    "lab/erlenmeyer-250"
   ],
   "Thermal shutdown": [
     "figures/robotics/lm2596.js"
@@ -17124,6 +17761,10 @@
   "Tiny Whoop 65 mm": [
     "drones/whoop",
     "figures/drones/whoop.js"
+  ],
+  "Tip": [
+    "figures/lab/soldering-station.js",
+    "lab/soldering-station"
   ],
   "TIP120 backwards": [
     "figures/robotics/transistor-switch.js"
@@ -17335,6 +17976,10 @@
     "figures/modules/traffic-light.js",
     "modules/traffic-light"
   ],
+  "Transformer, regulator and control board": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Transistor switch: a Nano drives a motor": [
     "figures/robotics/transistor-switch.js",
     "robotics/transistor-switch"
@@ -17450,6 +18095,12 @@
     "drones/whoop",
     "drones/wing",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -17984,11 +18635,19 @@
   "Ultrasonic distance sensor (HC-SR04) P1": [
     "parts/hc-sr04"
   ],
+  "Unburnt gas": [
+    "lab/bunsen-burner"
+  ],
   "Under 8 V: steps lost": [
     "figures/robotics/a4988.js"
   ],
   "Under-voltage": [
     "figures/robotics/pi5-ros2.js"
+  ],
+  "Universal indicator": [
+    "figures/engine/lab.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "Unknown supply {name}": [
     "figures/engine/bench.js"
@@ -18597,6 +19256,12 @@
     "drones/wing",
     "figures/engine/bench.js",
     "figures/vendor/colorfigures/core.js",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -18705,13 +19370,30 @@
   "VMOT and VDD on, RST tied to SLP: the A4988 holds the motor at its Home step": [
     "modules/a4988"
   ],
+  "Voltage": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
+  "Voltage knob": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Voltmeter circuit: divider resistors, decoupling and two SOT-23s": [
     "figures/modules/lm2596.js",
     "modules/lm2596",
     "robotics/lm2596"
   ],
+  "Volts": [
+    "figures/lab/bench-power-supply.js"
+  ],
   "Volts: red on the point, black on GND": [
     "figures/parts/multimeter.js"
+  ],
+  "Volume": [
+    "figures/lab/beaker-250.js",
+    "figures/lab/erlenmeyer-250.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "Vref": [
     "figures/robotics/a4988.js",
@@ -18820,6 +19502,11 @@
   ],
   "Wall: no echo this time": [
     "figures/robotics/hc-sr04.js"
+  ],
+  "Water": [
+    "figures/engine/lab.js",
+    "lab/beaker-250",
+    "lab/erlenmeyer-250"
   ],
   "Watering can": [
     "figures/engine/bench-props.js"
@@ -18980,6 +19667,10 @@
     "figures/robotics/led-resistor.js",
     "robotics/led-resistor"
   ],
+  "Wire link (short)": [
+    "figures/lab/bench-power-supply.js",
+    "lab/bench-power-supply"
+  ],
   "Wire the arms and fit the Cube first": [
     "drones/agrihex",
     "figures/drones/agrihex.js"
@@ -19036,6 +19727,10 @@
     "drones/whoop",
     "drones/wing",
     "figures/engine/drone.js"
+  ],
+  "Wooden bob, 5 g": [
+    "figures/lab/pendulum-stand.js",
+    "lab/pendulum-stand"
   ],
   "Wound foil": [
     "parts/capacitor-electrolytic"
@@ -19199,6 +19894,10 @@
     "parts/led",
     "parts/push-button"
   ],
+  "Yellow": [
+    "figures/lab/bunsen-burner.js",
+    "lab/bunsen-burner"
+  ],
   "YELLOW": [
     "figures/modules/traffic-light.js",
     "modules/traffic-light"
@@ -19207,12 +19906,16 @@
     "figures/modules/traffic-light.js",
     "modules/traffic-light"
   ],
+  "Yellow safety flame": [
+    "figures/lab/bunsen-burner.js"
+  ],
   "Yellow USB LED (on while a computer is connected, flashes while a program copies)": [
     "boards/microbit-v2",
     "figures/boards/microbit-v2.js"
   ],
   "yes": [
     "figures/engine/bench.js",
+    "figures/lab/erlenmeyer-250.js",
     "parts/npn-2n2222",
     "parts/piezo-buzzer",
     "parts/push-button",
@@ -19255,6 +19958,12 @@
     "drones/vtol",
     "drones/whoop",
     "drones/wing",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",
@@ -19342,6 +20051,12 @@
     "drones/vtol",
     "drones/whoop",
     "drones/wing",
+    "lab/beaker-250",
+    "lab/bench-power-supply",
+    "lab/bunsen-burner",
+    "lab/erlenmeyer-250",
+    "lab/pendulum-stand",
+    "lab/soldering-station",
     "modules/a4988",
     "modules/hc-sr04",
     "modules/l298n",

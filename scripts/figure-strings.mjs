@@ -16,7 +16,7 @@ import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const OUT = join(ROOT, 'src/i18n/figure-keys.json');
-const KINDS = ['boards', 'robotics', 'modules', 'parts', 'drones'];
+const KINDS = ['boards', 'robotics', 'modules', 'parts', 'drones', 'lab'];
 const quick = process.argv.includes('--static');
 const check = quick || process.argv.includes('--check');
 const failures = [];

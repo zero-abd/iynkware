@@ -1,0 +1,1804 @@
+{
+  "schema": "iynkware.lab-catalogue/1",
+  "generated": "node figures/engine/lab-catalogue.mjs (do not edit by hand; docs/FIGURES-LAB.md)",
+  "frame": "mm in the item frame: x to the item's right, y away from its front, z up from the mat, origin at the centre of foot on the mat (the bench board-mm frame, docs/XR_ASSETS.md section 2)",
+  "items": [
+    {
+      "id": "beaker-250",
+      "kind": "lab",
+      "name": "250 mL beaker",
+      "page": "public/figures/lab/beaker-250.html",
+      "lab": "chemistry",
+      "summary": "A 250 mL glass beaker for holding, mixing and heating liquids. Its marks are only approximate.",
+      "safeUse": [
+        "Carry it with one hand under the base, not by the rim.",
+        "When you heat it, fill it to 150 mL at most, so it cannot boil over.",
+        "Heat it on a hot plate or on a gauze over a tripod, never straight in a flame.",
+        "Use a measuring cylinder or pipette when the volume matters.",
+        "Let hot glass cool before you touch it: hot glass looks the same as cold glass."
+      ],
+      "mistakes": [
+        {
+          "id": "heating-empty",
+          "when": "The hot plate is on and the beaker is empty.",
+          "say": "The beaker is empty on a hot plate: heating dry glass can crack it. Turn the plate off."
+        },
+        {
+          "id": "heating-too-full",
+          "when": "The hot plate is on with more than 150 mL in the beaker.",
+          "say": "That is too full to heat: it can boil over. Pour some out first."
+        },
+        {
+          "id": "overfilled",
+          "when": "The beaker holds more than its 250 mL mark.",
+          "say": "The beaker is filled past 250 mL: it will spill when you carry it."
+        }
+      ],
+      "hazards": [
+        "Hot glass and hot liquid can burn.",
+        "Chipped or cracked glass can cut and can break when heated.",
+        "Some solutions (copper sulfate, potassium permanganate) are harmful: wear goggles and gloves."
+      ],
+      "foot": [
+        80,
+        80,
+        95
+      ],
+      "params": {
+        "liquid": {
+          "label": "Liquid",
+          "values": [
+            "water",
+            "copper-sulfate",
+            "permanganate",
+            "iodine",
+            "indicator"
+          ]
+        },
+        "volume": {
+          "label": "Volume",
+          "values": [
+            0,
+            50,
+            100,
+            150,
+            200,
+            250,
+            300
+          ],
+          "range": [
+            0,
+            330
+          ],
+          "unit": "mL"
+        },
+        "heat": {
+          "label": "Hot plate",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "liquid": "copper-sulfate",
+        "volume": 150,
+        "heat": false
+      },
+      "actions": [
+        {
+          "id": "fill",
+          "label": "Fill 50 mL"
+        },
+        {
+          "id": "empty",
+          "label": "Empty"
+        },
+        {
+          "id": "heat",
+          "label": "Hot plate on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "liquid",
+        "volume",
+        "heat",
+        "tempC",
+        "boiling",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "BEAKER",
+          "name": "Beaker",
+          "role": "body"
+        },
+        {
+          "id": "LIQUID",
+          "name": "Liquid",
+          "role": "liquid"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "port:SPOUT",
+          "kind": "port",
+          "part": "BEAKER",
+          "at": [
+            -25.1,
+            29.8,
+            95
+          ],
+          "normal": [
+            -0.644,
+            0.765,
+            0
+          ]
+        },
+        {
+          "id": "label:LIQUID",
+          "kind": "label",
+          "part": "LIQUID",
+          "at": [
+            33.5,
+            0,
+            44.5
+          ],
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "text": "Liquid"
+        },
+        {
+          "id": "label:BEAKER",
+          "kind": "label",
+          "part": "BEAKER",
+          "at": [
+            0,
+            -35,
+            60
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Beaker"
+        }
+      ],
+      "channels": [],
+      "extras": {
+        "liquid": {
+          "part": "LIQUID",
+          "bind": {
+            "source": "param",
+            "key": "volume"
+          },
+          "color": {
+            "source": "param",
+            "key": "liquid"
+          },
+          "inner": [
+            [
+              33.5,
+              2
+            ],
+            [
+              33.5,
+              94.5
+            ]
+          ],
+          "levelMm": {
+            "0": 2,
+            "50": 16.2,
+            "100": 30.4,
+            "150": 44.5,
+            "200": 58.7,
+            "250": 72.9,
+            "300": 87.1
+          },
+          "how": "The liquid is a lathe of the inner profile from the floor to levelMm[volume]; scale its node along up from the floor, or rebuild it"
+        }
+      }
+    },
+    {
+      "id": "bench-power-supply",
+      "kind": "lab",
+      "name": "Bench power supply",
+      "page": "public/figures/lab/bench-power-supply.html",
+      "lab": "electronics",
+      "summary": "A 0-30 V, 0-5 A bench supply. It holds the voltage you set (CV) until the load wants more than the current limit, then it holds the current (CC).",
+      "safeUse": [
+        "Turn the output off before you connect or change anything.",
+        "Set the voltage first, then set the current limit a little above what your circuit should draw.",
+        "Use red for + and black for -; green is mains earth, not the negative output.",
+        "If the CC lamp lights when you did not expect it, something draws too much: turn off and check the circuit.",
+        "Never short the output with the current limit turned up."
+      ],
+      "mistakes": [
+        {
+          "id": "short-high-limit",
+          "when": "The output is on into a short with the current limit above 1 A.",
+          "say": "That is a short with the current limit turned up. Turn the output off and turn the current limit down."
+        },
+        {
+          "id": "resistor-overload",
+          "when": "The resistor on the output burns more power than its rating.",
+          "say": "The resistor is burning more than its rating and will overheat. Lower the voltage or use a bigger resistor."
+        },
+        {
+          "id": "limit-at-max",
+          "when": "The output is on into a load with the current limit at the 5 A maximum.",
+          "say": "The current limit is at maximum, so it protects nothing. Set it just above what the circuit needs."
+        }
+      ],
+      "hazards": [
+        "A short or a wrong connection can burn parts and wires.",
+        "Overloaded resistors get hot enough to burn fingers.",
+        "The mains inside the case is dangerous: never open it while plugged in."
+      ],
+      "foot": [
+        160,
+        290,
+        127
+      ],
+      "params": {
+        "vSet": {
+          "label": "Voltage",
+          "values": [
+            0,
+            1.5,
+            3.3,
+            5,
+            9,
+            12,
+            15,
+            24,
+            30
+          ],
+          "range": [
+            0,
+            30
+          ],
+          "unit": "V"
+        },
+        "iSet": {
+          "label": "Current limit",
+          "values": [
+            0.1,
+            0.2,
+            0.5,
+            1,
+            2,
+            3,
+            5
+          ],
+          "range": [
+            0,
+            5
+          ],
+          "unit": "A"
+        },
+        "load": {
+          "label": "Load",
+          "values": [
+            "open",
+            "r100",
+            "r10",
+            "short"
+          ]
+        },
+        "on": {
+          "label": "Output",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "vSet": 5,
+        "iSet": 0.5,
+        "load": "r100",
+        "on": false
+      },
+      "actions": [
+        {
+          "id": "power",
+          "label": "Power on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "vSet",
+        "iSet",
+        "load",
+        "on",
+        "vOut",
+        "iOut",
+        "mode",
+        "pLoadW",
+        "loadHot",
+        "mistake"
+      ],
+      "exploded": true,
+      "parts": [
+        {
+          "id": "CASE",
+          "name": "Steel case",
+          "role": "cover",
+          "explode": [
+            0,
+            0,
+            70
+          ]
+        },
+        {
+          "id": "PANEL",
+          "name": "Front panel and readouts",
+          "role": "body"
+        },
+        {
+          "id": "VSET",
+          "name": "Voltage knob",
+          "role": "control"
+        },
+        {
+          "id": "ISET",
+          "name": "Current limit knob",
+          "role": "control"
+        },
+        {
+          "id": "POWER",
+          "name": "Power switch",
+          "role": "control"
+        },
+        {
+          "id": "POST_PLUS",
+          "name": "Red + terminal",
+          "role": "pin"
+        },
+        {
+          "id": "POST_MINUS",
+          "name": "Black - terminal",
+          "role": "pin"
+        },
+        {
+          "id": "POST_GND",
+          "name": "Green earth terminal",
+          "role": "pin"
+        },
+        {
+          "id": "LOAD",
+          "name": "Load",
+          "role": "body"
+        },
+        {
+          "id": "INSIDE",
+          "name": "Transformer, regulator and control board",
+          "role": "body",
+          "layer": "xray"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "+",
+          "kind": "pin",
+          "part": "POST_PLUS",
+          "at": [
+            56,
+            -111,
+            22
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "V+",
+            "OUT+"
+          ]
+        },
+        {
+          "id": "-",
+          "kind": "pin",
+          "part": "POST_MINUS",
+          "at": [
+            20,
+            -111,
+            22
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "V-",
+            "OUT-"
+          ]
+        },
+        {
+          "id": "GND",
+          "kind": "pin",
+          "part": "POST_GND",
+          "at": [
+            38,
+            -111,
+            22
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "EARTH"
+          ]
+        },
+        {
+          "id": "control:VSET",
+          "kind": "control",
+          "part": "VSET",
+          "at": [
+            -38,
+            -111,
+            50
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:VSET"
+        },
+        {
+          "id": "control:ISET",
+          "kind": "control",
+          "part": "ISET",
+          "at": [
+            38,
+            -111,
+            50
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:ISET"
+        },
+        {
+          "id": "control:POWER",
+          "kind": "control",
+          "part": "POWER",
+          "at": [
+            -52,
+            -103,
+            19
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "press:POWER"
+        },
+        {
+          "id": "led:CV",
+          "kind": "led",
+          "part": "PANEL",
+          "at": [
+            -7,
+            -98.5,
+            62
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:CV"
+        },
+        {
+          "id": "led:CC",
+          "kind": "led",
+          "part": "PANEL",
+          "at": [
+            7,
+            -98.5,
+            62
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:CC"
+        },
+        {
+          "id": "screen:VOUT",
+          "kind": "screen",
+          "part": "PANEL",
+          "at": [
+            -40,
+            -98.3,
+            95
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Volts",
+          "rect": {
+            "origin": [
+              -65,
+              -98.3,
+              108
+            ],
+            "u": [
+              50,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              0,
+              -26
+            ],
+            "pixels": [
+              200,
+              104
+            ]
+          }
+        },
+        {
+          "id": "screen:IOUT",
+          "kind": "screen",
+          "part": "PANEL",
+          "at": [
+            30,
+            -98.3,
+            95
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Amps",
+          "rect": {
+            "origin": [
+              5,
+              -98.3,
+              108
+            ],
+            "u": [
+              50,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              0,
+              -26
+            ],
+            "pixels": [
+              200,
+              104
+            ]
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "turn:VSET",
+          "kind": "rotate",
+          "part": "VSET",
+          "value": {
+            "unit": "deg",
+            "min": -150,
+            "max": 150,
+            "rest": -100
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            -38,
+            -98,
+            50
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "vSet"
+          },
+          "extras": {
+            "degPerUnit": 10,
+            "degAtZero": -150
+          }
+        },
+        {
+          "id": "turn:ISET",
+          "kind": "rotate",
+          "part": "ISET",
+          "value": {
+            "unit": "deg",
+            "min": -150,
+            "max": 150,
+            "rest": -120
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            38,
+            -98,
+            50
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "iSet"
+          },
+          "extras": {
+            "degPerUnit": 60,
+            "degAtZero": -150
+          }
+        },
+        {
+          "id": "led:CV",
+          "kind": "emissive",
+          "part": "PANEL",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#4dff6a",
+          "extras": {
+            "on": "report.mode === \"CV\""
+          }
+        },
+        {
+          "id": "led:CC",
+          "kind": "emissive",
+          "part": "PANEL",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#ff4b33",
+          "extras": {
+            "on": "report.mode === \"CC\""
+          }
+        },
+        {
+          "id": "press:POWER",
+          "kind": "rotate",
+          "part": "POWER",
+          "value": {
+            "unit": "deg",
+            "min": -12,
+            "max": 12,
+            "rest": 12
+          },
+          "axis": [
+            1,
+            0,
+            0
+          ],
+          "pivot": [
+            -52,
+            -101,
+            19
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "on"
+          },
+          "extras": {
+            "deg": {
+              "false": 12,
+              "true": -12
+            }
+          }
+        }
+      ],
+      "extras": {
+        "screens": {
+          "VOUT": {
+            "digits": 4,
+            "format": "vOut, 2 decimals",
+            "color": "#ff4b33"
+          },
+          "IOUT": {
+            "digits": 4,
+            "format": "iOut, 3 decimals",
+            "color": "#4dff6a"
+          }
+        }
+      }
+    },
+    {
+      "id": "bunsen-burner",
+      "kind": "lab",
+      "name": "Bunsen burner",
+      "page": "public/figures/lab/bunsen-burner.html",
+      "lab": "chemistry",
+      "summary": "A gas burner. The air collar sets the flame: closed gives a yellow safety flame, open gives a hot roaring blue flame.",
+      "safeUse": [
+        "Tie back long hair, wear goggles, and stand the burner on a heat-proof mat away from paper.",
+        "Close the air collar before you light it.",
+        "Have the lit splint or lighter ready over the barrel before you turn the gas on, then light it at once.",
+        "Open the collar for a hot blue flame only while you are heating something.",
+        "When you are not heating, close the collar to the yellow safety flame so everyone can see it.",
+        "Turn the gas off at the tap when you finish."
+      ],
+      "mistakes": [
+        {
+          "id": "gas-unlit",
+          "when": "The gas tap has been on for more than 2 seconds with no flame.",
+          "say": "Gas is on but not lit. Turn the gas tap off now, then light it the right way."
+        },
+        {
+          "id": "light-collar-open",
+          "when": "Someone tried to light it with the air collar open, and the gas is still on.",
+          "say": "It will not light with the collar open. Turn the gas off, close the collar, then try again."
+        },
+        {
+          "id": "blue-flame-idle",
+          "when": "A roaring blue flame has burned for over 20 seconds.",
+          "say": "A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame."
+        }
+      ],
+      "hazards": [
+        "Unburnt gas can build up and explode.",
+        "A blue flame is almost invisible in daylight.",
+        "The barrel stays hot after the flame is out.",
+        "Hair, sleeves and paper catch fire."
+      ],
+      "foot": [
+        205,
+        92,
+        260
+      ],
+      "params": {
+        "collar": {
+          "label": "Air collar",
+          "values": [
+            "closed",
+            "half",
+            "open"
+          ]
+        },
+        "gasOn": {
+          "label": "Gas tap",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "lit": {
+          "label": "Flame",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "collar": "closed",
+        "gasOn": false,
+        "lit": false
+      },
+      "actions": [
+        {
+          "id": "gas",
+          "label": "Gas tap on/off"
+        },
+        {
+          "id": "light",
+          "label": "Light"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "collar",
+        "gasOn",
+        "lit",
+        "flame",
+        "gasUnlitS",
+        "mistake"
+      ],
+      "exploded": true,
+      "parts": [
+        {
+          "id": "BASE",
+          "name": "Heavy base",
+          "role": "body"
+        },
+        {
+          "id": "BARREL",
+          "name": "Barrel",
+          "role": "body",
+          "explode": [
+            0,
+            0,
+            45
+          ]
+        },
+        {
+          "id": "COLLAR",
+          "name": "Air collar",
+          "role": "control",
+          "explode": [
+            0,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "JET",
+          "name": "Gas jet",
+          "role": "body",
+          "layer": "xray"
+        },
+        {
+          "id": "INLET",
+          "name": "Gas inlet",
+          "role": "body"
+        },
+        {
+          "id": "HOSE",
+          "name": "Rubber gas hose",
+          "role": "wire"
+        },
+        {
+          "id": "TAP",
+          "name": "Gas tap",
+          "role": "control"
+        },
+        {
+          "id": "FLAME",
+          "name": "Flame",
+          "role": "light"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "control:COLLAR",
+          "kind": "control",
+          "part": "COLLAR",
+          "at": [
+            55,
+            -8.5,
+            31
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:COLLAR"
+        },
+        {
+          "id": "control:TAP",
+          "kind": "control",
+          "part": "TAP",
+          "at": [
+            -67,
+            18,
+            40
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "channel": "turn:TAP"
+        },
+        {
+          "id": "port:INLET",
+          "kind": "port",
+          "part": "INLET",
+          "at": [
+            21,
+            0,
+            7
+          ],
+          "normal": [
+            -1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "label:FLAME",
+          "kind": "label",
+          "part": "FLAME",
+          "at": [
+            55,
+            0,
+            190
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Flame"
+        }
+      ],
+      "channels": [
+        {
+          "id": "turn:COLLAR",
+          "kind": "rotate",
+          "part": "COLLAR",
+          "value": {
+            "unit": "deg",
+            "min": 0,
+            "max": 90,
+            "rest": 0
+          },
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "pivot": [
+            55,
+            0,
+            32
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "collar"
+          },
+          "extras": {
+            "deg": {
+              "closed": 0,
+              "half": 45,
+              "open": 90
+            }
+          }
+        },
+        {
+          "id": "turn:TAP",
+          "kind": "rotate",
+          "part": "TAP",
+          "value": {
+            "unit": "deg",
+            "min": 0,
+            "max": 90,
+            "rest": 90
+          },
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "pivot": [
+            -77,
+            18,
+            40
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "gasOn"
+          },
+          "extras": {
+            "deg": {
+              "false": 90,
+              "true": 0
+            }
+          }
+        },
+        {
+          "id": "flame:BURNER",
+          "kind": "emissive",
+          "part": "FLAME",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#7a86ea",
+          "bind": {
+            "source": "param",
+            "key": "lit"
+          },
+          "extras": {
+            "colorByCollar": {
+              "closed": "#f6b73c",
+              "half": "#8d93e6",
+              "open": "#7a86ea"
+            },
+            "heightMm": {
+              "closed": 105,
+              "half": 82,
+              "open": 66
+            }
+          }
+        }
+      ],
+      "extras": {}
+    },
+    {
+      "id": "erlenmeyer-250",
+      "kind": "lab",
+      "name": "250 mL conical flask",
+      "page": "public/figures/lab/erlenmeyer-250.html",
+      "lab": "chemistry",
+      "summary": "A 250 mL conical (Erlenmeyer) flask for mixing, swirling and titrations. Its sloping sides keep the liquid in when you swirl it.",
+      "safeUse": [
+        "Swirl it by moving your wrist in small circles, holding the neck.",
+        "Keep it to 150 mL or less when you swirl it, so nothing climbs out.",
+        "Stand it on a white tile under a burette to see a colour change.",
+        "Never heat it with a stopper in: the pressure can burst it."
+      ],
+      "mistakes": [
+        {
+          "id": "swirl-too-full",
+          "when": "The flask is swirled with more than 150 mL in it.",
+          "say": "That flask is too full to swirl: keep it under about half full or it will slop out."
+        },
+        {
+          "id": "overfilled",
+          "when": "The flask holds more than its 250 mL mark.",
+          "say": "The flask is filled past 250 mL: there is no room left to mix."
+        }
+      ],
+      "hazards": [
+        "Glass breaks and cuts.",
+        "A stoppered flask can burst when heated.",
+        "Some solutions are harmful: wear goggles."
+      ],
+      "foot": [
+        91,
+        91,
+        145
+      ],
+      "params": {
+        "liquid": {
+          "label": "Liquid",
+          "values": [
+            "water",
+            "copper-sulfate",
+            "permanganate",
+            "iodine",
+            "indicator"
+          ]
+        },
+        "volume": {
+          "label": "Volume",
+          "values": [
+            0,
+            50,
+            100,
+            150,
+            200,
+            250,
+            300
+          ],
+          "range": [
+            0,
+            337
+          ],
+          "unit": "mL"
+        },
+        "swirling": {
+          "label": "Swirling",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "liquid": "indicator",
+        "volume": 100,
+        "swirling": false
+      },
+      "actions": [
+        {
+          "id": "fill",
+          "label": "Fill 50 mL"
+        },
+        {
+          "id": "empty",
+          "label": "Empty"
+        },
+        {
+          "id": "swirl",
+          "label": "Swirl"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "liquid",
+        "volume",
+        "swirling",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "FLASK",
+          "name": "Conical flask",
+          "role": "body"
+        },
+        {
+          "id": "LIQUID",
+          "name": "Liquid",
+          "role": "liquid"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "port:NECK",
+          "kind": "port",
+          "part": "FLASK",
+          "at": [
+            0,
+            0,
+            145
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "label:LIQUID",
+          "kind": "label",
+          "part": "LIQUID",
+          "at": [
+            38,
+            0,
+            21.8
+          ],
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "text": "Liquid"
+        },
+        {
+          "id": "label:FLASK",
+          "kind": "label",
+          "part": "FLASK",
+          "at": [
+            0,
+            -17,
+            128
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Conical flask"
+        }
+      ],
+      "channels": [],
+      "extras": {
+        "liquid": {
+          "part": "LIQUID",
+          "bind": {
+            "source": "param",
+            "key": "volume"
+          },
+          "color": {
+            "source": "param",
+            "key": "liquid"
+          },
+          "inner": [
+            [
+              40.9,
+              2
+            ],
+            [
+              40.9,
+              10
+            ],
+            [
+              17,
+              108
+            ],
+            [
+              15.4,
+              116
+            ],
+            [
+              15.4,
+              144.5
+            ]
+          ],
+          "levelMm": {
+            "0": 2,
+            "50": 11.5,
+            "100": 21.8,
+            "150": 33.7,
+            "200": 48,
+            "250": 66.4,
+            "300": 94.5
+          },
+          "how": "The liquid is a lathe of the inner profile from the floor to levelMm[volume]; rebuild it, since the cone is not a straight scale"
+        },
+        "swirl": {
+          "bind": {
+            "source": "param",
+            "key": "swirling"
+          },
+          "seconds": 3,
+          "tiltDeg": 12.4
+        }
+      }
+    },
+    {
+      "id": "pendulum-stand",
+      "kind": "lab",
+      "name": "Simple pendulum",
+      "page": "public/figures/lab/pendulum-stand.html",
+      "lab": "physics",
+      "summary": "A simple pendulum on a retort stand. Its period depends on the string length, T = 2π√(L/g), not on the mass of the bob.",
+      "safeUse": [
+        "Clamp the stand to the bench, or put a heavy weight on its base, so it cannot tip.",
+        "Measure L from the pivot to the centre of the bob.",
+        "Release the bob from a small angle, under about 15 degrees, without pushing it.",
+        "Time 10 swings and divide by 10: it is much more accurate than timing one.",
+        "Start the timer as the bob passes the lowest point, where it moves fastest."
+      ],
+      "mistakes": [
+        {
+          "id": "large-angle",
+          "when": "The bob is swinging from a release angle above 15 degrees.",
+          "say": "That swing is too big for the formula: release it from under about 15 degrees."
+        }
+      ],
+      "hazards": [
+        "A tall stand can tip over: keep the clamp over the base.",
+        "A heavy swinging bob can hit faces and glassware."
+      ],
+      "foot": [
+        220,
+        300,
+        620
+      ],
+      "params": {
+        "length": {
+          "label": "String length",
+          "values": [
+            200,
+            300,
+            400,
+            500
+          ],
+          "range": [
+            100,
+            520
+          ],
+          "unit": "mm"
+        },
+        "amplitude": {
+          "label": "Release angle",
+          "values": [
+            5,
+            10,
+            20,
+            45
+          ],
+          "range": [
+            0,
+            60
+          ],
+          "unit": "deg"
+        },
+        "bob": {
+          "label": "Bob",
+          "values": [
+            "brass",
+            "wood"
+          ]
+        },
+        "swinging": {
+          "label": "Swinging",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "length": 400,
+        "amplitude": 10,
+        "bob": "brass",
+        "swinging": false
+      },
+      "actions": [
+        {
+          "id": "swing",
+          "label": "Release / stop"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "length",
+        "amplitude",
+        "bob",
+        "swinging",
+        "swings",
+        "periodS",
+        "periodSmallS",
+        "bobGrams",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "BASE",
+          "name": "Retort stand base",
+          "role": "body"
+        },
+        {
+          "id": "ROD",
+          "name": "Stand rod",
+          "role": "body"
+        },
+        {
+          "id": "CLAMP",
+          "name": "Boss head and clamp rod",
+          "role": "body"
+        },
+        {
+          "id": "STRING",
+          "name": "String",
+          "role": "wire"
+        },
+        {
+          "id": "BOB",
+          "name": "Bob",
+          "role": "control"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "label:PIVOT",
+          "kind": "label",
+          "part": "CLAMP",
+          "at": [
+            62,
+            0,
+            553
+          ],
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "text": "Pivot"
+        },
+        {
+          "id": "control:BOB",
+          "kind": "control",
+          "part": "BOB",
+          "at": [
+            62,
+            0,
+            153
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "swing:BOB",
+          "extras": {
+            "atLengthMm": 400
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "swing:BOB",
+          "kind": "rotate",
+          "part": "BOB",
+          "value": {
+            "unit": "deg",
+            "min": -60,
+            "max": 60,
+            "rest": 0
+          },
+          "axis": [
+            1,
+            0,
+            0
+          ],
+          "pivot": [
+            62,
+            0,
+            553
+          ],
+          "scale": 0.017453292519943295,
+          "extras": {
+            "nodes": [
+              "STRING",
+              "BOB"
+            ],
+            "angle": "amplitude * cos(2π t / report.periodS) while swinging",
+            "lengthBind": {
+              "source": "param",
+              "key": "length"
+            }
+          }
+        }
+      ],
+      "extras": {
+        "g": 9.81
+      }
+    },
+    {
+      "id": "soldering-station",
+      "kind": "lab",
+      "name": "Soldering station",
+      "page": "public/figures/lab/soldering-station.html",
+      "lab": "electronics",
+      "summary": "A temperature-controlled soldering iron. The tip runs at the dial temperature, about 330 °C for normal work, and looks the same hot or cold.",
+      "safeUse": [
+        "Always put the iron back in its stand, never down on the bench.",
+        "Hold it by the grip only; never touch the metal.",
+        "Use about 320 to 350 °C for normal through-hole soldering.",
+        "Keep the sponge damp, not wet, and wipe the tip on it before each joint.",
+        "Work with a fan or fume extractor so you do not breathe the flux smoke.",
+        "Switch it off when you finish or walk away."
+      ],
+      "mistakes": [
+        {
+          "id": "iron-left-out",
+          "when": "The station is on and the iron has been out of its stand for over 15 seconds.",
+          "say": "Put the iron back in its stand when you are not soldering: a hot iron on the bench burns things."
+        },
+        {
+          "id": "too-hot",
+          "when": "The station is on with the dial at 400 °C or more.",
+          "say": "That is hotter than you need. Around 330 °C is enough; hotter burns the tip and can lift the pads."
+        },
+        {
+          "id": "dry-sponge",
+          "when": "The station is on with a dry sponge.",
+          "say": "Dampen the sponge first: a dry one melts and does not clean the tip."
+        }
+      ],
+      "hazards": [
+        "The tip is around 330 °C and looks cold.",
+        "Flux smoke irritates the lungs.",
+        "Solder can spit: wear safety glasses."
+      ],
+      "foot": [
+        200,
+        230,
+        130
+      ],
+      "params": {
+        "tempSet": {
+          "label": "Temperature",
+          "values": [
+            200,
+            250,
+            300,
+            330,
+            350,
+            400,
+            450
+          ],
+          "range": [
+            200,
+            480
+          ],
+          "unit": "°C"
+        },
+        "sponge": {
+          "label": "Sponge",
+          "values": [
+            "damp",
+            "dry"
+          ]
+        },
+        "on": {
+          "label": "Power",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "inHolder": {
+          "label": "Iron in its stand",
+          "values": [
+            true,
+            false
+          ]
+        }
+      },
+      "defaults": {
+        "tempSet": 330,
+        "sponge": "damp",
+        "on": false,
+        "inHolder": true
+      },
+      "actions": [
+        {
+          "id": "power",
+          "label": "Power on/off"
+        },
+        {
+          "id": "iron",
+          "label": "Pick up / put back"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "tempSet",
+        "sponge",
+        "on",
+        "inHolder",
+        "tipC",
+        "heating",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "STATION",
+          "name": "Control box",
+          "role": "body"
+        },
+        {
+          "id": "DIAL",
+          "name": "Temperature dial",
+          "role": "control"
+        },
+        {
+          "id": "POWER",
+          "name": "Power switch",
+          "role": "control"
+        },
+        {
+          "id": "STAND",
+          "name": "Iron stand and sponge",
+          "role": "body"
+        },
+        {
+          "id": "IRON",
+          "name": "Soldering iron",
+          "role": "control"
+        },
+        {
+          "id": "CABLE",
+          "name": "Iron cable",
+          "role": "wire"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "control:DIAL",
+          "kind": "control",
+          "part": "DIAL",
+          "at": [
+            -52,
+            -71,
+            52
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:DIAL"
+        },
+        {
+          "id": "control:POWER",
+          "kind": "control",
+          "part": "POWER",
+          "at": [
+            -75,
+            -64,
+            17
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:POWER"
+        },
+        {
+          "id": "led:HEAT",
+          "kind": "led",
+          "part": "STATION",
+          "at": [
+            -28,
+            -60.4,
+            78
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:HEAT"
+        },
+        {
+          "id": "control:IRON",
+          "kind": "control",
+          "part": "IRON",
+          "at": [
+            42,
+            77,
+            84
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "label:TIP",
+          "kind": "label",
+          "part": "IRON",
+          "at": [
+            42,
+            -5,
+            14
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Tip"
+        }
+      ],
+      "channels": [
+        {
+          "id": "turn:DIAL",
+          "kind": "rotate",
+          "part": "DIAL",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": -9.642857142857139
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            -52,
+            -60,
+            52
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "tempSet"
+          },
+          "extras": {
+            "degAt200": -135,
+            "degPerC": 0.9642857142857143
+          }
+        },
+        {
+          "id": "led:POWER",
+          "kind": "emissive",
+          "part": "POWER",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#ff4b33",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        },
+        {
+          "id": "led:HEAT",
+          "kind": "emissive",
+          "part": "STATION",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#ff4b33",
+          "extras": {
+            "on": "report.heating"
+          }
+        }
+      ],
+      "extras": {
+        "ironPoses": {
+          "inHolder": {
+            "tip": [
+              42,
+              -5,
+              14
+            ],
+            "mid": [
+              42,
+              33,
+              46
+            ],
+            "end": [
+              42,
+              77,
+              84
+            ]
+          },
+          "inHand": {
+            "tip": [
+              20,
+              -92,
+              30
+            ],
+            "mid": [
+              36,
+              -62,
+              60
+            ],
+            "end": [
+              56,
+              -24,
+              100
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

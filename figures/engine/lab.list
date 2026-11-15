@@ -1,0 +1,7 @@
+# Lab equipment (docs/FIGURES-LAB.md): every figures/lab/<id>.js page uses this list (// @cf use engine/lab.list).
+# The bench engine is loaded for its registry, materials and drawing helpers (each lab item is also a bench prop);
+# the lab layer mounts the page itself.
+engine/bench.js
+engine/bench-kinds.js
+engine/bench-bb.js
+engine/lab.js
