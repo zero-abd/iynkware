@@ -27,7 +27,8 @@
   "exports": {
     "VoiceQuota": { "type": "durable-object", "storage": "sqlite" }
   },
-  "secrets": { "required": ["GEMINI_API_KEY"] },
+  // GEMINI_API_KEY is optional: without it /api/voice/* answers 503 voice_not_configured and the static demo still deploys.
+  // Set it with `wrangler secret put GEMINI_API_KEY` to turn voice on.
   "vars": {
     "VOICE_DEVICE_DAILY_LIMIT": "20",
     "VOICE_GLOBAL_DAILY_LIMIT": "200"
