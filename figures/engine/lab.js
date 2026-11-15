@@ -45,6 +45,39 @@ LAB.LIQUIDS = {
   iodine: { name: 'Iodine solution', color: '#c98a2a' },
   indicator: { name: 'Universal indicator', color: '#53b35a' },
 };
+/* flame-test colours (the flame-test kit and the Bunsen burner's `sample`): what a salt of each metal turns the outer
+   cone of a blue (non-luminous) flame. `hex` is the colour the figure and the headset tint the flame with; `colour`
+   the id a host reads. */
+LAB.FLAME_TESTS = {
+  li: { element: 'Lithium', salt: 'Lithium chloride', print: 'LiCl', colour: 'crimson', name: 'Crimson', hex: '#d8253a', label: 'Crimson flame: lithium' },
+  na: { element: 'Sodium', salt: 'Sodium chloride', print: 'NaCl', colour: 'yellow-orange', name: 'Yellow-orange', hex: '#ffb21f', label: 'Yellow-orange flame: sodium' },
+  k: { element: 'Potassium', salt: 'Potassium chloride', print: 'KCl', colour: 'lilac', name: 'Lilac', hex: '#b48ce0', label: 'Lilac flame: potassium' },
+  ca: { element: 'Calcium', salt: 'Calcium chloride', print: 'CaCl₂', colour: 'orange-red', name: 'Orange-red', hex: '#ff5a24', label: 'Orange-red flame: calcium' },
+  cu: { element: 'Copper', salt: 'Copper(II) chloride', print: 'CuCl₂', colour: 'blue-green', name: 'Blue-green', hex: '#2fb59a', label: 'Blue-green flame: copper' },
+  sr: { element: 'Strontium', salt: 'Strontium chloride', print: 'SrCl₂', colour: 'red', name: 'Red', hex: '#e8202a', label: 'Red flame: strontium' },
+  ba: { element: 'Barium', salt: 'Barium chloride', print: 'BaCl₂', colour: 'pale-green', name: 'Pale green', hex: '#a7d65a', label: 'Pale green flame: barium' },
+};
+
+/* ---------- instrument panel helpers (front panel at y = y0, facing -y) ---------- */
+// a round knob standing out of the panel, with a white pointer at `deg` (0 = up, clockwise seen from the front)
+LAB.knob = (W, x, y0, z, r, deg, o = {}) => {
+  const m = o.m || LAB.M.blackPl, d = o.depth || Math.max(6, r * .9), face = y0 - d, n = o.n || 18;
+  let s = rod(W(x, y0, z), W(x, y0 - d * .7, z), r, m, toneI, 1.1, r, n) + rod(W(x, y0 - d * .7, z), W(x, face, z), r, m, toneI, 1, r * .86, n);
+  if (vis(sub(W(0, -1, 0), W(0, 0, 0)))){ const a = deg * Math.PI / 180;
+    s += `<path d="${pd([W(x + r * .2 * Math.sin(a), face - .2, z + r * .2 * Math.cos(a)), W(x + r * .72 * Math.sin(a), face - .2, z + r * .72 * Math.cos(a))], false)}" stroke="${o.pointer || '#f6f1e3'}" stroke-width="${f(Math.max(1.1, r * .14))}" stroke-linecap="round"/>`; }
+  return s;
+};
+// a BNC socket on the panel: insulator ring, chrome barrel with its two bayonet studs, the dark mouth
+LAB.bnc = (W, x, y0, z) => {
+  let s = rod(W(x, y0, z), W(x, y0 - 2, z), 6.5, LAB.M.blackPl, toneI, .8, 6.5, 14) + rod(W(x, y0 - 2, z), W(x, y0 - 11, z), 4.8, LAB.M.steel, toneI, .9, 4.8, 14);
+  s += rod(W(x - 4.6, y0 - 8, z), W(x - 6.2, y0 - 8, z), .8, LAB.M.steel, toneI, .4, .8, 6) + rod(W(x + 4.6, y0 - 8, z), W(x + 6.2, y0 - 8, z), .8, LAB.M.steel, toneI, .4, .8, 6);
+  if (vis(sub(W(0, -1, 0), W(0, 0, 0)))) s += shape(LAB.panelRing(W, x, y0 - 11.1, z, 2.6, 10), '#1d1b19', .4);
+  return s;
+};
+// a circle of world points on a front panel plane y (a lamp, a socket's mouth)
+LAB.panelRing = (W, x, y, z, r, n = 12) => Array.from({ length: n }, (_, i) => { const a = i / n * 2 * Math.PI; return W(x + r * Math.cos(a), y, z + r * Math.sin(a)); });
+// a flat rectangle on the panel (a window, a key, a label plate)
+LAB.plate = (W, y, x0, z0, x1, z1, col, w = .6) => shape([W(x0, y, z0), W(x1, y, z0), W(x1, y, z1), W(x0, y, z1)], col, w);
 LAB.liquidParam = () => ({ label: 'Liquid', values: Object.keys(LAB.LIQUIDS), names: Object.fromEntries(Object.entries(LAB.LIQUIDS).map(([k, v]) => [k, v.name])) });
 
 /* ---------- geometry helpers (item frame in, world out) ---------- */

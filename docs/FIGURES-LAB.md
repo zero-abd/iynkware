@@ -22,7 +22,7 @@ public/figures/lab/<id>.html   build output; commit it
 ```
 
 The items today: `beaker-250`, `erlenmeyer-250`, `bunsen-burner`, `bench-power-supply`, `pendulum-stand`,
-`soldering-station`.
+`soldering-station`, `flame-test-kit`, `oscilloscope`, `function-generator`, `ph-meter`, `digital-balance`.
 
 ## 2. How an item registers
 
@@ -112,6 +112,11 @@ Helpers on `SL.lab`:
   lathe's inside, so the liquid stands on the right graduation.
 - `LAB.LIQUIDS` and `LAB.liquidParam()`: the shared liquids picker.
 - `LAB.textOn(point, U, V, text, size, colour)`: printing on any plane, hidden when the plane faces away.
+- `LAB.knob(W, x, y0, z, r, deg, { m, depth, n })`, `LAB.bnc(W, x, y0, z)`, `LAB.plate(W, y, x0, z0, x1, z1, colour)`
+  and `LAB.panelRing(W, x, y, z, r, n)`: an instrument's front panel at `y0` (facing -y): a knob with its pointer at
+  `deg` (0 up, clockwise seen from the front), a BNC socket, a flat window or key, a lamp's circle.
+- `LAB.FLAME_TESTS`: the flame-test colour of each metal (`li na k ca cu sr ba`: element, salt, printed formula,
+  colour id, English colour name, `hex`), shared by the flame-test kit and the Bunsen burner's `sample`.
 
 Budget: lab equipment is 20,000 triangles and 16 draw calls after conversion (`docs/XR_ASSETS.md` §8, from the lab
 kind's contract PR). Keep rings at
@@ -158,10 +163,20 @@ The current items report:
 |---|---|---|---|
 | `beaker-250` | `fill`, `empty`, `heat`, `liquid`, `volume` | `liquid`, `volume`, `heat`, `tempC`, `boiling` | `heating-empty`, `heating-too-full`, `overfilled` |
 | `erlenmeyer-250` | `fill`, `empty`, `swirl`, `liquid`, `volume` | `liquid`, `volume`, `swirling` | `swirl-too-full`, `overfilled` |
-| `bunsen-burner` | `gas`, `light`, `collar`, `exploded` | `collar`, `gasOn`, `lit`, `flame`, `gasUnlitS` | `gas-unlit`, `light-collar-open`, `blue-flame-idle` |
+| `bunsen-burner` | `gas`, `light`, `collar`, `sample`, `exploded` | `collar`, `gasOn`, `lit`, `sample`, `flame`, `gasUnlitS`, `flameColour` | `gas-unlit`, `light-collar-open`, `flame-test-luminous`, `blue-flame-idle` |
 | `bench-power-supply` | `power`, `vSet`, `iSet`, `load`, `exploded` | `vSet`, `iSet`, `load`, `on`, `vOut`, `iOut`, `mode`, `pLoadW`, `loadHot` | `short-high-limit`, `resistor-overload`, `limit-at-max` |
 | `pendulum-stand` | `swing`, `length`, `amplitude`, `bob` | `length`, `amplitude`, `bob`, `swinging`, `swings`, `periodS`, `periodSmallS`, `bobGrams` | `large-angle` |
 | `soldering-station` | `power`, `iron`, `tempSet`, `sponge` | `tempSet`, `sponge`, `on`, `inHolder`, `tipC`, `heating` | `iron-left-out`, `too-hot`, `dry-sponge` |
+| `flame-test-kit` | `clean`, `dip`, `dish`, `unknown` | `dish`, `unknown`, `clean`, `salt`, `carry`, `sample`, `mixed`, `flameColour` | `salt-before-clean`, `dirty-loop` |
+| `oscilloscope` | `power`, `run`, `ch1`, `ch2`, `source`, `wave`, `freqHz`, `timebase`, `vdiv`, `trigLevel`, `probe`, `atten` | every param, `vppShown`, `freqShown`, `cycles`, `divs`, `triggered`, `clipped` | `probe-mismatch`, `clipped`, `too-small`, `timebase-off` |
+| `function-generator` | `output`, `power`, `wave`, `freqHz`, `vpp`, `load` | `wave`, `freqHz`, `vpp`, `load`, `output`, `on`, `vLoadPp`, `iPeakmA`, `signal` | `output-shorted`, `overdrive` |
+| `ph-meter` | `rinse`, `calibrate`, `cap`, `power`, `liquid` | `liquid`, `calibrated`, `rinsed`, `capped`, `on`, `readingPH`, `truePH`, `carryOver`, `dryS` | `not-rinsed`, `not-calibrated`, `stored-dry` |
+| `digital-balance` | `tare`, `power`, `pan`, `sampleG` | `pan`, `sampleG`, `tareG`, `on`, `readingG`, `massG`, `net` | `no-tare`, `tared-with-sample` |
+
+The Bunsen burner's `sample` (a flame-test metal, or null) tints a blue flame (report `flameColour`; mistake
+`flame-test-luminous` when it is held in the yellow flame), and the flame-test kit reports the `sample` to pass it.
+The function generator's `report.signal` is the shape the oscilloscope takes as `{ source: 'demo', wave, freqHz, vpp,
+offset }`.
 
 ## 8. XR: anchors and channels
 
@@ -176,7 +191,8 @@ in item-frame mm (the catalogue repeats it):
 - **Channels** follow §7, with its four kinds only (`emissive`, `rotate`, `spin`, `translate`): `turn:<part>` for a
   knob or collar (`rotate`, `deg`, `axis` and `pivot` in the item frame), `led:<part>` for a lamp (`emissive`),
   `press:<part>` for a switch (the supply's rocker is a `rotate`: it tips), and two lab ids whose kinds are still
-  standard: `flame:<item>` (`emissive`, a flame's light) and `swing:<part>` (`rotate` about the pivot, a pendulum). `bind: { source: 'param', key }` names the param that
+  standard: `flame:<item>` (`emissive`, a flame's light), `swing:<part>` (`rotate` about the pivot, a pendulum) and
+  `lift:<part>` (`translate`, a part that slides up and down: the pH electrode on its arm). `bind: { source: 'param', key }` names the param that
   drives it; when the param is not a number (`collar: 'half'`), `extras` gives the mapping (`deg: { closed: 0,
   half: 45, open: 90 }`); a lamp driven by reported state says so in `extras.on` (`report.mode === "CV"`).
 - **Liquids** change geometry, which a channel cannot do: `xr.extras.liquid` gives the liquid's part, its `bind`, the

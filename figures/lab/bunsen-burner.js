@@ -8,7 +8,11 @@
    flame (the safety flame: easy to see, sooty, cooler); half open, a quiet blue flame with a yellow tip; open, a
    roaring blue flame with a pale blue inner cone (the hottest point, about 1500 °C, is just above that cone's tip).
    Lighting it with the collar open usually fails: the gas comes out too fast and lean, the flame lifts off and goes
-   out, and the gas keeps flowing. Gas on without a flame is the hazard this figure is about. */
+   out, and the gas keeps flowing. Gas on without a flame is the hazard this figure is about.
+   Flame tests: `sample` is the metal a wire loop held in the flame is carrying (the flame-test kit reports it). In a
+   blue flame (collar half or open) the outer cone takes the metal's colour (SL.lab.FLAME_TESTS: lithium crimson,
+   sodium yellow-orange, potassium lilac, calcium orange-red, copper blue-green, strontium red, barium pale green);
+   in the yellow luminous flame the flame's own glow masks it. */
 (() => {
 const LAB = SL.lab, T = LAB.T;
 const BX = 55, BY = 0;                          // the burner's axis in the item frame
@@ -38,8 +42,10 @@ LAB.item('bunsen-burner', {
     collar: { label: 'Air collar', values: ['closed', 'half', 'open'], names: { closed: 'Closed', half: 'Half open', open: 'Open' } },
     gasOn: { label: 'Gas tap', values: [false, true], picker: false },
     lit: { label: 'Flame', values: [false, true], picker: false },
+    sample: { label: 'Flame test sample', values: [null, ...Object.keys(LAB.FLAME_TESTS)],
+      names: Object.assign({ null: 'None' }, Object.fromEntries(Object.entries(LAB.FLAME_TESTS).map(([key, v]) => [key, v.element]))) },
   },
-  defaults: { collar: 'closed', gasOn: false, lit: false },
+  defaults: { collar: 'closed', gasOn: false, lit: false, sample: null },
   // lit: true needs the gas on; turning the gas off puts the flame out (onParam)
   refuse: (next, patch) => patch.lit === true && !next.gasOn ? 'a flame needs the gas on (send gasOn: true with lit: true)' : null,
   parts: {
@@ -136,13 +142,14 @@ LAB.item('bunsen-burner', {
     // the flame, or the invisible gas pouring out of an unlit burner (a shimmer)
     const fl = FLAMES[p.collar], z0 = TOP + .5 + 45 * ctx.ex;
     if (p.lit){
-      const wob = fl.kind === 'luminous' ? 3.2 : .8;
-      let s2 = `<g opacity="${f(fl.op)}">${flat(flameRings(ctx, z0, fl.h, fl.r, wob, t), fl.outer)}</g>`;
+      const wob = fl.kind === 'luminous' ? 3.2 : .8, ft = tinted(p);
+      // a flame test: the salt colours the whole outer cone of a blue flame (the yellow tip goes)
+      let s2 = `<g opacity="${f(ft ? .9 : fl.op)}">${flat(flameRings(ctx, z0, fl.h, fl.r, wob, t), ft ? ft.hex : fl.outer)}</g>`;
       if (fl.core && fl.kind === 'luminous') s2 += `<g opacity=".8">${flat(flameRings(ctx, z0 + 4, fl.h * .55, fl.r * .55, wob * .6, t), fl.core)}</g>`;
-      if (fl.core && fl.kind === 'blue') s2 += `<g opacity=".75">${flat(flameRings(ctx, z0 + fl.h * .72, fl.h * .3, fl.r * .45, wob, t, 10), fl.core)}</g>`;
+      if (fl.core && fl.kind === 'blue' && !ft) s2 += `<g opacity=".75">${flat(flameRings(ctx, z0 + fl.h * .72, fl.h * .3, fl.r * .45, wob, t, 10), fl.core)}</g>`;
       if (fl.cone) s2 += `<g opacity=".9">${flat(flameRings(ctx, z0, fl.cone.h, fl.cone.r, 0, t, 10), fl.cone.color)}</g>`;
       ctx.put([[BX - fl.r, BY - fl.r, z0], [BX + fl.r, BY + fl.r, z0 + fl.h]], `<g data-part="FLAME">${s2}</g>`, 'FLAME');
-      ctx.label([BX, BY, TOP + fl.h * .6], fl.name, true);
+      ctx.label([BX, BY, TOP + fl.h * .6], ft ? ft.label : p.sample && fl.kind === 'luminous' ? 'Test colour hidden by the yellow flame' : fl.name, true);
       if (fl.cone) ctx.label([BX, BY + fl.cone.r, TOP + fl.cone.h + 4], 'Hottest just above the inner cone', false);
     } else if (p.gasOn){
       let g = '';
@@ -160,11 +167,13 @@ LAB.item('bunsen-burner', {
     { label: T('Flame'), value: st.p.lit ? T({ luminous: 'Yellow', blue: 'Blue', roaring: 'Roaring blue' }[FLAMES[st.p.collar].kind]) : T('None'), small: true },
     { label: T('Air collar'), value: T({ closed: 'Closed', half: 'Half open', open: 'Open' }[st.p.collar]), small: true },
   ],
-  reportKeys: ['flame', 'gasUnlitS'],
-  report: st => ({ flame: st.p.lit ? FLAMES[st.p.collar].kind : 'none', gasUnlitS: Math.floor(st.s.gasT || 0) }),
+  reportKeys: ['flame', 'gasUnlitS', 'flameColour'],
+  report: st => { const ft = tinted(st.p); return { flame: st.p.lit ? FLAMES[st.p.collar].kind : 'none', gasUnlitS: Math.floor(st.s.gasT || 0), flameColour: ft ? ft.colour : null }; },
   mistake: st => st.s.badLight && st.p.gasOn && !st.p.lit ? 'light-collar-open'
     : st.p.gasOn && !st.p.lit && st.s.gasT > 2 ? 'gas-unlit'
-    : st.p.lit && st.p.collar === 'open' && st.s.blueT > 20 ? 'blue-flame-idle' : null,
+    : st.p.lit && st.p.collar === 'closed' && st.p.sample ? 'flame-test-luminous'
+    // a flame test in progress is heating something: the idle warning is for a blue flame left burning for nothing
+    : st.p.lit && st.p.collar === 'open' && st.s.blueT > 20 && !st.p.sample ? 'blue-flame-idle' : null,
   explode: true,
   xrCaption: 'See-through: gas rises from the jet and mixes with the air the collar lets in',
   xr: {
@@ -180,8 +189,12 @@ LAB.item('bunsen-burner', {
       { id: 'turn:TAP', kind: 'rotate', part: 'TAP', value: { unit: 'deg', min: 0, max: 90, rest: 90 }, axis: [0, 0, 1], pivot: [TAP[0], TAP[1], 40], scale: Math.PI / 180,
         bind: { source: 'param', key: 'gasOn' }, extras: { deg: { false: 90, true: 0 } } },
       { id: 'flame:BURNER', kind: 'emissive', part: 'FLAME', value: { unit: 'level', min: 0, max: 1, rest: 0 }, color: '#7a86ea',
-        bind: { source: 'param', key: 'lit' }, extras: { colorByCollar: Object.fromEntries(Object.entries(FLAMES).map(([key, v]) => [key, v.outer])), heightMm: Object.fromEntries(Object.entries(FLAMES).map(([key, v]) => [key, v.h])) } },
+        bind: { source: 'param', key: 'lit' }, extras: { colorByCollar: Object.fromEntries(Object.entries(FLAMES).map(([key, v]) => [key, v.outer])), heightMm: Object.fromEntries(Object.entries(FLAMES).map(([key, v]) => [key, v.h])),
+          colorBySample: Object.fromEntries(Object.entries(LAB.FLAME_TESTS).map(([key, v]) => [key, v.hex])) } },
     ],
+    extras: { flameTest: { bind: { source: 'param', key: 'sample' }, channel: 'flame:BURNER', tintWhen: 'lit && collar !== "closed" && sample', maskedWhen: 'collar === "closed"',
+      colors: Object.fromEntries(Object.entries(LAB.FLAME_TESTS).map(([key, v]) => [key, { hex: v.hex, colour: v.colour }])),
+      how: 'Tint the flame channel with colors[sample].hex while tintWhen holds; the inner cone stays blue' } },
   },
   lab: {
     lab: 'chemistry',
@@ -193,16 +206,20 @@ LAB.item('bunsen-burner', {
       'Open the collar for a hot blue flame only while you are heating something.',
       'When you are not heating, close the collar to the yellow safety flame so everyone can see it.',
       'Turn the gas off at the tap when you finish.',
+      'For a flame test, hold the clean loop at the edge of a blue flame, not in the yellow safety flame.',
     ],
     mistakes: [
       { id: 'gas-unlit', when: 'The gas tap has been on for more than 2 seconds with no flame.', say: 'Gas is on but not lit. Turn the gas tap off now, then light it the right way.' },
       { id: 'light-collar-open', when: 'Someone tried to light it with the air collar open, and the gas is still on.', say: 'It will not light with the collar open. Turn the gas off, close the collar, then try again.' },
-      { id: 'blue-flame-idle', when: 'A roaring blue flame has burned for over 20 seconds.', say: 'A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame.' },
+      { id: 'blue-flame-idle', when: 'A roaring blue flame has burned for over 20 seconds with nothing being heated in it.', say: 'A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame.' },
+      { id: 'flame-test-luminous', when: 'A flame-test sample is held in the yellow luminous flame (air collar closed).', say: 'The yellow flame hides the test colour. Open the air collar to a blue flame, then look again.' },
     ],
     hazards: ['Unburnt gas can build up and explode.', 'A blue flame is almost invisible in daylight.', 'The barrel stays hot after the flame is out.', 'Hair, sleeves and paper catch fire.'],
   },
 });
 // the bench's rotated slab, through the lab layer's frame
+// the salt colour the flame shows: only in a lit blue flame (half or open collar)
+function tinted(p){ return p.lit && p.sample && p.collar !== 'closed' ? LAB.FLAME_TESTS[p.sample] : null; }
 function B_SLAB(W, a0, b0, a1, b1, z0, z1, m){ return SL.bench.slabW(W, a0, b0, a1, b1, z0, z1, m, toneI, 1); }
 function gasTap(st, api){ api.set('gasOn', !st.p.gasOn); api.say(st.p.gasOn ? 'Gas tap open' : 'Gas tap closed'); }
 })();

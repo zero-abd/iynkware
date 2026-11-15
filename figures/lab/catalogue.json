@@ -754,7 +754,8 @@
         "Have the lit splint or lighter ready over the barrel before you turn the gas on, then light it at once.",
         "Open the collar for a hot blue flame only while you are heating something.",
         "When you are not heating, close the collar to the yellow safety flame so everyone can see it.",
-        "Turn the gas off at the tap when you finish."
+        "Turn the gas off at the tap when you finish.",
+        "For a flame test, hold the clean loop at the edge of a blue flame, not in the yellow safety flame."
       ],
       "mistakes": [
         {
@@ -769,8 +770,13 @@
         },
         {
           "id": "blue-flame-idle",
-          "when": "A roaring blue flame has burned for over 20 seconds.",
+          "when": "A roaring blue flame has burned for over 20 seconds with nothing being heated in it.",
           "say": "A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame."
+        },
+        {
+          "id": "flame-test-luminous",
+          "when": "A flame-test sample is held in the yellow luminous flame (air collar closed).",
+          "say": "The yellow flame hides the test colour. Open the air collar to a blue flame, then look again."
         }
       ],
       "hazards": [
@@ -806,12 +812,26 @@
             false,
             true
           ]
+        },
+        "sample": {
+          "label": "Flame test sample",
+          "values": [
+            null,
+            "li",
+            "na",
+            "k",
+            "ca",
+            "cu",
+            "sr",
+            "ba"
+          ]
         }
       },
       "defaults": {
         "collar": "closed",
         "gasOn": false,
-        "lit": false
+        "lit": false,
+        "sample": null
       },
       "actions": [
         {
@@ -831,8 +851,10 @@
         "collar",
         "gasOn",
         "lit",
+        "sample",
         "flame",
         "gasUnlitS",
+        "flameColour",
         "mistake"
       ],
       "exploded": true,
@@ -1045,11 +1067,334 @@
               "closed": 105,
               "half": 82,
               "open": 66
+            },
+            "colorBySample": {
+              "li": "#d8253a",
+              "na": "#ffb21f",
+              "k": "#b48ce0",
+              "ca": "#ff5a24",
+              "cu": "#2fb59a",
+              "sr": "#e8202a",
+              "ba": "#a7d65a"
             }
           }
         }
       ],
-      "extras": {}
+      "extras": {
+        "flameTest": {
+          "bind": {
+            "source": "param",
+            "key": "sample"
+          },
+          "channel": "flame:BURNER",
+          "tintWhen": "lit && collar !== \"closed\" && sample",
+          "maskedWhen": "collar === \"closed\"",
+          "colors": {
+            "li": {
+              "hex": "#d8253a",
+              "colour": "crimson"
+            },
+            "na": {
+              "hex": "#ffb21f",
+              "colour": "yellow-orange"
+            },
+            "k": {
+              "hex": "#b48ce0",
+              "colour": "lilac"
+            },
+            "ca": {
+              "hex": "#ff5a24",
+              "colour": "orange-red"
+            },
+            "cu": {
+              "hex": "#2fb59a",
+              "colour": "blue-green"
+            },
+            "sr": {
+              "hex": "#e8202a",
+              "colour": "red"
+            },
+            "ba": {
+              "hex": "#a7d65a",
+              "colour": "pale-green"
+            }
+          },
+          "how": "Tint the flame channel with colors[sample].hex while tintWhen holds; the inner cone stays blue"
+        }
+      }
+    },
+    {
+      "id": "digital-balance",
+      "kind": "lab",
+      "name": "Digital balance",
+      "page": "public/figures/lab/digital-balance.html",
+      "lab": "chemistry",
+      "summary": "A balance that weighs to 0.01 g. TARE sets the zero, so put the empty boat on, press TARE, then add the sample.",
+      "safeUse": [
+        "Stand it level, on a steady bench away from draughts.",
+        "Put the empty weighing boat on the pan and press TARE before you add the sample.",
+        "Add the sample with a spatula, off to the side of the balance, not over it.",
+        "Wait for the reading to settle before you write it down.",
+        "Never put anything hot, wet or heavier than 400 g on the pan."
+      ],
+      "mistakes": [
+        {
+          "id": "no-tare",
+          "when": "The sample is weighed in the boat without the empty boat having been tared.",
+          "say": "You did not tare the empty boat, so the reading includes the boat. Take the sample out, tare the empty boat, then weigh again."
+        },
+        {
+          "id": "tared-with-sample",
+          "when": "TARE was pressed with the sample already in the boat.",
+          "say": "You pressed TARE with the sample in the boat, so it reads zero. Tare the empty boat, then add the sample."
+        }
+      ],
+      "hazards": [
+        "Spilt chemicals on the pan corrode it and spoil later readings."
+      ],
+      "foot": [
+        210,
+        232,
+        90
+      ],
+      "params": {
+        "pan": {
+          "label": "On the pan",
+          "values": [
+            "empty",
+            "boat",
+            "boat-sample"
+          ]
+        },
+        "sampleG": {
+          "label": "Sample",
+          "values": [
+            2.5,
+            5,
+            10
+          ],
+          "range": [
+            0,
+            398
+          ],
+          "unit": "g"
+        },
+        "tareG": {
+          "label": "Tare",
+          "values": [
+            0,
+            1.82
+          ],
+          "range": [
+            0,
+            400
+          ],
+          "unit": "g"
+        },
+        "on": {
+          "label": "Power",
+          "values": [
+            true,
+            false
+          ]
+        }
+      },
+      "defaults": {
+        "pan": "empty",
+        "sampleG": 5,
+        "tareG": 0,
+        "on": true
+      },
+      "actions": [
+        {
+          "id": "tare",
+          "label": "Tare (zero)"
+        },
+        {
+          "id": "power",
+          "label": "Power on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "pan",
+        "sampleG",
+        "tareG",
+        "on",
+        "readingG",
+        "massG",
+        "net",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "BODY",
+          "name": "Balance and display",
+          "role": "body"
+        },
+        {
+          "id": "PAN",
+          "name": "Weighing pan",
+          "role": "body"
+        },
+        {
+          "id": "BOAT",
+          "name": "Weighing boat and sample",
+          "role": "body"
+        },
+        {
+          "id": "TARE",
+          "name": "TARE key",
+          "role": "control"
+        },
+        {
+          "id": "POWER",
+          "name": "ON/OFF key",
+          "role": "control"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "screen:LCD",
+          "kind": "screen",
+          "part": "BODY",
+          "at": [
+            -5,
+            -103,
+            42
+          ],
+          "normal": [
+            0,
+            -0.707,
+            0.707
+          ],
+          "text": "Display",
+          "rect": {
+            "origin": [
+              -48,
+              -95.8,
+              52.8
+            ],
+            "u": [
+              86,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              -14.399999999999999,
+              -21.599999999999998
+            ],
+            "pixels": [
+              192,
+              64
+            ]
+          }
+        },
+        {
+          "id": "control:TARE",
+          "kind": "control",
+          "part": "TARE",
+          "at": [
+            70,
+            -104.2,
+            40.2
+          ],
+          "normal": [
+            0,
+            -0.707,
+            0.707
+          ],
+          "channel": "press:TARE"
+        },
+        {
+          "id": "control:POWER",
+          "kind": "control",
+          "part": "POWER",
+          "at": [
+            -78,
+            -104.2,
+            40.2
+          ],
+          "normal": [
+            0,
+            -0.707,
+            0.707
+          ],
+          "channel": "led:LCD"
+        },
+        {
+          "id": "label:PAN",
+          "kind": "label",
+          "part": "PAN",
+          "at": [
+            0,
+            20,
+            68
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "Pan"
+        }
+      ],
+      "channels": [
+        {
+          "id": "led:LCD",
+          "kind": "emissive",
+          "part": "BODY",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#c9d6b0",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        },
+        {
+          "id": "press:TARE",
+          "kind": "translate",
+          "part": "TARE",
+          "value": {
+            "unit": "press",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "axis": [
+            0,
+            0.707,
+            -0.707
+          ],
+          "scale": 0.001,
+          "bind": {
+            "source": "press",
+            "key": "tare"
+          }
+        }
+      ],
+      "extras": {
+        "panMassG": {
+          "empty": 0,
+          "boat": 1.82,
+          "boat-sample": "1.82 + sampleG"
+        },
+        "boat": {
+          "part": "BOAT",
+          "shownWhen": "params.pan !== \"empty\""
+        },
+        "readout": "report.readingG to 2 decimals and \"g\"; \"NET\" while report.net"
+      }
     },
     {
       "id": "erlenmeyer-250",
@@ -1269,6 +1614,2015 @@
       }
     },
     {
+      "id": "flame-test-kit",
+      "kind": "lab",
+      "name": "Flame test kit",
+      "page": "public/figures/lab/flame-test-kit.html",
+      "lab": "chemistry",
+      "summary": "A wire loop, seven known metal chlorides, one unknown and dilute acid. A clean loop dipped in a salt and held in a blue flame colours the flame by the metal.",
+      "safeUse": [
+        "Wear goggles: the acid and some of the salts are harmful, and barium and copper salts are toxic.",
+        "Clean the loop first: dip it in the acid, then hold it in a blue flame until it adds no colour.",
+        "Clean it again between every two salts.",
+        "Hold the loop at the edge of a blue flame, not in the yellow safety flame.",
+        "Look at the first flash of colour: compare it with the known salts before you name the unknown.",
+        "Rest the loop on its stand so the hot wire does not touch the bench."
+      ],
+      "mistakes": [
+        {
+          "id": "salt-before-clean",
+          "when": "The loop touched a salt before it was ever cleaned in the acid.",
+          "say": "The loop was not cleaned first, so it carries sodium from your fingers. Clean it in the acid and the flame, then dip again."
+        },
+        {
+          "id": "dirty-loop",
+          "when": "The loop was dipped in a second salt without cleaning it after the first one.",
+          "say": "The loop still carries the last salt, so the colour will be mixed, and sodium yellow hides the others. Clean it first."
+        }
+      ],
+      "hazards": [
+        "Hydrochloric acid irritates skin and eyes.",
+        "Barium and copper salts are toxic if swallowed.",
+        "The wire stays hot after the flame.",
+        "Long hair and sleeves near the flame catch fire."
+      ],
+      "foot": [
+        330,
+        156,
+        62
+      ],
+      "params": {
+        "dish": {
+          "label": "Salt dish",
+          "values": [
+            "li",
+            "na",
+            "k",
+            "ca",
+            "cu",
+            "sr",
+            "ba",
+            "unknown"
+          ]
+        },
+        "unknown": {
+          "label": "The unknown is",
+          "values": [
+            "li",
+            "na",
+            "k",
+            "ca",
+            "cu",
+            "sr",
+            "ba"
+          ]
+        },
+        "clean": {
+          "label": "Loop cleaned",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "salt": {
+          "label": "Salt on the loop",
+          "values": [
+            null,
+            "li",
+            "na",
+            "k",
+            "ca",
+            "cu",
+            "sr",
+            "ba",
+            "unknown"
+          ]
+        },
+        "carry": {
+          "label": "Left on the loop from before",
+          "values": [
+            null,
+            "hand",
+            "li",
+            "na",
+            "k",
+            "ca",
+            "cu",
+            "sr",
+            "ba",
+            "unknown"
+          ]
+        }
+      },
+      "defaults": {
+        "dish": "li",
+        "unknown": "sr",
+        "clean": false,
+        "salt": null,
+        "carry": null
+      },
+      "actions": [
+        {
+          "id": "clean",
+          "label": "Clean in acid"
+        },
+        {
+          "id": "dip",
+          "label": "Dip in the salt"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "dish",
+        "unknown",
+        "clean",
+        "salt",
+        "carry",
+        "sample",
+        "mixed",
+        "flameColour",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "LOOP",
+          "name": "Nichrome wire loop",
+          "role": "control"
+        },
+        {
+          "id": "STAND",
+          "name": "Loop stand",
+          "role": "body"
+        },
+        {
+          "id": "ACID",
+          "name": "Dilute hydrochloric acid",
+          "role": "control"
+        },
+        {
+          "id": "DISH_LI",
+          "name": "Lithium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_NA",
+          "name": "Sodium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_K",
+          "name": "Potassium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_CA",
+          "name": "Calcium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_CU",
+          "name": "Copper(II) chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_SR",
+          "name": "Strontium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_BA",
+          "name": "Barium chloride",
+          "role": "control"
+        },
+        {
+          "id": "DISH_UNKNOWN",
+          "name": "Unknown salt (?)",
+          "role": "control"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "control:LOOP",
+          "kind": "control",
+          "part": "LOOP",
+          "at": [
+            140,
+            -66.2,
+            7.9
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "label:LOOP",
+          "kind": "label",
+          "part": "LOOP",
+          "at": [
+            140,
+            57.4,
+            34.4
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "Loop"
+        },
+        {
+          "id": "port:ACID",
+          "kind": "port",
+          "part": "ACID",
+          "at": [
+            92,
+            42,
+            60
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_LI",
+          "kind": "port",
+          "part": "DISH_LI",
+          "at": [
+            -140,
+            -38,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_NA",
+          "kind": "port",
+          "part": "DISH_NA",
+          "at": [
+            -82,
+            -38,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_K",
+          "kind": "port",
+          "part": "DISH_K",
+          "at": [
+            -24,
+            -38,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_CA",
+          "kind": "port",
+          "part": "DISH_CA",
+          "at": [
+            34,
+            -38,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_CU",
+          "kind": "port",
+          "part": "DISH_CU",
+          "at": [
+            -140,
+            42,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_SR",
+          "kind": "port",
+          "part": "DISH_SR",
+          "at": [
+            -82,
+            42,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_BA",
+          "kind": "port",
+          "part": "DISH_BA",
+          "at": [
+            -24,
+            42,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "port:DISH_UNKNOWN",
+          "kind": "port",
+          "part": "DISH_UNKNOWN",
+          "at": [
+            34,
+            42,
+            5
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "label:DISH_LI",
+          "kind": "label",
+          "part": "DISH_LI",
+          "at": [
+            -140,
+            -69,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "LiCl"
+        },
+        {
+          "id": "label:DISH_NA",
+          "kind": "label",
+          "part": "DISH_NA",
+          "at": [
+            -82,
+            -69,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "NaCl"
+        },
+        {
+          "id": "label:DISH_K",
+          "kind": "label",
+          "part": "DISH_K",
+          "at": [
+            -24,
+            -69,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "KCl"
+        },
+        {
+          "id": "label:DISH_CA",
+          "kind": "label",
+          "part": "DISH_CA",
+          "at": [
+            34,
+            -69,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "CaCl₂"
+        },
+        {
+          "id": "label:DISH_CU",
+          "kind": "label",
+          "part": "DISH_CU",
+          "at": [
+            -140,
+            11,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "CuCl₂"
+        },
+        {
+          "id": "label:DISH_SR",
+          "kind": "label",
+          "part": "DISH_SR",
+          "at": [
+            -82,
+            11,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "SrCl₂"
+        },
+        {
+          "id": "label:DISH_BA",
+          "kind": "label",
+          "part": "DISH_BA",
+          "at": [
+            -24,
+            11,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "BaCl₂"
+        },
+        {
+          "id": "label:DISH_UNKNOWN",
+          "kind": "label",
+          "part": "DISH_UNKNOWN",
+          "at": [
+            34,
+            11,
+            0.7
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "text": "?"
+        }
+      ],
+      "channels": [],
+      "extras": {
+        "loop": {
+          "part": "LOOP",
+          "axis": [
+            0,
+            0.9778,
+            0.2095
+          ],
+          "cork": [
+            140,
+            -75,
+            6
+          ],
+          "tip": [
+            140,
+            57.4,
+            34.4
+          ],
+          "bead": "colour the loop tip with saltColor[report.sample] while params.salt is set; bare wire when it is null"
+        },
+        "saltColor": {
+          "li": "#f4f2ec",
+          "na": "#f4f2ec",
+          "k": "#f4f2ec",
+          "ca": "#f4f2ec",
+          "cu": "#58ab95",
+          "sr": "#f4f2ec",
+          "ba": "#f4f2ec"
+        },
+        "flameTests": {
+          "li": {
+            "hex": "#d8253a",
+            "colour": "crimson"
+          },
+          "na": {
+            "hex": "#ffb21f",
+            "colour": "yellow-orange"
+          },
+          "k": {
+            "hex": "#b48ce0",
+            "colour": "lilac"
+          },
+          "ca": {
+            "hex": "#ff5a24",
+            "colour": "orange-red"
+          },
+          "cu": {
+            "hex": "#2fb59a",
+            "colour": "blue-green"
+          },
+          "sr": {
+            "hex": "#e8202a",
+            "colour": "red"
+          },
+          "ba": {
+            "hex": "#a7d65a",
+            "colour": "pale-green"
+          }
+        },
+        "toBurner": "pass report.sample to bunsen-burner as its sample param while the loop is held in the flame"
+      }
+    },
+    {
+      "id": "function-generator",
+      "kind": "lab",
+      "name": "Function generator",
+      "page": "public/figures/lab/function-generator.html",
+      "lab": "electronics",
+      "summary": "A function generator makes a test signal: a sine, square or triangle wave at the frequency and size you set, from its 50 Ω OUT socket.",
+      "safeUse": [
+        "Set the waveform, frequency and amplitude with the output off, then turn the output on.",
+        "Start with a small amplitude, about 1 to 2 V peak-to-peak, and turn it up only as far as you need.",
+        "Connect the black (outer) lead to the circuit ground.",
+        "Never let the output leads touch each other while the output is on.",
+        "Turn the output off before you change the connections."
+      ],
+      "mistakes": [
+        {
+          "id": "output-shorted",
+          "when": "The output is on and its clips touch each other (a short).",
+          "say": "The output is shorted: the clips are touching. Turn the output off, then separate the clips."
+        },
+        {
+          "id": "overdrive",
+          "when": "The output is on into the oscilloscope with the amplitude at its 20 V maximum.",
+          "say": "That is the maximum amplitude, much more than you need. Turn it down to a few volts before it overdrives the circuit or the scope."
+        }
+      ],
+      "hazards": [
+        "A shorted output heats the generator's output stage.",
+        "Twenty volts peak-to-peak can damage small parts and logic inputs."
+      ],
+      "foot": [
+        230,
+        250,
+        92
+      ],
+      "params": {
+        "wave": {
+          "label": "Waveform",
+          "values": [
+            "sine",
+            "square",
+            "triangle"
+          ]
+        },
+        "freqHz": {
+          "label": "Frequency",
+          "values": [
+            1,
+            10,
+            100,
+            1000,
+            10000,
+            100000,
+            1000000
+          ],
+          "range": [
+            0.1,
+            1000000
+          ],
+          "unit": "Hz"
+        },
+        "vpp": {
+          "label": "Amplitude",
+          "values": [
+            0.1,
+            0.5,
+            1,
+            2,
+            5,
+            10,
+            20
+          ],
+          "range": [
+            0,
+            20
+          ],
+          "unit": "V"
+        },
+        "load": {
+          "label": "Load",
+          "values": [
+            "open",
+            "scope",
+            "r1k",
+            "short"
+          ]
+        },
+        "output": {
+          "label": "Output",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "on": {
+          "label": "Power",
+          "values": [
+            true,
+            false
+          ]
+        }
+      },
+      "defaults": {
+        "wave": "sine",
+        "freqHz": 1000,
+        "vpp": 2,
+        "load": "scope",
+        "output": false,
+        "on": true
+      },
+      "actions": [
+        {
+          "id": "output",
+          "label": "Output on/off"
+        },
+        {
+          "id": "power",
+          "label": "Power on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "wave",
+        "freqHz",
+        "vpp",
+        "load",
+        "output",
+        "on",
+        "vLoadPp",
+        "iPeakmA",
+        "signal",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "CASE",
+          "name": "Case",
+          "role": "body"
+        },
+        {
+          "id": "PANEL",
+          "name": "Front panel and display",
+          "role": "body"
+        },
+        {
+          "id": "FREQ",
+          "name": "Frequency knob",
+          "role": "control"
+        },
+        {
+          "id": "AMPL",
+          "name": "Amplitude knob",
+          "role": "control"
+        },
+        {
+          "id": "OUTKEY",
+          "name": "Output key",
+          "role": "control"
+        },
+        {
+          "id": "POWER",
+          "name": "Power key",
+          "role": "control"
+        },
+        {
+          "id": "BNC_OUT",
+          "name": "Output socket (50 Ω)",
+          "role": "pin"
+        },
+        {
+          "id": "LEAD",
+          "name": "Output lead and load",
+          "role": "wire"
+        },
+        {
+          "id": "KEY_SINE",
+          "name": "Sine key",
+          "role": "control"
+        },
+        {
+          "id": "KEY_SQR",
+          "name": "Square key",
+          "role": "control"
+        },
+        {
+          "id": "KEY_TRI",
+          "name": "Triangle key",
+          "role": "control"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "port:OUT",
+          "kind": "port",
+          "part": "BNC_OUT",
+          "at": [
+            98,
+            -86,
+            22
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "OUT",
+            "OUTPUT"
+          ]
+        },
+        {
+          "id": "screen:LCD",
+          "kind": "screen",
+          "part": "PANEL",
+          "at": [
+            -62,
+            -75.4,
+            65
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Display",
+          "rect": {
+            "origin": [
+              -104,
+              -75.4,
+              80
+            ],
+            "u": [
+              84,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              0,
+              -30
+            ],
+            "pixels": [
+              240,
+              90
+            ]
+          }
+        },
+        {
+          "id": "control:FREQ",
+          "kind": "control",
+          "part": "FREQ",
+          "at": [
+            20,
+            -89,
+            52
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:FREQ"
+        },
+        {
+          "id": "control:AMPL",
+          "kind": "control",
+          "part": "AMPL",
+          "at": [
+            64,
+            -85,
+            52
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:AMPL"
+        },
+        {
+          "id": "control:OUTPUT",
+          "kind": "control",
+          "part": "OUTKEY",
+          "at": [
+            98,
+            -79,
+            46
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:OUTPUT"
+        },
+        {
+          "id": "led:OUTPUT",
+          "kind": "led",
+          "part": "OUTKEY",
+          "at": [
+            98,
+            -75.5,
+            54
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:OUTPUT"
+        },
+        {
+          "id": "control:POWER",
+          "kind": "control",
+          "part": "POWER",
+          "at": [
+            -98,
+            -78,
+            14
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:POWER"
+        },
+        {
+          "id": "control:KEY_SINE",
+          "kind": "control",
+          "part": "KEY_SINE",
+          "at": [
+            -94,
+            -79,
+            37.5
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:KEY_SINE"
+        },
+        {
+          "id": "control:KEY_SQR",
+          "kind": "control",
+          "part": "KEY_SQR",
+          "at": [
+            -66,
+            -79,
+            37.5
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:KEY_SQR"
+        },
+        {
+          "id": "control:KEY_TRI",
+          "kind": "control",
+          "part": "KEY_TRI",
+          "at": [
+            -38,
+            -79,
+            37.5
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:KEY_TRI"
+        }
+      ],
+      "channels": [
+        {
+          "id": "turn:FREQ",
+          "kind": "rotate",
+          "part": "FREQ",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": 19.285714285714278
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            20,
+            -75,
+            52
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "freqHz"
+          },
+          "extras": {
+            "deg": "-135 + 270 * (log10(freqHz) + 1) / 7"
+          }
+        },
+        {
+          "id": "turn:AMPL",
+          "kind": "rotate",
+          "part": "AMPL",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": -108
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            64,
+            -75,
+            52
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "vpp"
+          },
+          "extras": {
+            "degPerVolt": 13.5,
+            "degAtZero": -135
+          }
+        },
+        {
+          "id": "led:OUTPUT",
+          "kind": "emissive",
+          "part": "OUTKEY",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#5ee07a",
+          "bind": {
+            "source": "param",
+            "key": "output"
+          },
+          "extras": {
+            "on": "params.on && params.output"
+          }
+        },
+        {
+          "id": "led:POWER",
+          "kind": "emissive",
+          "part": "POWER",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#5ccf78",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        },
+        {
+          "id": "led:LCD",
+          "kind": "emissive",
+          "part": "PANEL",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#b8d26a",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        },
+        {
+          "id": "led:KEY_SINE",
+          "kind": "emissive",
+          "part": "KEY_SINE",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#ffcf6a",
+          "bind": {
+            "source": "param",
+            "key": "wave"
+          },
+          "extras": {
+            "on": "params.on && params.wave === \"sine\""
+          }
+        },
+        {
+          "id": "led:KEY_SQR",
+          "kind": "emissive",
+          "part": "KEY_SQR",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#ffcf6a",
+          "bind": {
+            "source": "param",
+            "key": "wave"
+          },
+          "extras": {
+            "on": "params.on && params.wave === \"square\""
+          }
+        },
+        {
+          "id": "led:KEY_TRI",
+          "kind": "emissive",
+          "part": "KEY_TRI",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#ffcf6a",
+          "bind": {
+            "source": "param",
+            "key": "wave"
+          },
+          "extras": {
+            "on": "params.on && params.wave === \"triangle\""
+          }
+        }
+      ],
+      "extras": {
+        "sourceOhms": 50,
+        "loads": {
+          "open": null,
+          "scope": 1000000,
+          "r1k": 1000,
+          "short": 0
+        },
+        "toScope": "report.signal is the oscilloscope demo signal: send it as { source: \"demo\", ...signal }"
+      }
+    },
+    {
+      "id": "oscilloscope",
+      "kind": "lab",
+      "name": "Oscilloscope",
+      "page": "public/figures/lab/oscilloscope.html",
+      "lab": "electronics",
+      "summary": "A 2-channel oscilloscope. It draws voltage against time: up is volts (VOLTS/DIV per square), across is time (TIME/DIV per square).",
+      "safeUse": [
+        "Set the probe switch and the channel probe setting the same: both ×10 for normal work.",
+        "Check the probe on the CAL lug first: you should see a flat-topped 1 kHz square wave.",
+        "Clip the probe ground lead to the circuit ground only, never to any other point.",
+        "Turn VOLTS/DIV until the trace fills most of the screen without running off it.",
+        "Turn TIME/DIV until you see one to five cycles.",
+        "Never probe mains with a bench scope and a standard probe."
+      ],
+      "mistakes": [
+        {
+          "id": "probe-mismatch",
+          "when": "The probe switch and the channel probe setting differ (×10 probe with the channel on ×1, or the other way).",
+          "say": "The probe switch and the channel setting do not match, so every reading is ten times wrong. Set both to ×10."
+        },
+        {
+          "id": "clipped",
+          "when": "The trace runs off the top or bottom of the screen at this VOLTS/DIV.",
+          "say": "The trace runs off the screen. Turn VOLTS/DIV up to a bigger number so the whole wave fits."
+        },
+        {
+          "id": "too-small",
+          "when": "The whole trace is less than one division tall.",
+          "say": "The trace is tiny. Turn VOLTS/DIV down so the wave fills more of the screen."
+        },
+        {
+          "id": "timebase-off",
+          "when": "Fewer than 1 or more than 5 cycles fit across the screen at this TIME/DIV.",
+          "say": "TIME/DIV is off: you cannot see whole cycles clearly. Turn it until one to five cycles fit across."
+        }
+      ],
+      "hazards": [
+        "The probe ground is connected to mains earth: clipping it to a live point makes a short.",
+        "High voltages can damage the scope and hurt you."
+      ],
+      "foot": [
+        320,
+        166,
+        154
+      ],
+      "params": {
+        "source": {
+          "label": "Probe on",
+          "values": [
+            "cal",
+            "demo"
+          ]
+        },
+        "wave": {
+          "label": "Signal wave",
+          "values": [
+            "sine",
+            "square",
+            "triangle"
+          ]
+        },
+        "freqHz": {
+          "label": "Signal frequency",
+          "values": [
+            50,
+            100,
+            500,
+            1000,
+            5000,
+            10000,
+            100000
+          ],
+          "range": [
+            0.1,
+            20000000
+          ],
+          "unit": "Hz"
+        },
+        "vpp": {
+          "label": "Signal size",
+          "values": [
+            0.1,
+            0.5,
+            1,
+            2,
+            3,
+            5,
+            10,
+            20
+          ],
+          "range": [
+            0,
+            100
+          ],
+          "unit": "V"
+        },
+        "offset": {
+          "label": "Signal offset",
+          "values": [
+            0,
+            -1,
+            1,
+            2
+          ],
+          "range": [
+            -50,
+            50
+          ],
+          "unit": "V"
+        },
+        "timebase": {
+          "label": "Time/div",
+          "values": [
+            0.000001,
+            0.000002,
+            0.000005,
+            0.00001,
+            0.00002,
+            0.00005,
+            0.0001,
+            0.0002,
+            0.0005,
+            0.001,
+            0.002,
+            0.005,
+            0.01,
+            0.02,
+            0.05,
+            0.1
+          ],
+          "unit": "s"
+        },
+        "vdiv": {
+          "label": "CH1 volts/div",
+          "values": [
+            0.05,
+            0.1,
+            0.2,
+            0.5,
+            1,
+            2,
+            5,
+            10
+          ],
+          "unit": "V"
+        },
+        "vdiv2": {
+          "label": "CH2 volts/div",
+          "values": [
+            0.05,
+            0.1,
+            0.2,
+            0.5,
+            1,
+            2,
+            5,
+            10
+          ],
+          "unit": "V"
+        },
+        "trigLevel": {
+          "label": "Trigger level",
+          "values": [
+            -1,
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            3
+          ],
+          "range": [
+            -50,
+            50
+          ],
+          "unit": "V"
+        },
+        "probe": {
+          "label": "Probe switch",
+          "values": [
+            "x10",
+            "x1"
+          ]
+        },
+        "atten": {
+          "label": "CH1 probe setting",
+          "values": [
+            "x10",
+            "x1"
+          ]
+        },
+        "on": {
+          "label": "Power",
+          "values": [
+            true,
+            false
+          ]
+        },
+        "running": {
+          "label": "Run",
+          "values": [
+            true,
+            false
+          ]
+        },
+        "ch1": {
+          "label": "CH1",
+          "values": [
+            true,
+            false
+          ]
+        },
+        "ch2": {
+          "label": "CH2",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "defaults": {
+        "source": "cal",
+        "wave": "sine",
+        "freqHz": 1000,
+        "vpp": 2,
+        "offset": 0,
+        "timebase": 0.0005,
+        "vdiv": 1,
+        "vdiv2": 1,
+        "trigLevel": 1,
+        "probe": "x10",
+        "atten": "x10",
+        "on": true,
+        "running": true,
+        "ch1": true,
+        "ch2": false
+      },
+      "actions": [
+        {
+          "id": "power",
+          "label": "Power on/off"
+        },
+        {
+          "id": "run",
+          "label": "Run/Stop"
+        },
+        {
+          "id": "ch1",
+          "label": "CH1 on/off"
+        },
+        {
+          "id": "ch2",
+          "label": "CH2 on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "source",
+        "wave",
+        "freqHz",
+        "vpp",
+        "offset",
+        "timebase",
+        "vdiv",
+        "vdiv2",
+        "trigLevel",
+        "probe",
+        "atten",
+        "on",
+        "running",
+        "ch1",
+        "ch2",
+        "vppShown",
+        "freqShown",
+        "cycles",
+        "divs",
+        "triggered",
+        "clipped",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "CASE",
+          "name": "Case",
+          "role": "body"
+        },
+        {
+          "id": "PANEL",
+          "name": "Front panel",
+          "role": "body"
+        },
+        {
+          "id": "SCREEN",
+          "name": "Screen",
+          "role": "light"
+        },
+        {
+          "id": "TIME",
+          "name": "Time/div knob",
+          "role": "control"
+        },
+        {
+          "id": "LEVEL",
+          "name": "Trigger level knob",
+          "role": "control"
+        },
+        {
+          "id": "VDIV1",
+          "name": "CH1 volts/div knob",
+          "role": "control"
+        },
+        {
+          "id": "VDIV2",
+          "name": "CH2 volts/div knob",
+          "role": "control"
+        },
+        {
+          "id": "RUN",
+          "name": "RUN/STOP button",
+          "role": "control"
+        },
+        {
+          "id": "CH1B",
+          "name": "CH1 button",
+          "role": "control"
+        },
+        {
+          "id": "CH2B",
+          "name": "CH2 button",
+          "role": "control"
+        },
+        {
+          "id": "POWER",
+          "name": "Power button",
+          "role": "control"
+        },
+        {
+          "id": "BNC1",
+          "name": "CH1 input",
+          "role": "pin"
+        },
+        {
+          "id": "BNC2",
+          "name": "CH2 input",
+          "role": "pin"
+        },
+        {
+          "id": "CAL",
+          "name": "Probe compensation lug",
+          "role": "pin"
+        },
+        {
+          "id": "PROBE",
+          "name": "CH1 probe",
+          "role": "wire"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "port:CH1",
+          "kind": "port",
+          "part": "BNC1",
+          "at": [
+            30,
+            -39,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "CH1"
+          ]
+        },
+        {
+          "id": "port:CH2",
+          "kind": "port",
+          "part": "BNC2",
+          "at": [
+            75,
+            -39,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "CH2"
+          ]
+        },
+        {
+          "id": "CAL",
+          "kind": "pin",
+          "part": "CAL",
+          "at": [
+            122,
+            -37,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "PROBE_COMP"
+          ]
+        },
+        {
+          "id": "CAL_GND",
+          "kind": "pin",
+          "part": "CAL",
+          "at": [
+            138,
+            -37,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "GND"
+          ]
+        },
+        {
+          "id": "screen:MAIN",
+          "kind": "screen",
+          "part": "SCREEN",
+          "at": [
+            -75,
+            -28.4,
+            88
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Screen",
+          "rect": {
+            "origin": [
+              -143,
+              -28.3,
+              143
+            ],
+            "u": [
+              136,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              0,
+              -118
+            ],
+            "pixels": [
+              800,
+              480
+            ]
+          },
+          "extras": {
+            "graticule": {
+              "divisions": [
+                10,
+                8
+              ],
+              "mmPerDiv": 12,
+              "origin": [
+                -135,
+                -28.4,
+                136
+              ]
+            }
+          }
+        },
+        {
+          "id": "control:TIME",
+          "kind": "control",
+          "part": "TIME",
+          "at": [
+            125,
+            -37.9,
+            98
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:TIME"
+        },
+        {
+          "id": "control:LEVEL",
+          "kind": "control",
+          "part": "LEVEL",
+          "at": [
+            125,
+            -35.2,
+            62
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:LEVEL"
+        },
+        {
+          "id": "control:VDIV1",
+          "kind": "control",
+          "part": "VDIV1",
+          "at": [
+            30,
+            -37,
+            98
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:VDIV1"
+        },
+        {
+          "id": "control:VDIV2",
+          "kind": "control",
+          "part": "VDIV2",
+          "at": [
+            75,
+            -37,
+            98
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "turn:VDIV2"
+        },
+        {
+          "id": "control:RUN",
+          "kind": "control",
+          "part": "RUN",
+          "at": [
+            128,
+            -32,
+            126
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:RUN"
+        },
+        {
+          "id": "control:CH1",
+          "kind": "control",
+          "part": "CH1B",
+          "at": [
+            30,
+            -32,
+            72
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:CH1"
+        },
+        {
+          "id": "control:CH2",
+          "kind": "control",
+          "part": "CH2B",
+          "at": [
+            75,
+            -32,
+            72
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:CH2"
+        },
+        {
+          "id": "control:POWER",
+          "kind": "control",
+          "part": "POWER",
+          "at": [
+            -140,
+            -31,
+            13
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:POWER"
+        },
+        {
+          "id": "control:PROBE",
+          "kind": "control",
+          "part": "PROBE",
+          "at": [
+            90,
+            -63,
+            10
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "channels": [
+        {
+          "id": "turn:TIME",
+          "kind": "rotate",
+          "part": "TIME",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": 9
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            125,
+            -28,
+            98
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "timebase"
+          },
+          "extras": {
+            "deg": {
+              "0.000001": -135,
+              "0.000002": -117,
+              "0.000005": -99,
+              "0.00001": -81,
+              "0.00002": -63,
+              "0.00005": -45,
+              "0.0001": -27,
+              "0.0002": -9,
+              "0.0005": 9,
+              "0.001": 27,
+              "0.002": 45,
+              "0.005": 63,
+              "0.01": 81,
+              "0.02": 99,
+              "0.05": 117,
+              "0.1": 135
+            }
+          }
+        },
+        {
+          "id": "turn:LEVEL",
+          "kind": "rotate",
+          "part": "LEVEL",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": 27
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            125,
+            -28,
+            62
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "trigLevel"
+          },
+          "extras": {
+            "degPerVolt": 27,
+            "min": -135,
+            "max": 135
+          }
+        },
+        {
+          "id": "turn:VDIV1",
+          "kind": "rotate",
+          "part": "VDIV1",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": 19.285714285714278
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            30,
+            -28,
+            98
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "vdiv"
+          },
+          "extras": {
+            "deg": {
+              "1": 19.285714285714278,
+              "2": 57.85714285714286,
+              "5": 96.42857142857142,
+              "10": 135,
+              "0.05": -135,
+              "0.1": -96.42857142857143,
+              "0.2": -57.85714285714286,
+              "0.5": -19.285714285714292
+            }
+          }
+        },
+        {
+          "id": "turn:VDIV2",
+          "kind": "rotate",
+          "part": "VDIV2",
+          "value": {
+            "unit": "deg",
+            "min": -135,
+            "max": 135,
+            "rest": 19.285714285714278
+          },
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "pivot": [
+            75,
+            -28,
+            98
+          ],
+          "scale": 0.017453292519943295,
+          "bind": {
+            "source": "param",
+            "key": "vdiv2"
+          },
+          "extras": {
+            "deg": {
+              "1": 19.285714285714278,
+              "2": 57.85714285714286,
+              "5": 96.42857142857142,
+              "10": 135,
+              "0.05": -135,
+              "0.1": -96.42857142857143,
+              "0.2": -57.85714285714286,
+              "0.5": -19.285714285714292
+            }
+          }
+        },
+        {
+          "id": "led:SCREEN",
+          "kind": "emissive",
+          "part": "SCREEN",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#0e1a22",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        },
+        {
+          "id": "led:RUN",
+          "kind": "emissive",
+          "part": "RUN",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#5ee07a",
+          "bind": {
+            "source": "param",
+            "key": "running"
+          },
+          "extras": {
+            "colorWhenStopped": "#ff5a48",
+            "on": "params.on"
+          }
+        },
+        {
+          "id": "led:CH1",
+          "kind": "emissive",
+          "part": "CH1B",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#ffd23a",
+          "bind": {
+            "source": "param",
+            "key": "ch1"
+          },
+          "extras": {
+            "on": "params.on && params.ch1"
+          }
+        },
+        {
+          "id": "led:CH2",
+          "kind": "emissive",
+          "part": "CH2B",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 0
+          },
+          "color": "#3ad7ff",
+          "bind": {
+            "source": "param",
+            "key": "ch2"
+          },
+          "extras": {
+            "on": "params.on && params.ch2"
+          }
+        },
+        {
+          "id": "led:POWER",
+          "kind": "emissive",
+          "part": "POWER",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#5ccf78",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        }
+      ],
+      "extras": {
+        "screen": {
+          "anchor": "screen:MAIN",
+          "trace": "y(t) = g·(offset + vpp/2·wave(f·t + phase)) in divisions of vdiv, t in divisions of timebase, trigger point at the centre; g = atten ÷ probe",
+          "colors": {
+            "CH1": "#ffd23a",
+            "CH2": "#3ad7ff"
+          },
+          "triggeredWhen": "report.triggered",
+          "drawBand": "report.cycles > 40"
+        },
+        "probe": {
+          "part": "PROBE",
+          "hookOnCal": {
+            "source": "cal"
+          },
+          "attenuation": {
+            "x1": 1,
+            "x10": 10
+          }
+        },
+        "signalFrom": "a function-generator report.signal can be sent as { source: \"demo\", wave, freqHz, vpp, offset }"
+      }
+    },
+    {
       "id": "pendulum-stand",
       "kind": "lab",
       "name": "Simple pendulum",
@@ -1471,6 +3825,499 @@
       ],
       "extras": {
         "g": 9.81
+      }
+    },
+    {
+      "id": "ph-meter",
+      "kind": "lab",
+      "name": "pH meter",
+      "page": "public/figures/lab/ph-meter.html",
+      "lab": "chemistry",
+      "summary": "A pH meter reads how acidic or alkaline a liquid is from a glass electrode. It must be calibrated with buffers first, and the electrode rinsed between liquids.",
+      "safeUse": [
+        "Calibrate it before you measure: pH 7 buffer first, then 4, then 10.",
+        "Rinse the electrode with distilled water between every two liquids, and dab it dry with a tissue; never wipe the bulb.",
+        "Dip the bulb fully and wait for the reading to settle.",
+        "Never let the bulb touch the bottom or sides of the beaker: the glass is thin.",
+        "When you finish, rinse it and put the storage cap back on.",
+        "Wear goggles with acids and alkalis."
+      ],
+      "mistakes": [
+        {
+          "id": "not-rinsed",
+          "when": "The electrode went from one liquid into the next without being rinsed.",
+          "say": "The electrode was not rinsed, so the last liquid is spoiling this reading. Rinse it with distilled water first."
+        },
+        {
+          "id": "not-calibrated",
+          "when": "A sample (water, acid or alkali) is being measured before the meter was calibrated.",
+          "say": "The meter is not calibrated, so this reading can be a whole unit out. Calibrate it with the pH 7, 4 and 10 buffers first."
+        },
+        {
+          "id": "stored-dry",
+          "when": "The electrode has been out of any liquid and out of its storage cap for over 10 seconds.",
+          "say": "The electrode is drying out in the air, which spoils the glass bulb. Put its storage cap back on."
+        }
+      ],
+      "hazards": [
+        "Acids and alkalis harm skin and eyes.",
+        "The glass bulb breaks easily and can cut."
+      ],
+      "foot": [
+        300,
+        162,
+        245
+      ],
+      "params": {
+        "liquid": {
+          "label": "Electrode in",
+          "values": [
+            "none",
+            "water",
+            "acid",
+            "base",
+            "buffer4",
+            "buffer7",
+            "buffer10"
+          ]
+        },
+        "calibrated": {
+          "label": "Calibrated",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "rinsed": {
+          "label": "Rinsed",
+          "values": [
+            true,
+            false
+          ]
+        },
+        "capped": {
+          "label": "Storage cap on",
+          "values": [
+            true,
+            false
+          ]
+        },
+        "on": {
+          "label": "Power",
+          "values": [
+            true,
+            false
+          ]
+        }
+      },
+      "defaults": {
+        "liquid": "none",
+        "calibrated": false,
+        "rinsed": true,
+        "capped": true,
+        "on": true
+      },
+      "actions": [
+        {
+          "id": "rinse",
+          "label": "Rinse the electrode"
+        },
+        {
+          "id": "calibrate",
+          "label": "Calibrate"
+        },
+        {
+          "id": "cap",
+          "label": "Storage cap on/off"
+        },
+        {
+          "id": "power",
+          "label": "Power on/off"
+        }
+      ],
+      "report": [
+        "id",
+        "lab",
+        "exploded",
+        "selected",
+        "liquid",
+        "calibrated",
+        "rinsed",
+        "capped",
+        "on",
+        "readingPH",
+        "truePH",
+        "carryOver",
+        "dryS",
+        "mistake"
+      ],
+      "exploded": false,
+      "parts": [
+        {
+          "id": "METER",
+          "name": "Meter and display",
+          "role": "body"
+        },
+        {
+          "id": "KEY_ON",
+          "name": "ON key",
+          "role": "control"
+        },
+        {
+          "id": "KEY_CAL",
+          "name": "CAL key",
+          "role": "control"
+        },
+        {
+          "id": "STAND",
+          "name": "Electrode stand",
+          "role": "body"
+        },
+        {
+          "id": "ELECTRODE",
+          "name": "pH electrode on its arm",
+          "role": "control"
+        },
+        {
+          "id": "CAP",
+          "name": "Storage cap",
+          "role": "cover"
+        },
+        {
+          "id": "BEAKER",
+          "name": "Sample beaker",
+          "role": "body"
+        },
+        {
+          "id": "WASH",
+          "name": "Wash bottle (distilled water)",
+          "role": "control"
+        },
+        {
+          "id": "CABLE",
+          "name": "Electrode cable",
+          "role": "wire"
+        },
+        {
+          "id": "BOTTLE_4",
+          "name": "Buffer pH 4",
+          "role": "control"
+        },
+        {
+          "id": "BOTTLE_7",
+          "name": "Buffer pH 7",
+          "role": "control"
+        },
+        {
+          "id": "BOTTLE_10",
+          "name": "Buffer pH 10",
+          "role": "control"
+        }
+      ],
+      "anchors": [
+        {
+          "id": "screen:LCD",
+          "kind": "screen",
+          "part": "METER",
+          "at": [
+            -88,
+            -50.4,
+            41
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "Display",
+          "rect": {
+            "origin": [
+              -128,
+              -50.4,
+              54
+            ],
+            "u": [
+              80,
+              0,
+              0
+            ],
+            "v": [
+              0,
+              0,
+              -26
+            ],
+            "pixels": [
+              160,
+              52
+            ]
+          }
+        },
+        {
+          "id": "port:ELECTRODE",
+          "kind": "port",
+          "part": "METER",
+          "at": [
+            -24,
+            -61,
+            36
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "aliases": [
+            "BNC",
+            "INPUT"
+          ]
+        },
+        {
+          "id": "control:ON",
+          "kind": "control",
+          "part": "KEY_ON",
+          "at": [
+            -124,
+            -53,
+            13
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "led:LCD"
+        },
+        {
+          "id": "control:CAL",
+          "kind": "control",
+          "part": "KEY_CAL",
+          "at": [
+            -100,
+            -53,
+            13
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "control:ELECTRODE",
+          "kind": "control",
+          "part": "ELECTRODE",
+          "at": [
+            30,
+            -38,
+            205
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "channel": "lift:ELECTRODE"
+        },
+        {
+          "id": "label:BULB",
+          "kind": "label",
+          "part": "ELECTRODE",
+          "at": [
+            30,
+            -38,
+            98
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "channel": "lift:ELECTRODE",
+          "text": "Glass bulb"
+        },
+        {
+          "id": "port:BEAKER",
+          "kind": "port",
+          "part": "BEAKER",
+          "at": [
+            30,
+            -38,
+            70
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "control:WASH",
+          "kind": "control",
+          "part": "WASH",
+          "at": [
+            112,
+            40,
+            60
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "control:BOTTLE_4",
+          "kind": "control",
+          "part": "BOTTLE_4",
+          "at": [
+            76,
+            -72,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "pH 4"
+        },
+        {
+          "id": "control:BOTTLE_7",
+          "kind": "control",
+          "part": "BOTTLE_7",
+          "at": [
+            106,
+            -72,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "pH 7"
+        },
+        {
+          "id": "control:BOTTLE_10",
+          "kind": "control",
+          "part": "BOTTLE_10",
+          "at": [
+            136,
+            -72,
+            30
+          ],
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "text": "pH 10"
+        }
+      ],
+      "channels": [
+        {
+          "id": "lift:ELECTRODE",
+          "kind": "translate",
+          "part": "ELECTRODE",
+          "value": {
+            "unit": "press",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "scale": 0.083,
+          "bind": {
+            "source": "param",
+            "key": "liquid"
+          },
+          "extras": {
+            "press": {
+              "none": 1,
+              "water": 0,
+              "acid": 0,
+              "base": 0,
+              "buffer4": 0,
+              "buffer7": 0,
+              "buffer10": 0
+            }
+          }
+        },
+        {
+          "id": "led:LCD",
+          "kind": "emissive",
+          "part": "METER",
+          "value": {
+            "unit": "level",
+            "min": 0,
+            "max": 1,
+            "rest": 1
+          },
+          "color": "#c9d6b0",
+          "bind": {
+            "source": "param",
+            "key": "on"
+          }
+        }
+      ],
+      "extras": {
+        "liquid": {
+          "part": "BEAKER",
+          "bind": {
+            "source": "param",
+            "key": "liquid"
+          },
+          "inner": [
+            [
+              23.7,
+              2
+            ],
+            [
+              23.7,
+              69.5
+            ]
+          ],
+          "levelMm": 38.8,
+          "colors": {
+            "water": "#d6ebf4",
+            "acid": "#f0e4c4",
+            "base": "#d9e6f6",
+            "buffer4": "#ef8a80",
+            "buffer7": "#8fd197",
+            "buffer10": "#8fb4ef"
+          }
+        },
+        "cap": {
+          "part": "CAP",
+          "onBulb": [
+            30,
+            -38,
+            "bulb - 2"
+          ],
+          "parked": [
+            16,
+            44,
+            8
+          ],
+          "bind": {
+            "source": "param",
+            "key": "capped"
+          }
+        },
+        "pH": {
+          "none": null,
+          "water": 6.5,
+          "acid": 3,
+          "base": 11,
+          "buffer4": 4,
+          "buffer7": 7,
+          "buffer10": 10
+        },
+        "readout": "report.readingPH to 2 decimals and 25.0 °C; \"-.--\" when null"
       }
     },
     {

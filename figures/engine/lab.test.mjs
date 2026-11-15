@@ -76,6 +76,129 @@ describe('Bunsen burner', () => {
   });
 });
 
+describe('Bunsen burner flame tests', () => {
+  it('colours a blue flame with the sample, and names a sample held in the yellow flame', async () => {
+    page = await open('bunsen-burner');
+    const L = page.lab;
+    expect(L.accept({ sample: 'xx' })).toMatch(/sample/);
+    L.accept({ gasOn: true });
+    L.press('light');
+    L.accept({ sample: 'li' });
+    expect(L.report()).toMatchObject({ lit: true, flame: 'luminous', flameColour: null, mistake: 'flame-test-luminous' });
+    L.accept({ collar: 'half' });
+    expect(L.report()).toMatchObject({ flame: 'blue', flameColour: 'crimson', mistake: null });
+    L.accept({ collar: 'open', sample: 'cu' });
+    L.advance(21);
+    // heating a sample is not an idle blue flame
+    expect(L.report()).toMatchObject({ flameColour: 'blue-green', mistake: null });
+    L.accept({ sample: null });
+    L.advance(21);
+    expect(L.report().mistake).toBe('blue-flame-idle');
+    const cat = JSON.parse(readFileSync(CATALOGUE, 'utf8')).items.find((i) => i.id === 'bunsen-burner');
+    expect(cat.extras.flameTest.colors.sr.hex).toMatch(/^#/);
+  });
+});
+
+describe('flame test kit', () => {
+  it('names a loop dipped before cleaning, and a second salt on a dirty loop', async () => {
+    page = await open('flame-test-kit');
+    const L = page.lab;
+    L.press('dip');
+    expect(L.report()).toMatchObject({ salt: 'li', carry: 'hand', sample: 'na', mixed: true, mistake: 'salt-before-clean' });
+    L.press('clean');
+    expect(L.report()).toMatchObject({ clean: true, salt: null, sample: null, mistake: null });
+    L.accept({ dish: 'k' });
+    L.press('dip');
+    expect(L.report()).toMatchObject({ salt: 'k', sample: 'k', flameColour: 'lilac', mixed: false, mistake: null });
+    L.accept({ dish: 'na' });
+    L.press('dip');
+    // sodium's yellow swamps the potassium's lilac
+    expect(L.report()).toMatchObject({ carry: 'k', sample: 'na', mixed: true, mistake: 'dirty-loop' });
+    L.press('clean');
+    L.accept({ dish: 'unknown', unknown: 'ba' });
+    L.press('dip');
+    expect(L.report()).toMatchObject({ salt: 'unknown', sample: 'ba', flameColour: 'pale-green', mistake: null });
+    expect(L.accept({ clean: true })).toMatch(/clean loop/);
+  });
+});
+
+describe('oscilloscope', () => {
+  it('shows the CAL square, and names a probe mismatch, a clipped or tiny trace and a bad timebase', async () => {
+    page = await open('oscilloscope');
+    const L = page.lab;
+    expect(L.report()).toMatchObject({ vppShown: 3, freqShown: 1000, cycles: 5, divs: 3, triggered: true, mistake: null });
+    L.accept({ atten: 'x1' });
+    expect(L.report()).toMatchObject({ vppShown: 0.3, mistake: 'probe-mismatch' });
+    L.accept({ atten: 'x10', vdiv: 0.5 });
+    expect(L.report()).toMatchObject({ clipped: true, vppShown: null, mistake: 'clipped' });
+    L.accept({ vdiv: 5 });
+    expect(L.report().mistake).toBe('too-small');
+    L.accept({ vdiv: 1, timebase: 0.01 });
+    expect(L.report()).toMatchObject({ cycles: 100, mistake: 'timebase-off' });
+    L.accept({ timebase: 1e-5 });
+    expect(L.report()).toMatchObject({ freqShown: null, mistake: 'timebase-off' });
+    // a demo signal from the host: 2 Vpp sine at 1 kHz, trigger above it: shown but not triggered
+    L.accept({ timebase: 5e-4, source: 'demo', wave: 'sine', vpp: 2, offset: 0, trigLevel: 3 });
+    expect(L.report()).toMatchObject({ vppShown: 2, triggered: false, mistake: null });
+    L.press('ch1');
+    expect(L.report()).toMatchObject({ ch1: false, vppShown: null, mistake: null });
+  });
+});
+
+describe('function generator', () => {
+  it('drives its load through 50 ohms and names a short and an overdrive', async () => {
+    page = await open('function-generator');
+    const L = page.lab;
+    L.press('output');
+    expect(L.report()).toMatchObject({ output: true, vLoadPp: 2, signal: { wave: 'sine', freqHz: 1000, vpp: 2, offset: 0 }, mistake: null });
+    L.accept({ vpp: 20 });
+    expect(L.report().mistake).toBe('overdrive');
+    L.accept({ vpp: 2, load: 'r1k' });
+    expect(L.report()).toMatchObject({ vLoadPp: 1.905, mistake: null });
+    L.accept({ load: 'short' });
+    expect(L.report()).toMatchObject({ vLoadPp: 0, iPeakmA: 20, signal: null, mistake: 'output-shorted' });
+    L.press('output');
+    expect(L.report().mistake).toBe(null);
+  });
+});
+
+describe('pH meter', () => {
+  it('reads wrong until calibrated, carries an unrinsed liquid over, and dries out of its cap', async () => {
+    page = await open('ph-meter');
+    const L = page.lab;
+    expect(L.accept({ liquid: 'acid' })).toMatch(/storage cap/);
+    L.press('cap');
+    L.advance(11);
+    expect(L.report()).toMatchObject({ capped: false, liquid: 'none', readingPH: null, mistake: 'stored-dry' });
+    L.accept({ liquid: 'acid' });
+    expect(L.report()).toMatchObject({ truePH: 3, readingPH: 4.17, mistake: 'not-calibrated' });
+    L.press('calibrate');
+    expect(L.report()).toMatchObject({ calibrated: true, liquid: 'buffer10', readingPH: 10, mistake: null });
+    L.accept({ liquid: 'acid' });
+    expect(L.report()).toMatchObject({ carryOver: 'buffer10', readingPH: 4.05, mistake: 'not-rinsed' });
+    L.press('rinse');
+    L.accept({ liquid: 'acid' });
+    expect(L.report()).toMatchObject({ readingPH: 3, carryOver: null, mistake: null });
+    L.press('cap');
+    expect(L.report()).toMatchObject({ capped: true, liquid: 'none', mistake: null });
+  });
+});
+
+describe('digital balance', () => {
+  it('reads the load minus the tare, and names weighing without a tare', async () => {
+    page = await open('digital-balance');
+    const L = page.lab;
+    L.accept({ pan: 'boat-sample' });
+    expect(L.report()).toMatchObject({ readingG: 6.82, massG: 6.82, mistake: 'no-tare' });
+    L.press('tare');
+    expect(L.report()).toMatchObject({ readingG: 0, net: true, mistake: 'tared-with-sample' });
+    L.accept({ pan: 'boat' });
+    L.press('tare');
+    L.accept({ pan: 'boat-sample' });
+    expect(L.report()).toMatchObject({ readingG: 5, tareG: 1.82, mistake: null });
+  });
+});
+
 describe('bench power supply', () => {
   it('runs CV until the load wants more than the limit, then CC', async () => {
     page = await open('bench-power-supply');
