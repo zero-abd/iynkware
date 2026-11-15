@@ -175,10 +175,20 @@ export function hoverLift(world: World, o: Object3D, lift: number, on: boolean, 
   }
 }
 
+/**
+ * Whether pointer rays and pokes may hit `o` and everything under it. three's raycaster ignores `visible`, so a hidden
+ * panel would otherwise keep swallowing rays meant for what is behind it: hidden panels are `pointerEvents: 'none'`
+ * (inherited by every child). Showing it clears the override.
+ */
+export function setPanelHit(o: Object3D, on: boolean): void {
+  (o as { pointerEvents?: 'none' | 'auto' | 'listener' }).pointerEvents = on ? undefined : 'none';
+}
+
 /** A panel opening: scales in from 0.96 and fades in over 300 ms (the site's scale-in). */
 export function panelOpen(world: World, o: Object3D, setOpacity?: (a: number) => void, onDone?: () => void): void {
   const rest = restOf(o);
   o.visible = true;
+  setPanelHit(o, true);
   motionOf(world).tween({
     key: key(o, 'panel'),
     ms: DURATION.panelOpen,
@@ -202,6 +212,7 @@ export function panelClose(world: World, o: Object3D, setOpacity?: (a: number) =
     },
     onDone: () => {
       o.visible = false;
+      setPanelHit(o, false);
       o.scale.setScalar(rest.scale);
       onDone?.();
     },

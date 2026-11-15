@@ -12,7 +12,7 @@
 import { Group } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { IconName } from '../../look/icons';
-import { panelClose, panelOpen } from '../../look/moves';
+import { panelClose, panelOpen, setPanelHit } from '../../look/moves';
 import { fitLines, paintIcon, paintKicker, paintPlate, PLATE } from '../../look/paint';
 import { INK, MUTED, PAPER, RULE, SHADOW } from '../../look/palette';
 import { dmm, TYPE } from '../../look/type';
@@ -101,6 +101,7 @@ export function shellPanel(app: XrApp, o: PanelOptions): ShellPanel {
   const group = new Group();
   group.name = `shell-panel:${o.id}`;
   group.visible = false;
+  setPanelHit(group, false);
   ownEntity(app.world, group);
   const body = new Group();
   body.name = `shell-panel-body:${o.id}`;
