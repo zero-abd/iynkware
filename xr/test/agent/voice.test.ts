@@ -180,6 +180,41 @@ describe('voice session', () => {
     expect(h.session.status).toBe('talking');
   });
 
+  it('a typed turn goes to the live session as one completed text turn and waits for the answer', async () => {
+    const h = harness();
+    const c = h.session.connect();
+    await flush();
+    const s = h.sockets[0]!;
+    s.server({ setupComplete: {} });
+    await c;
+    s.sent.length = 0;
+    let answered: boolean | null = null;
+    void h.session.ask('Help me build my own circuit').then((ok) => (answered = ok));
+    await flush();
+    expect(s.kinds()).toEqual(['clientContent']);
+    const turn = s.sent[0]!.clientContent as { turns: Array<{ role: string; parts: Array<{ text: string }> }>; turnComplete: boolean };
+    expect(turn.turnComplete).toBe(true);
+    expect(turn.turns[0]!.parts[0]!.text).toMatch(/^UNTRUSTED_BENCH_CONTEXT\n/);
+    expect(turn.turns[0]!.parts[1]!.text).toBe('Help me build my own circuit');
+    expect(h.session.status).toBe('answering');
+    expect(answered).toBeNull();
+    s.server({ toolCall: { functionCalls: [{ id: 'fc-t', name: 'go_to', args: { where: 'new project' } }] } });
+    s.server({ serverContent: { outputTranscription: { text: 'Here is an empty bench.' } } });
+    s.server({ serverContent: { turnComplete: true } });
+    await h.advance(200);
+    expect(answered).toBe(true);
+    expect(h.calls.at(-1)).toEqual({ name: 'go_to', args: { where: 'new project' } });
+    expect(h.said.join('')).toBe('Here is an empty bench.|');
+    expect(h.session.status).toBe('ready');
+  });
+
+  it('a typed turn reports false when no session can be had, so the scripted brain answers', async () => {
+    const h = harness();
+    h.session.close();
+    expect(await h.session.ask('hello')).toBe(false);
+    expect(h.sockets).toHaveLength(0);
+  });
+
   it('falls back to the relay when the direct socket does not open in time', async () => {
     const h = harness({ directOpens: false });
     const c = h.session.connect();
