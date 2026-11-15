@@ -9,18 +9,18 @@ import { angleDiff, CLUSTER, clusterHome, headingTracker, yawOfForward } from '.
 const DEG = Math.PI / 180;
 
 describe('recentre target', () => {
-  test('straight ahead: front edge 0.15 m from the eyes, centre half a depth further, top 0.47 m under the eyes', () => {
+  test('straight ahead: front edge 0.35 m from the eyes, centre half a depth further, top 0.47 m under the eyes', () => {
     const t = recentreTarget([0, 1.2, 0], [0, 0, -1], 'seated');
     expect(t.yawRad).toBeCloseTo(0, 9);
     expect(t.position[0]).toBeCloseTo(0, 9);
     expect(t.position[1]).toBeCloseTo(0.73, 9);
-    expect(t.position[2]).toBeCloseTo(-0.4, 9);
+    expect(t.position[2]).toBeCloseTo(-0.6, 9);
   });
 
   test('follows the heading and ignores pitch', () => {
     // looking along +x and down: the bench is on +x, turned so the person is at its +z side
     const t = recentreTarget([1, 1.2, 2], [1, -0.8, 0], 'seated');
-    expect(t.position[0]).toBeCloseTo(1.4, 6);
+    expect(t.position[0]).toBeCloseTo(1.6, 6);
     expect(t.position[2]).toBeCloseTo(2, 6);
     const back = [Math.sin(t.yawRad), Math.cos(t.yawRad)];
     expect(back[0]).toBeCloseTo(-1, 6);
@@ -30,7 +30,7 @@ describe('recentre target', () => {
   test('standing is deeper and its height is clamped for the posture', () => {
     const t = recentreTarget([0, 1.7, 0], [0, 0, -1], 'standing');
     expect(t.position[1]).toBeCloseTo(1.2, 9);
-    expect(t.position[2]).toBeCloseTo(-(0.15 + 0.275), 9);
+    expect(t.position[2]).toBeCloseTo(-(0.35 + 0.275), 9);
     expect(recentreTarget([0, 0.9, 0], [0, 0, -1], 'seated').position[1]).toBeCloseTo(0.62, 9);
   });
 

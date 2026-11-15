@@ -1,13 +1,15 @@
 /**
- * The bench itself: a grip bar along the bench top's front edge moves the whole bench, the work mat, the board, parts,
+ * The bench itself: a grip bar standing on the table's far edge moves the whole bench, the work mat, the board, parts,
  * wires, the shelf and everything else in the bench's frames (`BenchSpace.table` and `root`), in all three dimensions.
  *
  * The bar is the panels' grip (`ui/panels/grip.ts`: an inked paper pill with the three-dot move mark, accent and a
- * 3 dmm lift on hover, sinking flush when held), at its panel size, lying just in front of the front edge's centre and
- * leaning back towards the eyes. A controller ray and trigger, a controller grip or trigger at the bar, or a hand pinch
- * (near or along the hand ray) holds it; while held the bench follows (`move.ts`), level, turned to face the eyes, never
- * nearer the floor than 0.1 m. The only write is `BenchSpace.setBenchTop`: no project operation, no undo step, and the
- * simulation runs on. Parts, pins and wires win over the bar under one pointer (its order is below every bench proxy).
+ * 3 dmm lift on hover, sinking flush when held), at its panel size, standing on the centre of the table's far edge
+ * (beyond the mat) and leaning back a little, facing the eyes. It used to lie on the front edge, 0.12 m ahead of the
+ * eyes: level with or behind the hands, so a hand ray had to point back at the body and the hand's own grab sphere sat
+ * on it, and on a headset it could not be taken (#363). A controller ray and trigger, a controller grip or trigger at
+ * the bar, or a hand pinch (near or along the hand ray) holds it; while held the bench follows (`move.ts`), level,
+ * turned to face the eyes, never nearer the floor than 0.1 m. The only write is `BenchSpace.setBenchTop`: no project operation, no undo step, and the
+ * simulation runs on. It binds as the panel grips do (a control): standing beyond the mat, no part is in front of it.
  *
  * Where it was left is kept across reloads (`iynk:xr:bench:v1`). Anyone else moving the bench (Recentre) forgets it,
  * and the menu's Tidy up puts the bench back where it stood before the person moved it.
@@ -35,7 +37,6 @@ import type { DragHold } from '../../ui/panels/drag';
 import { barWidth, GRIP_DMM, onTidy, paintGrip, type GripLook } from '../../ui/panels/grip';
 import { browserStorage } from '../../ui/panels/store';
 import { benchGeometry } from '../core/geometry';
-import { PROXY_ORDER_BASE } from '../core/router';
 import { removeBound } from '../wire/entities';
 import { beginBenchDrag, createBenchPlaceStore, orbitedTop, type TopPose } from './move';
 import { uploadNow } from '../../look/upload';
@@ -43,11 +44,12 @@ import { uploadNow } from '../../look/upload';
 /** The bar's id for `app.input` and its hit's name (the emulator walk finds it by name). */
 export const BENCH_GRIP_ID = 'bench/grip';
 /**
- * The bar, table frame: the distance its dmm sizes are read at, how far in front of the top's front edge and how high
- * it lies, how far it leans back from upright towards the eyes (radians), and how thick its hit is.
+ * The bar, table frame: the distance its dmm sizes are read at (the far edge is about 1 m from the eyes), how far in
+ * from the table's far edge and how high its centre stands, how far it leans back from upright (radians; facing about
+ * where the eyes and hands are), and how thick its hit is.
  */
 const eyeAt = new Vector3();
-const BAR = { distanceM: 0.8, ahead: 0.035, y: 0.006, tiltRad: 1.15, hitDepth: 0.03 } as const;
+const BAR = { distanceM: 1.0, inset: 0.03, y: 0.03, leanRad: 0.5, hitDepth: 0.03 } as const;
 
 export const poseModule: FeatureModule = {
   id: 'bench/pose',
@@ -82,8 +84,8 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
   const hitMat = new MeshBasicMaterial({ visible: false });
   const hit = new Mesh(new BoxGeometry(barW + dmm(GRIP_DMM.hitPad * 2, D), dmm(GRIP_DMM.hitH, D), BAR.hitDepth), hitMat);
   hit.name = 'bench:grip';
-  // Under every bench proxy (parts, boards, wire ends), so a part, pin or wire under the same pointer wins.
-  hit.pointerEventsOrder = PROXY_ORDER_BASE - 1;
+  // Its order is a control's (`kind: 'control'` below), as every panel grip's: on the far edge it stands in front of the
+  // low ring panels (onboarding, the scope screen), which outrank every bench proxy and would take a ray that passes it.
   const grip = new Group();
   grip.name = 'bench:grip-root';
   grip.add(bar, hit);
@@ -94,9 +96,10 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
 
   const place = () => {
     const xr = app.settings.xr.value;
-    const top = benchGeometry(xr.posture, xr.dominantHand).top;
-    root.position.set(0, BAR.y, top.d / 2 + BAR.ahead);
-    root.rotation.set(-BAR.tiltRad, 0, 0);
+    const { table } = benchGeometry(xr.posture, xr.dominantHand);
+    // Straight ahead, the ring's outer edge is at z = cz - outer.
+    root.position.set(0, BAR.y, table.cz - table.outer + BAR.inset);
+    root.rotation.set(-BAR.leanRad, 0, 0);
   };
   place();
 
@@ -173,7 +176,7 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
   };
 
   const offs: Unsubscribe[] = [];
-  offs.push(app.input.bind(hit, { id: BENCH_GRIP_ID, ray: true, nearSelect: true }, onEvent));
+  offs.push(app.input.bind(hit, { id: BENCH_GRIP_ID, ray: true, nearSelect: true, kind: 'control' }, onEvent));
   offs.push(app.settings.xr.subscribe(place));
   offs.push(
     app.bench.benchTop.subscribe((pose) => {

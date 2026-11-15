@@ -189,8 +189,9 @@ const before = await page.evaluate(() => window.iynkware.app.bench.benchTop.valu
 await press('button:session/recentre');
 await sleep(1200);
 const after = await page.evaluate(() => window.iynkware.app.bench.benchTop.value);
-// Head at (0, 1.2, 0), facing -z before it turned 48 degrees left to the cluster: the bench is ahead at negative z.
-check('Recentre while looking at the buttons puts the bench in front of the heading held before', after.position[2] < -0.3 && Math.abs(after.position[0]) < 0.1 && Math.abs(after.yawRad) < 0.05, { before, after });
+// Head at (0, 1.2, 0), facing -z before it turned 48 degrees left to the cluster: the bench is ahead at negative z, its
+// front edge 0.35 m ahead of the eyes (#363), so its centre at least 0.35 + 0.25 m.
+check('Recentre while looking at the buttons puts the bench in front of the heading held before', after.position[2] < -0.59 && Math.abs(after.position[0]) < 0.1 && Math.abs(after.yawRad) < 0.05, { before, after });
 const rec = await clusterFrom(0);
 check('Recentre brings the cluster back to its place on the left of that heading', atDefault(rec), rec);
 check('Recentre forgets the moved place', !(await page.evaluate((id) => window.__stored()?.places?.[id], ID)));
