@@ -81,6 +81,7 @@ const pack = (lesson: unknown, checks: unknown, layout: unknown, workspace: unkn
 const EN = {
   ...pack(enLesson, enChecks, enLayout, enWorkspace),
   tabSteps: 'Steps',
+  allLessons: 'All lessons',
   backToSteps: 'Back to the steps',
   'open.diagnosis': 'Find the fault to finish.',
   back: 'Back',
@@ -104,6 +105,7 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   de: {
     ...pack(deLesson, deChecks, deLayout, deWorkspace),
     tabSteps: 'Schritte',
+    allLessons: 'Alle Lektionen',
     backToSteps: 'Zurück zu den Schritten',
     'open.diagnosis': 'Finde den Fehler, um abzuschließen.',
     back: 'Zurück',
@@ -124,6 +126,7 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   es: {
     ...pack(esLesson, esChecks, esLayout, esWorkspace),
     tabSteps: 'Pasos',
+    allLessons: 'Todas las lecciones',
     backToSteps: 'Volver a los pasos',
     'open.diagnosis': 'Encuentra el fallo para terminar.',
     back: 'Atrás',
@@ -144,6 +147,7 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   fr: {
     ...pack(frLesson, frChecks, frLayout, frWorkspace),
     tabSteps: 'Étapes',
+    allLessons: 'Toutes les leçons',
     backToSteps: 'Retour aux étapes',
     'open.diagnosis': 'Trouvez la panne pour terminer.',
     back: 'Retour',
@@ -164,6 +168,7 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   hi: {
     ...pack(hiLesson, hiChecks, hiLayout, hiWorkspace),
     tabSteps: 'चरण',
+    allLessons: 'सभी पाठ',
     backToSteps: 'चरणों पर वापस',
     'open.diagnosis': 'पूरा करने के लिए खराबी ढूँढें।',
     back: 'पीछे',
@@ -184,6 +189,7 @@ export const PANEL_STRINGS: Strings<typeof EN> = {
   zh: {
     ...pack(zhLesson, zhChecks, zhLayout, zhWorkspace),
     tabSteps: '步骤',
+    allLessons: '全部课程',
     backToSteps: '回到步骤',
     'open.diagnosis': '找出故障即可完成。',
     back: '上一步',
