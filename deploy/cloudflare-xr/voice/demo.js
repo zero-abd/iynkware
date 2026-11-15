@@ -36,10 +36,11 @@ const stages = ({
 })[language] || ['Waiting for microphone permission…', 'Starting voice audio…'];
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
-let media, audio, socket, node, source, connectTimer;
+let media, audio, socket, node, source, sink, connectTimer, responseTimer, completionTimer;
 let active = false, released = false, setupReady = false, endSent = false, controllerDown = false, playbackAt = 0;
 let playback = [];
 let pendingAudio = [];
+let audioChunks = 0;
 
 const panel = document.createElement('aside');
 panel.id = 'voice-demo';
@@ -72,7 +73,9 @@ function play(encoded) {
 }
 function closeTurn() {
   clearTimeout(connectTimer); connectTimer = undefined;
-  node?.disconnect(); source?.disconnect(); node = source = null;
+  clearTimeout(responseTimer); responseTimer = undefined;
+  clearTimeout(completionTimer); completionTimer = undefined;
+  node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   pendingAudio = []; setupReady = false; endSent = false;
   const current = socket; socket = null;
   if (current && current.readyState < WebSocket.CLOSING) current.close(1000, 'turn complete');
@@ -86,24 +89,39 @@ function sendAudio(buffer) {
 }
 function startCapture() {
   source = audio.createMediaStreamSource(media);
-  node = new AudioWorkletNode(audio, 'iynkware-voice-input', {numberOfInputs:1, numberOfOutputs:0});
+  node = new AudioWorkletNode(audio, 'iynkware-voice-input', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1]});
+  sink = audio.createGain(); sink.gain.value = 0;
   node.port.onmessage = event => {
+    audioChunks += 1;
     if (setupReady && socket?.readyState === WebSocket.OPEN) sendAudio(event.data);
     else if (pendingAudio.length < 150) pendingAudio.push(event.data);
   };
-  source.connect(node);
+  source.connect(node); node.connect(sink); sink.connect(audio.destination);
 }
 function sendEnd() {
   if (!setupReady || endSent || socket?.readyState !== WebSocket.OPEN) return;
+  if (audioChunks === 0) {
+    failTurn('No microphone audio was captured. Disable voice, enable it again, and retry.');
+    return;
+  }
   endSent = true;
-  node?.disconnect(); source?.disconnect(); node = source = null;
+  node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   socket.send(JSON.stringify({realtimeInput:{audioStreamEnd:true}}));
   ui.status.textContent = speaking; bridge.state('thinking');
+  responseTimer = setTimeout(() => failTurn('Gemini received audio but did not answer. Try a slightly longer question.'), 15000);
 }
 function endQuestion() {
   if (!active || released) return;
-  released = true; node?.disconnect(); source?.disconnect(); node = source = null;
+  released = true; node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   sendEnd();
+}
+function finishTurn() {
+  if (!active || completionTimer) return;
+  clearTimeout(responseTimer); responseTimer = undefined;
+  const wait = Math.max(0, (playbackAt - (audio?.currentTime || 0))*1000 + 100);
+  completionTimer = setTimeout(() => {
+    completionTimer = undefined; active = false; bridge.state('idle'); ui.talk.disabled = false; ui.status.textContent = ready; closeTurn();
+  }, wait);
 }
 function onMessage(event) {
   let message; try { message = JSON.parse(event.data); } catch { return; }
@@ -125,14 +143,11 @@ function onMessage(event) {
   if (content?.inputTranscription?.text) bridge.user(content.inputTranscription.text, Boolean(content.turnComplete));
   if (content?.outputTranscription?.text) bridge.say(content.outputTranscription.text, Boolean(content.turnComplete));
   for (const part of content?.modelTurn?.parts || []) if (part.inlineData?.data) play(part.inlineData.data);
-  if (content?.turnComplete) {
-    active = false; bridge.state('idle'); ui.talk.disabled = false; ui.status.textContent = ready;
-    setTimeout(closeTurn, Math.max(0, (playbackAt - (audio?.currentTime || 0))*1000 + 100));
-  }
+  if (content?.generationComplete || content?.turnComplete) finishTurn();
 }
 async function beginQuestion() {
   if (!media || active) return;
-  active = true; released = false; setupReady = false; endSent = false; pendingAudio = [];
+  active = true; released = false; setupReady = false; endSent = false; pendingAudio = []; audioChunks = 0;
   ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
   try {
     await audio.resume();
@@ -142,7 +157,7 @@ async function beginQuestion() {
     const grant = await response.json();
     if (grant.model !== MODEL || typeof grant.token !== 'string') throw new Error('token');
     ui.status.textContent = 'Opening Gemini Live…';
-    socket = new WebSocket(`${SOCKET}?access_token=${encodeURIComponent(grant.token)}`);
+    socket = new WebSocket(SOCKET);
     connectTimer = setTimeout(() => failTurn('Gemini connection timed out. Check Quest Wi-Fi and try again.'), 8000);
     socket.addEventListener('open', () => socket.send(JSON.stringify({authToken:grant.token})));
     socket.addEventListener('message', onMessage); socket.addEventListener('error', () => failTurn());
