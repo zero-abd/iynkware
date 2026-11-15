@@ -9,6 +9,8 @@ import { type SimDiagnostic, simDiag } from "./core/diagnostic.ts";
 import type { AnalogOptions } from "./analog/types.ts";
 import { drawBuild, spreadsOf } from "./analog/part-tolerance.ts";
 import type { PartKind, SimNetlist, SimPart } from "./engine.ts";
+import { coreTwinOf } from "./import-twin.ts";
+import type { TwinRegistry } from "./import-twin.ts";
 
 const MAX_PARTS = 2000;
 const GENERATOR_STEP_NS = 10_000;
@@ -63,7 +65,10 @@ export function groundOf(doc: Project, reg: Pick<PartRegistry, "get">, nl = netl
  * wiring surface such as a breadboard is left out. A reference the registry cannot resolve still counts as a surface
  * when the document pinned it as one; any other becomes a part of kind `other` with `unknown-part`.
  */
-export function buildSimNetlist(doc: Project, reg: Pick<PartRegistry, "get">): { net: SimNetlist; diagnostics: SimDiagnostic[] } {
+export function buildSimNetlist(
+  doc: Project,
+  reg: Pick<PartRegistry, "get"> & Partial<Pick<PartRegistry, "list" | "originOf">>,
+): { net: SimNetlist; diagnostics: SimDiagnostic[] } {
   const nl = netlist(doc, probedPins(doc));
   const diagnostics: SimDiagnostic[] = [];
   const pinned = new Map<string, InterfaceSnapshot>();
@@ -90,7 +95,9 @@ export function buildSimNetlist(doc: Project, reg: Pick<PartRegistry, "get">): {
 
       const pins: SimPart["pins"] = {};
       for (const p of iface?.pins ?? []) pins[p.id] = nl.pinNode[`${inst.id}/${p.id}`] ?? null;
-      parts.push({ id: inst.id, descriptor: `${ref}@${version}`, params, pins, kind: descriptor ? kindOf(descriptor) : "other" });
+      // An imported part identical in pins and behaviour to a core part runs as that part (src/sim/import-twin.ts).
+      const twin = descriptor && reg.list && reg.originOf ? coreTwinOf(descriptor, reg as TwinRegistry) : undefined;
+      parts.push({ id: inst.id, descriptor: twin ?? `${ref}@${version}`, params, pins, kind: descriptor ? kindOf(descriptor) : "other" });
     }
   }
 
