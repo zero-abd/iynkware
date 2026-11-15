@@ -45,7 +45,7 @@ export function createApp(world: World, doc: Project): AppHandle {
   const shell = createShellService();
   const templates = createTemplateSource();
   const sim = createSimBridge();
-  const input = createInputService(world);
+  const input = createInputService(world, { haptics: () => settings.xr.value.haptics });
   const feedback = createFeedbackService({ world, input, settings, ring: (at) => effectsOf(world).popRing({ x: at[0], y: at[1], z: at[2] }) });
   const assistant = createAssistantService({ project, templates, sim, lang: () => settings.lang.value, guide: () => lessons.guide.value?.state ?? null, presence: instantPresence });
   const app: XrApp = {
