@@ -1,11 +1,12 @@
 /**
  * Home (XR_DESIGN.md 9.6): the panel that opens on entering the headset and from the menu. Continue (the project on the
  * bench, the last project or lesson, or Blink for a first visit), New project, the Blink lesson, the pillars' lesson and
- * Range tiles (`app.shell.entries`), the drone, a robot bench, three templates, Projects, Settings, the menu and the
- * language. Every tile switches inside the session through `../switch`. World-locked 0.95 m ahead, 8 degrees below eye
+ * Range tiles (`app.shell.entries`), the drone, a robot bench, a row of the science labs (switching labs happens here:
+ * there is no separate lab picker), three templates, Projects, Settings, the menu and the language. Every tile switches inside the session through `../switch`. World-locked 0.95 m ahead, 8 degrees below eye
  * level: nearer than the design's 1.3 m so it sits in front of the lesson guide (about 1.1 m), which would otherwise
- * take its rays. Sizes are in dmm, so it looks the same size. `app.shell.homeOpen` is the truth: `openHome()` from
- * anywhere opens it.
+ * take its rays. Its pointer order is above every other target's (`HOME_ORDER`), so a panel, a control or a bench cell
+ * nearer than Home, or behind its gaps, never takes a ray aimed at it. Sizes are in dmm, so it looks the same size.
+ * `app.shell.homeOpen` is the truth: `openHome()` from anywhere opens it.
  */
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Lang, Unsubscribe } from '../../contracts/common';
@@ -32,8 +33,9 @@ import {
 } from '../switch';
 import { claimFocus, onFocusLost } from '../switch/focus';
 import type { IconName } from '../../look/icons';
+import type { HomeEntry } from '../../contracts/shell';
 import { HOME, LANG_NAMES } from './copy';
-import { learnSpotEntry } from './entry';
+import { labEntries, learnSpotEntry } from './entry';
 
 /** Viewing distance and the grid, in dmm (9.1, 9.6). */
 const D = 0.95;
@@ -44,7 +46,15 @@ const KICK = 30;
 const FOOT = 70;
 /** The how-to-get-back line under the last row: two caption lines. */
 const HINT = 56;
-const H = 64 + 18 + ROW + 3 * (GAP + KICK + ROW) + GAP + 8 + FOOT + HINT + 24;
+/** The rows under Continue: Learn, Labs, Drones and robots, Templates. */
+const ROWS = 4;
+const H = 64 + 18 + ROW + ROWS * (GAP + KICK + ROW) + GAP + 8 + FOOT + HINT + 24;
+/**
+ * `pointerEventsOrder` for Home's whole subtree, plus each object's own (buttons over the backplate). Above every target
+ * kind (contracts/input.ts: cell 5 at most), so nothing nearer or behind wins a ray while Home is open.
+ */
+export const HOME_ORDER = 10;
+type Ordered = { pointerEventsOrder?: number };
 
 const ROBOT_TEMPLATE = 'prj_robotics-l298n';
 /** Frames and time to wait after entering before Home is placed (the headset pose arrives after the session starts). */
@@ -77,19 +87,24 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
   };
   const fresh: Cell = { id: 'home/new', look: { label: t('newProject'), detail: t('newDetail'), icon: 'plus', layout: 'row', disabled: busy || !lib }, run: go(() => newProject(app)) };
 
+  const tile = (e: HomeEntry, icon: IconName): Cell => ({
+    id: `home/entry/${e.id}`,
+    look: { label: pickText(e.title, lang), detail: e.detail ? pickText(e.detail, lang) : undefined, icon, layout: 'row', disabled: busy },
+    run: () => {
+      if (switching(app).value) return;
+      app.shell.closeHome();
+      e.open();
+    },
+  });
   const lessonEntry = learnSpotEntry(app.shell.entries.value);
   const learn: Cell[] = [
-    { id: 'home/blink', look: { label: t('blink'), detail: t('blinkDetail'), icon: 'lightbulb', layout: 'row', disabled: busy }, run: go(() => openLesson(app, BLINK)) },
-    lessonEntry
-      ? {
-          id: `home/entry/${lessonEntry.id}`,
-          look: { label: pickText(lessonEntry.title, lang), detail: pickText(lessonEntry.detail, lang), icon: 'graduation', layout: 'row', disabled: busy },
-          run: () => {
-            app.shell.closeHome();
-            lessonEntry.open();
-          },
-        }
-      : { id: 'home/labs', look: { label: t('allLessons'), detail: t('soon'), icon: 'graduation', layout: 'row', disabled: true }, run: () => undefined },
+    {
+      id: 'home/blink',
+      span: lessonEntry ? 1 : 2,
+      look: { label: t('blink'), detail: t('blinkDetail'), icon: 'lightbulb', layout: 'row', disabled: busy },
+      run: go(() => openLesson(app, BLINK)),
+    },
+    ...(lessonEntry ? [tile(lessonEntry, 'graduation')] : []),
     {
       id: 'home/lessons',
       look: { label: t('allLessons'), detail: t('allDetail'), icon: 'book', layout: 'row', disabled: busy },
@@ -99,6 +114,10 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
       },
     },
   ];
+
+  // One tile per lab: picking one opens that lab on the bench (the lab pillar closes Home).
+  const labIcons: Record<string, IconName> = { chemistry: 'flame', physics: 'timer', electrical: 'lightning', signals: 'waveform' };
+  const labs: Cell[] = labEntries(app.shell.entries.value).map((e) => tile(e, labIcons[e.id.split('/').pop() ?? ''] ?? 'graduation'));
 
   const range = app.shell.entries.value.find((e) => e.slot === 'range');
   const n = lib?.rows.value.length ?? 0;
@@ -158,6 +177,7 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
     rows: [
       { cells: [cont, fresh] },
       { kicker: t('learn'), cells: learn },
+      ...(labs.length ? [{ kicker: t('labs'), cells: labs }] : []),
       { kicker: t('fly'), cells: fly },
       { kicker: t('templates'), cells: templates },
     ],
@@ -165,6 +185,19 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
     // The palm button floats off the hand that is not the dominant one (../menu/palm.ts).
     hint: t(app.settings.xr.value.dominantHand === 'left' ? 'hintRightPalm' : 'hintLeftPalm'),
   };
+}
+
+/**
+ * Home wins every ray aimed at it: over nearer panels, and over controls or bench cells behind its gaps. Every object
+ * in its subtree gets `HOME_ORDER` plus its own order (a button's 4 over the backplate's 0); run again after anything
+ * binds, since a binding sets its object's order from its kind.
+ */
+export function lift(p: { group: { traverse(fn: (o: unknown) => void): void } }): void {
+  p.group.traverse((o) => {
+    const own = (o as Ordered).pointerEventsOrder;
+    if (own === undefined) (o as Ordered).pointerEventsOrder = HOME_ORDER;
+    else if (own < HOME_ORDER) (o as Ordered).pointerEventsOrder = HOME_ORDER + own;
+  });
 }
 
 export const homeModule: FeatureModule = {
@@ -198,7 +231,10 @@ export const homeModule: FeatureModule = {
       p.setTitle(c.title, 'iynkware');
       p.clear();
       const inner = p.inner;
-      const col = (inner - 2 * dmm(GAP, D)) / 3;
+      const gap = dmm(GAP, D);
+      /** A row of `n` columns: three, or more when a row has more tiles (the four labs). */
+      const colOf = (n: number) => (inner - (n - 1) * gap) / n;
+      let col = colOf(3);
       const rowH = dmm(ROW, D);
       const left = -inner / 2;
       const place = (cell: Cell, x0: number, y: number, h: number) => {
@@ -213,6 +249,7 @@ export const homeModule: FeatureModule = {
           k.set('', { kicker: row.kicker });
           y -= dmm(KICK, D);
         }
+        col = colOf(Math.max(3, row.cells.reduce((n, c) => n + (c.span ?? 1), 0)));
         let x = left;
         for (const cell of row.cells) {
           place(cell, x, y - rowH / 2, rowH);
@@ -221,6 +258,7 @@ export const homeModule: FeatureModule = {
         y -= rowH + dmm(GAP, D);
       }
       y -= dmm(8, D);
+      col = colOf(3);
       let x = left;
       for (const cell of c.foot) {
         place(cell, x, y - dmm(FOOT, D) / 2, dmm(FOOT, D));
@@ -229,6 +267,7 @@ export const homeModule: FeatureModule = {
       y -= dmm(FOOT, D) + dmm(10, D);
       const hint = p.add(shellText({ w: inner, h: dmm(HINT - 10, D), distanceM: D }), 0, y - dmm(HINT - 10, D) / 2);
       hint.set(c.hint, { role: 'caption', colour: MUTED, maxLines: 2 });
+      lift(p);
     };
 
     const show = () => {
@@ -237,6 +276,7 @@ export const homeModule: FeatureModule = {
       if (!p.isOpen) placeAhead(app.world, p.group, { distance: D, belowDeg: 8 });
       render();
       p.open();
+      lift(p);
     };
     const hide = () => panel?.close();
 

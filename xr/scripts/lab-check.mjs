@@ -59,7 +59,7 @@ check('immersive session with controllers', await page.evaluate(() => window.iyn
 
 // Home tile and menu rows are offered.
 const shell = await page.evaluate(() => ({
-  tile: window.iynkware.app.shell.entries.value.some((e) => e.id === 'lab/labs'),
+  tile: window.iynkware.app.shell.entries.value.some((e) => e.id === 'lab/open/chemistry'),
   rows: window.iynkware.app.shell.menuItems.value.filter((m) => m.id.startsWith('lab/')).map((m) => m.id),
 }));
 check('Home tile and four lab menu rows', shell.tile && ['lab/chemistry', 'lab/physics', 'lab/electrical', 'lab/signals', 'lab/leave'].every((id) => shell.rows.includes(id)), shell);
