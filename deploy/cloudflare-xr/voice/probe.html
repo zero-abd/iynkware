@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- Temporary microphone diagnostic for issue #196 (Quest Browser delivers silent mic samples). Open it directly at
+     /voice/probe.html; nothing in the product links here. English-only on purpose; delete this page and probe.js
+     before PR #197 leaves draft. It never records, uploads, or persists audio: the stream feeds a local
+     AnalyserNode and the numbers on this page only. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>iynkware microphone probe</title>
+<style>
+  body{font:16px/1.4 system-ui,sans-serif;background:#f2efe7;color:#231e16;margin:0;padding:16px;max-width:680px}
+  h1{font-size:22px;margin:0 0 4px}
+  button{min-height:48px;margin:8px 8px 0 0;padding:8px 16px;border:3px solid #231e16;border-radius:12px;background:#e4694e;font:600 17px system-ui,sans-serif}
+  button.secondary{background:#fff}
+  #bar-wrap{height:26px;border:3px solid #231e16;border-radius:8px;background:#fff;margin:12px 0 4px;overflow:hidden}
+  #bar{height:100%;width:0%;background:#41538f}
+  #numbers{font:600 15px ui-monospace,monospace}
+  #track,#devices{white-space:pre-wrap;font:13px ui-monospace,monospace;background:#fff;border:2px solid #231e16;border-radius:8px;padding:8px;margin-top:8px}
+  #log{font:13px ui-monospace,monospace;margin-top:8px;max-height:220px;overflow:auto;border-top:2px solid #231e16;padding-top:6px}
+</style>
+</head>
+<body>
+<h1>Microphone probe</h1>
+<p>Temporary diagnostic for the voice demo. Audio stays on this device: it is measured, never recorded or sent.</p>
+<div>
+  <button id="start">Start microphone</button>
+  <button id="start-raw" class="secondary">Start with processing off</button>
+  <button id="ar" class="secondary" disabled>Test in AR (10 s)</button>
+  <button id="stop" class="secondary" disabled>Stop</button>
+</div>
+<div id="bar-wrap"><div id="bar"></div></div>
+<div id="numbers">peak 0.000 · rms 0.000 · max 0.000</div>
+<div id="track">track: (not started)</div>
+<div id="devices">devices: (not started)</div>
+<div id="log"></div>
+<script type="module" src="/voice/probe.js"></script>
+</body>
+</html>
