@@ -106,7 +106,9 @@ export interface SimBridge {
   readonly lastMech: PhysicsFrame | null;
 
   /**
-   * Builds the netlist from the document and loads its firmware. Replaces any earlier run. With `opts.program` (a compiled hex or UF2, iynk's `ProgramImage`) that image runs on the
+   * Builds the netlist from the document, with its enabled faults (`doc.simulation.faults`) applied as iynk's
+   * `applyFaults` does (a fault that no longer fits is left out with a `fault-not-applied` warning), and loads its
+   * firmware. Replaces any earlier run. With `opts.program` (a compiled hex or UF2, iynk's `ProgramImage`) that image runs on the
    * emulated chip instead of the project's source; a board or image the engines cannot run is a failed load. A robot project
    * (`needsPhysics`) also loads the physics engine first; a refused robot is a failed load with `onMechState` `failed`.
    */
