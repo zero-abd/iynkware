@@ -18,6 +18,8 @@ export interface PlaceStore {
   /** The place the person left panel `id` at, or undefined (the panel's own default). Do not keep the array. */
   get(id: string): Readonly<MVec3> | undefined;
   set(id: string, p: Vec3): void;
+  /** Forgets the place of `id` alone. */
+  forget(id: string): void;
   /** Forgets every place (Tidy up). */
   clear(): void;
   ids(): string[];
@@ -82,6 +84,9 @@ export function createPlaceStore(storage: StorageLike | null = browserStorage(),
     set(id, p) {
       places.set(id, [p[0], p[1], p[2]]);
       save();
+    },
+    forget(id) {
+      if (places.delete(id)) save();
     },
     clear() {
       places.clear();

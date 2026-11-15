@@ -522,7 +522,10 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   one. The panel follows the hand, keeps turned towards your head in yaw and pitch, never rolled, stays 0.3 to 2.0 m
   from the eyes and never goes under the bench top. It stays where it is let go, relative to the bench (so Recentre
   takes it along), for the session and after a reload; reopening it puts it back there. Menu, Tidy up puts every
-  panel back in its default place. The Recentre and Exit cluster is not a panel and does not move. The bench itself
+  panel back in its default place. The Home, Recentre and Exit cluster is fixed in the room (owner, 2026-11-14): put
+  once when the session starts on the person's left, 60 degrees off the heading, 0.85 m from the eyes and 6 degrees
+  below eye level, facing them; it never follows the head. It has the same grip bar and Tidy up, and Recentre brings
+  it back to that place beside the person. The bench itself
   has the same grip bar just in front of its front edge (`xr/src/bench/pose`): drag it and the whole bench, with
   everything on it, follows in all three directions, level and keeping its turn, never under 0.1 m above the floor.
   Parts, pins and wires win over it. Its place is kept after a reload; Recentre and Tidy up put it back.
