@@ -183,15 +183,16 @@ const p3 = await page.evaluate(() => window.__spot('session-controls'));
 check('fixed in the room: turning and walking leave it put', dist(p2, p3) < 0.005, { before: r3(p2), after: r3(p3) });
 check('it turns in place to keep facing the head', (await page.evaluate(() => window.__facing('session-controls'))) > 0.98);
 
-// 4. Recentre by controller ray: the bench eases to in front of the turned head, and the cluster comes back beside it.
+// 4. Recentre by controller ray while turned to the cluster on the left: "in front" is the way the person faced before
+// they turned to the buttons, not the turn itself. The bench eases to straight ahead, the cluster back to the left.
 const before = await page.evaluate(() => window.iynkware.app.bench.benchTop.value);
 await press('button:session/recentre');
 await sleep(1200);
 const after = await page.evaluate(() => window.iynkware.app.bench.benchTop.value);
-// Head at (0, 1.2, 0) turned 90 degrees to the left looks along -x: the bench should now be at negative x, near z = 0.
-check('Recentre moved the bench in front of the turned head', after.position[0] < -0.3 && Math.abs(after.position[2]) < 0.1 && Math.abs(after.yawRad - Math.PI / 2) < 0.05, { before, after });
-const rec = await clusterFrom(90);
-check('Recentre brings the cluster back to its place on the left of the turned head', atDefault(rec), rec);
+// Head at (0, 1.2, 0), facing -z before it turned 90 degrees left to the cluster: the bench is ahead at negative z.
+check('Recentre while looking at the buttons puts the bench in front of the heading held before', after.position[2] < -0.3 && Math.abs(after.position[0]) < 0.1 && Math.abs(after.yawRad) < 0.05, { before, after });
+const rec = await clusterFrom(0);
+check('Recentre brings the cluster back to its place on the left of that heading', atDefault(rec), rec);
 check('Recentre forgets the moved place', !(await page.evaluate((id) => window.__stored()?.places?.[id], ID)));
 const pRec = await page.evaluate(() => window.__spot('session-controls'));
 

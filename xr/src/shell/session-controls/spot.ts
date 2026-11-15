@@ -45,3 +45,48 @@ export function clusterHome(eye: Vec3, forward: Vec3, keepYaw = 0): Placement {
   const yaw = yawOfForward(forward[0], forward[2], keepYaw);
   return placementFrom(eye, [-Math.sin(yaw), 0, -Math.cos(yaw)], CLUSTER);
 }
+
+/**
+ * The heading Recentre and the cluster are placed from (owner, 2026-11-15: pressing Recentre on the left must put the
+ * bench in front, not where the head turned to reach the button). While the head looks towards the cluster, within
+ * `cone`, that look is not a heading; the heading is the last one the head held for `steadyS` seconds, within
+ * `steadyRad`, anywhere else. A head that does not look at the cluster is its own heading (a ray pressed from the side).
+ */
+export const HEADING = { cone: (40 * Math.PI) / 180, steadyS: 0.5, steadyRad: (12 * Math.PI) / 180 } as const;
+
+export interface HeadingTracker {
+  /** Feeds one frame: the head's yaw, the cluster's yaw from the eyes (null when it is not shown), seconds since the last. */
+  update(headYaw: number, clusterYaw: number | null, dt: number): void;
+  /** The heading for a press now, with the head at `headYaw` and the cluster at `clusterYaw` from the eyes. */
+  heading(headYaw: number, clusterYaw: number | null): number;
+  /** Starts over from `yaw` (the cluster was just placed from it). */
+  reset(yaw: number): void;
+}
+
+export function headingTracker(initialYaw = 0): HeadingTracker {
+  let settled = initialYaw;
+  let anchor: number | null = null;
+  let held = 0;
+  const atCluster = (head: number, cluster: number | null) => cluster !== null && Math.abs(angleDiff(head, cluster)) < HEADING.cone;
+  return {
+    update(head, cluster, dt) {
+      if (atCluster(head, cluster)) {
+        anchor = null;
+        return;
+      }
+      if (anchor === null || Math.abs(angleDiff(anchor, head)) > HEADING.steadyRad) {
+        anchor = head;
+        held = 0;
+        return;
+      }
+      held += dt;
+      if (held >= HEADING.steadyS) settled = anchor;
+    },
+    heading: (head, cluster) => (atCluster(head, cluster) ? settled : head),
+    reset(yaw) {
+      settled = yaw;
+      anchor = null;
+      held = 0;
+    },
+  };
+}

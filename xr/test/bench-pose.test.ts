@@ -4,6 +4,8 @@ import {
   beginBenchDrag,
   createBenchPlaceStore,
   draggedTop,
+  facingYaw,
+  orbitedTop,
   FLOOR_CLEAR,
   formatBenchPlace,
   parseBenchPlace,
@@ -53,6 +55,49 @@ describe('bench/pose: moving the bench by its grip bar', () => {
     expect(low.position[1]).toBe(FLOOR_CLEAR);
     near([low.position[0], low.position[2]], [0, -0.6]);
     expect(draggedTop(hold, hand([0, 0.3, -0.3]), 0).position[1]).toBeCloseTo(0.29, 6);
+  });
+});
+
+describe('bench/pose: carried round the person', () => {
+  const EYE: MVec3 = [0, 1.2, 0];
+  // Straight ahead of the eyes, facing them; the bar's centre 0.3 m nearer than the top's centre.
+  const AHEAD: TopPose = { position: [0, 0.74, -0.6], yawRad: 0 };
+  const grip: MVec3 = [0, 0.75, -0.3];
+
+  test('held still, the bench does not move or turn', () => {
+    const hold = beginBenchDrag(AHEAD, hand(grip), grip);
+    const t = orbitedTop(hold, hand(grip), 0, EYE);
+    near(t.position, AHEAD.position);
+    expect(t.yawRad).toBeCloseTo(0, 9);
+  });
+
+  test('carried round to the left, it turns to keep facing the eyes and the bar stays in the hand', () => {
+    const hold = beginBenchDrag(AHEAD, hand(grip), grip);
+    // The hand swings the bar a quarter turn to the left round the eyes: from 0.3 m ahead to 0.3 m to the left.
+    const t = orbitedTop(hold, hand([-0.3, 0.75, 0]), 0, EYE);
+    expect(t.yawRad).toBeCloseTo(Math.PI / 2, 6);
+    near(t.position, [-0.6, 0.74, 0]);
+    expect(facingYaw(t.position, EYE)).toBeCloseTo(t.yawRad, 6);
+  });
+
+  test('a ray swung to the right swings the bench round on a circle, still facing the eyes', () => {
+    const origin: MVec3 = [0, 1.0, 0];
+    const dir: MVec3 = [grip[0] - origin[0], grip[1] - origin[1], grip[2] - origin[2]];
+    const hold = beginBenchDrag(AHEAD, ray(origin, dir), grip);
+    const a = -60 * (Math.PI / 180);
+    const turned: MVec3 = [dir[0] * Math.cos(a) + dir[2] * Math.sin(a), dir[1], -dir[0] * Math.sin(a) + dir[2] * Math.cos(a)];
+    const t = orbitedTop(hold, ray(origin, turned), 0, [0, 1.2, 0]);
+    expect(t.yawRad).toBeCloseTo(a, 6);
+    expect(Math.hypot(t.position[0], t.position[2])).toBeCloseTo(0.6, 6);
+    expect(t.position[1]).toBeCloseTo(0.74, 6);
+  });
+
+  test('right at the eyes it keeps its turn, and it stays above the floor', () => {
+    const hold = beginBenchDrag(AHEAD, hand(grip), grip);
+    const close = orbitedTop(hold, hand([0, 0.75, 0.3]), 0, EYE);
+    expect(close.yawRad).toBe(0);
+    expect(facingYaw([0.05, 0, 0.05], EYE)).toBeNull();
+    expect(orbitedTop(hold, hand([0, -1, -0.3]), 0, EYE).position[1]).toBe(FLOOR_CLEAR);
   });
 });
 
