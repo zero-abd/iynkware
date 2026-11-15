@@ -70,6 +70,7 @@ export function createAudioIO(o: { onChunk(pcm: ArrayBuffer): void; onIssue(i: A
     },
     play(b64) {
       if (!ctx) return;
+      if (ctx.state !== 'running') void ctx.resume().catch(() => undefined);
       const raw = atob(b64);
       const n = raw.length >> 1;
       const buffer = ctx.createBuffer(1, n, 24_000);

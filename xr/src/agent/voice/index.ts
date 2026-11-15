@@ -5,7 +5,7 @@
  * talk" button) is push-to-talk. Transport: session.ts. Audio: audio.ts. The Worker's token route, consent, quota and
  * device checks are unchanged (deploy/cloudflare-xr/worker.js).
  */
-import { Vector3 } from '@iwsdk/core';
+import { Group, Vector3 } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import {
@@ -19,6 +19,10 @@ import { createLabPanel } from '../../lab/kit/panel';
 import { say } from '../../lab/text';
 import { onLookFrame } from '../../look/runner';
 import { TYPE } from '../../look/type';
+import { shellButton } from '../../shell/kit';
+import { movable } from '../../ui/panels';
+import { spotsOf } from '../../assistant/presence/spots';
+import { companionOf } from '../../assistant/presence';
 import { value } from '../../ui/value';
 import { agentOf } from '../hub';
 import { createAudioIO, type AudioIO } from './audio';
@@ -71,6 +75,17 @@ export function mountVoice(app: XrApp): Unsubscribe {
   let audio: AudioIO | null = null;
   let session: VoiceSession | null = null;
   let down = false;
+  let vstatus: VoiceStatus = 'off';
+  const paintTalk = () => {
+    const talkingNow = vstatus === 'talking';
+    const live = vstatus === 'talking' || vstatus === 'answering';
+    talkBtn.set({
+      label: say(on.value ? VOICE_TEXT.menu : VOICE_TEXT.enable, lang()),
+      icon: !on.value ? 'soundOff' : live ? 'waveform' : 'sound',
+      selected: live,
+      primary: talkingNow,
+    });
+  };
   const WARN: ReadonlySet<VoiceStatusKey> = new Set(['micMuted', 'micEnded', 'suspended', 'blocked', 'quota', 'failed', 'unavailable']);
   const note = (k: VoiceStatusKey | null) => conv.setNote(k ? say(VOICE_TEXT.status[k], lang()) : '', !!k && WARN.has(k));
   const seams = (import.meta.env.DEV ? (globalThis as Seams) : {}) as Seams;
@@ -79,6 +94,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
     if (on.value || !hub.bridge) return;
     const bridge = hub.bridge;
     on.set(true);
+    paintTalk();
     blockSelection(true);
     note('starting');
     let s: VoiceSession | null = null;
@@ -109,6 +125,8 @@ export function mountVoice(app: XrApp): Unsubscribe {
       relayUrl: `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`,
       dev: import.meta.env.DEV ? devConfig() : null,
       onStatus: (st) => {
+        vstatus = st;
+        paintTalk();
         const k = STATUS_NOTE[st];
         if (st === 'talking' || st === 'answering') note(null);
         else if (k) note(k);
@@ -138,6 +156,8 @@ export function mountVoice(app: XrApp): Unsubscribe {
     down = false;
     blockSelection(false);
     if (on.value) on.set(false);
+    vstatus = 'off';
+    paintTalk();
     note('off');
   };
 
@@ -207,6 +227,42 @@ export function mountVoice(app: XrApp): Unsubscribe {
     if (consented) return enable();
     showConsent(true);
   };
+
+  // ---- the talk button: its own fixed thing left of the bunny's resting spot (not on the bunny, which flies off to place
+  // parts), with its own grip bar. A select is the user activation that creates and resumes the AudioContext (enable()
+  // runs inside it), so the AI's voice can play: first select turns voice on (consent first), then each select starts
+  // a turn and the next one ends it.
+  const talkRoot = new Group();
+  talkRoot.name = 'agent:talk';
+  const talkBtn = shellButton(
+    app,
+    {
+      id: 'agent/talk',
+      w: 0.07,
+      h: 0.03,
+      distanceM: 0.6,
+      poke: true,
+      onSelect: () => {
+        if (!on.value) return toggle();
+        audio?.wake();
+        if (vstatus === 'talking') release();
+        else press();
+      },
+    },
+    { label: say(VOICE_TEXT.enable, lang()), icon: 'soundOff' },
+  );
+  talkRoot.add(talkBtn.group);
+  app.bench.table.add(talkRoot);
+  const placeTalk = () => {
+    const h = spotsOf(app.settings.xr.value).home;
+    talkRoot.position.set(h.x - 0.09, h.y + 0.02, h.z);
+  };
+  placeTalk();
+  const talkGrip = movable(app, { id: 'agent/talk', group: talkRoot, width: 0.07, height: 0.03, distanceM: 0.6, flat: true });
+  const offTalk = [app.settings.xr.subscribe(placeTalk), app.settings.lang.subscribe(paintTalk)];
+  const offTalkFrame = onLookFrame(app.world, () => {
+    talkRoot.visible = !!companionOf(app.world)?.group.visible;
+  });
 
   // ---- the 2D controls, for the flat page --------------------------------------------------------------------------
   const dom = typeof document !== 'undefined' ? document.createElement('div') : null;
@@ -289,6 +345,11 @@ export function mountVoice(app: XrApp): Unsubscribe {
     if (typeof window !== 'undefined') window.removeEventListener('pagehide', onHide);
     if (typeof document !== 'undefined') document.removeEventListener('selectstart', noSelect);
     offFrame();
+    offTalkFrame();
+    for (const off of offTalk) off();
+    talkGrip.dispose();
+    talkBtn.dispose();
+    talkRoot.removeFromParent();
     offMenu();
     offCoach();
     hub.micLevel = null;
