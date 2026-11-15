@@ -1,7 +1,7 @@
 /**
- * Session controls: Recentre and Exit, two inked buttons in the lower left of the person's view, in every mode and every
+ * Session controls: Recentre and Exit, two inked buttons centred below the person's view, in every mode and every
  * project. The cluster follows the head lazily (`follow.ts`: it waits until the head has turned 28 degrees, then eases
- * after it and settles), at touch range (0.46 m), 26 degrees to the left and 38 below eye level, so it never covers
+ * after it and settles), at touch range (0.45 m), straight ahead and 45 degrees below eye level (`FOLLOW` in `follow.ts`), so it never covers
  * the work and a poke or a ray finds it. It is shown only inside a session.
  *
  *   Recentre  puts the bench (and everything anchored to it) in front of the person again with an eased move, through
