@@ -11,9 +11,13 @@ import { placementFrom } from '../kit/place';
 export const FOLLOW = {
   /** Reading distance, metres: touch range (XR_DESIGN.md 2.1 puts touch UI at 0.42 to 0.46 m). */
   distance: 0.46,
-  /** Towards the left of the heading, and below eye level: the lower left corner of the view. */
-  sideDeg: -26,
-  belowDeg: 38,
+  /**
+   * Towards the left of the heading, and below eye level: the lower left corner of the view, beside the bench. Seated at
+   * the bench, 26 and 38 degrees put it over the bench's front edge, between the hands and the rail and lab controls,
+   * where it took their rays; 55 and 45 keep it in front of the bench's left end, still within reach.
+   */
+  sideDeg: -55,
+  belowDeg: 45,
   deadDeg: 28,
   restDeg: 3,
   /** Per second: how fast it eases after the head (an exponential approach). */
