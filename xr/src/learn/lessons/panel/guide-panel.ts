@@ -23,7 +23,9 @@ import { arrowSpot, outOfView, type ArrowSpot } from './arrow';
 import { drawChecksTab } from './checks-tab';
 import { createCodeTab } from './code-tab';
 import { GUIDE_PLACE, clampDistance, guideSpot, yawOf } from './placement';
-import { drawStepsTab } from './steps-tab';
+import { hasNext } from './quiz-card';
+import { nextHint, stepsCard, type QuizReview } from './finish';
+import { drawStepsTab, type StepsFinish } from './steps-tab';
 import { t } from './strings';
 
 export type GuideTab = 'steps' | 'code' | 'checks';
@@ -56,6 +58,10 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
   let tickUntil = 0;
   let reduced = false;
   let prevStates: StepState[] = session.state.value.steps.map((s) => s.state);
+  let prevDone = session.state.value.done;
+  // The quiz card: the question just answered stays up until the person goes on; a quiz sent back to the steps stays away.
+  let review: QuizReview | null = null;
+  const dismissed = new Set<string>();
   const code = createCodeTab(app, panel);
 
   // ---- the running spinner: one instanced quad per running row, its texture turned (static under reduced motion) ----
@@ -113,6 +119,7 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
     if (tab === 'code' && !code.available) tab = 'steps';
     const ticking = tickUntil > performance.now();
     const animate = !p.reducedMotion;
+    const card = stepsCard(s, dismissed, review);
     const key = JSON.stringify([
       tab,
       lang,
@@ -126,6 +133,11 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
       s.done,
       s.steps.map((x) => [x.state, x.text, x.title, x.problem, x.targets.length]),
       tab === 'checks' ? s.checks : 0,
+      s.hintsOpened,
+      s.hints.length,
+      s.completion?.open ?? null,
+      s.completion?.complete ?? null,
+      card.kind === 'quiz' ? [card.quiz.id, card.index, card.question.chosen] : 0,
     ]);
     reduced = p.reducedMotion;
     let spin: Array<{ x: number; y: number; d: number }> = [];
@@ -145,9 +157,28 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
           redraw();
         },
       }));
-      const body = { x: area.x, y: row.y + row.h + 12 * P, w: area.w, h: area.y + area.h - (row.y + row.h + 12 * P) };
+      const body = { x: area.x, y: row.y + row.h + 8 * P, w: area.w, h: area.y + area.h - (row.y + row.h + 8 * P) };
       if (tab === 'steps') {
-        const r = drawStepsTab(g, body, s, c, { back: () => session.back(), next: () => session.next(), showMe: () => replayHighlights(app) }, ticking);
+        const fin: StepsFinish = {
+          card,
+          hint: () => {
+            const n = nextHint(session.state.value);
+            if (n !== null) session.openHint(n);
+          },
+          quiz: {
+            answer: (cd, choice) => {
+              review = { quizId: cd.quiz.id, questionId: cd.question.id };
+              session.answer(cd.quiz.id, cd.question.id, choice);
+              redraw();
+            },
+            advance: (cd) => {
+              if (!hasNext(cd)) dismissed.add(cd.quiz.id);
+              review = null;
+              redraw();
+            },
+          },
+        };
+        const r = drawStepsTab(g, body, s, c, { back: () => session.back(), next: () => session.next(), showMe: () => replayHighlights(app) }, ticking, fin);
         regions.push(...r.regions);
       } else if (tab === 'checks') {
         const r = drawChecksTab(g, body, s, c, { run: () => void session.runChecks() }, animate);
@@ -272,6 +303,16 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
       if (st.gated && st.state === 'done' && before !== undefined && before !== 'done') tickUntil = performance.now() + TICK_MS;
     });
     prevStates = s.steps.map((x) => x.state);
+    // Done: a short buzz on a controller, twice (no sound hook exists in the input service or the app contract).
+    if (s.done && !prevDone) {
+      app.input.pulse('left', 0.4, 25);
+      app.input.pulse('right', 0.4, 25);
+      setTimeout(() => {
+        app.input.pulse('left', 0.6, 35);
+        app.input.pulse('right', 0.6, 35);
+      }, 100);
+    }
+    prevDone = s.done;
     refreshTargets();
     redraw();
   };

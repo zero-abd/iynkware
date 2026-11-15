@@ -4,13 +4,16 @@
  * English, and Back, Show me and Next (Next primary). A gated step that completes shows a tick for 400 ms.
  */
 import type { Lang } from '../../../contracts/common';
-import { buttonWidth, drawButton, type ButtonFace, type DrawCtx } from '../../kit/button';
+import { buttonWidth, drawButton, roundRect, type ButtonFace, type DrawCtx } from '../../kit/button';
 import { drawDots } from '../../kit/dots';
 import { drawIcon } from '../../kit/icons';
 import type { Region } from '../../kit/panel';
 import { drawFitted, drawText, fontOf, measureText, type Box } from '../../kit/text';
 import { pick } from '../../text';
 import type { LessonSessionState } from '../../types';
+import { nextHint, openHints, type StepsCard } from './finish';
+import { drawQuizCard, type QuizActions } from './quiz-card';
+import { drawStatus } from './status';
 import { t } from './strings';
 
 export interface StepsActions {
@@ -20,6 +23,7 @@ export interface StepsActions {
 }
 
 const ROW_DMM = 28;
+const HINT_ROW_DMM = 36;
 const BUTTON_DMM = 44;
 const MIN_BUTTON_DMM = 96;
 
@@ -49,37 +53,71 @@ export function buttonRow(g: CanvasRenderingContext2D, row: Box, left: readonly 
   return [...rects, ...rightRects];
 }
 
-export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSessionState, c: DrawCtx, a: StepsActions, tick: boolean): { regions: Region[]; fallback: boolean } {
+/** What finishing a lesson adds to the tab: the card to show, the quiz and hint actions. */
+export interface StepsFinish {
+  readonly card: StepsCard;
+  readonly quiz: QuizActions;
+  hint(): void;
+}
+
+export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSessionState, c: DrawCtx, a: StepsActions, tick: boolean, fin: StepsFinish): { regions: Region[]; fallback: boolean } {
   const { k, pxPerDmm: P } = c;
   const lang: Lang = c.lang;
   const regions: Region[] = [];
   let fallback = false;
   const view = Math.max(0, Math.min(s.steps.length - 1, s.viewIndex));
   const step = s.steps[view];
+  const card = fin.card;
 
   // Dots and "Step 3 of 7", or the done state: every dot filled and saying so.
-  const rowCy = area.y + (ROW_DMM * P) / 2;
+  const more = nextHint(s);
+  const hasHints = s.hints.length > 0 && card.kind === 'step';
+  const rowH = (hasHints ? HINT_ROW_DMM : ROW_DMM) * P;
+  const rowCy = area.y + rowH / 2;
+  // Hints sits at the right of the top row; each press reveals the next level.
+  const hintFace: ButtonFace = { label: more === null ? t(lang, 'hints') : t(lang, 'hintReveal', { n: more }), icon: 'info', kind: 'plain', disabled: more === null };
+  const hintH = 34 * P;
+  const hintW = hasHints ? Math.min(area.w * 0.5, Math.max(96 * P, buttonWidth(g, hintFace, c))) : 0;
+  const hintR: Box = { x: area.x + area.w - hintW, y: area.y + (rowH - hintH) / 2, w: hintW, h: hintH };
+  const rightEdge = hasHints ? hintR.x - 8 * P : area.x + area.w;
   const states = s.steps.map((x) => (s.done ? 'done' : x.state));
   const dw = drawDots(g, area.x, rowCy, states, s.done ? -1 : view, P, k);
   let x = area.x + dw + 12 * P;
-  if (s.done) {
+  // (With Hints beside it the tick is left out here: the title bar and the done band carry it, the label needs the room.)
+  if (s.done && !hasHints) {
     drawIcon(g, 'pass', x + 12 * P, rowCy, 24 * P, k);
     x += 32 * P;
   }
-  const label = s.done ? t(lang, 'lessonDone') : t(lang, 'stepOf', { n: view + 1, total: s.steps.length });
+  const label =
+    card.kind === 'quiz'
+      ? `${t(lang, 'quizTitle')} · ${card.index + 1}/${card.quiz.questions.length}`
+      : s.done
+        ? t(lang, hasHints ? 'doneWord' : 'lessonDone')
+        : t(lang, 'stepOf', { n: view + 1, total: s.steps.length });
   const tickW = tick ? 200 * P : 0;
-  drawText(g, label, { x, y: area.y, w: area.x + area.w - x - tickW, h: ROW_DMM * P }, { role: 'label', lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 1, valign: 'middle', weight: 600 });
+  drawText(g, label, { x, y: area.y, w: rightEdge - x - tickW, h: rowH }, { role: 'label', lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 1, valign: 'middle', weight: 600 });
   if (tick) {
     const word = t(lang, 'stepDone');
     const style = { role: 'label' as const, lang, pxPerDmm: P, colour: k.good, textScale: c.textScale, maxLines: 1, valign: 'middle' as const, weight: 600, align: 'right' as const };
-    const f = measureText(g, word, { x: 0, y: 0, w: tickW - 36 * P, h: ROW_DMM * P }, style);
+    const f = measureText(g, word, { x: 0, y: 0, w: tickW - 36 * P, h: rowH }, style);
     g.font = fontOf('label', f.size, 600);
     const wordW = Math.min(tickW - 36 * P, g.measureText(f.lines[0] ?? '').width);
-    drawFitted(g, f, { x: area.x + area.w - tickW, y: area.y, w: tickW, h: ROW_DMM * P }, style);
-    drawIcon(g, 'pass', area.x + area.w - wordW - 22 * P, rowCy, 28 * P, k);
+    drawFitted(g, f, { x: rightEdge - tickW, y: area.y, w: tickW, h: rowH }, style);
+    drawIcon(g, 'pass', rightEdge - wordW - 22 * P, rowCy, 28 * P, k);
+  }
+  if (hasHints) {
+    drawButton(g, hintR, hintFace, c);
+    regions.push({ id: 'hint', rect: hintR, face: hintFace, disabled: hintFace.disabled, onSelect: () => fin.hint() });
   }
 
-  // Buttons.
+  // A quiz question instead of the step.
+  if (card.kind === 'quiz') {
+    const top = area.y + rowH + 10 * P;
+    regions.push(...drawQuizCard(g, { x: area.x, y: top, w: area.w, h: area.y + area.h - top }, card, c, fin.quiz));
+    return { regions, fallback };
+  }
+
+  // Buttons: Back, Show me, Next.
   const row: Box = { x: area.x, y: area.y + area.h - BUTTON_DMM * P, w: area.w, h: BUTTON_DMM * P };
   const last = s.steps.length - 1;
   const backFace: ButtonFace = { label: t(lang, 'back'), icon: 'back', kind: 'plain', disabled: view <= 0 };
@@ -96,9 +134,42 @@ export function drawStepsTab(g: CanvasRenderingContext2D, area: Box, s: LessonSe
   );
   if (!step) return { regions, fallback };
 
-  // The step: title, text, problem and the English notice, bottom up.
-  let top = area.y + (ROW_DMM + 10) * P;
-  let bottom = row.y - 10 * P;
+  // What is left, or the done band, above the buttons.
+  // One line while a hint is open (the hint card needs the room), two otherwise.
+  const statusH = drawStatus(g, area.x, row.y - 6 * P, area.w, s, c, true, openHints(s).length > 0 ? 1 : 2);
+
+  // The step: title, text, hint, problem and the English notice, bottom up.
+  let top = area.y + rowH + 6 * P;
+  let bottom = row.y - 8 * P - (statusH > 0 ? statusH + 4 * P : 0);
+  const opened = openHints(s);
+  const latest = opened[opened.length - 1];
+  if (latest) {
+    const hint = pick(latest.text, lang);
+    const body = hint.text.replace(/\s+/g, ' ').trim();
+    const pad = 6 * P;
+    const iconW = 26 * P;
+    // The hint keeps one line at least, the step text up to two lines; the hint takes what the step text leaves, at most three lines.
+    const stepStyle = { role: 'body' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 2 };
+    const style = { role: 'label' as const, lang, pxPerDmm: P, colour: k.ink, textScale: c.textScale, maxLines: 3, weight: 500 };
+    const hintText = `${latest.level}/${s.hints.length} · ${body}`;
+    const hintW = area.w - 2 * pad - iconW;
+    const oneLine = measureText(g, hintText, { x: 0, y: 0, w: hintW, h: 1e6 }, { ...style, maxLines: 1 }).height + 2 * pad;
+    const stepH = measureText(g, pick(step.text, lang).text, { x: 0, y: 0, w: area.w, h: Math.max(0, bottom - top - oneLine - 6 * P) }, stepStyle).height;
+    const room = Math.min(100 * P, bottom - top - stepH - 6 * P);
+    const bf = measureText(g, hintText, { x: 0, y: 0, w: hintW, h: Math.max(0, room - 2 * pad) }, style);
+    const h = bf.height + 2 * pad;
+    const plate: Box = { x: area.x, y: bottom - h, w: area.w, h };
+    const line = 2 * P * k.outline;
+    roundRect(g, { x: plate.x + line / 2, y: plate.y + line / 2, w: plate.w - line, h: plate.h - line }, 8 * P);
+    g.fillStyle = k.rule;
+    g.fill();
+    g.lineWidth = line;
+    g.strokeStyle = k.ink;
+    g.stroke();
+    drawIcon(g, 'info', plate.x + pad + 10 * P, plate.y + pad + (bf.size * 1.35) / 2, 20 * P, k, k.info);
+    drawFitted(g, bf, { x: plate.x + pad + iconW, y: plate.y + pad, w: plate.w - 2 * pad - iconW, h: bf.height }, style);
+    bottom = plate.y - 6 * P;
+  }
   const text = pick(step.text, lang);
   const title = step.title ? pick(step.title, lang) : null;
   const problem = step.problem ? pick(step.problem, lang) : null;
