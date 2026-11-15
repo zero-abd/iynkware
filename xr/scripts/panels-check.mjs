@@ -94,14 +94,29 @@ const aim = async (device, name, back) => {
   await sleep(400);
   return [p[0], p[1], p[2] + back];
 };
-/** Holds select on `device`, glides it by `delta` in `steps`, lets go. */
-const dragBy = async (device, from, delta, steps = 8) => {
+/**
+ * Points `device` at `name` from `side` metres to its side (negative: left) and `back` in front, turned towards it, and
+ * returns where it is and its turn. Straight in front, a hand's fingertip rests on the parts shelf's tabs, and IWSDK
+ * gives a fingertip the pinch before the ray.
+ */
+const aimFrom = async (device, name, side, back) => {
+  const p = await page.evaluate((n) => window.__pos(n), name);
+  if (!p) return null;
+  const yaw = Math.atan2(side, back);
+  const q = { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) };
+  const at = [p[0] + side, p[1], p[2] + back];
+  await page.evaluate(([d, a, q]) => window.__x('set_transform', { device: d, position: { x: a[0], y: a[1], z: a[2] }, orientation: q }), [device, at, q]);
+  await sleep(400);
+  return { at, q };
+};
+/** Holds select on `device`, glides it by `delta` in `steps` (keeping its turn `q`), lets go. */
+const dragBy = async (device, from, delta, steps = 8, q = { x: 0, y: 0, z: 0, w: 1 }) => {
   await page.evaluate((d) => window.__x('set_select_value', { device: d, value: 1 }), device);
   await sleep(250);
   for (let i = 1; i <= steps; i++) {
     const k = i / steps;
-    const q = [from[0] + delta[0] * k, from[1] + delta[1] * k, from[2] + delta[2] * k];
-    await page.evaluate(([d, q]) => window.__x('set_transform', { device: d, position: { x: q[0], y: q[1], z: q[2] }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), [device, q]);
+    const p = [from[0] + delta[0] * k, from[1] + delta[1] * k, from[2] + delta[2] * k];
+    await page.evaluate(([d, p, o]) => window.__x('set_transform', { device: d, position: { x: p[0], y: p[1], z: p[2] }, orientation: o }), [device, p, q]);
     await sleep(90);
   }
   await sleep(250);
@@ -118,6 +133,8 @@ const press = async (device, name, back) => {
 };
 const GRIP = 'panel-grip:shell/home';
 
+// A person who has been through the first-run onboarding: for a first-timer it opens on entry in Home's place.
+await page.addInitScript(() => localStorage.setItem('iynkware:xr:onboarding:v1', 'skipped'));
 await page.goto(target.href, { waitUntil: 'load' });
 await page.evaluate(() => localStorage.removeItem('iynk:xr:panels:v1'));
 await boot();
@@ -159,8 +176,8 @@ await sleep(500);
 // 3. A hand: pinch along the hand ray on the grip, glide 0.2 m left and 0.1 m down.
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
 await sleep(800);
-const atH = await aim('hand-right', GRIP, 0.3);
-await dragBy('hand-right', atH, [-0.2, -0.1, 0]);
+const atH = await aimFrom('hand-right', GRIP, -0.25, 0.25);
+await dragBy('hand-right', atH.at, [-0.2, -0.1, 0], 8, atH.q);
 ev = await page.evaluate(() => window.__ev.splice(0));
 const home3 = await page.evaluate(() => window.__homeAt());
 const moved3 = home3 && [home3[0] - home2[0], home3[1] - home2[1], home3[2] - home2[2]];

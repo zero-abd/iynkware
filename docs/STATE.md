@@ -68,7 +68,7 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 
 What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
 each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
-`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-15, `main` at `4763bd3` (typecheck, 667 tests, build and the 12-step emulator walk pass; the
+`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-15, `main` at `4763bd3` (typecheck, the unit tests, build and the 12-step emulator walk pass; the
 Cloudflare deploy is blocked until `GEMINI_API_KEY` is set as a Worker secret, so the live URL is older than the
 8091 copy). New since `7e4e62a` and seen on the bench in the emulator: scale buttons (Smaller, 3x, Larger) on the
 rail, and the voice toggle. Home, wiring by hand, meters, see-through and crash replay are merged but not yet walked.
