@@ -538,8 +538,8 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   once when the session starts on the person's left, 48 degrees off the heading (owner, 2026-11-15), 0.85 m from the
   eyes and 3 degrees above eye level, just over the companion, facing them; it never follows the head. It has the same grip bar and Tidy up, and Recentre brings
   it back to that place beside the person. The bench itself
-  has the same grip bar standing on the centre of the table's far edge, beyond the mat, where a ray from either hand
-  reaches it (`xr/src/bench/pose`; on the front edge it was level with the hands and could not be taken, #363): drag it and the whole bench, with
+  has the same grip bar just in front of its front (near) edge, towards the person (`xr/src/bench/pose`; it stood on the
+  far edge for a while, #365, and is back on the near edge, which Recentre leaves 0.35 m ahead of the eyes): drag it and the whole bench, with
   everything on it, follows in all three directions, level and keeping its turn, never under 0.1 m above the floor.
   Parts, pins and wires win over it. Its place is kept after a reload; Recentre and Tidy up put it back.
 - **Budget:** at most six panels visible; opening a seventh closes the oldest that is not the guide. No head-locked UI.

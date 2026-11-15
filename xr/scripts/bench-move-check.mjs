@@ -1,4 +1,4 @@
-// The whole bench is movable by the grip bar on its far edge (#323, #363), in the IWER emulator, headless: a controller ray
+// The whole bench is movable by the grip bar on its front (near) edge (#323), in the IWER emulator, headless: a controller ray
 // held where a hand is and its trigger on the bar drag the bench up, right and away, and a part on it moves with it by the same amount.
 //
 //   npx vite --mode http --port 23323
@@ -56,13 +56,12 @@ await page.waitForFunction(() => window.iynkware.world.visibilityState.value ===
 await page.evaluate(() => window.iynkware.app.shell.closeHome?.());
 await sleep(1500);
 
-// The controller where a hand is: 0.3 m below the eyes, 0.35 m ahead of them and 0.15 m to the right, aimed at the bar.
-// (The bar used to lie against the body, behind where the hands are, so no ray from a hand could reach it; #363.)
+// The controller where a hand is: 0.2 m above the bar, 0.15 m nearer the person and 0.15 m to the right, aimed at it.
 const bar = await page.evaluate(() => window.__pos('bench:grip'));
 check('the bench has its grip bar', !!bar, r3(bar));
 const eye0 = await page.evaluate(() => window.iynkware.world.camera.getWorldPosition(new window.iynkware.world.camera.position.constructor()).toArray());
-const from = [eye0[0] + 0.15, eye0[1] - 0.3, eye0[2] - 0.35];
-check('the bar is beyond the hand, out on the table', bar[2] < from[2] - 0.2, { bar: r3(bar), hand: r3(from) });
+const from = [bar[0] + 0.15, bar[1] + 0.2, bar[2] + 0.15];
+check('the bar is on the near edge, in front of the eyes and below them', bar[2] < eye0[2] - 0.2 && bar[1] < eye0[1] - 0.3, { bar: r3(bar), eye: r3(eye0) });
 // The controller's -z along the aim: yaw about y, then pitch about x.
 const aim = sub(bar, from);
 const yaw = Math.atan2(-aim[0], -aim[2]);
@@ -117,8 +116,7 @@ check(
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
 await sleep(600);
 const hBar = await page.evaluate(() => window.__pos('bench:grip'));
-const hEye = await page.evaluate(() => window.iynkware.world.camera.getWorldPosition(new window.iynkware.world.camera.position.constructor()).toArray());
-const hFrom = [hEye[0] + 0.15, hEye[1] - 0.3, hEye[2] - 0.35];
+const hFrom = [hBar[0] + 0.15, hBar[1] + 0.2, hBar[2] + 0.15];
 const hAim = sub(hBar, hFrom);
 const hYaw = Math.atan2(-hAim[0], -hAim[2]);
 const hPitch = Math.atan2(hAim[1], Math.hypot(hAim[0], hAim[2]));
