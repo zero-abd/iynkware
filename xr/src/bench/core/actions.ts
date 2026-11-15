@@ -13,7 +13,7 @@
  * converts from the board frame with `x_mm = x * 1000`, `y_mm = z * 1000`.
  */
 import { newId } from '@/core/ids';
-import { builtinRegistry } from '@/parts/builtin';
+import { getAppRegistry } from '@/parts/builtin';
 import type { PartRegistry } from '@/parts/registry';
 import type { Op, Placement, Project, View, Wire, WireColor, WireEnd } from '@/project/generated/types';
 import { createSession } from '@/project/session';
@@ -88,7 +88,7 @@ export type ActionDone<X extends object = object> = { ok: true; ops: Op[]; label
 export type ActionResult<X extends object = object> = ActionDone<X> | ActionRefusal;
 
 export interface ActionEnv {
-  /** Part descriptors; iynk's built in registry by default. */
+  /** Part descriptors; the app's shared registry (core parts plus imported ones) by default. */
   registry?: PartRegistry;
   /** Where new entity ids come from (`cmp_`, `net_`, `wir_`); random iynk ids by default. Inject one for deterministic tests. */
   ids?: IdSource;
@@ -115,7 +115,7 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 const norm360 = (deg: number): number => ((deg % 360) + 360) % 360;
 
 let defaultRegistry: PartRegistry | undefined;
-const registryOf = (env: ActionEnv): PartRegistry => env.registry ?? (defaultRegistry ??= builtinRegistry());
+const registryOf = (env: ActionEnv): PartRegistry => env.registry ?? (defaultRegistry ??= getAppRegistry());
 
 const refuse = (reason: ActionReason, args: Record<string, string> = {}): ActionRefusal => ({ ok: false, reason, args });
 const done = <X extends object>(ops: Op[], label: string, extra: X): ActionDone<X> => ({ ok: true, ops, label, ...extra });

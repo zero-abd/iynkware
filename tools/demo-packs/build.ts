@@ -1,5 +1,6 @@
 /**
- * Builds the demo part packs in public/demo-packs/: parts a person could bring as their own file and import, each a
+ * Builds the demo part packs in public/demo-packs/ (the 2D site) and xr/public/demo-packs/ (the headset), with an
+ * index.json listing them: parts a person could bring as their own file and import, each a
  * re-badged variant of a modelled core part, so it runs on the bench the moment it is imported. Deterministic: the same
  * inputs give the same bytes. Every pack is read back through `readPack` with the parts library's own context and
  * refused if any part has an error diagnostic.
@@ -24,7 +25,8 @@ import { DEMO_PARTS, PACK_AUTHOR, PACK_CREATED } from "./parts.ts";
 import type { DemoPart } from "./parts.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const outDir = join(root, "public", "demo-packs");
+/** The 2D site and the headset app each serve their own copy; the bytes are the same. */
+const outDirs = [join(root, "public", "demo-packs"), join(root, "xr", "public", "demo-packs")];
 const check = process.argv.includes("--check");
 
 /** The same set the parts library checks imports against (src/parts/browser/library.ts). */
@@ -99,7 +101,18 @@ function errorsOf(item: PackItem): string[] {
 }
 
 let failed = false;
-if (!check) mkdirSync(outDir, { recursive: true });
+
+/** Writes `bytes` to `file`, or with --check fails when the file on disk differs. */
+function write(file: string, bytes: Uint8Array): void {
+  if (!check) return writeFileSync(file, bytes);
+  if (!existsSync(file) || Buffer.compare(readFileSync(file), Buffer.from(bytes)) !== 0) {
+    failed = true;
+    console.error(`${file.slice(root.length + 1)}: out of date; run node --experimental-strip-types tools/demo-packs/build.ts`);
+  }
+}
+if (!check) for (const dir of outDirs) mkdirSync(dir, { recursive: true });
+/** What `index.json` lists: the file and the part it holds, so a picker can show the part before fetching the pack. */
+const index: { file: string; id: string; version: string; manufacturer: string; model: string }[] = [];
 for (const spec of DEMO_PARTS) {
   const def = variantOf(spec);
   const bytes = await buildPack([{ def, files: new Map() }], {
@@ -122,16 +135,11 @@ for (const spec of DEMO_PARTS) {
     console.error(`${name}: ${errors.length} error(s)\n  ${errors.join("\n  ")}`);
     continue;
   }
-  const file = join(outDir, name);
-  if (check) {
-    if (!existsSync(file) || Buffer.compare(readFileSync(file), Buffer.from(bytes)) !== 0) {
-      failed = true;
-      console.error(`${name}: out of date; run node --experimental-strip-types tools/demo-packs/build.ts`);
-    }
-  } else {
-    writeFileSync(file, bytes);
-  }
+  index.push({ file: name, id: def.id, version: def.version, manufacturer: def.identity.manufacturer, model: def.identity.model });
+  for (const dir of outDirs) write(join(dir, name), bytes);
   console.log(`${name}  ${bytes.length} B  ${digestOf(def).slice(0, 12)}  labels=${JSON.stringify(plan.items[0].labels)}` +
     (warnings.length ? `  warnings=${warnings.length}` : ""));
 }
+const indexBytes = new TextEncoder().encode(`${JSON.stringify({ packs: index }, null, 2)}\n`);
+for (const dir of outDirs) write(join(dir, "index.json"), indexBytes);
 if (failed) process.exit(1);
