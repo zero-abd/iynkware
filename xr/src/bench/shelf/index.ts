@@ -15,6 +15,7 @@ import { loadInk } from '../../look/ink';
 import { benchGeometry } from '../core/geometry';
 import { onLang, say } from '../core/text';
 import { movable } from '../../ui/panels';
+import { benchKit } from '../core/kit';
 import { benchPlate, bindPlate, type Plate } from '../core/ui';
 import { builtinRegistry } from '@/parts/builtin';
 import { createBins } from './bins';
@@ -48,7 +49,7 @@ export const shelfModule: FeatureModule = {
     // The grip bar on the shelf's front lip moves the whole shelf (flat on the bench, keeping its turn): its bins, tabs
     // and body are all children of `shelf`. Place and Tidy up are the shared ones (ui/panels).
     const grip = movable(app, { id: 'bench/shelf', group: shelf, width: 0.2, height: 0.05, distanceM: 0.4, flat: true });
-    const offs: Array<() => void> = [];
+    const offs: Array<() => void> = [benchKit(app).bins.provide(bins)];
 
     // ---- the tabs and the pager -----------------------------------------------------------------------------------
     const pages = () => pageCount(entries[group].length);

@@ -24,6 +24,7 @@ import { createFlick, createPullTracker, createTrackingLoss, createYawStepper, P
 import { benchGeometry } from '../core/geometry';
 import type { BenchRouter } from '../core/router';
 import { benchInternals, type BenchItem } from '../space';
+import { binUnder, removeOnBin, showRefusal } from './bin';
 import { createGhostView, type GhostView } from './ghost';
 import { holdPointOf } from './hand';
 import type { Transitions } from './motion';
@@ -235,6 +236,9 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
   let ending: 'none' | 'lost' = 'none';
   let isDone = false;
   let nowMs = 0;
+  /** The bin lit as taking this part (-1: none); only a part of the bench is taken, a new one just goes back. */
+  let lit = false;
+  let litBin = -1;
   let rotation: Rotation = rotation0;
   const lastHold = hold0.clone();
 
@@ -246,6 +250,7 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
     tetherSeat.dispose();
     tetherGhost.dispose();
     view?.dispose();
+    if (lit) kit.bins.highlight(-1);
     if (held.id !== null) transitions.hold(held.id, false);
     if (held.id === null) {
       object.removeFromParent();
@@ -299,7 +304,8 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
     const state = ghost?.state ?? null;
     _hold.copy(lastHold);
     const onMat = matTest();
-    const decision: Release = decideRelease({ ghost: state, onMat: onMat(object.position.x, object.position.z) });
+    const bin = binUnder(app, topOf(object.position, yawOf(object), _top));
+    const decision: Release = decideRelease({ ghost: state, onMat: onMat(object.position.x, object.position.z), bin });
     const doc = app.project.doc;
     const feedbackAt = (p: Vector3): Vec3 => {
       _w.copy(p);
@@ -307,8 +313,15 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
       return [_w.x, _w.y, _w.z];
     };
 
-    // a new part from the shelf let go off the mat goes back to the shelf
-    if (decision.kind === 'back' && held.id === null) return back(0);
+    // a new part from the shelf let go off the mat, or over a bin, goes back to the shelf
+    if ((decision.kind === 'back' || decision.kind === 'bin') && held.id === null) return back(0);
+    // a part of the bench let go over a bin shrinks into it and leaves the project (one undo)
+    if (decision.kind === 'bin' && held.id !== null) {
+      const refused = removeOnBin(app, transitions, held.id, [], decision.bin, hand);
+      if (!refused) return;
+      showRefusal(app, refused, object.position, hand);
+      return back(RETURN_MS);
+    }
     // anything else that lands back on the mat stops being set down in the room
     if (decision.kind !== 'back' && held.id !== null) bi.setFree(held.id, null, { relayout: false });
 
@@ -497,6 +510,20 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
       }
       object.position.copy(_pos);
       object.quaternion.setFromAxisAngle(Y, yaw);
+
+      if (held.id !== null) {
+        const bin = binUnder(app, topOf(_pos, yaw, _top));
+        if (bin !== litBin) {
+          litBin = bin;
+          lit = bin >= 0;
+          kit.bins.highlight(bin);
+          if (lit) {
+            _w.copy(_pos);
+            root.localToWorld(_w);
+            kit.feedback.play('hover-grabbable', [_w.x, _w.y, _w.z], hand);
+          }
+        }
+      }
 
       if (ghost && view) {
         const doc = app.project.doc;

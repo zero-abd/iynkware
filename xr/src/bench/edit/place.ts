@@ -64,6 +64,8 @@ export function freeSpot(
 
 /** What a release does. */
 export type Release =
+  /** Over a shelf bin: a part of the bench leaves the project (a new part from the shelf just goes back). */
+  | { kind: 'bin'; bin: number }
   /** The ghost is valid: seat at its fit. */
   | { kind: 'seat'; fit: NonNullable<GhostState['fit']> }
   /** Over the board with no valid fit: slide to a free spot on the mat beside it and say why. */
@@ -73,8 +75,9 @@ export type Release =
   /** Off the mat (or nothing to do): back where it came from. */
   | { kind: 'back' };
 
-export function decideRelease(input: { ghost: Pick<GhostState, 'shown' | 'fit' | 'problem'> | null; onMat: boolean }): Release {
+export function decideRelease(input: { ghost: Pick<GhostState, 'shown' | 'fit' | 'problem'> | null; onMat: boolean; bin?: number }): Release {
   const g = input.ghost;
+  if (input.bin !== undefined && input.bin >= 0) return { kind: 'bin', bin: input.bin };
   if (g?.shown && g.fit) return { kind: 'seat', fit: g.fit };
   if (!input.onMat) return { kind: 'back' };
   if (g?.shown) return { kind: 'beside', problem: g.problem };

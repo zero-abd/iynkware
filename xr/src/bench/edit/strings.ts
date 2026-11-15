@@ -9,31 +9,37 @@ export const editStrings = table({
     'edit.hole-taken': '{hole} is taken by {holder}',
     'edit.off-grid': 'Pin {pin} would land on no hole',
     'edit.not-seated': 'Not seated here',
+    'edit.removed': '{name} back on the shelf',
   },
   de: {
     'edit.hole-taken': '{hole} ist von {holder} belegt',
     'edit.off-grid': 'Pin {pin} landet in keinem Loch',
     'edit.not-seated': 'Hier nicht eingesetzt',
+    'edit.removed': '{name} zurück ins Regal',
   },
   es: {
     'edit.hole-taken': '{hole} está ocupado por {holder}',
     'edit.off-grid': 'El pin {pin} no cae en ningún orificio',
     'edit.not-seated': 'No encaja aquí',
+    'edit.removed': '{name} de vuelta en el estante',
   },
   fr: {
     'edit.hole-taken': '{hole} est occupé par {holder}',
     'edit.off-grid': 'La broche {pin} ne tombe dans aucun trou',
     'edit.not-seated': 'Ne se place pas ici',
+    'edit.removed': "{name} remis sur l'étagère",
   },
   hi: {
     'edit.hole-taken': '{hole} पर {holder} पहले से लगा है',
     'edit.off-grid': 'पिन {pin} किसी छेद में नहीं बैठता',
     'edit.not-seated': 'यहाँ नहीं बैठता',
+    'edit.removed': '{name} शेल्फ़ पर वापस',
   },
   zh: {
     'edit.hole-taken': '{hole} 已被 {holder} 占用',
     'edit.off-grid': '引脚 {pin} 没有对准任何孔',
     'edit.not-seated': '无法插在这里',
+    'edit.removed': '{name} 放回了货架',
   },
 });
 

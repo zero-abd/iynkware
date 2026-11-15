@@ -4,16 +4,17 @@
  * (`benchKit(app).carry`): the bin item hides, the press's events are forwarded to the carry, and the item comes back
  * with an eased move when the carry returns it, or a moment after it was placed (a bin never runs out).
  */
-import { BoxGeometry, Group, Mesh, DoubleSide, MeshBasicMaterial, Vector3, type Object3D } from '@iwsdk/core';
+import { BoxGeometry, Group, Mesh, DoubleSide, MeshBasicMaterial, Shape, ShapeGeometry, Vector3, type Object3D } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { Vec3 } from '../../contracts/common';
 import type { InteractionEvent } from '../../contracts/input';
 import type { PartAsset } from '../../contracts/assets';
 import { createCallout, type Callout } from '../../look/callout';
 import { fadeIn, hoverLift } from '../../look/moves';
+import { ACCENT, hexNum } from '../../look/palette';
 import { placePart } from '../core/actions';
 import { benchGeometry } from '../core/geometry';
-import { benchKit, type Carry } from '../core/kit';
+import { benchKit, type BinProvider, type Carry } from '../core/kit';
 import type { ShelfEntry } from './groups';
 import type { ShelfLayout } from './layout';
 
@@ -30,6 +31,10 @@ const unitBox = new BoxGeometry(1, 1, 1);
 // double sided: a grab sphere whose centre is inside the box must still find its walls
 const invisible = new MeshBasicMaterial({ visible: false, side: DoubleSide });
 const _v = new Vector3();
+/** A part within this of a tray's edge, and up to this high above it, counts as over the bin (tray frame, metres). */
+const OVER_MARGIN = 0.012;
+const OVER_HEIGHT = 0.22;
+const FRAME_W = 0.003;
 
 interface Item {
   readonly index: number;
@@ -47,9 +52,12 @@ interface Item {
   hovering: number;
   carrying: { readonly carry: Carry; readonly pointer: number } | null;
   unbind: () => void;
+  /** The accent frame that shows this bin will take a part; made on first use. */
+  frame: Mesh | null;
+  lit: boolean;
 }
 
-export interface Bins {
+export interface Bins extends BinProvider {
   /** Where the bins stand (call before `show`, and again when the posture or hand changes). */
   layout(l: ShelfLayout): void;
   /** Shows these entries (at most 12) in the bins, nearest tier first. */
@@ -238,11 +246,71 @@ export function createBins(app: XrApp, parent: Object3D): Bins {
       collider.name = 'bench:shelf-collider';
       slot.add(collider);
       parent.add(slot);
-      items.push({ index, slot, holder, collider, entry: null, label: null, object: null, shown: SHELF_SCALE, hidden: false, gen: 0, hovering: 0, carrying: null, unbind: () => undefined });
+      items.push({ index, slot, holder, collider, entry: null, label: null, object: null, shown: SHELF_SCALE, hidden: false, gen: 0, hovering: 0, carrying: null, unbind: () => undefined, frame: null, lit: false });
     }
   };
 
+  const frameMaterial = new MeshBasicMaterial({ color: hexNum(ACCENT), side: DoubleSide, transparent: true, opacity: 0.95 });
+  const frameOf = (item: Item): Mesh | null => {
+    const l = layout;
+    if (!l) return null;
+    if (item.frame) return item.frame;
+    const b = l.bins[item.index]!;
+    const w = b.w / 2;
+    const d = b.d / 2;
+    const shape = new Shape();
+    shape.moveTo(-w, -d);
+    shape.lineTo(w, -d);
+    shape.lineTo(w, d);
+    shape.lineTo(-w, d);
+    const hole = new Shape();
+    hole.moveTo(-w + FRAME_W, -d + FRAME_W);
+    hole.lineTo(-w + FRAME_W, d - FRAME_W);
+    hole.lineTo(w - FRAME_W, d - FRAME_W);
+    hole.lineTo(w - FRAME_W, -d + FRAME_W);
+    shape.holes.push(hole);
+    const mesh = new Mesh(new ShapeGeometry(shape), frameMaterial);
+    mesh.name = 'bench:shelf-bin-frame';
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.0015;
+    mesh.visible = false;
+    mesh.raycast = () => undefined;
+    item.slot.add(mesh);
+    item.frame = mesh;
+    return mesh;
+  };
+
   return {
+    at(x, y, z) {
+      const l = layout;
+      if (!l || disposed) return -1;
+      for (const item of items) {
+        if (!item.slot.visible || !item.entry) continue;
+        const b = l.bins[item.index]!;
+        _v.set(x, y, z);
+        item.slot.worldToLocal(_v);
+        if (Math.abs(_v.x) <= b.w / 2 + OVER_MARGIN && Math.abs(_v.z) <= b.d / 2 + OVER_MARGIN && _v.y > -0.03 && _v.y < OVER_HEIGHT) return item.index;
+      }
+      return -1;
+    },
+    highlight(index) {
+      for (const item of items) {
+        const on = item.index === index && !!item.entry;
+        if (on === item.lit) continue;
+        item.lit = on;
+        const f = on ? frameOf(item) : item.frame;
+        if (f) f.visible = on;
+        hoverLift(app.world, item.holder, LIFT * 2, on, 'y');
+      }
+    },
+    centre(index, out) {
+      const item = items[index];
+      if (!item) return;
+      item.slot.getWorldPosition(_v);
+      out.x = _v.x;
+      out.y = _v.y;
+      out.z = _v.z;
+    },
     layout(l) {
       layout = l;
       ensureItems(l.bins.length);
@@ -284,6 +352,8 @@ export function createBins(app: XrApp, parent: Object3D): Bins {
     },
     dispose() {
       disposed = true;
+      for (const item of items) item.frame?.geometry.dispose();
+      frameMaterial.dispose();
       for (const t of timers) clearTimeout(t);
       timers.clear();
       for (const item of items) empty(item);

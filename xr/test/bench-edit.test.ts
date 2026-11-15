@@ -40,6 +40,17 @@ describe('the release decision', () => {
   });
 });
 
+describe('the release over a shelf bin', () => {
+  it('takes the part whatever the ghost or the mat say', () => {
+    expect(decideRelease({ ghost: { shown: true, fit, problem: null }, onMat: true, bin: 4 })).toEqual({ kind: 'bin', bin: 4 });
+    expect(decideRelease({ ghost: null, onMat: false, bin: 0 })).toEqual({ kind: 'bin', bin: 0 });
+  });
+  it('is not over a bin at -1 or with no bin given', () => {
+    expect(decideRelease({ ghost: null, onMat: true, bin: -1 }).kind).toBe('loose');
+    expect(decideRelease({ ghost: null, onMat: false }).kind).toBe('back');
+  });
+});
+
 describe('the free spot beside a board', () => {
   const rel: RectMm = { minX: 0, maxX: 10, minY: 0, maxY: 4 };
   const board: RectMm = { minX: 0, maxX: 80, minY: 0, maxY: 54 };

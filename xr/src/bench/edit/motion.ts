@@ -22,6 +22,8 @@ const fall: Ease = (t) => t * t;
 export interface Transitions {
   /** The next move of this item takes `ms` (a seat, a slide, a return), with `ease` (a fall). Used once. */
   hint(id: string, ms: number, ease?: Ease): void;
+  /** The next remove of this item shrinks it into this point (bench root frame) instead of in place. Used once. */
+  sink(id: string, to: Vector3): void;
   /** Marks an item as held: layout changes under it end at once. */
   hold(id: string, held: boolean): void;
   dispose(): void;
@@ -31,6 +33,7 @@ export function installTransitions(app: XrApp): Transitions {
   const bi = benchInternals(app.bench);
   const hints = new Map<string, { ms: number; ease?: Ease }>();
   const held = new Set<string>();
+  const sinks = new Map<string, Vector3>();
   let adds = 0;
   const motion = motionOf(app.world);
   const _p = new Vector3();
@@ -54,7 +57,18 @@ export function installTransitions(app: XrApp): Transitions {
     }
     if (kind === 'remove') {
       const s0 = o.scale.x;
-      motion.tween({ key: o, ms: REMOVE_MS, onUpdate: (k) => o.scale.setScalar(Math.max(1e-3, s0 * (1 - k))), onDone: done });
+      const into = sinks.get(item.id);
+      sinks.delete(item.id);
+      const from = into ? o.position.clone() : null;
+      motion.tween({
+        key: o,
+        ms: REMOVE_MS,
+        onUpdate: (k) => {
+          if (from && into) o.position.lerpVectors(from, into, k);
+          o.scale.setScalar(Math.max(1e-3, s0 * (1 - k)));
+        },
+        onDone: done,
+      });
       return;
     }
     // move: from where the object is to the target
@@ -80,6 +94,7 @@ export function installTransitions(app: XrApp): Transitions {
   bi?.setTransition(hook);
   return {
     hint: (id, ms, ease) => void hints.set(id, { ms, ease }),
+    sink: (id, to) => void sinks.set(id, to.clone()),
     hold(id, on) {
       if (on) held.add(id);
       else held.delete(id);
@@ -88,6 +103,7 @@ export function installTransitions(app: XrApp): Transitions {
       bi?.setTransition(null);
       hints.clear();
       held.clear();
+      sinks.clear();
     },
   };
 }

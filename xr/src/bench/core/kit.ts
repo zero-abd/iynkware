@@ -39,9 +39,42 @@ export interface CarryHub {
   begin(req: NewPartCarry): Carry | null;
 }
 
+/** What the shelf offers the edit module about its bins: where they are and a way to light one (design 3.2: put it back on a bin). */
+export interface BinProvider {
+  /** The bin whose tray is under this world point (a little above it counts), or -1. Allocates nothing. */
+  at(x: number, y: number, z: number): number;
+  /** Lights bin `index` as the one that will take a part, or none (-1). */
+  highlight(index: number): void;
+  /** The bin's centre in world space, written to `out`. */
+  centre(index: number, out: { x: number; y: number; z: number }): void;
+}
+
+export interface BinHub extends BinProvider {
+  /** The shelf provides its bins; the last provider wins. */
+  provide(p: BinProvider): Unsubscribe;
+}
+
 export interface BenchKit {
   readonly feedback: BenchFeedback;
   readonly carry: CarryHub;
+  readonly bins: BinHub;
+}
+
+function createBinHub(): BinHub {
+  const providers: BinProvider[] = [];
+  const last = () => providers[providers.length - 1];
+  return {
+    provide(p) {
+      providers.push(p);
+      return () => {
+        const i = providers.lastIndexOf(p);
+        if (i >= 0) providers.splice(i, 1);
+      };
+    },
+    at: (x, y, z) => last()?.at(x, y, z) ?? -1,
+    highlight: (index) => last()?.highlight(index),
+    centre: (index, out) => last()?.centre(index, out),
+  };
 }
 
 function createCarryHub(): CarryHub {
@@ -67,7 +100,7 @@ const kits = new WeakMap<object, BenchKit>();
 export function benchKit(app: XrApp): BenchKit {
   let kit = kits.get(app);
   if (!kit) {
-    kit = { feedback: createBenchFeedback(app), carry: createCarryHub() };
+    kit = { feedback: createBenchFeedback(app), carry: createCarryHub(), bins: createBinHub() };
     kits.set(app, kit);
   }
   return kit;
