@@ -11,6 +11,8 @@
  *             `BenchSpace.setBenchTop`, at the height and distance of XR_DESIGN.md 2.1. At Room size or in the Range,
  *             which place their own content from the head when they open, it leaves and re-enters the place. It also
  *             brings this cluster back to its default place beside the person, so it can never be lost in the room.
+ *             "In front" is the way the person faces, not the way they turned to reach the button: a press while
+ *             looking at the cluster uses the heading held before (`headingTracker` in `spot.ts`).
  *   Exit      ends the immersive session, behind a 700 ms hold with a filling ring (a tap only shows "Hold").
  *
  * All are bound through `app.input`, so hands (poke, pinch) and controllers (ray, trigger) work alike.
@@ -27,7 +29,7 @@ import { say } from '../copy';
 import { sessionButton, type SessionButton } from './button';
 import { SESSION } from './copy';
 import { lerpPose, recentreTarget, type BenchPose } from './recentre';
-import { CLUSTER, clusterHome } from './spot';
+import { CLUSTER, clusterHome, headingTracker, yawOfForward } from './spot';
 
 /** How long Exit must be held, ms (the design's Arm hold is 600 ms; leaving the headset is rarer, so a little longer). */
 export const EXIT_HOLD_MS = 700;
@@ -42,6 +44,7 @@ const TWEEN_KEY = 'session-controls/recentre';
 
 const eye = new Vector3();
 const dir = new Vector3();
+const at = new Vector3();
 
 /** Opens Home ahead of the person, from anywhere. Exported for the emulator walk. */
 export function goHome(app: XrApp): void {
@@ -50,12 +53,16 @@ export function goHome(app: XrApp): void {
   app.shell.openHome();
 }
 
-/** Recentres the bench from the current head pose; returns the target. Exported for the emulator walk. */
-export function recentre(app: XrApp): BenchPose {
+/**
+ * Recentres the bench from the current head pose, facing `headingYaw` when given (bench convention; the head's own
+ * heading otherwise); returns the target. Exported for the emulator walk.
+ */
+export function recentre(app: XrApp, headingYaw?: number): BenchPose {
   const cam = app.world.camera;
   cam.updateMatrixWorld(true);
   cam.getWorldPosition(eye);
   cam.getWorldDirection(dir);
+  if (headingYaw !== undefined) dir.set(-Math.sin(headingYaw), 0, -Math.cos(headingYaw));
   const from = app.bench.benchTop.value;
   const to = recentreTarget([eye.x, eye.y, eye.z], [dir.x, dir.y, dir.z], app.settings.xr.value.posture, from.yawRad);
   const place = app.shell.place.value;
@@ -84,15 +91,34 @@ export const sessionControlsModule: FeatureModule = {
     root.visible = false;
     ownEntity(app.world, root);
 
-    /** Puts the cluster at its default place beside the person as they stand and face now, turned to them. */
-    const placeHome = () => {
+    /**
+     * Puts the cluster at its default place beside the person as they stand and face now (or facing `headingYaw`),
+     * turned to them.
+     */
+    const placeHome = (headingYaw?: number) => {
       const cam = app.world.camera;
       cam.updateMatrixWorld(true);
       cam.getWorldPosition(eye);
       cam.getWorldDirection(dir);
-      const p = clusterHome([eye.x, eye.y, eye.z], [dir.x, dir.y, dir.z], app.bench.benchTop.value.yawRad);
+      if (headingYaw !== undefined) dir.set(-Math.sin(headingYaw), 0, -Math.cos(headingYaw));
+      const yaw = yawOfForward(dir.x, dir.z, app.bench.benchTop.value.yawRad);
+      const p = clusterHome([eye.x, eye.y, eye.z], [dir.x, dir.y, dir.z], yaw);
       root.position.set(p.position[0], p.position[1], p.position[2]);
       root.lookAt(eye);
+      heading.reset(yaw);
+    };
+
+    // Where the person faces, not where they turned to reach these buttons (spot.ts, `headingTracker`).
+    const heading = headingTracker(app.bench.benchTop.value.yawRad);
+    const looks = () => {
+      const cam = app.world.camera;
+      cam.updateMatrixWorld(true);
+      cam.getWorldPosition(eye);
+      cam.getWorldDirection(dir);
+      const head = yawOfForward(dir.x, dir.z, NaN);
+      root.getWorldPosition(at);
+      const cluster = root.visible ? yawOfForward(at.x - eye.x, at.z - eye.z, NaN) : NaN;
+      return { head: Number.isNaN(head) ? null : head, cluster: Number.isNaN(cluster) ? null : cluster };
     };
 
     const homeButton: SessionButton = sessionButton(
@@ -109,10 +135,12 @@ export const sessionControlsModule: FeatureModule = {
         distanceM: d,
         icon: 'target',
         onSelect: () => {
-          recentre(app);
+          const l = looks();
+          const yaw = l.head === null ? undefined : heading.heading(l.head, l.cluster);
+          recentre(app, yaw);
           // The cluster comes back beside the person too, whatever place it was moved to.
           grip.forget();
-          placeHome();
+          placeHome(yaw);
         },
       },
       { label: say(SESSION, lang(), 'recentre') },
@@ -185,6 +213,8 @@ export const sessionControlsModule: FeatureModule = {
       }),
       onLookFrame(app.world, (dt) => {
         if (!placed) return;
+        const l = looks();
+        if (l.head !== null) heading.update(l.head, l.cluster, dt);
         // Fixed in the room, only turned to keep facing the person (a moved place is turned by ui/panels as well).
         app.world.camera.getWorldPosition(eye);
         root.lookAt(eye);

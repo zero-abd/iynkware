@@ -4,7 +4,7 @@ import { say } from '../src/shell/copy';
 import { SESSION } from '../src/shell/session-controls/copy';
 import { createHold } from '../src/shell/session-controls/hold';
 import { lerpPose, recentreTarget } from '../src/shell/session-controls/recentre';
-import { angleDiff, CLUSTER, clusterHome, yawOfForward } from '../src/shell/session-controls/spot';
+import { angleDiff, CLUSTER, clusterHome, headingTracker, yawOfForward } from '../src/shell/session-controls/spot';
 
 const DEG = Math.PI / 180;
 
@@ -156,6 +156,36 @@ describe('exit guard', () => {
     h.release(1);
     h.tick(400);
     expect(n).toBe(1);
+  });
+});
+
+describe('the heading Recentre uses', () => {
+  const CL = 86 * DEG; // the cluster, on the left of a person facing yaw 0
+
+  test('turning to the buttons on the left keeps the heading held before', () => {
+    const h = headingTracker(0);
+    for (let i = 0; i < 60; i++) h.update(0, CL, 1 / 60);
+    // A smooth quarter turn to the left in a third of a second, then reading the buttons for two seconds.
+    for (let i = 1; i <= 20; i++) h.update((90 * DEG * i) / 20, CL, 1 / 60);
+    for (let i = 0; i < 120; i++) h.update(90 * DEG, CL, 1 / 60);
+    expect(h.heading(90 * DEG, CL)).toBeCloseTo(0, 9);
+  });
+
+  test('a new heading held for half a second elsewhere is the heading', () => {
+    const h = headingTracker(0);
+    for (let i = 0; i < 40; i++) h.update(180 * DEG, CL, 1 / 60);
+    // Turned round, the buttons are now on the right; looking at them still recentres to the way they faced.
+    expect(h.heading(CL, CL)).toBeCloseTo(Math.PI, 9);
+  });
+
+  test('a glance does not count, and a head not at the buttons is its own heading', () => {
+    const h = headingTracker(0);
+    for (let i = 0; i < 15; i++) h.update(-120 * DEG, CL, 1 / 60);
+    expect(h.heading(80 * DEG, CL)).toBeCloseTo(0, 9);
+    expect(h.heading(-30 * DEG, CL)).toBeCloseTo(-30 * DEG, 9);
+    expect(h.heading(10 * DEG, null)).toBeCloseTo(10 * DEG, 9);
+    h.reset(0.4);
+    expect(h.heading(CL, CL)).toBeCloseTo(0.4, 9);
   });
 });
 

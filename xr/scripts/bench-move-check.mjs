@@ -81,15 +81,24 @@ await sleep(400);
 const ev = await page.evaluate(() => window.__ev.splice(0));
 const bench1 = await page.evaluate(() => window.__bench());
 const part1 = await page.evaluate(() => window.__part());
-const moved = sub(bench1, bench0);
-const partMoved = part0 && part1 ? sub(part1.at, part0.at) : null;
+const bar1 = await page.evaluate(() => window.__pos('bench:grip'));
+const top1 = await page.evaluate(() => window.iynkware.app.bench.benchTop.value);
+const eye = await page.evaluate(() => window.iynkware.world.camera.getWorldPosition(new window.iynkware.world.camera.position.constructor()).toArray());
+const barMoved = sub(bar1, bar);
+// The bench swings round the eyes as it is carried right (bench/pose/move.ts `orbitedTop`): its bar stays in the hand,
+// it turns to face the eyes, and the part on it keeps its place on the bench.
+const facing = Math.atan2(-(bench1[0] - eye[0]), -(bench1[2] - eye[2]));
+const partSpan = (b, p) => Math.hypot(p[0] - b[0], p[1] - b[1], p[2] - b[2]);
 check(
-  'dragging the bar moves the bench up, right and away by the hand move, and the part on it with it',
+  'dragging the bar carries it with the hand, the bench turned round to face the eyes, and the part on it with it',
   ev.includes('select-start:controller/ray') &&
-    dist(moved, delta) < 0.02 &&
-    !!partMoved &&
-    dist(partMoved, moved) < 0.003,
-  { ev, delta, bench: r3(moved), part: part0?.id, partMoved: r3(partMoved) },
+    dist(barMoved, delta) < 0.02 &&
+    top1.yawRad < -0.1 &&
+    Math.abs(top1.yawRad - facing) < 0.02 &&
+    !!part0 &&
+    !!part1 &&
+    Math.abs(partSpan(bench1, part1.at) - partSpan(bench0, part0.at)) < 0.003,
+  { ev, delta, bar: r3(barMoved), yaw: top1.yawRad, facing, part: part0?.id },
 );
 
 await browser.close();

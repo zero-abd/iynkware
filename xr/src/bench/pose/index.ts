@@ -5,7 +5,7 @@
  * The bar is the panels' grip (`ui/panels/grip.ts`: an inked paper pill with the three-dot move mark, accent and a
  * 3 dmm lift on hover, sinking flush when held), at its panel size, lying just in front of the front edge's centre and
  * leaning back towards the eyes. A controller ray and trigger, a controller grip or trigger at the bar, or a hand pinch
- * (near or along the hand ray) holds it; while held the bench follows (`move.ts`), level, keeping its turn, never
+ * (near or along the hand ray) holds it; while held the bench follows (`move.ts`), level, turned to face the eyes, never
  * nearer the floor than 0.1 m. The only write is `BenchSpace.setBenchTop`: no project operation, no undo step, and the
  * simulation runs on. Parts, pins and wires win over the bar under one pointer (its order is below every bench proxy).
  *
@@ -21,10 +21,11 @@ import {
   MeshBasicMaterial,
   PlaneGeometry,
   SRGBColorSpace,
+  Vector3,
   type Object3D,
 } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
-import type { Unsubscribe } from '../../contracts/common';
+import type { Unsubscribe, Vec3 } from '../../contracts/common';
 import type { InteractionEvent } from '../../contracts/input';
 import { hoverLift, setPanelHit } from '../../look/moves';
 import { makeCanvas, PX_PER_DMM } from '../../look/paint';
@@ -36,7 +37,7 @@ import { browserStorage } from '../../ui/panels/store';
 import { benchGeometry } from '../core/geometry';
 import { PROXY_ORDER_BASE } from '../core/router';
 import { removeBound } from '../wire/entities';
-import { beginBenchDrag, createBenchPlaceStore, draggedTop, type TopPose } from './move';
+import { beginBenchDrag, createBenchPlaceStore, orbitedTop, type TopPose } from './move';
 import { uploadNow } from '../../look/upload';
 
 /** The bar's id for `app.input` and its hit's name (the emulator walk finds it by name). */
@@ -45,6 +46,7 @@ export const BENCH_GRIP_ID = 'bench/grip';
  * The bar, table frame: the distance its dmm sizes are read at, how far in front of the top's front edge and how high
  * it lies, how far it leans back from upright towards the eyes (radians), and how thick its hit is.
  */
+const eyeAt = new Vector3();
 const BAR = { distanceM: 0.8, ahead: 0.035, y: 0.006, tiltRad: 1.15, hitDepth: 0.03 } as const;
 
 export const poseModule: FeatureModule = {
@@ -127,7 +129,7 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
   if (saved) write(saved);
 
   const hovered = new Set<number>();
-  let press: { id: number; hold: DragHold; yawRad: number; moved: boolean } | null = null;
+  let press: { id: number; hold: DragHold; yawRad: number; eye: Vec3; moved: boolean } | null = null;
   const refresh = () => paint(press ? 'held' : hovered.size > 0 ? 'hover' : 'idle');
   const end = () => {
     if (press?.moved) store.set(app.bench.benchTop.value);
@@ -146,14 +148,18 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
       case 'select-start': {
         if (press) return;
         const top = app.bench.benchTop.value;
-        press = { id: p.id, hold: beginBenchDrag(top, p, e.point), yawRad: top.yawRad, moved: false };
+        // The eyes as the hold starts: the bench swings round them (`orbitedTop`), steady while the head looks about.
+        app.world.camera.updateMatrixWorld(true);
+        app.world.camera.getWorldPosition(eyeAt);
+        const eye: Vec3 = [eyeAt.x, eyeAt.y, eyeAt.z];
+        press = { id: p.id, hold: beginBenchDrag(top, p, e.point), yawRad: top.yawRad, eye, moved: false };
         if (p.hand) app.input.pulse(p.hand, 0.3, 18);
         break;
       }
       case 'drag-move':
         if (!press || p.id !== press.id) return;
         press.moved = true;
-        write(draggedTop(press.hold, p, press.yawRad));
+        write(orbitedTop(press.hold, p, press.yawRad, press.eye));
         return;
       case 'select-end':
         if (!press || p.id !== press.id) return;
