@@ -70,8 +70,8 @@ catalogue items arrive and where loose things can be parked.
 ### 2.3 Where things live (top view, right-handed)
 
 ```text
-        guide (-29)            scope (0, low)            code (+32)
-  side (-58)                                                    serial (+64)
+        guide (-31)        scope, onboarding (0, low)    code (+30)
+  side (-58)                                                    serial (+62)
                   .------------------------------------.
                .-'    back strip: deliveries, parking    '-.
    session   /   +------------------------------------+    \
@@ -513,11 +513,12 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
 
 | Panel | Size | Distance | Placement |
 |---|---|---|---|
-| Guide | 0.52 x 0.40 m | 1.10 m | panel ring `guide`: 10 degrees below eye level, 29 degrees away from D |
-| Code | 0.54 m wide | 0.90 m | panel ring `code`: 10 degrees below, 32 degrees towards D |
-| Serial | 0.52 m wide | 1.00 m | panel ring `serial`: 12 degrees below, 64 degrees towards D |
+| Guide | 0.52 x 0.40 m | 1.10 m | panel ring `guide`: 10 degrees below eye level, 31 degrees away from D |
+| Code | 0.54 m wide | 0.90 m | panel ring `code`: 10 degrees below, 30 degrees towards D |
+| Serial | 0.52 m wide | 1.10 m | panel ring `serial`: 12 degrees below, 62 degrees towards D |
 | Scope screen | 0.42 m wide | 0.95 m | panel ring `scope`: behind the board, 20 degrees below |
-| Fault panel, Look inside | 0.62 / 0.25 m wide | 1.10 m | panel ring `side`: 12 degrees below, 58 degrees away from D |
+| Fault panel, Look inside, lab panel | 0.62 / 0.25 / 0.63 m wide | 1.10 m | panel ring `side`: 12 degrees below, 58 degrees away from D |
+| Getting started (first run) | 0.49 x 0.31 m | 0.95 m | panel ring `scope`, 22 degrees below: beyond the board, under the horizon; hidden outside the bench |
 | Home, catalogue | 0.80 x 0.50 m, curved (radius = distance) | 1.30 m | 8 degrees below, straight ahead |
 | Menu, summoned by palm | 0.30 x 0.36 m | 0.45 m (touch) | where summoned, world-locked |
 | Menu, from rail or controller | sizes in dmm, as below | 1.00 m (ray) | straight ahead, 10 degrees below |

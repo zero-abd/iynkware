@@ -10,9 +10,10 @@ import { ringSpot, type RingSlot } from '../../bench/core/ring';
 const at = new Vector3();
 const eye = new Vector3();
 
-export function placeInRing(app: XrApp, object: Object3D, slot: RingSlot): void {
+/** `belowDeg` overrides the slot's own angle under the eyes (a panel that must sit lower than the slot's usual one). */
+export function placeInRing(app: XrApp, object: Object3D, slot: RingSlot, belowDeg?: number): void {
   const xr = app.settings.xr.value;
-  const p = ringSpot(slot, xr.posture, xr.dominantHand).position;
+  const p = ringSpot(slot, xr.posture, xr.dominantHand, belowDeg).position;
   app.bench.table.updateMatrixWorld(true);
   app.bench.table.localToWorld(at.set(p[0], p[1], p[2]));
   object.position.copy(at);

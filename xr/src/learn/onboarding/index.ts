@@ -7,16 +7,29 @@
  */
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import { LANGS, type Lang, type LocalizedText, type Unsubscribe } from '../../contracts/common';
+import { RING_SLOTS } from '../../bench/core/ring';
+import { setPanelHit } from '../../look/moves';
 import { dmm } from '../../look/type';
-import { placeAhead, shellButton, shellPanel, shellText, type ShellPanel } from '../../shell/kit';
+import { shellButton, shellPanel, shellText, type ShellPanel } from '../../shell/kit';
+import { placeInRing } from '../../ui/panels/ring';
 import { detect } from './detect';
 import { COUNTED, createMachine, inputKind, markSeen, wasSeen, type Machine } from './steps';
 import { t } from './strings';
 
-const D = 1.0;
-const W = 640;
+/**
+ * Where it stands: the panel ring's low centre slot (bench/core/ring.ts `scope`, 0.95 m), a little lower still (22
+ * degrees below the eyes), just beyond the table's back edge: the view ahead stays open, the mat below stays clear, its
+ * buttons clear the table's edge, and at 520 dmm wide it sits between the guide and the code window. The scope screen,
+ * which shares the slot, is not out during a first run. Locked to the bench like every ring panel.
+ */
+const SLOT = 'scope' as const;
+const BELOW_DEG = 22;
+const D = RING_SLOTS[SLOT].distanceM;
+const W = 520;
 const H = 330;
-const BTN_W = 170;
+const BTN_W = 140;
+/** Back, Skip and Next: centre to centre. */
+const BTN_STEP = 156;
 const BTN_H = 62;
 const TICK_MS = 700;
 /** Home calls the entry's `open` on the first immersive entry; a call within this long of entering is that one. */
@@ -52,8 +65,8 @@ function startOnboarding(app: XrApp, onClosed: () => void): Unsubscribe {
       body.set(t(l, 'readyBody'), { role: 'body' });
       const lessons = shellButton(app, { id: 'onboarding/lessons', w: dmm(BTN_W + 40, D), h: dmm(BTN_H, D), distanceM: D, poke: true, onSelect: () => later(() => (machine.done(), app.lessons.showCatalogue())) }, { label: t(l, 'lessons'), icon: 'book' });
       const done = shellButton(app, { id: 'onboarding/done', w: dmm(BTN_W, D), h: dmm(BTN_H, D), distanceM: D, poke: true, onSelect: () => later(() => machine.done()) }, { label: t(l, 'done'), primary: true });
-      panel.add(lessons, -dmm(110, D), barY);
-      panel.add(done, dmm(150, D), barY);
+      panel.add(lessons, -dmm(95, D), barY);
+      panel.add(done, dmm(140, D), barY);
       return;
     }
     panel.setTitle(`${machine.ticked ? '✓ ' : ''}${t(l, `${step}.title` as 'grab.title')}`, t(l, 'kicker'));
@@ -64,9 +77,9 @@ function startOnboarding(app: XrApp, onClosed: () => void): Unsubscribe {
     const back = shellButton(app, { id: 'onboarding/back', w: dmm(BTN_W, D), h: dmm(BTN_H, D), distanceM: D, poke: true, onSelect: () => later(() => machine.back()) }, { label: t(l, 'back'), disabled: machine.index === 0 });
     const skip = shellButton(app, { id: 'onboarding/skip', w: dmm(BTN_W, D), h: dmm(BTN_H, D), distanceM: D, poke: true, onSelect: () => later(() => machine.skip()) }, { label: t(l, 'skip') });
     const next = shellButton(app, { id: 'onboarding/next', w: dmm(BTN_W, D), h: dmm(BTN_H, D), distanceM: D, poke: true, onSelect: () => later(() => machine.next()) }, { label: t(l, 'next'), primary: true });
-    panel.add(back, -dmm(190, D), barY);
+    panel.add(back, -dmm(BTN_STEP, D), barY);
     panel.add(skip, 0, barY);
-    panel.add(next, dmm(190, D), barY);
+    panel.add(next, dmm(BTN_STEP, D), barY);
   };
   /** Never rebuild controls inside a button's own handler. */
   const later = (fn: () => void) => setTimeout(fn, 0);
@@ -87,7 +100,18 @@ function startOnboarding(app: XrApp, onClosed: () => void): Unsubscribe {
     },
     () => (panel.isOpen ? panel.group.position : null),
   );
-  const offs = [offMachine, offDetect, app.input.sources.subscribe(schedule), app.settings.lang.subscribe(schedule)];
+  // Only on the bench: hidden, taking no rays, while the Range or Room size is the place (#333), and back on the
+  // same step, in its slot, when the bench is again.
+  let shown = true;
+  const follow = () => {
+    const want = app.shell.place.value === 'bench';
+    if (want === shown) return;
+    shown = want;
+    if (want) placeInRing(app, panel.group, SLOT, BELOW_DEG);
+    panel.group.visible = want;
+    setPanelHit(panel.group, want);
+  };
+  const offs = [offMachine, offDetect, app.input.sources.subscribe(schedule), app.settings.lang.subscribe(schedule), app.shell.place.subscribe(follow)];
 
   function close() {
     if (closed) return;
@@ -103,8 +127,9 @@ function startOnboarding(app: XrApp, onClosed: () => void): Unsubscribe {
 
   app.shell.closeHome();
   draw();
-  placeAhead(app.world, panel.group, { distance: D, belowDeg: 8 });
+  placeInRing(app, panel.group, SLOT, BELOW_DEG);
   panel.open();
+  follow();
   return () => {
     if (closed) return;
     closed = true;
