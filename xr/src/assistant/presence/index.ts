@@ -21,13 +21,14 @@ import { DURATION } from '../../look/motion';
 import { motionOf } from '../../look/runner';
 import { tryOps } from '../planner';
 import type { StepPresence } from '../session';
+import { movable } from '../../ui/panels';
 import { benchView } from '../snapshot';
 import { BODY_R, createCompanion, type Companion } from './companion';
 import { carriedPart, ghostPart, wireTube, type PartGhost, type WireGhost } from './ghost';
 import { cornerPose, seatedPose, type Pose } from './pose';
 import { spotsOf } from './spots';
 
-export type PresenceHost = Pick<XrApp, 'world' | 'bench' | 'assets' | 'overlay' | 'settings'>;
+export type PresenceHost = Pick<XrApp, 'world' | 'bench' | 'assets' | 'overlay' | 'settings' | 'input'>;
 
 export interface BenchPresence extends StepPresence {
   readonly companion: Companion;
@@ -62,6 +63,9 @@ export function createBenchPresence(app: PresenceHost): BenchPresence {
   bench.root.add(layer);
   const companion = createCompanion(app.world, { home: spots().home, top: () => spots().top });
   bench.table.add(companion.group);
+  // The shared grip bar under the bunny moves it (flat: it keeps its own height and turn); the dragged place wins over
+  // its flights until Tidy up. Place, reload and Tidy up are the shared ones (ui/panels).
+  const grip = movable(app, { id: 'assistant/bunny', group: companion.group, width: BODY_R * 2, height: BODY_R * 4, centreY: BODY_R, distanceM: 0.6, z: BODY_R, flat: true });
   companions.set(app.world, companion);
 
   let token = 0;
@@ -306,6 +310,7 @@ export function createBenchPresence(app: PresenceHost): BenchPresence {
       clearStep();
       for (const off of offs.splice(0)) off();
       if (companions.get(app.world) === companion) companions.delete(app.world);
+      grip.dispose();
       companion.dispose();
       layer.removeFromParent();
     },
