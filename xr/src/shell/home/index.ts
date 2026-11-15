@@ -11,6 +11,7 @@ import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Lang, Unsubscribe } from '../../contracts/common';
 import { LANGS, pickText } from '../../contracts/common';
 import { onLookFrame } from '../../look/runner';
+import { MUTED } from '../../look/palette';
 import { dmm } from '../../look/type';
 import { say } from '../copy';
 import { shellButton, shellPanel, shellText, placeAhead, type ButtonLook, type ShellPanel } from '../kit';
@@ -40,7 +41,9 @@ const ROW = 84;
 const GAP = 12;
 const KICK = 30;
 const FOOT = 70;
-const H = 64 + 18 + ROW + 3 * (GAP + KICK + ROW) + GAP + 8 + FOOT + 24;
+/** The how-to-get-back line under the last row: two caption lines. */
+const HINT = 56;
+const H = 64 + 18 + ROW + 3 * (GAP + KICK + ROW) + GAP + 8 + FOOT + HINT + 24;
 
 const ROBOT_TEMPLATE = 'prj_robotics-l298n';
 /** Frames and time to wait after entering before Home is placed (the headset pose arrives after the session starts). */
@@ -49,7 +52,7 @@ const SETTLE_MS = 300;
 
 type Cell = { id: string; look: ButtonLook; run(): void; span?: number };
 
-function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: string; cells: Cell[] }>; foot: Cell[] } {
+function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: string; cells: Cell[] }>; foot: Cell[]; hint: string } {
   const t = (k: keyof (typeof HOME)['en'], p?: Record<string, string | number>) => say(HOME, lang, k, p);
   const lib = libraryOf(app);
   const busy = switching(app).value;
@@ -158,6 +161,8 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
       { kicker: t('templates'), cells: templates },
     ],
     foot,
+    // The palm button floats off the hand that is not the dominant one (../menu/palm.ts).
+    hint: t(app.settings.xr.value.dominantHand === 'left' ? 'hintRightPalm' : 'hintLeftPalm'),
   };
 }
 
@@ -220,6 +225,9 @@ export const homeModule: FeatureModule = {
         place(cell, x, y - dmm(FOOT, D) / 2, dmm(FOOT, D));
         x += col + dmm(GAP, D);
       }
+      y -= dmm(FOOT, D) + dmm(10, D);
+      const hint = p.add(shellText({ w: inner, h: dmm(HINT - 10, D), distanceM: D }), 0, y - dmm(HINT - 10, D) / 2);
+      hint.set(c.hint, { role: 'caption', colour: MUTED, maxLines: 2 });
     };
 
     const show = () => {
@@ -254,6 +262,7 @@ export const homeModule: FeatureModule = {
         });
       }),
       app.settings.lang.subscribe(render),
+      app.settings.xr.subscribe(render),
       app.shell.entries.subscribe(render),
       app.shell.offered.subscribe(render),
       app.lessons.last.subscribe(render),

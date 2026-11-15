@@ -30,6 +30,8 @@ export const HOME = defineCopy({
     menu: 'Menu',
     menuDetail: 'Places, projects and tools',
     language: 'Language',
+    hintLeftPalm: 'Open the menu any time: click the left stick, or turn your left palm towards you. The Home button below your view brings you back here.',
+    hintRightPalm: 'Open the menu any time: click the left stick, or turn your right palm towards you. The Home button below your view brings you back here.',
   },
   de: {
     title: 'Willkommen zurück',
@@ -59,6 +61,8 @@ export const HOME = defineCopy({
     menu: 'Menü',
     menuDetail: 'Orte, Projekte und Werkzeuge',
     language: 'Sprache',
+    hintLeftPalm: 'Das Menü jederzeit: linken Stick drücken oder die linke Handfläche zu dir drehen. Der Start-Knopf unter deinem Blick bringt dich hierher zurück.',
+    hintRightPalm: 'Das Menü jederzeit: linken Stick drücken oder die rechte Handfläche zu dir drehen. Der Start-Knopf unter deinem Blick bringt dich hierher zurück.',
   },
   es: {
     title: 'Hola de nuevo',
@@ -88,6 +92,8 @@ export const HOME = defineCopy({
     menu: 'Menú',
     menuDetail: 'Lugares, proyectos y herramientas',
     language: 'Idioma',
+    hintLeftPalm: 'Abre el menú cuando quieras: pulsa el joystick izquierdo o gira la palma izquierda hacia ti. El botón Inicio bajo tu vista te trae de vuelta aquí.',
+    hintRightPalm: 'Abre el menú cuando quieras: pulsa el joystick izquierdo o gira la palma derecha hacia ti. El botón Inicio bajo tu vista te trae de vuelta aquí.',
   },
   fr: {
     title: 'Bon retour',
@@ -117,6 +123,8 @@ export const HOME = defineCopy({
     menu: 'Menu',
     menuDetail: 'Lieux, projets et outils',
     language: 'Langue',
+    hintLeftPalm: 'Le menu à tout moment : clique sur le joystick gauche ou tourne ta paume gauche vers toi. Le bouton Accueil sous ton regard te ramène ici.',
+    hintRightPalm: 'Le menu à tout moment : clique sur le joystick gauche ou tourne ta paume droite vers toi. Le bouton Accueil sous ton regard te ramène ici.',
   },
   hi: {
     title: 'फिर से स्वागत है',
@@ -146,6 +154,8 @@ export const HOME = defineCopy({
     menu: 'मेनू',
     menuDetail: 'जगहें, प्रोजेक्ट और टूल',
     language: 'भाषा',
+    hintLeftPalm: 'मेन्यू कभी भी खोलें: बायाँ स्टिक दबाएँ, या अपनी बाईं हथेली अपनी ओर घुमाएँ। नज़र के नीचे का होम बटन आपको यहीं वापस लाता है।',
+    hintRightPalm: 'मेन्यू कभी भी खोलें: बायाँ स्टिक दबाएँ, या अपनी दाईं हथेली अपनी ओर घुमाएँ। नज़र के नीचे का होम बटन आपको यहीं वापस लाता है।',
   },
   zh: {
     title: '欢迎回来',
@@ -175,6 +185,8 @@ export const HOME = defineCopy({
     menu: '菜单',
     menuDetail: '地点、项目和工具',
     language: '语言',
+    hintLeftPalm: '随时打开菜单：按下左摇杆，或把左手掌心转向自己。视线下方的主页按钮会带你回到这里。',
+    hintRightPalm: '随时打开菜单：按下左摇杆，或把右手掌心转向自己。视线下方的主页按钮会带你回到这里。',
   },
 });
 
