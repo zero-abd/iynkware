@@ -9,5 +9,6 @@ import { itemsModule } from './items';
 import { experimentsModule } from './experiments';
 import { tutorModule } from './tutor';
 import { dataModule } from './data';
+import { elementsModule } from './elements';
 
-export const labModule = composeModules('lab', [modelModule, itemsModule, experimentsModule, tutorModule, dataModule]);
+export const labModule = composeModules('lab', [modelModule, itemsModule, experimentsModule, tutorModule, dataModule, elementsModule]);

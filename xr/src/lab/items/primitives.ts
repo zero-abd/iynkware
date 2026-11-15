@@ -29,6 +29,7 @@ import { FONT_MONO } from '../../look/type';
 import { textLabel, type TextLabel } from '../../ui/text';
 import { ACID_AT, dishX, LOOP_REST, SALT_DISHES } from './controls';
 import type { ChannelValue, ItemVisual, ItemVisualSource } from './visual';
+import { elementBySymbol, FAMILY_HEX } from '../elements/data';
 
 const DEG = Math.PI / 180;
 const CLEAR = '#cfe6ee';
@@ -557,6 +558,18 @@ const BUILDERS: Readonly<Record<string, Build>> = {
         else if (ch === 'led:POWER') power.set(v as number);
       },
     };
+  },
+
+  'element-sample'(p, root, label) {
+    // a little glass jar with a lid, the symbol on a tag in the element's family colour
+    root.add(p.glass(cyl(0.026, 0.06), [0, 0.03, 0]));
+    root.add(p.body(cyl(0.028, 0.012), BANDS.dark, [0, 0.066, 0]));
+    const el = elementBySymbol(label ?? '');
+    const tag = p.text(0.05, 0.026, { bg: el ? FAMILY_HEX[el.family] : undefined });
+    tag.mesh.position.set(0, 0.03, 0.0275);
+    tag.set(label ?? '?');
+    root.add(tag.mesh);
+    return { set: () => undefined };
   },
 
   generic(p, root, label) {

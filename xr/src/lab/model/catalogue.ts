@@ -10,6 +10,7 @@
  */
 import { l6, same, type L6 } from '../text';
 import { GENERIC_KIND } from './items/generic';
+import { ELEMENT_KIND } from './items/element';
 import { FIGURE_NOTES } from './notes-figures';
 import type { LabId } from './types';
 
@@ -213,6 +214,20 @@ const NEW_NOTES: Readonly<Record<string, ItemNotes>> = {
     },
   },
 
+  [ELEMENT_KIND]: {
+    name: l6('Element sample', 'Elementprobe', 'Muestra de elemento', 'Échantillon d’élément', 'तत्व का नमूना', '元素样品'),
+    summary: l6(
+      'A small labelled jar of one element, taken from the periodic table. Many elements are reactive or toxic: in a real lab, check its safety sheet first.',
+      'Ein kleines beschriftetes Glas mit einem Element aus dem Periodensystem. Viele Elemente sind reaktiv oder giftig: Im echten Labor zuerst das Sicherheitsdatenblatt prüfen.',
+      'Un frasco pequeño con etiqueta de un elemento, tomado de la tabla periódica. Muchos elementos son reactivos o tóxicos: en un laboratorio real, consulta primero su ficha de seguridad.',
+      'Un petit flacon étiqueté d’un élément, pris dans le tableau périodique. Beaucoup d’éléments sont réactifs ou toxiques : dans un vrai labo, consulte d’abord sa fiche de sécurité.',
+      'आवर्त सारणी से लिए गए एक तत्व का छोटा लेबल लगा जार। कई तत्व क्रियाशील या विषैले होते हैं: असली लैब में पहले उसकी सुरक्षा शीट देखो।',
+      '从元素周期表取出的一个元素的小标签瓶。许多元素活泼或有毒：在真实实验室里请先查看安全说明书。',
+    ),
+    safeUse: [],
+    hazards: [],
+    mistakes: {},
+  },
   [GENERIC_KIND]: {
     name: l6('Stand-in item', 'Platzhalter', 'Objeto provisional', 'Objet provisoire', 'अस्थायी वस्तु', '替代物品'),
     summary: l6(
