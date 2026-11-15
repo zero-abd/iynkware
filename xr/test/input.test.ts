@@ -1,15 +1,19 @@
 /** The input service's pure parts: which press grabs, which selects, and the hand's virtual stick. */
 import { describe, expect, it } from 'vitest';
+import { TARGET_ORDER } from '../src/contracts/input';
 import {
   POSE_JOINTS,
   VIRTUAL_STICK_DEADZONE,
   VIRTUAL_STICK_FULL_M,
   fingersOpen,
+  effectiveGrab,
   grabFlags,
   headingOf,
   isGrabPress,
+  isNearSelectPress,
   modeOf,
   newHoldState,
+  orderOfKind,
   palmNormal,
   sourceOf,
   stepButton,
@@ -71,6 +75,32 @@ describe('press classification', () => {
     const distance = grabFlags('distance');
     expect(KINDS.filter((k) => isGrabPress(k, distance))).toEqual(['ray', 'gaze', 'mouse']);
     expect(KINDS.filter((k) => isGrabPress(k, grabFlags('both')))).toEqual(['ray', 'grab', 'gaze', 'mouse']);
+  });
+
+  it('orders targets by kind, and leaves an unset kind alone', () => {
+    expect(orderOfKind('cell')).toBe(5);
+    expect(orderOfKind('panel')).toBe(0);
+    expect(orderOfKind(undefined)).toBeUndefined();
+    const order = Object.values(TARGET_ORDER);
+    expect(order).toEqual([...order].sort((a, b) => b - a));
+  });
+
+  it('makes a near press on a nearSelect binding a select, rays and pokes unchanged', () => {
+    expect(KINDS.filter((k) => isNearSelectPress(k, true))).toEqual(['grab']);
+    expect(KINDS.filter((k) => isNearSelectPress(k, false) || isNearSelectPress(k, undefined))).toEqual([]);
+    for (const grab of ['none', 'near', undefined] as const) {
+      const flags = grabFlags(effectiveGrab(grab, true));
+      expect(KINDS.filter((k) => isGrabPress(k, flags))).toEqual([]);
+    }
+    // a distance grab survives: the ray still grabs
+    expect(KINDS.filter((k) => isGrabPress(k, grabFlags(effectiveGrab('both', true))))).toEqual(['ray', 'gaze', 'mouse']);
+  });
+
+  it('leaves bindings without nearSelect as they were', () => {
+    for (const grab of ['none', 'near', 'distance', 'both', undefined] as const) {
+      expect(effectiveGrab(grab, undefined)).toBe(grab);
+      expect(effectiveGrab(grab, false)).toBe(grab);
+    }
   });
 
   it('names modes and sources the same for controllers and hands', () => {
