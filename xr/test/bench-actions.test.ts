@@ -14,6 +14,7 @@ import {
   movePart,
   moveWireEnd,
   partOrigin,
+  placeBoards,
   placePart,
   pullPart,
   recolourWire,
@@ -23,6 +24,7 @@ import {
   removeWire,
   routeWire,
   runAction,
+  seatPart,
   straightenWire,
   turnPart,
   type ActionEnv,
@@ -93,6 +95,45 @@ beforeEach(async () => {
   template ??= await createTemplateSource().load('prj_uno-r3-blink');
   store = createProjectStore(template, registry);
   env = { registry, ids: counterIds() };
+});
+
+describe('a blank project', () => {
+  it('lays its board on the mat once, and leaves any other document alone', () => {
+    const blank = structuredClone(template);
+    blank.components = [];
+    blank.nets = [];
+    view(blank).placements = [];
+    view(blank).wires = [];
+    const r = ok(placeBoards(blank));
+    expect(r.ops).toHaveLength(1);
+    const s = createProjectStore(blank, registry);
+    expect(s.apply(r.ops, { label: r.label }).ok).toBe(true);
+    expect(placement(s.doc, 'brd_main')).toMatchObject({ x_mm: -90, y_mm: 0 });
+    refused(placeBoards(s.doc), 'unchanged');
+    refused(placeBoards(template), 'unchanged');
+  });
+
+  it('the first breadboard placed becomes the surface, so a part seats in it and a wire takes its holes', () => {
+    const blank = structuredClone(template);
+    blank.components = [];
+    blank.nets = [];
+    blank.dependencies.components = blank.dependencies.components.filter((d) => d.interface.role === 'board');
+    delete view(blank).surface;
+    view(blank).placements = [];
+    view(blank).wires = [];
+    const s = createProjectStore(blank, registry);
+    const bb = ok(placePart(s.doc, { ref: 'core.breadboard-half', at: { x_mm: 80, y_mm: 27 } }, env));
+    expect(s.apply(bb.ops, { label: bb.label }).ok).toBe(true);
+    expect(view(s.doc).surface).toBe(bb.id);
+    const led = ok(seatPart(s.doc, { ref: 'core.led-5mm', fit: { anchorHole: 'e10', rotation: 0 } }, env));
+    expect(s.apply(led.ops, { label: led.label }).ok).toBe(true);
+    expect(Object.values(placement(s.doc, led.id)!.legs!)).toHaveLength(2);
+    expect(s.undo()?.ok).toBe(true); // the LED goes
+    // iynk's `view.set` cannot give a surface back, so the breadboard that made it stays (the document refuses, it does not break)
+    const last = s.undo();
+    expect(last?.ok === false && last.reject === 'referenced_by').toBe(true);
+    expect(view(s.doc).surface).toBe(bb.id);
+  });
 });
 
 describe('place', () => {

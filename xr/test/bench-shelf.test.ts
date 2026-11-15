@@ -38,6 +38,11 @@ describe('shelf groups', () => {
     expect(entries.basics.length).toBeGreaterThan(0);
   });
 
+  it('the half breadboard stands first in Boards, not in Motion', () => {
+    expect(entries.boards[0]!.ref).toBe('core.breadboard-half');
+    expect(entries.motion.some((e) => e.ref === 'core.breadboard-half')).toBe(false);
+  });
+
   it('pages twelve bins at a time', () => {
     expect(BINS_PER_PAGE).toBe(12);
     expect(pageCount(0)).toBe(1);

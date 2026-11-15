@@ -27,6 +27,9 @@ export function groupOf(category: string): GroupId {
   return GROUP_OF_CATEGORY[category] ?? 'basics';
 }
 
+/** A breadboard is a mechanical part in iynk, but a person looks for it with the boards: it stands first in Boards. */
+export const isBreadboard = (ref: string): boolean => /(^|\.)breadboard/.test(ref);
+
 export interface ShelfEntry {
   readonly ref: string;
   readonly version: string;
@@ -42,9 +45,11 @@ export function shelfEntries(registry: Pick<PartRegistry, 'list' | 'latest'>): R
     if (seen.has(p.ref)) continue;
     seen.add(p.ref);
     const latest = registry.latest(p.ref);
-    out[groupOf(p.category)].push({ ref: p.ref, version: latest?.version ?? p.version, name: p.name, category: p.category });
+    out[isBreadboard(p.ref) ? 'boards' : groupOf(p.category)].push({ ref: p.ref, version: latest?.version ?? p.version, name: p.name, category: p.category });
   }
-  for (const id of GROUP_IDS) out[id].sort((a, b) => a.name.localeCompare(b.name) || a.ref.localeCompare(b.ref));
+  for (const id of GROUP_IDS) {
+    out[id].sort((a, b) => Number(isBreadboard(b.ref)) - Number(isBreadboard(a.ref)) || a.name.localeCompare(b.name) || a.ref.localeCompare(b.ref));
+  }
   return out;
 }
 
