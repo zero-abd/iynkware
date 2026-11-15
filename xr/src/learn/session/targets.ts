@@ -53,6 +53,37 @@ const names = (text: string, name: string) => new RegExp(`(?<![A-Za-z0-9_~])${es
 /** A pin name worth matching: not a bare number ("13" on an ESP32 header) and not a single letter. */
 const matchable = (name: string) => name.length >= 2 && !/^\d+$/.test(name);
 
+/** "D8-D11" is D8, D9, D10 and D11; any other label is itself. */
+function pinRange(label: string): string[] {
+  const m = /^([A-Za-z_]+)(\d+)\s*[-–]\s*(?:\1)?(\d+)$/.exec(label);
+  if (!m) return [label];
+  const [from, to] = [Number(m[2]), Number(m[3])];
+  if (!(to > from) || to - from > 40) return [label];
+  return Array.from({ length: to - from + 1 }, (_, i) => `${m[1]}${from + i}`);
+}
+
+/**
+ * The names a board's pins go by in prose: the pin id, the printed designator, and the labels the board's own silkscreen
+ * and Arduino header use (basys3 `sw0` is printed SW0, `led0` is LD0; the DE10-Lite's `ARDUINO_IO3` is D3). The first
+ * to claim a name keeps it.
+ */
+function pinNames(pins: ReadonlyArray<{ id: string; designator?: string }>): Map<string, string> {
+  const byName = new Map<string, string>();
+  const claim = (name: string, pin: string) => {
+    if (matchable(name) && !byName.has(name)) byName.set(name, pin);
+  };
+  for (const p of pins) claim(p.id, p.id);
+  for (const p of pins) claim(p.designator?.replace(/^~/, '') ?? '', p.id);
+  for (const p of pins) {
+    const led = /^led(\d+)$/.exec(p.id);
+    if (led) claim(`LD${led[1]}`, p.id);
+    else if (/^[a-z]+\d+$/.test(p.id)) claim(p.id.toUpperCase(), p.id);
+    const io = /^ARDUINO_IO(\d+)$/.exec(p.id);
+    if (io) claim(`D${io[1]}`, p.id);
+  }
+  return byName;
+}
+
 export function stepTargets(doc: Project, text: string, describe: Describe): Highlight[] {
   const out = new Map<string, Highlight>();
   const add = (target: BoardTarget, label?: string) => {
@@ -64,21 +95,18 @@ export function stepTargets(doc: Project, text: string, describe: Describe): Hig
   // Board pins: a pin's own id first, then its printed name; one pin per name (the first GND, not all three).
   for (const board of doc.boards) {
     const pins = (describe(board.definition.ref, board.definition.version)?.pins ?? []).filter((p) => p.class !== 'nc');
-    const byName = new Map<string, string>();
-    for (const p of pins) if (matchable(p.id)) byName.set(p.id, p.id);
-    for (const p of pins) {
-      const printed = p.designator?.replace(/^~/, '');
-      if (printed && matchable(printed) && !byName.has(printed)) byName.set(printed, p.id);
-    }
+    const byName = pinNames(pins);
     for (const [name, pin] of byName) if (names(text, name)) add({ kind: 'pin', part: board.id, pin }, name);
     for (const m of text.matchAll(PIN_NUMBER)) {
       const pin = [`D${m[1]}`, `GPIO${m[1]}`, `GP${m[1]}`].find((id) => pins.some((p) => p.id === id));
       if (pin) add({ kind: 'pin', part: board.id, pin }, pin);
     }
+    // The template's pin notes: only a pin the board has (a note may name a header range or a vendor label).
     for (const p of doc.guide?.pins ?? []) {
-      if (!matchable(p.pin) || !names(text, p.pin)) continue;
-      const pin = pins.find((d) => d.id === p.pin || d.designator?.replace(/^~/, '') === p.pin)?.id ?? p.pin;
-      add({ kind: 'pin', part: board.id, pin }, p.pin);
+      for (const label of pinRange(p.pin)) {
+        const pin = byName.get(label);
+        if (pin && names(text, label)) add({ kind: 'pin', part: board.id, pin }, label);
+      }
     }
   }
 
