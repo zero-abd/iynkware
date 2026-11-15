@@ -180,8 +180,22 @@ export function hoverLift(world: World, o: Object3D, lift: number, on: boolean, 
  * panel would otherwise keep swallowing rays meant for what is behind it: hidden panels are `pointerEvents: 'none'`
  * (inherited by every child). Showing it clears the override.
  */
+type PointerObject = Object3D & { pointerEvents?: 'none' | 'auto' | 'listener' };
+const panelPointerRest = new WeakMap<Object3D, PointerObject['pointerEvents']>();
+
 export function setPanelHit(o: Object3D, on: boolean): void {
-  (o as { pointerEvents?: 'none' | 'auto' | 'listener' }).pointerEvents = on ? undefined : 'none';
+  o.traverse((child) => {
+    const p = child as PointerObject;
+    if (on) {
+      if (!panelPointerRest.has(child)) return;
+      const rest = panelPointerRest.get(child);
+      panelPointerRest.delete(child);
+      p.pointerEvents = rest;
+      return;
+    }
+    if (!panelPointerRest.has(child)) panelPointerRest.set(child, p.pointerEvents);
+    p.pointerEvents = 'none';
+  });
 }
 
 /** A panel opening: scales in from 0.96 and fades in over 300 ms (the site's scale-in). */
@@ -203,6 +217,9 @@ export function panelOpen(world: World, o: Object3D, setOpacity?: (a: number) =>
 /** A panel closing: shrinks to 0.96 and fades out over 200 ms, then hides. */
 export function panelClose(world: World, o: Object3D, setOpacity?: (a: number) => void, onDone?: () => void): void {
   const rest = restOf(o);
+  // A closing panel is already gone for interaction purposes. Leaving its children hittable during the 200 ms
+  // scale-out lets an old Home control steal the trigger intended for the Menu that just opened in the same place.
+  setPanelHit(o, false);
   motionOf(world).tween({
     key: key(o, 'panel'),
     ms: DURATION.panelClose,
@@ -212,7 +229,6 @@ export function panelClose(world: World, o: Object3D, setOpacity?: (a: number) =
     },
     onDone: () => {
       o.visible = false;
-      setPanelHit(o, false);
       o.scale.setScalar(rest.scale);
       onDone?.();
     },

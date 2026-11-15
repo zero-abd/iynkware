@@ -79,6 +79,9 @@ function mountMenu(app: XrApp): Unsubscribe {
 
   const open = () => {
     if (isOpen) return;
+    // Home may finish its delayed first-session placement just as the person opens Menu. Panels are exclusive: do not
+    // leave Home in front of Menu where its tiles can steal the first trigger.
+    app.shell.closeHome();
     isOpen = true;
     page = 0;
     panel = build();

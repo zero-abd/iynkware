@@ -56,6 +56,7 @@ await page.waitForFunction(() => window.iynkware.world.visibilityState.value ===
 await sleep(1500);
 const start = await page.evaluate(() => window.__state());
 // Entry opens Home (when the lead's Home is mounted); the menu check starts from a clear view.
+await page.waitForFunction(() => window.iynkware.app.shell.homeOpen.value, null, { timeout: 8000 }).catch(() => undefined);
 await page.evaluate(() => window.iynkware.app.shell.closeHome());
 await sleep(400);
 
