@@ -1,6 +1,6 @@
 # State of the code
 
-Dated 2026-11-14. What exists in this repo today, what does not, and what is open. The process is in
+Dated 2026-11-15. What exists in this repo today, what does not, and what is open. The process is in
 [COLLABORATION.md](COLLABORATION.md).
 
 ## Where the code came from
@@ -66,26 +66,34 @@ From HANDOFF.md section 7, which also names the doc to read for each.
 > **Draw-call budget suspended (owner's decision, 2026-11-14).** Build beyond the 100-call budget; no PR fails or waits
 > over draw calls. Performance gets its own pass later, measured on the headset (docs/XR_ARCHITECTURE.md section 7).
 
-What a person can actually do in the current build of `main`, kept by the integration agent (`ws:integration`) after
-each batch of merges. Open it at https://iynkware-xr.almahmud-zero.workers.dev, or over USB at
-`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked: 2026-11-15, `main` at `4763bd3` (typecheck, the unit tests, build and the 12-step emulator walk pass; the
-Cloudflare deploy is blocked until `GEMINI_API_KEY` is set as a Worker secret, so the live URL is older than the
-8091 copy). New since `7e4e62a` and seen on the bench in the emulator: scale buttons (Smaller, 3x, Larger) on the
-rail, and the voice toggle. Home, wiring by hand, meters, see-through and crash replay are merged but not yet walked.
+What a person can actually do in the current build of `main`, kept current by whoever merges changes to it. The live
+demo for judging is **https://iynkware-xr.asnu.workers.dev/** (deployed from `main` with the paired voice Worker from
+Aaren's Cloudflare account, `GEMINI_API_KEY` set as a Worker secret); zero-abd's
+https://iynkware-xr.almahmud-zero.workers.dev serves the same app when he deploys. Over USB:
+`http://localhost:8091` (docs/XR_ARCHITECTURE.md section 10). Last checked on the Quest 3S and in the emulator:
+2026-11-15, `main` at `e953987` (typecheck, the unit tests and the build pass on a dev machine).
 
-- **Blink (the default page):** press Enter (or Open on this screen). Uno Blink sits in passthrough on a sage work
-  mat with a mustard rail, drawn from the converted models, with the lesson guide panel beside it: Back, Show me and
-  Next through four steps, with highlights on the bench. Run, Pause, Step (+10 ms), Reset and the speed button take a
-  controller ray and trigger, or a hand point and pinch; Run blinks the LED with its halo, and the lesson's three
-  checks run and pass.
-- **Build it with me:** the pill on the bench starts the co-builder. It proposes each step on a card (Accept, Accept
-  all, Skip, Undo, Stop) and places the part with a ghost and carry.
-- **Drone (`?project=prj_drone-quad5`):** a design panel beside the bench (part plates, numbers, arming rules) and a
-  Fly plate. Fly goes to the room: a five-gate course, A arms, and the controller sticks fly the drone and count gates.
-- **Not yet:** building by hand (shelf, edit, wire and pose are stubs); finishing a lesson (its `edit` and `quiz`
-  gates have no headset UI: #169, #53); home, menu and mode switch (stubs), so other projects open only by
-  `?project=`; hand sticks for flying; scale controls. The bench is anchored where the headset was at entry. The
-  emulator walk's Step check is flaky (#151).
+- **Home** opens on entry and from the Home button in the session controls: Continue, New project, Blink, All
+  lessons, a Science labs row (chemistry, physics, electrical, signals — the lab switcher lives here, there is no
+  separate picker), Drones, the robot bench, templates, Projects, Settings, the menu and the language. Home takes its
+  own rays even where it overlaps another panel.
+- **Bench:** parts from the shelf placed by hand, wiring pin to pin with grabbable wire end beads, drop on a shelf
+  bin to remove, a half-round table with a grip bar that moves the whole bench, movable panels with grip bars and
+  close buttons, Tidy up, Recentre, scale (Smaller / 3x / Larger, room size), see-through, the paper room.
+- **Run:** the sim in a Web Worker on the device — current dots and node voltages, LED halos, meters, faults from the
+  fault lab, and an editable code window that marks the running line and follows Step.
+- **Learn:** the Blink lesson walked by hand or controller end to end, with highlights, checks and onboarding.
+- **Labs:** the four labs with practice and exam, the tutor, the chemistry stockroom and periodic table, pendulum
+  and flame-test items picked up by hand, and the Data tab (record, plot).
+- **Range:** the drone workbench (design panel, arming rules), flight in the room with controller sticks, course
+  sizes fit to the space, FPV and chase screens, motor sound, the crash replay card at the crash point (closable, and
+  it leaves with the Range), "Simulate here" around the person, and robot arenas drawn on the floor.
+- **Voice companion:** hold Talk and speak (Gemini Live through the token broker, text turns too, six languages, a
+  scripted offline fallback). It navigates between every bench, lab and the Range, proposes edits as ghost previews,
+  walks lesson steps forward and back in bulk, builds circuits and the drone step by step, and hands out chemistry
+  substances. Spatial awareness comes from structured coach events, never a camera.
+- **Not yet:** finishing a lesson's `edit` and `quiz` gates in the headset (#169, #53); hand-gesture sticks for
+  flying; saving projects on the headset (templates each time).
 
 ## What works today
 
@@ -108,24 +116,20 @@ rail, and the voice toggle. Home, wiring by hand, meters, see-through and crash 
 
 ## What does not exist yet
 
-- Most of the headset app. Beyond the skeleton every pillar folder is a stub: no parts shelf, no wiring by hand, no
-  lessons in the headset, no zoom or see-through, no drones or robots, no home menu. The work is on the issue board,
-  one label per pillar (`ws:bench`, `ws:run`, `ws:learn`, `ws:scale`, `ws:range`, `ws:shell`, `ws:assets`); the
+- Whatever "The headset demo today" above does not list. The work is on the issue board, one label per pillar
+  (`ws:bench`, `ws:run`, `ws:learn`, `ws:scale`, `ws:range`, `ws:shell`, `ws:assets`, `ws:agent`, `ws:lab`); the
   interaction and experience spec it builds to is [XR_DESIGN.md](XR_DESIGN.md).
 - Converted assets: only the Blink parts (Uno R3, half breadboard, 5 mm LED, resistor) are drawn from `tools/xr-assets`
   glTF in the ink look; every other part is still a placeholder built from its descriptor.
-- A headset voice front end or model-backed co-builder. `xr/src/contracts/assistant.ts` defines the grounded
-  co-builder, reviewable session and voice-command verbs. `createApp` mounts the scripted implementation as
-  `XrApp.assistant`, and the assistant feature gives it a companion, proposal card and "Build it with me" entry. It
-  does not yet expose the existing `BuildGoal` `ask` path through `AssistantService`, connect to a voice transport or
-  stream audio. `quest-voice-backend/` is an isolated experimental service, not that missing integration.
+- The `BuildGoal` free-text `ask` path through `AssistantService` (#209). The voice front end itself exists
+  (`xr/src/agent/voice/`, Gemini Live through the Worker in `deploy/cloudflare-xr/`); `quest-voice-backend/` remains
+  an isolated experiment, superseded by that Worker.
 - Firmware engines in the headset: the worker runs iynk's interpreter, and rapier physics for robot projects (PR #110,
   loaded lazily in the worker); no avr8js or rp2040js yet (#38).
 - Saving projects in the headset: it opens a template each time.
 - Hosting for the 2D app: not set up, not decided. The headset build has a static deploy on Cloudflare with one
-  command ([XR_DEPLOY.md](XR_DEPLOY.md)); since 2026-11-14 its production URL serves the headset app built from
-  `main`, deployed by hand.
-- Hosting for the experimental voice service: not chosen. There is no deploy configuration and no cloud resource.
+  command ([XR_DEPLOY.md](XR_DEPLOY.md)); the live copy for judging is https://iynkware-xr.asnu.workers.dev/ (Aaren's
+  account, with the voice Worker and its `GEMINI_API_KEY` secret), deployed by hand from `main`.
 - Hosted CI: none, and no workflow files. The two inherited from iynk failed at startup on every run here and were
   removed (PR #5; why is in COLLABORATION.md section 6). `action.yml` stays: it is the "iynk check" Action for other
   repos, not CI.
