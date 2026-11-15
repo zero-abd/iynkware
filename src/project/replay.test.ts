@@ -103,10 +103,9 @@ describe("undo", () => {
     expect(hashOf(live)).toBe(end);
   });
 
-  // The inverse of a source.edit is positioned over the edits that came after it. A later edit that covers the whole
-  // range leaves a zero-length range there, and the undo of that later edit does not widen it again, so the first
-  // edit is not undone. Remove `.fails` when the session or the inverse handles it.
-  it.fails("gives the start hash after an edit that is covered by a later edit is undone twice", () => {
+  // The session re-bases a source.edit's inverse on the current revision when it undoes or redoes it, so a later edit
+  // that covered the range does not collapse it.
+  it("gives the start hash after an edit that is covered by a later edit is undone twice", () => {
     const live = session(startProject(1));
     const author = ownerOf(live.state);
     const start = hashOf(live);
