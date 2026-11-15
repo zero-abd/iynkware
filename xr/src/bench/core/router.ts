@@ -60,6 +60,11 @@ export interface PressHandler {
   move?(e: InteractionEvent): void;
   /** `grab-end`: the press is over. */
   end?(e: InteractionEvent): void;
+  /**
+   * The hand keeps its hover ring and cell name while this press runs (a wire being drawn aims with them: the end lands
+   * on the ringed cell, `BenchRouter.ringed`). Without it the ring is hidden for the whole press, as for a carry.
+   */
+  readonly keepHover?: boolean;
   /** The binding went away under the press (the item left the bench, the module tore down). */
   cancel?(): void;
 }
@@ -77,6 +82,8 @@ export interface BenchRouter {
   pressing(hand: Hand): boolean;
   /** The part body this hand hovers, or null. */
   hovering(hand: Hand): string | null;
+  /** The cell this hand's hover ring is on now (a pin or hole and its item), or null when no ring shows. */
+  ringed(hand: Hand): { part: string; anchor: string } | null;
 }
 
 /** Which verbs are possible for a press, by the candidates found under it. Pure, for tests. */
@@ -116,6 +123,7 @@ interface ActivePress {
   readonly rec: ProxyRec;
   readonly hand: Hand | null;
   handler: PressHandler | null;
+  keeps: boolean;
 }
 
 const HANDS: readonly Hand[] = ['left', 'right'];
@@ -151,6 +159,8 @@ function createRouter(app: XrApp): BenchRouter {
   const active = new Map<number, ActivePress>();
   const busy: Record<Hand, number> = { left: 0, right: 0 };
   const hoverBody: Record<Hand, string | null> = { left: null, right: null };
+  /** Presses of a hand whose handler asked to keep the hover ring (`PressHandler.keepHover`). */
+  const keepRing: Record<Hand, number> = { left: 0, right: 0 };
   let cells: CellEntry[] = [];
   let retained = 0;
   let teardown: Unsubscribe | null = null;
@@ -221,6 +231,7 @@ function createRouter(app: XrApp): BenchRouter {
       if (a.rec !== rec) continue;
       active.delete(pid);
       if (a.hand) busy[a.hand] = Math.max(0, busy[a.hand] - 1);
+      if (a.keeps && a.hand) keepRing[a.hand] = Math.max(0, keepRing[a.hand] - 1);
       a.handler?.cancel?.();
     }
     for (const hand of HANDS) if (hoverBody[hand] === id) hoverBody[hand] = null;
@@ -363,7 +374,10 @@ function createRouter(app: XrApp): BenchRouter {
     };
   }
 
+  /** The verb whose handler the last `claim` found (a press the cell verb declined can still be a body press). */
+  let claimedVerb: Verb | null = null;
   function claim(press: BenchPress, e: InteractionEvent): PressHandler | null {
+    claimedVerb = null;
     // the winning verb first, then the ones below it, as `pickTarget` orders them
     const order: readonly TargetKind[] = TARGET_PRIORITY;
     const start = order.indexOf(press.verb);
@@ -376,7 +390,10 @@ function createRouter(app: XrApp): BenchRouter {
       const list = handlers[verb];
       for (let i = list.length - 1; i >= 0; i--) {
         const h = list[i]!(verb === press.verb ? press : { ...press, verb });
-        if (h) return h;
+        if (h) {
+          claimedVerb = verb;
+          return h;
+        }
       }
     }
     void e;
@@ -394,11 +411,15 @@ function createRouter(app: XrApp): BenchRouter {
         return;
       case 'grab-start': {
         const press = resolve(e, rec);
-        const a: ActivePress = { rec, hand: e.pointer.hand, handler: null };
+        const a: ActivePress = { rec, hand: e.pointer.hand, handler: null, keeps: false };
         active.set(pid, a);
         if (a.hand) busy[a.hand]++;
         if (press) a.handler = claim(press, e);
-        if (a.handler && press && a.hand && press.verb === 'body') {
+        if (a.handler?.keepHover && a.hand) {
+          a.keeps = true;
+          keepRing[a.hand]++;
+        }
+        if (a.handler && press && a.hand && claimedVerb === 'body') {
           const held = proxies.get(press.item);
           if (held) hoverOn(held, a.hand, true);
         }
@@ -412,6 +433,7 @@ function createRouter(app: XrApp): BenchRouter {
         if (!a) return;
         active.delete(pid);
         if (a.hand) busy[a.hand] = Math.max(0, busy[a.hand] - 1);
+        if (a.keeps && a.hand) keepRing[a.hand] = Math.max(0, keepRing[a.hand] - 1);
         restoreProxy(rec);
         if (a.hand && hoverBody[a.hand]) {
           const held = proxies.get(hoverBody[a.hand]!);
@@ -490,7 +512,7 @@ function createRouter(app: XrApp): BenchRouter {
   }
 
   function frameHand(hand: Hand) {
-    if (busy[hand] > 0) return hideHover(hand);
+    if (busy[hand] > 0 && keepRing[hand] === 0) return hideHover(hand);
     const pose = app.input.pose(hand);
     if (!pose || cells.length === 0) return hideHover(hand);
     const s = app.bench.scale.value;
@@ -624,6 +646,12 @@ function createRouter(app: XrApp): BenchRouter {
     cellsOf: (item) => entryOf(item)?.index,
     pressing: (hand) => busy[hand] > 0,
     hovering: (hand) => hoverBody[hand],
+    ringed(hand) {
+      const h = hover[hand];
+      if (!h.ring?.visible || !h.entry || h.cell < 0) return null;
+      const anchor = h.entry.index.ids[h.cell];
+      return anchor === undefined ? null : { part: h.entry.id, anchor };
+    },
   };
 }
 
