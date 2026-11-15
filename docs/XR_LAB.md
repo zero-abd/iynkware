@@ -126,5 +126,8 @@ in the look kit's ink style. Both are driven by the same channel ids from `items
 `led:*`, `flame:*`, `swing:*`, `press:*`, plus lab-only `text:*`, `level:*`, `tint:*`). Each item is grabbed through
 an invisible box over its foot (`app.input.bind`, grab `both`); the drawn item follows with damping, turns only about
 up, and settles upright on the bench top on release (`store.move`). Controls are hit boxes (ray and poke; a knob has a
-down and an up half) that send one store action each. Callouts are the look kit's `createCallout`, because
+down and an up half) that send one store action each. Loose parts are held apart from their item (`items/hands.ts`): the pendulum's bob
+has its own grab box (the stand stays put) and, let go, swings from that angle through the stand's `release`; the
+chemistry lab's spatula, carried, scoops from a solid dish or element jar (`scoop`) and tips into a beaker or flask
+(the vessel's `add`, recorded, no reaction yet). Callouts are the look kit's `createCallout`, because
 `app.overlay` targets are `BoardTarget`s and cannot name lab items.
