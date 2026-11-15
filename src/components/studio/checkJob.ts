@@ -6,9 +6,6 @@ import { labelText, type BoardPins } from "@/studio/checks";
 
 export type CheckJobError = "no-source" | "no-board" | "unsupported-language";
 
-/** Check kinds that read pins; a Verilog board has no such pins. */
-export const PIN_KINDS: readonly ProjectCheck["kind"][] = ["pin-level", "pin-toggles", "pwm", "tone", "servo", "responds"];
-
 export const PLAIN_PIN = /^(?:D|GP|GPIO|P|IO)(\d+)$/;
 
 export function plainPin(pin: string): number | undefined {
@@ -102,8 +99,7 @@ export function checkJobFor(state: Project, testId: string, boardId: string, con
   const checks = (test?.checks ?? []).flatMap((c) => contentCheck(c) ?? []);
   const profile = getProfile(id as BoardId, board.variant);
   const language = INTERP_LANGUAGE[firmware.language];
-  const pinBased = checks.some((c) => PIN_KINDS.includes(c.kind));
-  if (!profile.languages.includes(language) || (language === "verilog" && pinBased)) return { error: "unsupported-language" };
+  if (!profile.languages.includes(language)) return { error: "unsupported-language" };
 
   return {
     board: id,

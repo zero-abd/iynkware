@@ -20,25 +20,17 @@ const CHECK_TIMEOUT_MS = 20_000;
 const TOTAL_MS = 240_000;
 
 /** templateId -> why it fails for a cause outside learn's adapters. Never skipped silently: the item still opens. */
-const PIN_CHECKS = 'iynk src/components/studio/checkJob.ts: pin checks on a Verilog board are "unsupported-language", so every check but "runs" fails';
-const PARAM_NAMES = "iynk content: the project parameter's id (par_hz) is passed to the Verilog module by src/components/studio/lessonJob.ts, which has no such parameter";
-const KNOWN_FAILURES: Record<string, string> = {
-  'prj_microbit-v2-touch-tune': 'iynk content: the logo input has no pins (null), so the touch script never reaches the program and check c3 sees 0 of 1',
-  'prj_basys3-gates': PIN_CHECKS,
-  'prj_basys3-pwm': PIN_CHECKS,
-  'prj_de10-lite-switches': PIN_CHECKS,
-  'prj_de10-lite-counter': PIN_CHECKS,
-  'prj_de10-lite-pwm': PIN_CHECKS,
-  'prj_de10-lite-hex': PIN_CHECKS,
-  'prj_basys3-blink': PARAM_NAMES,
-  'prj_basys3-counter': PARAM_NAMES,
-  'prj_basys3-display': PARAM_NAMES,
-  'prj_de10-lite-blink': PARAM_NAMES,
-};
+const KNOWN_FAILURES: Record<string, string> = {};
 
 const g = globalThis as unknown as { localStorage?: MemoryStorage };
 const unhandled: unknown[] = [];
 const onUnhandled = (e: unknown) => void unhandled.push(e);
+
+/** A harmless code edit that leaves the program valid: a no-op statement, or an unused wire inside the Verilog module. */
+function editFor(language: string, code: string): { pos: number; ins: string } {
+  if (/verilog/i.test(language) && code.includes('endmodule')) return { pos: code.lastIndexOf('endmodule'), ins: '  wire spare;\n' };
+  return { pos: code.length, ins: /python/i.test(language) ? '\npass\n' : '\n;\n' };
+}
 
 function targetProblem(app: XrApp, t: BoardTarget): string | null {
   const doc = app.project.doc;
@@ -125,7 +117,7 @@ describe('catalogue sweep', () => {
           for (const q of session.state.value.quizzes) q.questions.forEach((x) => session.answer(q.id, x.id, x.answer));
           // Then a code change (the edit gate), and the checks again.
           const fw = app.project.doc.sources.find((x) => x.role === 'firmware')!;
-          if (app.project.apply({ k: 'source.edit', id: fw.id, baseSeq: app.project.doc.revision, pos: fw.content.length, del: 0, ins: /python/i.test(app.project.doc.boards[0]?.firmware?.language ?? '') ? '\npass\n' : '\n;\n' }).ok) {
+          if (app.project.apply({ k: 'source.edit', id: fw.id, baseSeq: app.project.doc.revision, del: 0, ...editFor(app.project.doc.boards[0]?.firmware?.language ?? '', fw.content) }).ok) {
             await session.runChecks();
             expect(session.state.value.checks.rows.filter((r) => r.state !== 'pass').map((r) => r.checkId).join(), 'checks after the edit').toBe('');
           }
