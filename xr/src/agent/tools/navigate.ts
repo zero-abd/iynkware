@@ -21,7 +21,7 @@ import { pickText, type Lang } from '../../contracts/common';
 import { labOf } from '../../lab/context';
 import { LAB_IDS, type LabId } from '../../lab/model/types';
 import { libraryOf } from '../../shell/library/types';
-import { continueLast, goPlace, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
+import { continueLast, goPlace, leaveLab as leaveLabOf, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
 import { rangeProjectOf } from '../../range/shared/detect';
 import { droneCrafts } from '../knowledge';
 import type { Args, ToolHost, ToolResult } from './catalog';
@@ -160,10 +160,7 @@ export const NAV_KINDS = { go_to: 'act', list_controls: 'read', use_control: 'ac
 
 /** `NavHost` over the app: the shell's switch, the lab context and the menu rows. */
 export function createNavHost(app: XrApp): NavHost {
-  const leaveLab = () => {
-    const lab = labOf(app.world);
-    if (lab?.store.lab) lab.leave();
-  };
+  const leaveLab = () => leaveLabOf(app);
   return {
     projects: () => (libraryOf(app)?.rows.value ?? []).map((r) => ({ id: r.id, title: r.title })),
     async go(d) {

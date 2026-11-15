@@ -4,6 +4,7 @@ import type { Hand } from '../../contracts/input';
 import { scaleControls } from '../kit/controls';
 import { onFrame } from '../kit/frame';
 import { tr } from '../kit/text';
+import { watchRangeProject } from '../../range/shared/detect';
 import { mountApply } from './apply';
 import { flickStep, newFlick, resetFlick } from './flick';
 import { newGesture, stepGesture, type GestureInput } from './gesture';
@@ -72,6 +73,7 @@ export const zoomModule: FeatureModule = {
         }
       }
     });
+    const range = watchRangeProject(app.project);
     const flicks = [newFlick(), newFlick()];
     const g = newGesture();
     const tracked: [boolean, boolean] = [false, false];
@@ -82,11 +84,15 @@ export const zoomModule: FeatureModule = {
     const offFrame = onFrame(app.world, (_dt, t) => {
       const sources = input.sources.value;
       const dom = settings.xr.value.dominantHand;
+      // Only while the circuit bench is shown: a lab or the Range hides it and a drone has its own bench, and a stick
+      // pushed or hands spread there (flying the drone, handling lab items) would otherwise grow the circuit bench out
+      // of sight, and the next circuit project would come back far too big for the table.
+      const shown = bench.root.visible && range.value?.kind !== 'drone';
       // Flick: the dominant controller's stick, when that hand holds nothing.
       for (const h of HANDS) {
         const i = idx(h);
         const st = flicks[i]!;
-        if (h !== dom || sources[h] !== 'controller' || grab[i]! > 0 || g.active) {
+        if (!shown || h !== dom || sources[h] !== 'controller' || grab[i]! > 0 || g.active) {
           resetFlick(st);
           continue;
         }
@@ -99,8 +105,8 @@ export const zoomModule: FeatureModule = {
       // Two-handed spread.
       const l = input.pose('left');
       const r = input.pose('right');
-      tracked[0] = l !== null;
-      tracked[1] = r !== null;
+      tracked[0] = shown && l !== null;
+      tracked[1] = shown && r !== null;
       pinching[0] = l?.pinching ?? false;
       pinching[1] = r?.pinching ?? false;
       busy[0] = hover[0]! > 0 || grab[0]! > 0 || press[0]! > 0;
@@ -122,6 +128,7 @@ export const zoomModule: FeatureModule = {
 
     return () => {
       offFrame();
+      range.dispose();
       offAny();
       offSources();
       for (const off of offs) off();
