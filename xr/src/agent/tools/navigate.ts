@@ -15,6 +15,7 @@
  *
  * `createNavHost` binds these to the app; the tools only see `NavHost`, so tests can fake it.
  */
+import { flyHereOf } from '../../range/flight/here';
 import { LAB_TEMPLATES, TEMPLATES } from '@content/projects';
 import type { XrApp } from '../../contracts/app';
 import { pickText, type Lang } from '../../contracts/common';
@@ -53,7 +54,7 @@ export interface NavHost {
   controls(lang: Lang): ReadonlyArray<{ id: string; label: string; on?: boolean }>;
   runControl(id: string): boolean;
   /** Where the person is now; `drone` when the open project is a drone (the bench place is then the drone bench). */
-  where(): { place: string; lab: string | null; project: string; home?: boolean; drone?: boolean };
+  where(): { place: string; lab: string | null; project: string; home?: boolean; drone?: boolean; runHere?: boolean };
 }
 
 const fail = (error: string, extra: Record<string, unknown> = {}): ToolResult => ({ ok: false, error, ...extra });
@@ -230,6 +231,8 @@ export function createNavHost(app: XrApp): NavHost {
       project: app.project.doc.id,
       home: app.shell.homeOpen.value,
       drone: rangeProjectOf(app.project.doc)?.kind === 'drone',
+      // the drone flying from its workbench (Run here); Stop is the same control
+      runHere: flyHereOf(app).value,
     }),
   };
 }

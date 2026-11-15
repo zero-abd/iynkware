@@ -13,6 +13,7 @@ import { runFeedback } from '../kit/feedback';
 import { onTick } from '../kit/ticker';
 import { rangeOf, runDrone, runDroneHere } from '../../range/activate';
 import { flyHereOf } from '../../range/flight/here';
+import { LANGS, type LocalizedText, type Unsubscribe } from '../../contracts/common';
 import { createCluster } from './cluster';
 import {
   clockSeconds,
@@ -187,7 +188,11 @@ export const controlsModule: FeatureModule = {
         }),
       ),
       bindPlate(app, cluster.here, 'run:here', () => void runDroneHere(app)),
-      rangeOf(app).subscribe(() => draw()),
+      rangeOf(app).subscribe(() => {
+        draw();
+        droneRows();
+      }),
+      () => offRows?.(),
       flyHereOf(app).subscribe(() => draw()),
       app.sim.onState((s) => dispatch({ t: 'bridge', state: s })),
       app.sim.onDiagnostic((d) => dispatch({ t: 'diagnostic', kind: d.kind })),
@@ -213,6 +218,23 @@ export const controlsModule: FeatureModule = {
         rings.tick(dt);
       }),
     ];
+    // A drone's Run on range and Run here as menu rows too, so the companion can press them (use_control)
+    let offRows: Unsubscribe | null = null;
+    function droneRows(): void {
+      const drone = rangeOf(app).value?.kind === 'drone';
+      if (drone && !offRows) {
+        const all = (key: 'runOnRange' | 'runHere'): LocalizedText => Object.fromEntries(LANGS.map((l) => [l, S.t(l, key)])) as LocalizedText;
+        const offs2 = [
+          app.shell.addMenuItem({ id: 'drone/run-on-range', group: 'tools', label: all('runOnRange'), run: () => void (runDrone(app) === 'ready' && app.shell.go('range')) }),
+          app.shell.addMenuItem({ id: 'drone/run-here', group: 'tools', label: all('runHere'), run: () => void runDroneHere(app) }),
+        ];
+        offRows = () => {
+          for (const o of offs2) o();
+          offRows = null;
+        };
+      } else if (!drone && offRows) offRows();
+    }
+    droneRows();
     draw();
 
     return () => {
