@@ -281,14 +281,44 @@ export function mountVoice(app: XrApp): Unsubscribe {
   talkRoot.add(talkBtn.group);
   app.bench.table.add(talkRoot);
   const placeTalk = () => {
+    if (talkRoot.parent && talkRoot.parent !== app.bench.table) return; // standing on its own (see below)
     const h = spotsOf(app.settings.xr.value).home;
     talkRoot.position.set(h.x - 0.09, h.y + 0.02, h.z);
   };
   placeTalk();
   const talkGrip = movable(app, { id: 'agent/talk', group: talkRoot, width: 0.07, height: 0.03, distanceM: 0.6, flat: true });
   const offTalk = [app.settings.xr.subscribe(placeTalk), app.settings.lang.subscribe(paintTalk)];
+  // In the Range or the robot arena the bench table is hidden, and the talk button with it, so voice could not be used
+  // there. While the table is hidden the button stands on its own in the room, put once beside the person as they
+  // arrive (to the left of where they look, a little below the eyes, facing them); it goes back on the table when the
+  // bench returns. A turn never stays open across the move.
+  const AWAY = { distanceM: 0.55, sideRad: (35 * Math.PI) / 180, belowM: 0.18 } as const;
+  const awayEye = new Vector3();
+  const look = new Vector3();
+  const standAlone = () => {
+    const cam = app.world.camera;
+    const eye = cam.getWorldPosition(awayEye);
+    cam.getWorldDirection(look);
+    // bench convention: yaw 0 looks down -z, positive turns left
+    const yaw = (Math.hypot(look.x, look.z) < 1e-4 ? 0 : Math.atan2(-look.x, -look.z)) + AWAY.sideRad;
+    app.world.scene.add(talkRoot);
+    talkRoot.rotation.set(0, 0, 0);
+    talkRoot.position.set(eye.x - Math.sin(yaw) * AWAY.distanceM, eye.y - AWAY.belowM, eye.z - Math.cos(yaw) * AWAY.distanceM);
+    talkRoot.lookAt(eye.x, talkRoot.position.y, eye.z);
+  };
+  const backOnTable = () => {
+    app.bench.table.add(talkRoot);
+    talkRoot.rotation.set(0, 0, 0);
+    placeTalk();
+  };
   const offTalkFrame = onLookFrame(app.world, () => {
-    talkRoot.visible = !!companionOf(app.world)?.group.visible;
+    const away = !app.bench.table.visible;
+    if (away === (talkRoot.parent === app.bench.table)) {
+      if (vstatus === 'talking') release();
+      if (away) standAlone();
+      else backOnTable();
+    }
+    talkRoot.visible = away || !!companionOf(app.world)?.group.visible;
   });
 
   // ---- the 2D controls, for the flat page --------------------------------------------------------------------------

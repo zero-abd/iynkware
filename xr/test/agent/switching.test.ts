@@ -119,6 +119,8 @@ describe('voice requests for every bench', () => {
       expect(intentOf(w)).toEqual(expect.objectContaining({ kind: 'go' }));
     }
     expect(intentOf('go to the physics lab')).toEqual({ kind: 'open', lab: 'physics' });
+    expect(intentOf('work on the tiny whoop')).toEqual({ kind: 'go', where: 'work on the tiny whoop' });
+    expect(at('work on the tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
     expect(at('electronics bench')).toEqual({ kind: 'bench' });
     expect(at('arduino workbench')).toEqual({ kind: 'bench' });
   });

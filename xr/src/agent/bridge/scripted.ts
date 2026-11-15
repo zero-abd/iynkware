@@ -123,8 +123,8 @@ export function intentOf(raw: string): Intent {
   if (mode) return { kind: 'mode', mode: /^(build|bau)/.test(mode[1]!) ? 'build' : 'assist' };
   // the drone's two places, before the circuit's build: its workbench ("build the drone") or the Range ("fly the drone")
   if (/\b(?:drone|quad)\b|drohne/.test(t) && /\b(?:build|assemble|put (?:it )?together|fly|calibrate)\b|test the motors|bauen|fliegen/.test(t)) return { kind: 'go', where: t };
-  const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
-  if (go && !/\bbuild\b/.test(t)) return { kind: 'go', where: go[1]! };
+  const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|(?:let'?s )?work on|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
+  if (go && !/\bbuild\b/.test(t)) return { kind: 'go', where: /^(?:let'?s )?work on/.test(t) ? `work on ${go[1]!}` : go[1]! };
   if (/\bbuild\b|\bbau(?:e|en)?\b|aufbauen/.test(t)) return { kind: 'build', request: /with me|mit mir/.test(t) && !/blink/.test(t) ? 'build it with me' : t };
   if (/what (?:should i do )?next|next step|what now|what do i do|als nächstes|nächster schritt|was jetzt|was soll ich/.test(t)) return { kind: 'next' };
   const w = WHERE.exec(t);

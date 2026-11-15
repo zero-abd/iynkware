@@ -11,7 +11,7 @@ describe('destinations by name', () => {
   it('finds labs, the drone, the bench, Home, templates and saved projects', () => {
     expect(at('my signals and systems lab')).toEqual({ kind: 'lab', lab: 'signals' });
     expect(at('the chemistry lab')).toEqual({ kind: 'lab', lab: 'chemistry' });
-    expect(at('the drone project')).toEqual({ kind: 'drone' });
+    expect(at('the drone project')).toEqual({ kind: 'droneHere' });
     expect(at('workbench')).toEqual({ kind: 'bench' });
     expect(at('home')).toEqual({ kind: 'home' });
     expect(at('servo')).toEqual(expect.objectContaining({ kind: 'template', id: 'prj_uno-r3-servo' }));
@@ -24,13 +24,24 @@ describe('destinations by name', () => {
     for (const w of ['drone workbench', 'the drone bench', 'back to the drone workbench', 'build the drone', 'assemble the quad', 'test the drone motors', 'Drohnenwerkbank']) {
       expect(at(w)).toEqual({ kind: 'droneBench' });
     }
-    for (const w of ['fly the drone', 'drone fly test', 'the drone flight range', 'range', 'drone', 'the drone project']) expect(at(w)).toEqual({ kind: 'drone' });
+    for (const w of ['fly the drone', 'drone fly test', 'the drone flight range', 'range', 'drone simulation', 'the simulation', 'fly the racer drone']) {
+      const d = at(w) as { kind?: string; at?: string } | null;
+      expect(d?.kind === 'drone' || d?.at === 'range').toBe(true);
+    }
+    for (const w of ['drone', 'the drone project', 'my drone']) expect(at(w)).toEqual({ kind: 'droneHere' });
+    for (const w of ['work on the drone', 'fix the drone', 'edit the drone']) expect(at(w)).toEqual({ kind: 'droneBench' });
     for (const w of ['workbench', 'circuit bench', 'circuit']) expect(at(w)).toEqual({ kind: 'bench' });
     expect(at('tiny whoop bench')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
     expect(at('long range')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-longrange' }));
     expect(at('long range drone bench')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-longrange', at: 'bench' }));
     expect(at('tiny whoop')).not.toEqual(expect.objectContaining({ at: 'bench' }));
     expect(at('tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft' }));
+    // another drone by name: its workbench when they say work on it, the Range when they say fly, else where they are
+    expect(at('work on the tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
+    expect(at('switch to the tiny whoop workbench')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
+    expect(at('fly the tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', at: 'range' }));
+    expect(at('tiny whoop simulation')).toEqual(expect.objectContaining({ kind: 'craft', at: 'range' }));
+    expect((at('the tiny whoop') as { at?: string }).at).toBeUndefined();
   });
 
   it('typed drone requests go to the drone, not the circuit build', () => {
@@ -67,7 +78,7 @@ describe('go_to and the controls', () => {
     expect((await NAV_RUNS.go_to!(h, { where: 'signals lab' })).ok).toBe(true);
     expect((await NAV_RUNS.go_to!(h, { where: 'drone' })).ok).toBe(true);
     expect((await NAV_RUNS.go_to!(h, { where: 'drone workbench' })).ok).toBe(true);
-    expect(went).toEqual([{ kind: 'lab', lab: 'signals' }, { kind: 'drone' }, { kind: 'droneBench' }]);
+    expect(went).toEqual([{ kind: 'lab', lab: 'signals' }, { kind: 'droneHere' }, { kind: 'droneBench' }]);
     const r = await NAV_RUNS.go_to!(h, { where: 'the moon' });
     expect(r.ok).toBe(false);
     expect(r.try).toEqual(expect.arrayContaining(['drone', 'signals lab']));
