@@ -24,6 +24,7 @@ import type {
   WorldInput,
 } from '../contracts/sim';
 import { mergeWatches } from './analog';
+import { withFaults } from './faults';
 import { createXrSimHandler, type XrHandlerOptions } from './handler-deps';
 
 export type SimPort = RpcPort<SimReq, SimEv>;
@@ -101,6 +102,12 @@ let parts: ReturnType<typeof getAppRegistry> | null = null;
 
 /** Every source of the document, path to text, as iynk's 2D Check sends them (faultLink.ts). */
 const sourcesOf = (doc: Project): Record<string, string> => Object.fromEntries(doc.sources.map((s) => [s.path, s.content]));
+
+/** A source program with each file's text from `sources` (a `code-pin` fault's edit); a compiled image as it is. */
+function withSources(program: ProgramImage, sources: Record<string, string>): ProgramImage {
+  if (program.kind !== 'source') return program;
+  return { ...program, files: program.files.map((f) => ({ path: f.path, text: sources[f.path] ?? f.text })) };
+}
 
 const blocking = (diagnostics: readonly SimDiagnostic[]) => diagnostics.some((d) => d.severity === 'error');
 
@@ -257,10 +264,16 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       lastMech = null;
       findings = [];
       netlist = null;
-      const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= getAppRegistry()));
-      const program = opts?.program ?? programOf(doc);
-      if (!program) return refuse([...netDiags, simDiag('no-firmware', 'error', {}, { message: 'the project has no code to run' })]);
-      if (blocking(netDiags)) return refuse(netDiags);
+      const registry = (parts ??= getAppRegistry());
+      const built = buildSimNetlist(doc, registry);
+      const chosen = opts?.program ?? programOf(doc);
+      if (!chosen) return refuse([...built.diagnostics, simDiag('no-firmware', 'error', {}, { message: 'the project has no code to run' })]);
+      if (blocking(built.diagnostics)) return refuse(built.diagnostics);
+      // The person's injected faults (fault lab, a lesson's Break it): the run gets the broken circuit and sketch.
+      const faulted = withFaults(doc, built.net, sourcesOf(doc), registry);
+      const net = faulted.net;
+      const netDiags = [...built.diagnostics, ...faulted.diagnostics];
+      const program = withSources(chosen, faulted.sources);
       loading = id;
       try {
         const ack = await call({
