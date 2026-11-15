@@ -9,6 +9,7 @@
  *   grip.ts      the inked grip bar, its hover and held looks, its input, and `movable(app, ...)`
  *   open.ts      `openable`: a panel or tool that starts closed and opens from its menu row (the calm layout)
  *   copy.ts      Tidy up and the menu rows of the calm layout, in six languages
+ *   ring.ts      `placeInRing`: a panel in its slot of the bench's panel ring (`bench/core/ring.ts`)
  *
  * This module adds "Tidy up" to the menu: every panel goes back to where its pillar puts it.
  */
@@ -21,6 +22,7 @@ export { REACH } from './drag';
 export { openable, openState, type Openable, type OpenableOptions } from './open';
 export { PANELS_COPY } from './copy';
 export { PLACES_KEY } from './store';
+export { placeInRing } from './ring';
 
 export const panelsModule: FeatureModule = {
   id: 'ui/panels',

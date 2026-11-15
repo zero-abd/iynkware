@@ -24,7 +24,8 @@ import type { LessonSession, StepState } from '../../types';
 import { arrowSpot, outOfView, type ArrowSpot } from './arrow';
 import { drawChecksTab } from './checks-tab';
 import { createCodeTab } from './code-tab';
-import { GUIDE_PLACE, clampDistance, guideSpot, yawOf } from './placement';
+import { ringSpot } from '../../../bench/core/ring';
+import { GUIDE_PLACE, clampDistance } from './placement';
 import { hasNext } from './quiz-card';
 import { nextHint, stepsCard, type QuizReview } from './finish';
 import { drawStepsTab, type StepsFinish } from './steps-tab';
@@ -255,10 +256,11 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
   const placeNow = () => {
     camera.updateWorldMatrix(true, false);
     camera.getWorldPosition(head);
-    camera.getWorldQuaternion(q);
-    const at = guideSpot([head.x, head.y, head.z], yawOf(q.x, q.y, q.z, q.w), app.settings.xr.value.dominantHand);
+    // Its slot in the panel ring (bench/core/ring.ts), on the side away from the dominant hand: in the table frame.
+    const xr = app.settings.xr.value;
+    const at = ringSpot('guide', xr.posture, xr.dominantHand).position;
     table.updateWorldMatrix(true, false);
-    panel.group.position.copy(table.worldToLocal(tmp.set(at[0], at[1], at[2])));
+    panel.group.position.set(at[0], at[1], at[2]);
     panel.group.updateMatrixWorld(true);
     panel.face(head);
   };

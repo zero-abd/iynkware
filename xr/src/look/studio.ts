@@ -23,11 +23,13 @@ import {
   SphereGeometry,
   SRGBColorSpace,
   BoxGeometry,
+  ExtrudeGeometry,
+  Shape,
   type Material,
 } from '@iwsdk/core';
 import type { Unsubscribe } from '../contracts/common';
 import type { XrApp } from '../contracts/app';
-import { benchGeometry } from '../bench/core/geometry';
+import { benchGeometry, ringPoint, type TableRing } from '../bench/core/geometry';
 import { paintBands, smoothOutlineNormals, type InkKit } from './ink';
 import { MAT } from './mat';
 import { DURATION } from './motion';
@@ -47,9 +49,13 @@ const TABLE = { overhang: 0.03, thickness: 0.03, leg: 0.045, inset: 0.06 } as co
 /** Whether the studio is the room now. */
 export const studioWanted = (mode: XrApp['mode']['value'], space: 'mr' | 'vr'): boolean => mode === 'vr' || (mode === 'mr' && space === 'vr');
 
-/** Boxes merged into one flat-shaded, non-indexed geometry (the table: top and four legs, one draw call). */
-function boxes(list: ReadonlyArray<{ w: number; h: number; d: number; x: number; y: number; z: number }>): BufferGeometry {
-  const parts = list.map((b) => new BoxGeometry(b.w, b.h, b.d).translate(b.x, b.y, b.z).toNonIndexed());
+/** Geometries merged into one non-indexed geometry, positions and normals (the table: top and legs, one draw call). */
+function merged(list: readonly BufferGeometry[]): BufferGeometry {
+  const parts = list.map((g) => {
+    const flat = g.index ? g.toNonIndexed() : g;
+    if (flat !== g) g.dispose();
+    return flat;
+  });
   const count = parts.reduce((n, g) => n + g.attributes.position!.count, 0);
   const pos = new Float32Array(count * 3), nor = new Float32Array(count * 3);
   let o = 0;
@@ -63,6 +69,26 @@ function boxes(list: ReadonlyArray<{ w: number; h: number; d: number; x: number;
   out.setAttribute('position', new BufferAttribute(pos, 3));
   out.setAttribute('normal', new BufferAttribute(nor, 3));
   return out;
+}
+
+/**
+ * The half-round table top (bench/core/geometry.ts `table`), `overhang` wider each way, lying with its top at y = 0:
+ * an annular sector extruded `thickness` down. Shape y is -z (rotated flat below).
+ */
+function ringSlab(t: TableRing, overhang: number, thickness: number): BufferGeometry {
+  const inner = t.inner - overhang, outer = t.outer + overhang;
+  const half = t.halfSpanRad + overhang / t.inner;
+  const shape = new Shape();
+  const at = (r: number, a: number): [number, number] => [Math.sin(a) * r, Math.cos(a) * r - t.cz];
+  shape.moveTo(...at(outer, -half));
+  shape.absarc(0, -t.cz, outer, Math.PI / 2 + half, Math.PI / 2 - half, true);
+  shape.lineTo(...at(inner, half));
+  shape.absarc(0, -t.cz, inner, Math.PI / 2 - half, Math.PI / 2 + half, false);
+  shape.closePath();
+  const g = new ExtrudeGeometry(shape, { depth: thickness, bevelEnabled: false, curveSegments: 48 });
+  g.rotateX(-Math.PI / 2);
+  g.translate(0, -thickness, 0);
+  return g;
 }
 
 function paintFloor(canvas: HTMLCanvasElement, paper: string) {
@@ -149,15 +175,24 @@ export function mountStudio(app: XrApp, kit: InkKit): Unsubscribe {
     shadow?.removeFromParent();
     table.clear();
     const xr = app.settings.xr.value;
-    const top = benchGeometry(xr.posture, xr.dominantHand).top;
+    const ring = benchGeometry(xr.posture, xr.dominantHand).table;
     const height = app.bench.benchTop.value.position[1];
     const y0 = -MAT.thickness - MAT.sink;
-    const w = top.w + 2 * TABLE.overhang, d = top.d + 2 * TABLE.overhang;
     const legH = Math.max(0.05, height + y0 - TABLE.thickness);
-    const lx = w / 2 - TABLE.inset, lz = d / 2 - TABLE.inset;
-    const g = boxes([
-      { w, h: TABLE.thickness, d, x: 0, y: y0 - TABLE.thickness / 2, z: 0 },
-      ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => ({ w: TABLE.leg, h: legH, d: TABLE.leg, x: sx * lx, y: y0 - TABLE.thickness - legH / 2, z: sz * lz }))),
+    // Five legs: inside and outside at each end of the horseshoe, and one at the middle of the back (none at the
+    // middle of the inner edge, where the knees go).
+    const endA = ring.halfSpanRad - TABLE.inset / ring.inner;
+    const legs = [
+      ringPoint(ring, -endA, ring.inner + TABLE.inset),
+      ringPoint(ring, -endA, ring.outer - TABLE.inset),
+      ringPoint(ring, 0, ring.outer - TABLE.inset),
+      ringPoint(ring, endA, ring.outer - TABLE.inset),
+      ringPoint(ring, endA, ring.inner + TABLE.inset),
+    ];
+    const slab = ringSlab(ring, TABLE.overhang, TABLE.thickness).translate(0, y0, 0);
+    const g = merged([
+      slab,
+      ...legs.map((l) => new BoxGeometry(TABLE.leg, legH, TABLE.leg).translate(l.x, y0 - TABLE.thickness - legH / 2, l.z)),
     ]);
     paintBands(g, BANDS.white);
     smoothOutlineNormals(g, 1e-5);

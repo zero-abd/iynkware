@@ -1,4 +1,4 @@
-/** Where the twelve bins stand (design 2.3): three tiers of four on the shelf rect, rising towards the back, turned inwards. */
+/** Where the twelve bins stand (design 2.3): three tiers of four on the shelf rect, rising towards the back, turned to face the person. */
 import type { BenchGeometry } from '../core/geometry';
 
 export const TIERS = 3;
@@ -6,8 +6,6 @@ export const PER_TIER = 4;
 /** Each tier is this much higher than the one in front of it; the first one's top is `BASE` above the mat. */
 export const TIER_RISE = 0.04;
 export const BASE = 0.012;
-/** The shelf turns this far in towards the work zone. */
-export const YAW_RAD = (20 * Math.PI) / 180;
 
 export interface BinSlot {
   /** Centre in the shelf's own frame (x right, z towards the person, y up from the mat). */
@@ -50,8 +48,8 @@ export function shelfLayout(g: BenchGeometry): ShelfLayout {
       });
     }
   }
-  // The right-handed shelf is at +x and turns its front towards -x (the work zone); the left-handed one mirrors.
-  return { x: shelf.x, z: shelf.z, yaw: -g.d * YAW_RAD, w: shelf.w, d: shelf.d, tierD, binW: slotW - 0.004, bins };
+  // The shelf stands on the wing of side D, its front turned to the person (the ring's centre); left-handed mirrors.
+  return { x: shelf.x, z: shelf.z, yaw: shelf.yawRad, w: shelf.w, d: shelf.d, tierD, binW: slotW - 0.004, bins };
 }
 
 /** A bin centre in the table frame (the shelf's turn applied). */

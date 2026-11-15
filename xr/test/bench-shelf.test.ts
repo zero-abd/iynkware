@@ -65,8 +65,11 @@ describe('shelf layout', () => {
         expect(l.bins).toHaveLength(12);
         for (let i = 0; i < 12; i++) {
           const p = binInTable(l, i);
-          expect(Math.abs(p.x - g.shelf.x)).toBeLessThanOrEqual(g.shelf.w / 2);
-          expect(Math.abs(p.z - g.shelf.z)).toBeLessThanOrEqual(g.shelf.d / 2);
+          // inside the shelf rect, in its own (turned) frame
+          const c = Math.cos(g.shelf.yawRad), s = Math.sin(g.shelf.yawRad);
+          const dx = p.x - g.shelf.x, dz = p.z - g.shelf.z;
+          expect(Math.abs(dx * c - dz * s)).toBeLessThanOrEqual(g.shelf.w / 2 + 1e-9);
+          expect(Math.abs(dx * s + dz * c)).toBeLessThanOrEqual(g.shelf.d / 2 + 1e-9);
           expect(p.x * g.d).toBeGreaterThan(0); // on side D
         }
         const tierY = [0, 4, 8].map((i) => l.bins[i]!.y);
@@ -74,8 +77,8 @@ describe('shelf layout', () => {
         expect(tierY[2]! - tierY[1]!).toBeCloseTo(TIER_RISE, 6);
         // the far tier is further from the person
         expect(l.bins[8]!.z).toBeLessThan(l.bins[0]!.z);
-        // turned 20 degrees towards the work zone
-        expect(Math.abs(l.yaw)).toBeCloseTo((20 * Math.PI) / 180, 6);
+        // turned with its wing to face the person
+        expect(l.yaw).toBeCloseTo(g.shelf.yawRad, 9);
         expect(Math.sign(l.yaw)).toBe(-g.d);
       });
     }

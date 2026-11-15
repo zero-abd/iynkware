@@ -6,7 +6,7 @@
  */
 import { Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
-import { benchGeometry } from './geometry';
+import { benchGeometry, onTable } from './geometry';
 
 /** World y of the floor. */
 export const FLOOR_Y = 0;
@@ -27,8 +27,8 @@ export function restBelow(app: XrApp, p: Vector3): Rest {
   _t.copy(p);
   table.worldToLocal(_t);
   const xr = app.settings.xr.value;
-  const { top } = benchGeometry(xr.posture, xr.dominantHand);
-  const over = Math.abs(_t.x) <= top.w / 2 && Math.abs(_t.z) <= top.d / 2 && _t.y > -0.02;
+  const ring = benchGeometry(xr.posture, xr.dominantHand).table;
+  const over = onTable(ring, _t.x, _t.z) && _t.y > -0.02;
   if (over) {
     _t.set(0, 0, 0);
     table.localToWorld(_t);

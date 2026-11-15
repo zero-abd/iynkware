@@ -41,8 +41,10 @@ device, and section 12 is the bar the final polish pass is held to.
 |---|---|---|
 | Top height | `E - 0.47` m (just above elbow height), clamped 0.80 to 1.20 m | `E - 0.47` m, clamped 0.62 to 0.85 m |
 | Front edge | 0.15 m ahead of the eyes | same |
-| Size (width x depth) | 1.00 x 0.55 m | 0.90 x 0.50 m |
-| Front rail | the first 0.04 m of depth, raised 0.03 m, tilted 30 degrees up towards the user: about 0.47 m from the eyes | same |
+| Shape | half-round (horseshoe): an annular sector about a point 0.30 m behind the eyes, inner radius 0.45 m, spanning 70 degrees either way, so its inner edge is the front edge ahead and comes back to beside the person | same |
+| Depth (ring) | 0.60 m | 0.55 m |
+| Mat (width x depth, on the centre, front edge at the rail) | 0.90 x 0.48 m | 0.86 x 0.44 m |
+| Front rail | the mat's first 0.04 m of depth, raised 0.03 m, tilted 30 degrees up towards the user: about 0.47 m from the eyes | same |
 | Work zone | the mat from the rail back 0.30 m, 0.60 m wide; its centre 0.34 m ahead | 0.54 m wide |
 | Eye to work centre | about 0.58 m, 54 degrees below horizontal | same |
 
@@ -68,26 +70,34 @@ catalogue items arrive and where loose things can be parked.
 ### 2.3 Where things live (top view, right-handed)
 
 ```text
-                 Z3: code (15 deg to D)          guide (15 deg away from D)
-                 scope screen behind the board, serial beside the code
-     +-----------------------------------------------------------------+
-     | tools rack     |        work zone (Z1)          |  parts shelf    |
-     | meter, probes, |   board        breadboard      |  3 tiers x 4    |
-     | scope probe,   |                                |  bins, tilted   |
-     | fault deck     |                                |  20 deg inwards |
-     +----------------+--------------------------------+-----------------+
-     | Menu  Scale - 3x +  | Reset Step [RUN] Speed |  Undo Redo  ticker  |  <- front rail
-     +-----------------------------------------------------------------+
-                                   you
+        guide (-29)            scope (0, low)            code (+32)
+  side (-58)                                                    serial (+64)
+                  .------------------------------------.
+               .-'    back strip: deliveries, parking    '-.
+   session   /   +------------------------------------+    \
+   controls |    |  work zone (Z1): board, breadboard |     |
+   (-86)    |    +------------------------------------+     |
+    tools rack \  | Scale - 3x + | [RUN] | Undo Redo ticker |  / parts shelf
+    (left wing) '-.______________ rail ______________.-'  (right wing)
+                                    you
 ```
 
-- **Shelf** on side D, x 0.32 to 0.52 m, 0.20 to 0.40 m ahead, three tiers rising 0.04 m each towards the back. Twelve
+- **Table:** half-round, so everything has room and the wings come round to the person (`bench/core/geometry.ts`,
+  `table`). The cutting mat lies on its centre; the shelf and the tools rack stand on the wings, turned to face the
+  person, within 0.5 m of the nearer shoulder. In passthrough only the mat is drawn (it lies on the real table); the
+  studio draws the round table on five legs.
+- **Panel ring** (`bench/core/ring.ts`): every floating panel that belongs to the bench has a fixed slot just beyond
+  the table's back edge, at its own design distance, facing the eyes and locked to the bench (angles towards D in the
+  sketch; they mirror for a left-handed person). Neighbours leave about 3 degrees between them, so panels never stack.
+  Dragging a panel keeps it where it was left; Tidy up puts it back in its slot. Panels opened from Home or the menu
+  in front of the head (Home, the menu, projects, confirmations) are not in the ring.
+- **Shelf** on the wing of side D, 56 degrees round the ring at 0.76 m from its centre, three tiers rising 0.04 m each towards the back. Twelve
   bins of small parts at 3x (LEDs, resistors, buttons, pots, sensors, modules). In a lesson it holds only that
   lesson's parts. Boards, breadboards, motors and batteries come from the catalogue (Z3) and are delivered to a free
   spot on the mat.
-- **Tools rack** mirrored on the other side: multimeter with probes, scope probe, torch and magnet (world inputs),
+- **Tools rack** mirrored on the other wing: multimeter with probes, scope probe, torch and magnet (world inputs),
   and in the fault lab the fault deck.
-- **Rail**: Menu, Scale, the run cluster in the centre (x -0.15 to +0.15 m), Undo and Redo at the D end, and the
+- **Rail**: Scale on the other side, the run cluster in the centre (x -0.15 to +0.15 m), Undo and Redo at the D end, and the
   ticker: one line naming the last event ("Wire joined D13 to row 10"), 20 dmm, fading after 4 s. Panels in Z3 are
   locked to the bench and move with it (section 9).
 
@@ -503,10 +513,11 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
 
 | Panel | Size | Distance | Placement |
 |---|---|---|---|
-| Guide | 0.52 x 0.40 m | 1.10 m | 12 degrees below eye level, 15 degrees away from D |
-| Code | 0.56 x 0.44 m | 1.10 m | 12 degrees below, 15 degrees towards D |
-| Serial | 0.44 x 0.32 m | 1.00 m | beside the code panel, further towards D |
-| Scope screen | 0.40 x 0.26 m | 0.95 m | behind the board, 20 degrees below |
+| Guide | 0.52 x 0.40 m | 1.10 m | panel ring `guide`: 10 degrees below eye level, 29 degrees away from D |
+| Code | 0.54 m wide | 0.90 m | panel ring `code`: 10 degrees below, 32 degrees towards D |
+| Serial | 0.52 m wide | 1.00 m | panel ring `serial`: 12 degrees below, 64 degrees towards D |
+| Scope screen | 0.42 m wide | 0.95 m | panel ring `scope`: behind the board, 20 degrees below |
+| Fault panel, Look inside | 0.62 / 0.25 m wide | 1.10 m | panel ring `side`: 12 degrees below, 58 degrees away from D |
 | Home, catalogue | 0.80 x 0.50 m, curved (radius = distance) | 1.30 m | 8 degrees below, straight ahead |
 | Menu, summoned by palm | 0.30 x 0.36 m | 0.45 m (touch) | where summoned, world-locked |
 | Menu, from rail or controller | sizes in dmm, as below | 1.00 m (ray) | straight ahead, 10 degrees below |

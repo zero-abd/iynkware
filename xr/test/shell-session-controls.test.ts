@@ -64,9 +64,10 @@ describe('default place of the cluster', () => {
     expect(Math.hypot(p[0] - eye[0], p[1] - eye[1], p[2] - eye[2])).toBeCloseTo(CLUSTER.distance, 9);
     expect(CLUSTER.distance).toBeGreaterThanOrEqual(0.8);
     expect(CLUSTER.distance).toBeLessThanOrEqual(0.9);
-    // left of the heading (looking down -z, left is -x) and still ahead of the shoulders
-    expect(p[0]).toBeLessThan(-0.5);
-    expect(p[2]).toBeLessThan(-0.3);
+    // left of the heading (looking down -z, left is -x), round past the panel ring's side slot, still ahead of the
+    // shoulders (about 0.1 m behind the eyes)
+    expect(p[0]).toBeLessThan(-0.8);
+    expect(p[2]).toBeLessThan(0);
     const off = Math.atan2(-p[0], -p[2]) / DEG;
     expect(off).toBeCloseTo(-CLUSTER.sideDeg, 6);
     expect(off).toBeGreaterThan(45);

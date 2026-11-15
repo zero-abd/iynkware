@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { LANGS } from '../src/contracts/common';
 import { CUES, GAIN, LOOPS } from '../src/run/kit/cues';
+import { benchGeometry, onTable } from '../src/bench/core/geometry';
 import { runLayout } from '../src/run/kit/layout';
 import { defineStrings, fill, placeholders, stringProblems } from '../src/run/kit/strings';
 import { bandOf, bandsOf, dmm, FIXED_LIGHT, rgbOf } from '../src/run/kit/tokens';
@@ -67,16 +68,20 @@ describe('run kit layout', () => {
       expect(right.cluster.position[1]).toBeCloseTo(0.03, 9);
       expect(right.cluster.tiltRad).toBeCloseTo(Math.PI / 6, 9);
       expect(right.clusterHalfW).toBe(0.15);
-      // Away from the dominant hand, inside the top, clear of the rail.
+      // Away from the dominant hand, on the bench's tools wing, beside the mat.
+      const g = benchGeometry(posture, 'right');
       expect(right.rack.x).toBeLessThan(0);
       expect(left.rack.x).toBeCloseTo(-right.rack.x, 9);
-      expect(Math.abs(right.rack.x) + right.rack.w / 2).toBeLessThanOrEqual(right.top.w / 2 + 1e-9);
-      expect(right.rack.z + right.rack.d / 2).toBeLessThanOrEqual(front - 0.04 + 1e-9);
-      // The rack slots stay inside the rack and apart.
+      expect(right.rack).toEqual({ x: g.tools.x, z: g.tools.z, w: g.tools.w, d: g.tools.d });
+      // The rack slots stay inside the (turned) rack, on the table, and apart.
       const slots = [right.meter, right.scopeProbe, right.deck];
+      const c = Math.cos(g.tools.yawRad), sn = Math.sin(g.tools.yawRad);
       for (const s of slots) {
-        expect(Math.abs(s.position[0] - right.rack.x)).toBeLessThanOrEqual(right.rack.w / 2);
-        expect(Math.abs(s.position[2] - right.rack.z)).toBeLessThanOrEqual(right.rack.d / 2);
+        const dx = s.position[0] - right.rack.x, dz = s.position[2] - right.rack.z;
+        expect(Math.abs(dx * c - dz * sn)).toBeLessThanOrEqual(right.rack.w / 2 + 1e-9);
+        expect(Math.abs(dx * sn + dz * c)).toBeLessThanOrEqual(right.rack.d / 2 + 1e-9);
+        expect(onTable(g.table, s.position[0], s.position[2])).toBe(true);
+        expect(s.yawRad).toBeCloseTo(g.tools.yawRad, 9);
       }
       expect(Math.hypot(right.scopeProbe.position[0] - right.deck.position[0], right.scopeProbe.position[2] - right.deck.position[2])).toBeGreaterThan(0.1);
     });
