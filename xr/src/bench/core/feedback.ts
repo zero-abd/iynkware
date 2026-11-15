@@ -1,10 +1,7 @@
 /**
- * Bench feedback, the event table of XR_DESIGN.md section 4, until the shared `app.feedback.play(event, at)` lands
- * (#18, #21). Every bench sub-module reports committed events here and never pulses or plays sounds itself, so the
- * switch to the shared service is one file.
- *
- * Today: the controller haptic patterns. The feedback slice adds the pop ring at the contact point (hands, and always
- * when sound is off), the positional sounds and the rail ticker.
+ * Bench feedback, the event table of XR_DESIGN.md section 4. Every bench sub-module reports committed events here and
+ * never pulses or plays sounds itself: `play` goes to the shared `app.feedback` (controller haptic, pop ring at the
+ * contact point for hands, the event's positional sound), or to the haptics alone where an app has no feedback service.
  */
 import type { XrApp } from '../../contracts/app';
 import type { Vec3 } from '../../contracts/common';
@@ -64,10 +61,14 @@ export function playHaptics(app: Pick<XrApp, 'input'>, event: BenchEvent, hand: 
   }
 }
 
-/** Haptics only; the feedback slice replaces this with rings, sounds and the ticker. */
-export function createBenchFeedback(app: Pick<XrApp, 'input'>): BenchFeedback {
+/**
+ * The shared feedback service (`app.feedback`: haptic, pop ring for hands, positional sound) when the app has one, else
+ * haptics only. The ticker line on the rail comes with the rail (#67).
+ */
+export function createBenchFeedback(app: Pick<XrApp, 'input'> & Partial<Pick<XrApp, 'feedback'>>): BenchFeedback {
+  const shared = app.feedback;
   return {
-    play: (event, _at, hand) => playHaptics(app, event, hand),
+    play: (event, at, hand) => (shared ? shared.play(event, at, hand) : playHaptics(app, event, hand)),
     ticker: () => undefined,
     dispose: () => undefined,
   };
