@@ -14,6 +14,7 @@ import type { FeatureModule, XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import type { InteractionEvent } from '../../../contracts/input';
 import { ACCENT, bindPlate, hexNum, INK, inkSolid, langOf, loadDrone, loadFlightText, motionOf, onLookFrame, panelOpen, plateButton, roundedSlab, textLabel, type InkSolid, type Plate, type TextLabel } from '../../shared';
+import { movable } from '../../../ui/panels';
 import { ReplayClock, type ReplayWindow, type RunnerFrame } from '../core';
 import { benchFocusOf } from '../focus';
 import { craftPose, modeTitle, newPose, propRpm } from '../room/model';
@@ -79,6 +80,9 @@ function openCrash(app: XrApp, scene: FlightScene): { dispose(): void } {
   card.add(label.mesh);
   disposers.push(() => label.dispose());
   const labelMat = label.mesh.material as MeshBasicMaterial;
+  // The shared grip bar moves it (ui/panels); on the top edge, clear of the plates and the timeline under the card.
+  const grip = movable(app, { id: 'range/crash', group: card, width: CARD_W, height: CARD_H, distanceM: 1.5, edge: 'top', z: 0.004 });
+  disposers.push(() => grip.dispose());
 
   const plates: Plate[] = [];
   const mk = (id: string, x: number, y: number, icon: 'run' | 'reset' | 'pause' | 'fail' | null, key: Parameters<typeof S.t>[1], act: () => void, primary = false): Plate => {

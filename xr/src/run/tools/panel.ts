@@ -6,6 +6,7 @@
 import { Group } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import { PAPER } from '../../look/palette';
+import { movable } from '../../ui/panels';
 import { animated, inkShadow, inkSolid, MOTION, roundedSlab, type Spot } from '../kit';
 
 const THICK = 0.01;
@@ -40,6 +41,8 @@ export function createPanel(app: XrApp, w: number, h: number, name: string): Pan
   const front = new Group();
   front.position.z = THICK + 0.0003;
   group.add(front);
+  // The shared grip bar under the panel moves it (ui/panels).
+  const grip = movable(app, { id: `run/${name}`, group, width: w, height: h, distanceM: 1, z: THICK + 0.003 });
 
   let isOpen = false;
   const grow = animated(
@@ -71,6 +74,7 @@ export function createPanel(app: XrApp, w: number, h: number, name: string): Pan
       group.rotation.set(spot.tiltRad, spot.yawRad, 0, 'YXZ');
     },
     dispose() {
+      grip.dispose();
       grow.dispose();
       solid.dispose();
       shadow.geometry.dispose();

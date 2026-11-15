@@ -13,6 +13,7 @@ import type { IconName } from '../../look/icons';
 import { fitLines, paintIcon, paintKicker, paintPlate, PLATE, PX_PER_DMM } from '../../look/paint';
 import { ACCENT, FIGURE_ACCENT, INK, MUTED, PAPER, RULE, SHADOW } from '../../look/palette';
 import { dmm, TYPE, type TypeRole } from '../../look/type';
+import { movable } from '../../ui/panels';
 
 export interface ButtonLook {
   readonly primary?: boolean;
@@ -51,7 +52,7 @@ interface Hit {
   onSelect: () => void;
 }
 
-export function createLabPanel(app: XrApp, o: { id: string; widthM: number; heightM: number; distanceM: number }): LabPanel {
+export function createLabPanel(app: XrApp, o: { id: string; widthM: number; heightM: number; distanceM: number; movable?: boolean }): LabPanel {
   const perM = PX_PER_DMM / dmm(1, o.distanceM);
   const k = Math.min(1, 2048 / Math.max(o.widthM * perM, o.heightM * perM));
   const W = Math.round(o.widthM * perM * k);
@@ -72,6 +73,8 @@ export function createLabPanel(app: XrApp, o: { id: string; widthM: number; heig
   group.add(plate);
   // The plate takes rays, so pointing at the panel never reaches the bench behind it.
   const offPlate = app.input.bind(plate, { id: `${o.id}/plate`, ray: true }, () => undefined);
+  // The shared grip bar under the panel moves it (ui/panels).
+  const grip = o.movable === false ? null : movable(app, { id: `lab/${o.id}`, group, width: o.widthM, height: o.heightM, distanceM: o.distanceM });
   const hitMat = new MeshBasicMaterial({ visible: false });
   const hitGeo = new PlaneGeometry(1, 1);
   const hits = new Map<string, Hit>();
@@ -184,6 +187,7 @@ export function createLabPanel(app: XrApp, o: { id: string; widthM: number; heig
       for (const hit of hits.values()) (hit.mesh as unknown as { pointerEvents: string }).pointerEvents = v && hit.mesh.visible ? 'auto' : 'none';
     },
     dispose() {
+      grip?.dispose();
       offPlate();
       for (const h of hits.values()) h.off();
       hits.clear();

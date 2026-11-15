@@ -9,13 +9,14 @@
  *   p.add(shellButton(app, {...}, {...}), x, y);   // x, y in metres from the panel centre
  *   placeAhead(app.world, p.group, { distance: 1.3, belowDeg: 8 }); p.open();
  */
-import { Group } from '@iwsdk/core';
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { IconName } from '../../look/icons';
 import { panelClose, panelOpen, setPanelHit } from '../../look/moves';
 import { fitLines, paintIcon, paintKicker, paintPlate, PLATE } from '../../look/paint';
 import { INK, MUTED, PAPER, RULE, SHADOW } from '../../look/palette';
 import { dmm, TYPE } from '../../look/type';
+import { movable } from '../../ui/panels';
 import { shellButton, type ShellButton } from './button';
 import { dropEntities, ownEntity } from './entity';
 import { canvasFace, type Ctx, type Face } from './face';
@@ -121,6 +122,14 @@ export function shellPanel(app: XrApp, o: PanelOptions): ShellPanel {
   let close: ShellButton | null = null;
   const shadowM = dmm(PLATE.shadow, o.distanceM);
   const bar = dmm(TITLE_BAR_DMM, o.distanceM);
+  // The grip bar under the panel moves it (ui/panels); so does the title bar, the three ink dots' handle (9.1).
+  const grip = movable(app, { id: `shell/${o.id}`, group, width: o.w, height: o.h, distanceM: o.distanceM, z: dmm(4, o.distanceM) });
+  const closeW = o.onClose ? dmm(CLOSE_DMM + PLATE.padding * 1.5, o.distanceM) : 0;
+  const titleHit = new Mesh(new PlaneGeometry(o.w - shadowM - closeW, bar), new MeshBasicMaterial({ visible: false }));
+  titleHit.name = `shell-panel-move:${o.id}`;
+  titleHit.position.set(-closeW / 2 - shadowM / 2, o.h / 2 - bar / 2, dmm(2, o.distanceM));
+  group.add(titleHit);
+  const offTitle = app.input.bind(titleHit, { id: `${o.id}/move`, ray: true, nearSelect: true, kind: 'panel' }, (e) => grip.drag(e));
   if (o.onClose) {
     const s = dmm(CLOSE_DMM, o.distanceM);
     close = shellButton(app, { id: `${o.id}/close`, w: s, h: s, distanceM: o.distanceM, poke: o.poke, onSelect: () => o.onClose?.() }, { label: '', icon: 'close' });
@@ -133,6 +142,7 @@ export function shellPanel(app: XrApp, o: PanelOptions): ShellPanel {
     opacity = a;
     plate.setOpacity(a);
     close?.setOpacity(a);
+    grip.setOpacity(a);
     for (const c of controls) c.setOpacity(a);
   };
   setOpacity(0);
@@ -174,10 +184,14 @@ export function shellPanel(app: XrApp, o: PanelOptions): ShellPanel {
     },
     dispose() {
       offPlate();
+      offTitle();
+      grip.dispose();
       for (const c of controls.splice(0)) c.dispose();
       close?.dispose();
       dropEntities(app.world, group);
       plate.dispose();
+      titleHit.geometry.dispose();
+      (titleHit.material as MeshBasicMaterial).dispose();
     },
   };
 }
