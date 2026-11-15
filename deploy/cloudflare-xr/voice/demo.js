@@ -82,7 +82,7 @@ function closeTurn() {
   if (current && current.readyState < WebSocket.CLOSING) current.close(1000, 'turn complete');
 }
 function failTurn(message = failed) {
-  active = false; closeTurn(); ui.talk.disabled = !media; ui.status.textContent = message; bridge.state('idle');
+  active = false; clearPlayback(); closeTurn(); ui.talk.disabled = !media; ui.status.textContent = message; bridge.state('idle');
 }
 function sendAudio(buffer) {
   if (socket?.readyState !== WebSocket.OPEN) return;
@@ -148,6 +148,7 @@ function onMessage(event) {
 }
 async function beginQuestion() {
   if (!media || active) return;
+  clearPlayback();
   active = true; released = false; setupReady = false; endSent = false; pendingAudio = []; audioChunks = 0;
   ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
   try {
