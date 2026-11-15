@@ -7,7 +7,7 @@ import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v2';
-const VOICE_BUILD = 'voice-ptt-en-v11';
+const VOICE_BUILD = 'voice-ptt-en-v12';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold the right thumbstick click in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
@@ -79,7 +79,6 @@ function closeTurn() {
   clearTimeout(connectTimer); connectTimer = undefined;
   clearTimeout(responseTimer); responseTimer = undefined;
   clearTimeout(completionTimer); completionTimer = undefined;
-  node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   pendingAudio = []; setupReady = false; endSent = false;
   const current = socket; socket = null;
   if (current && current.readyState < WebSocket.CLOSING) current.close(1000, 'turn complete');
@@ -109,17 +108,25 @@ function routeAudio(buffer) {
   }
   sendAudio(buffer);
 }
+// The capture graph is built ONCE and left running, exactly like the probe page that measures real audio on this
+// hardware. Tearing it down and rebuilding per press is what starved the worklet (one chunk, then silence). While
+// no turn is active the chunks are dropped here, so nothing is measured or sent between presses.
 function startCapture() {
+  if (node || !audio || !media) return;
   source = audio.createMediaStreamSource(media);
   node = new AudioWorkletNode(audio, 'iynkware-voice-input', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1]});
   sink = audio.createGain(); sink.gain.value = 0;
   node.port.onmessage = event => {
+    if (!active || released) return;
     audioChunks += 1;
     const peak = peakOf(event.data); if (peak > speechPeak) speechPeak = peak;
     if (setupReady && socket?.readyState === WebSocket.OPEN) routeAudio(event.data);
     else if (pendingAudio.length < 150) pendingAudio.push(event.data);
   };
   source.connect(node); node.connect(sink); sink.connect(audio.destination);
+}
+function stopCapture() {
+  node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
 }
 function sendEnd() {
   if (!setupReady || endSent || socket?.readyState !== WebSocket.OPEN) return;
@@ -128,14 +135,13 @@ function sendEnd() {
     return;
   }
   endSent = true;
-  node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   socket.send(JSON.stringify({realtimeInput:{activityEnd:{}}}));
   ui.status.textContent = speaking; bridge.state('thinking');
   responseTimer = setTimeout(() => failTurn('Gemini transcribed no question. Check the Quest microphone and speak closer to the headset.'), 15000);
 }
 function endQuestion() {
   if (!active || released) return;
-  released = true; node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
+  released = true;
   sendEnd();
 }
 function finishTurn() {
@@ -178,6 +184,7 @@ async function beginQuestion() {
     // behaviour), so only reacquire when the track has actually died or been muted by the system.
     const track = media.getAudioTracks?.()[0];
     if (!track || track.readyState !== 'live' || track.muted) {
+      stopCapture();
       media.getTracks().forEach(item => item.stop());
       media = watchTracks(await microphone());
     }
@@ -220,7 +227,7 @@ function zeroWatch() {
     capRetried = true;
     ui.status.textContent = 'Microphone is silent. Retrying with audio processing off…';
     try {
-      node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
+      stopCapture();
       media?.getTracks().forEach(track => track.stop());
       const fresh = watchTracks(await microphone(true));
       if (!active || released) { fresh.getTracks().forEach(track => track.stop()); return; }
@@ -263,11 +270,12 @@ async function enable() {
     media = watchTracks(await microphone());
     ui.status.textContent = stages[1];
     await deadline(audioReady, 5000, 'audio_blocked');
+    startCapture();
     ui.disable.disabled = false; ui.talk.disabled = false; ui.status.textContent = ready;
   } catch (error) { await disable(); ui.status.textContent = error?.message === 'microphone_blocked' ? micBlocked : failed; }
 }
 async function disable() {
-  released = true; active = false; closeTurn(); clearPlayback(); media?.getTracks().forEach(track => track.stop()); media = null;
+  released = true; active = false; closeTurn(); stopCapture(); clearPlayback(); media?.getTracks().forEach(track => track.stop()); media = null;
   await audio?.close().catch(() => {}); audio = null; ui.disable.disabled = ui.talk.disabled = true; ui.enable.disabled = !ui.consent.checked; ui.status.textContent = idle; bridge.state('idle');
 }
 
