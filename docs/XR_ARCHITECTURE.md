@@ -56,6 +56,7 @@ xr/
     range/              pillar 5, range: flight/ robots/
     lab/                pillar 8, lab: model/ items/ experiments/ tutor/ (training labs beyond circuits)
     agent/              pillar 9, agent: tools/ bubbles/ coach/ bridge/ (what a voice assistant can do and show)
+    parts-import/       pillar 10, parts import: bring a part pack (.iynkpack) in and place the part on the bench
     shell/              pillar 6, shell and shipping: menu/, settings.ts, service.ts (app.shell), copy.ts
 ```
 

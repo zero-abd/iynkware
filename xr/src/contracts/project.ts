@@ -27,7 +27,7 @@ export interface ProjectStore {
   subscribe(fn: (change: DocChange) => void): Unsubscribe;
   /** Swaps in another document (opening a project or a lesson); forgets undo history. */
   open(doc: Project): void;
-  /** Part descriptor lookup (`ref@version`), from iynk's built in registry. */
+  /** Part descriptor lookup (`ref@version`), from the app's shared registry: the core parts and the person's imported ones. */
   describe(ref: string, version?: string): Descriptor | undefined;
   readonly selection: Selection;
   /**
