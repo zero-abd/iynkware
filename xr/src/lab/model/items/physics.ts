@@ -70,6 +70,9 @@ export const pendulum = defineItem({
   mistakes: ['large-angle'],
   mistake: ({ p }) => (p.swinging && (p.amplitude as number) > 15 ? 'large-angle' : null),
   report: ({ p, s }) => ({
+    // live: seconds since release and the bob's angle now (held at the release angle until it swings)
+    tS: +(s.swingT as number).toFixed(2),
+    angleDeg: +(p.swinging ? (p.amplitude as number) * Math.cos((2 * Math.PI * (s.swingT as number)) / period(p.length as number, p.amplitude as number)) : (p.amplitude as number)).toFixed(1),
     swings: swingsOf(p, s.swingT as number),
     periodS: +period(p.length as number, p.amplitude as number).toFixed(2),
     periodSmallS: +periodSmall(p.length as number).toFixed(2),
