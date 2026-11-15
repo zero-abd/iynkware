@@ -7,6 +7,8 @@ import { createLabContext } from '../../src/lab/context';
 import { EXPERIMENTS } from '../../src/lab/experiments/list';
 import { l6Problems } from '../../src/lab/text';
 import { createCalloutList, createConversation } from '../../src/agent/bubbles/model';
+import { createBridge } from '../../src/agent/bridge/bridge';
+import { scriptedBrain } from '../../src/agent/bridge/scripted';
 import { createCoach } from '../../src/agent/coach/coach';
 import { catalogue, droneCrafts, labBrief, sceneBrief, sceneOf } from '../../src/agent/knowledge';
 import { AGENT_TEXT } from '../../src/agent/text';
@@ -98,6 +100,7 @@ describe('assist and build', () => {
       conversation: createConversation(),
       observations: (n) => coach.recent(n),
       mode: () => mode,
+      setMode: (m) => (mode = m),
     };
     const tools = createTools(host);
     return { host, lab, call: (n: string, a: unknown = {}) => callTool(tools, n, a), setMode: (m: CompanionMode) => (mode = m) };
@@ -107,24 +110,42 @@ describe('assist and build', () => {
     for (const n of CHANGES) expect(RUN_NAMES).toContain(n);
   });
 
-  it('assist refuses what changes things and still reads, points and opens labs; build acts', async () => {
-    const { call, lab, setMode, host } = await setup();
-    expect((await call('open_lab', { lab: 'chemistry' })).ok).toBe(true);
+  it('assist only reads, points and switches to build; everything else refuses until build', async () => {
+    const { call, lab, host } = await setup();
+    expect(await call('open_lab', { lab: 'chemistry' })).toEqual(expect.objectContaining({ ok: false, mode: 'assist' }));
+    expect(await call('go_to', { where: 'drone' })).toEqual(expect.objectContaining({ ok: false, mode: 'assist' }));
+    expect(lab.store.lab).toBeNull();
+    lab.open('chemistry');
     expect((await call('look')).ok).toBe(true);
     expect((await call('point_at', { target: 'ph-meter', text: 'this one' })).ok).toBe(true);
     const refused = await call('set_lab_control', { item: 'ph-meter', action: 'power' });
     expect(refused).toEqual(expect.objectContaining({ ok: false, mode: 'assist' }));
+    expect(String(refused.error)).toMatch(/one short sentence/);
     expect((await call('start_experiment', { id: 'chemistry/ph' })).ok).toBe(false);
     expect(lab.runner.state.value).toBeNull();
     expect(lookNow(host).companion).toBe('assist');
-    setMode('build');
+    expect(await call('set_mode', { mode: 'build' })).toEqual({ ok: true, mode: 'build' });
     expect((await call('start_experiment', { id: 'chemistry/ph' })).ok).toBe(true);
     expect(lookNow(host).companion).toBe('build');
   });
 
+  it('the scripted brain says it is in Assist mode in one line, and switches when asked', async () => {
+    const { host } = await setup();
+    const tools = createTools(host);
+    const conversation = host.conversation;
+    const bridge = createBridge({ tools, host, conversation, coach: createCoach(() => 0), fallback: scriptedBrain() });
+    const said = () => conversation.turns.filter((t) => t.who === 'agent').at(-1)?.text ?? '';
+    await bridge.ask('go to the drone project');
+    expect(said()).toMatch(/^I’m in Assist mode, so I can’t do that myself/);
+    await bridge.ask('switch to build mode');
+    expect(said()).toBe('Build mode on: I can make changes now.');
+    await bridge.ask('open the chemistry lab');
+    expect(said()).toBe('Chemistry lab is open.');
+  });
+
   it('look carries the open lab brief', async () => {
-    const { call } = await setup();
-    await call('open_lab', { lab: 'signals' });
+    const { call, lab } = await setup();
+    lab.open('signals');
     const scene = (await call('look')).scene as { scene: string; lab: { experiments: unknown[] } };
     expect(scene.scene).toBe('lab:signals');
     expect(scene.lab.experiments.length).toBeGreaterThan(0);

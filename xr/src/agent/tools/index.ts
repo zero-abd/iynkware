@@ -25,6 +25,7 @@ export const toolsModule: FeatureModule = {
       bench: { project: app.project, sim: app.sim },
       nav: createNavHost(app),
       mode: () => hub.mode.value,
+      setMode: (m) => hub.mode.set(m),
     };
     hub.host = host;
     hub.tools = createTools(host);
