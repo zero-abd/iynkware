@@ -7,7 +7,7 @@ import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v2';
-const VOICE_BUILD = 'voice-ptt-en-v8';
+const VOICE_BUILD = 'voice-ptt-en-v9';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold the right thumbstick click in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
@@ -168,8 +168,12 @@ async function beginQuestion() {
   if (!media || active) return;
   clearPlayback();
   active = true; released = false; setupReady = false; activityStarted = false; endSent = false; pendingAudio = []; preRoll = []; audioChunks = 0; speechPeak = 0;
-  ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
+  ui.talk.disabled = true; ui.status.textContent = 'Refreshing Quest microphone…'; bridge.state('connecting');
   try {
+    media.getTracks().forEach(track => track.stop());
+    media = null;
+    media = await microphone();
+    ui.status.textContent = connecting;
     await audio.resume();
     startCapture();
     const response = await deadline(fetch('/api/voice/token', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),adultConsent:true,consentVersion:POLICY_VERSION,toolsVersion:TOOLS_VERSION})}), 5000, 'network');
@@ -191,7 +195,7 @@ function microphone() {
       finished = true;
       reject(new Error('microphone_blocked'));
     }, 8000);
-    navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false}).then(stream => {
+    navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(stream => {
       if (finished) { stream.getTracks().forEach(track => track.stop()); return; }
       finished = true; clearTimeout(timer); resolve(stream);
     }, () => {
