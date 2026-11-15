@@ -9,11 +9,13 @@ import { flightOf, lapClock, startMode, type Sticks } from '@/lib/flight';
 import type { FeatureModule, XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import { headingOf, type Heading } from '../../../input/helpers';
+import { dropEntities } from '../../../shell/kit';
 import { movable } from '../../../ui/panels';
 import { rangeOf } from '../../activate';
 import { bindPlate, dropIn, fadeIn, INK, langOf, loadFlightText, onLookFrame, plateButton, textLabel, type Plate, type TextLabel } from '../../shared';
 import { loadDrone } from '../../shared';
 import { controllerSticks, createRunner, mapCourse, roomVolume, type FlightRunner, type RunnerEvent } from '../core';
+import { courseChoiceOf, pickCourse, pickerOpenOf } from '../picker/model';
 import { flightSceneOf, type FlightScene } from '../scene';
 import { drawCourse, type CourseDrawing } from './course';
 import {
@@ -55,9 +57,17 @@ export const roomModule: FeatureModule = {
       session?.dispose();
       session = null;
     };
+    // what is flying: the craft and the chosen course; a change while in the Range leaves and enters again
+    let flying = '';
+    const keyOf = () => {
+      const p = rangeOf(app).value;
+      return `${p?.kind === 'drone' ? p.contentId : ''}|${courseChoiceOf(app).value ?? ''}`;
+    };
     const sync = () => {
       const inRange = app.shell.place.value === 'range' && rangeOf(app).value?.kind === 'drone';
+      if (inRange && (session || entering) && flying !== keyOf()) leave();
       if (inRange && !session && !entering) {
+        flying = keyOf();
         const mine = ++epoch;
         entering = true;
         const head = headPose(app);
@@ -74,8 +84,10 @@ export const roomModule: FeatureModule = {
     };
     const offPlace = app.shell.place.subscribe(sync);
     const offRange = rangeOf(app).subscribe(sync);
+    const offChoice = courseChoiceOf(app).subscribe(sync);
     sync();
     return () => {
+      offChoice();
       offPlace();
       offRange();
       leave();
@@ -106,7 +118,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const content = await loadDroneContent(project.contentId as Parameters<typeof loadDroneContent>[0]);
   const flight = content ? flightOf(content) : null;
   if (!content || !flight || !alive()) return null;
-  const course = flight.courses.find((c) => c.kind === 'gates') ?? flight.courses[0]!;
+  const course = pickCourse(flight.courses, courseChoiceOf(app).value)!;
   const build: FlyingBuild = buildThatFlies(content, app.project.doc);
   const volume = roomVolume(head.x, head.z, head.heading);
   const map = mapCourse(volume, course.field, course.ceiling ?? flight.craft.ceiling, course.pad);
@@ -122,7 +134,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const root = new Group();
   root.name = 'range-room';
   app.world.scene.add(root);
-  disposers.push(() => root.removeFromParent());
+  disposers.push(() => dropEntities(app.world, root));
 
   // the bench steps aside while the room flies
   const benchRoot = app.bench.root, benchTable = app.bench.table;
@@ -177,7 +189,10 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   label.mesh.lookAt(head.x, 1.0, head.z);
   label.mesh.name = 'range-readout';
   root.add(label.mesh);
-  disposers.push(() => label.dispose());
+  disposers.push(() => {
+    label.dispose();
+    dropEntities(app.world, label.mesh);
+  });
   // The shared grip bar under the readout moves it (ui/panels).
   const grip = movable(app, { id: 'range/readout', group: label.mesh, width: 1.7, height: 0.6, distanceM: 2.2, z: 0.004 });
   disposers.push(() => grip.dispose());
@@ -189,17 +204,21 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   plates.rotation.y = Math.atan2(-fx, -fz);
   root.add(plates);
   const lang = () => langOf(app);
-  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close', primary: boolean, label: string): Plate => {
+  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart', primary: boolean, label: string): Plate => {
     const p = plateButton(app, { w: 0.11, d: 0.055, standing: true, primary }, { icon, label, lang: lang() });
     p.group.name = `room:${name}`;
     p.group.position.x = slot * PLATE_GAP_M;
     plates.add(p.group);
-    disposers.push(() => p.dispose());
+    disposers.push(() => {
+      p.dispose();
+      dropEntities(app.world, p.group);
+    });
     return p;
   };
   const armPlate = makePlate('arm', 0, 'run', true, S.t(lang(), 'arm'));
   const resetPlate = makePlate('reset', 1, 'reset', false, S.t(lang(), 'reset'));
   const backPlate = makePlate('back', 2, 'close', false, S.t(lang(), 'back'));
+  const craftPlate = makePlate('craft', 3, 'restart', false, S.t(lang(), 'craft'));
   dropIn(app.world, plates, { height: 0.04 });
 
   // what the label says
@@ -215,6 +234,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     armPlate.set({ label: S.t(lang(), runner.frame.armed ? 'disarm' : 'arm'), lang: lang() });
     resetPlate.set({ label: S.t(lang(), 'reset'), lang: lang() });
     backPlate.set({ label: S.t(lang(), 'back'), lang: lang() });
+    craftPlate.set({ label: S.t(lang(), 'craft'), lang: lang() });
   };
   let shownArmed = false;
   const offLang = app.settings.lang.subscribe((l) => {
@@ -275,6 +295,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   disposers.push(bindPlate(app, armPlate, 'range/room/arm', arm));
   disposers.push(bindPlate(app, resetPlate, 'range/room/reset', reset));
   disposers.push(bindPlate(app, backPlate, 'range/room/back', () => void app.shell.go('bench')));
+  disposers.push(bindPlate(app, craftPlate, 'range/room/craft', () => pickerOpenOf(app).set(!pickerOpenOf(app).value)));
 
   // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks
   const claims: Array<{ owner: string; read: (out: Sticks) => void }> = [];
@@ -391,7 +412,13 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     dispose() {
       if (disposed) return;
       disposed = true;
-      for (const d of disposers.splice(0).reverse()) d();
+      for (const d of disposers.splice(0).reverse()) {
+        try {
+          d();
+        } catch (e) {
+          console.warn('range room: a part did not dispose', e);
+        }
+      }
     },
   };
 }
