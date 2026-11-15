@@ -120,7 +120,9 @@ export function sessionButton(app: XrApp, o: SessionButtonOptions, initial: { la
   const buzz = (e: InteractionEvent, intensity: number, ms: number) => {
     if (e.pointer.source === 'controller' && e.pointer.hand) app.input.pulse(e.pointer.hand, intensity, ms);
   };
-  const off = app.input.bind(face.mesh, { id: o.id, ray: true, poke: true }, (e) => {
+  // Session controls stay reachable, but yield when they visually overlap a work control on a large bench (the
+  // drone build's XT60 and camera plates sit behind this cluster from some seated head poses).
+  const off = app.input.bind(face.mesh, { id: o.id, ray: true, poke: true, kind: 'panel' }, (e) => {
     switch (e.type) {
       case 'hover-start':
         hovering++;

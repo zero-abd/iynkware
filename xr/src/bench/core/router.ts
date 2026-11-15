@@ -454,9 +454,31 @@ function createRouter(app: XrApp): BenchRouter {
     hoverBody[hand] = rec.id;
     rec.hovers++;
     if (rec.hovers === 1 && rec.outline) {
-      rec.outline.visible = true;
-      (rec.outline.material as LineBasicMaterial).opacity = 1;
-      motionOf(app.world).cancel(rec.outline);
+      const line = rec.outline;
+      const mat = line.material as LineBasicMaterial;
+      const pad = 0.001 / app.bench.scale.value;
+      const target = [rec.base.sx + pad, rec.base.sy + pad, rec.base.sz + pad] as const;
+      const wasVisible = line.visible;
+      const fromOpacity = wasVisible ? mat.opacity : 0;
+      const from = wasVisible
+        ? ([line.scale.x, line.scale.y, line.scale.z] as const)
+        : (target.map((n) => n * 1.08) as [number, number, number]);
+      line.visible = true;
+      mat.opacity = fromOpacity;
+      line.scale.set(from[0], from[1], from[2]);
+      motionOf(app.world).tween({
+        key: line,
+        ms: 140,
+        onUpdate: (k) => {
+          if (rec.hovers === 0) return;
+          mat.opacity = fromOpacity + (1 - fromOpacity) * k;
+          line.scale.set(
+            from[0] + (target[0] - from[0]) * k,
+            from[1] + (target[1] - from[1]) * k,
+            from[2] + (target[2] - from[2]) * k,
+          );
+        },
+      });
     }
     const at = app.bench.worldOf({ kind: 'part', part: rec.id });
     benchKit(app).feedback.play('hover-grabbable', at, hand);
@@ -468,11 +490,22 @@ function createRouter(app: XrApp): BenchRouter {
     rec.hovers = Math.max(0, rec.hovers - 1);
     if (rec.hovers === 0 && rec.outline) {
       const line = rec.outline;
+      const mat = line.material as LineBasicMaterial;
+      const fromOpacity = mat.opacity;
+      const pad = 0.001 / app.bench.scale.value;
+      const target = [rec.base.sx + pad, rec.base.sy + pad, rec.base.sz + pad] as const;
+      const from = [line.scale.x, line.scale.y, line.scale.z] as const;
       motionOf(app.world).tween({
         key: line,
         ms: DURATION.hoverOff,
         onUpdate: (k) => {
-          if (rec.hovers === 0) (line.material as LineBasicMaterial).opacity = 1 - k;
+          if (rec.hovers !== 0) return;
+          mat.opacity = fromOpacity * (1 - k);
+          line.scale.set(
+            from[0] + (target[0] - from[0]) * k,
+            from[1] + (target[1] - from[1]) * k,
+            from[2] + (target[2] - from[2]) * k,
+          );
         },
         onDone: () => {
           if (rec.hovers === 0) line.visible = false;

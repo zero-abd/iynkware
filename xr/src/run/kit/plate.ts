@@ -172,7 +172,7 @@ export function plateButton(app: Pick<XrApp, 'world' | 'settings'>, size: PlateS
 export function bindPlate(app: XrApp, plate: Plate, id: string, onSelect: (e: InteractionEvent) => void): Unsubscribe {
   const fb = runFeedback(app);
   const hovering = new Set<number>();
-  return app.input.bind(plate.hit, { id, ray: true, poke: true }, (e) => {
+  return app.input.bind(plate.hit, { id, ray: true, poke: true, kind: 'control' }, (e) => {
     switch (e.type) {
       case 'hover-start':
         if (hovering.size === 0) fb.play('ui-hover', undefined, e);
