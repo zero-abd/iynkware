@@ -77,14 +77,14 @@ const reopen = async () => {
   await sleep(700);
 };
 
-// The drone: the Range's quad opens and the person is in the Range place.
+// The drone: the Range's quad opens on its workbench (Run, not the tile, goes to the Range).
 check('drone tile pressed', await press('home/drone'));
-const flew = await waitFor(() => window.iynkware.app.shell.place.value === 'range');
-check('drone tile: quad open, place range, home closed', flew && (await page.evaluate(() => !window.iynkware.app.shell.homeOpen.value)), await page.evaluate(() => window.__home()));
+const flew = await waitFor(() => window.iynkware.app.shell.place.value === 'bench' && !!window.iynkware.world.scene.getObjectByName('range-bench'));
+check('drone tile: quad open on its workbench, home closed', flew && (await page.evaluate(() => !window.iynkware.app.shell.homeOpen.value)), await page.evaluate(() => window.__home()));
 
-// Home from the Range: Blink as a lesson, back on the bench.
+// Home from the drone workbench: Blink as a lesson, back on the bench.
 await reopen();
-check('home reopens in the Range', (await page.evaluate(() => window.__home())).visible);
+check('home reopens on the drone workbench', (await page.evaluate(() => window.__home())).visible);
 await press('home/blink');
 const blinked = await waitFor(() => window.iynkware.app.shell.place.value === 'bench' && window.iynkware.app.lessons.last.value?.templateId === 'prj_uno-r3-blink');
 check('Blink tile: lesson open on the bench', blinked, await page.evaluate(() => window.__home()));

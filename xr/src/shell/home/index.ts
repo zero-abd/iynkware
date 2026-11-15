@@ -131,7 +131,8 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
         layout: 'row',
         disabled: busy || !range,
       },
-      run: go(() => openDrone(app)),
+      // the drone workbench, with the drone list open (the picker's pending flag)
+      run: go(() => openDrone(app, 'bench')),
     },
     { id: 'home/robot', look: { label: t('robot'), detail: t('robotDetail'), icon: 'robot', layout: 'row', disabled: busy || !lib }, run: go(() => newProject(app, ROBOT_TEMPLATE)) },
     {

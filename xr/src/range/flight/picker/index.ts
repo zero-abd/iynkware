@@ -1,9 +1,9 @@
 /**
  * The Range picker (issue #282): one panel to choose the craft, the course it flies, or a robot to drive. Starts
- * closed. It opens from the Drones home tile (on arriving in the Range), from the Craft plate in the room, and from a
- * menu row that exists only while the place is `range`. Picking a craft opens its template and the room re-enters;
- * picking a course sets the per-app choice the room reads. Recentring leaves and re-enters the place and does not open
- * it (only the tile's pending flag does, once).
+ * closed. It opens from the Drones home tile (on the drone workbench), from the Craft plate in the room, and from a
+ * menu row that exists only while the place is `range`. Picking a craft opens its template on its workbench (from the
+ * Range too: Run there flies it); picking a course sets the per-app choice the room reads. Recentring leaves and
+ * re-enters the place and does not open it (only the tile's pending flag does, once).
  */
 import { loadDrone as loadDroneContent } from '@/content/index.generated';
 import { flightOf, type Course } from '@/lib/flight';
@@ -151,6 +151,9 @@ export const pickerModule: FeatureModule = {
         const doc = await app.templates.load(c.templateId);
         choice.set(null);
         app.project.open(doc);
+        // a picked craft opens on its workbench
+        open.set(false);
+        if (app.shell.place.value !== 'bench') app.shell.go('bench');
       } finally {
         busy = false;
       }
@@ -231,22 +234,29 @@ export const pickerModule: FeatureModule = {
     const seed = current();
     if (seed) last.set(seed);
 
-    // the menu row exists only in the Range; arriving from the Drones tile opens the panel once
+    // the menu row exists only in the Range; the Drones tile's pending flag opens the panel once, on the drone
+    // workbench or in the Range
     let menuOff: Unsubscribe | null = null;
+    const takePending = () => {
+      const place = app.shell.place.value;
+      const here = place === 'range' || (place === 'bench' && range.value?.kind === 'drone');
+      if (here && pending.value) {
+        pending.set(false);
+        open.set(true);
+      }
+    };
     const onPlace = (place: string) => {
       if (place === 'range') {
         menuOff ??= app.shell.addMenuItem({ id: 'range/picker', group: 'tools', label: localized('menu'), run: () => open.set(true) });
-        if (pending.value) {
-          pending.set(false);
-          open.set(true);
-        }
       } else {
         menuOff?.();
         menuOff = null;
-        open.set(false);
+        // the drone workbench keeps it (the Drones tile may open it in the Range on the way there); elsewhere it closes
+        if (place !== 'bench' || range.value?.kind !== 'drone') open.set(false);
       }
+      takePending();
     };
-    offs.push(app.shell.place.subscribe(onPlace));
+    offs.push(app.shell.place.subscribe(onPlace), pending.subscribe(takePending), range.subscribe(takePending));
     onPlace(app.shell.place.value);
 
     return () => {

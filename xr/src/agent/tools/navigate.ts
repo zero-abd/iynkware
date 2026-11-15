@@ -36,7 +36,7 @@ export type Destination =
   | { readonly kind: 'droneHere' }
   /** The drones to choose from: listed, nothing opens. */
   | { readonly kind: 'drones' }
-  /** A drone by name; `at` when the words say where (bench words or flying words), else where they are, as `droneHere`. */
+  /** A drone by name; `at` when the words say where (bench words or flying words), else its workbench, as `droneHere`. */
   | { readonly kind: 'craft'; readonly id: string; readonly title: string; readonly at?: 'bench' | 'range' }
   | { readonly kind: 'bench' }
   /** A new empty workbench: a blank Uno project, the person's own build. */
@@ -184,14 +184,15 @@ export function createNavHost(app: XrApp): NavHost {
           leaveLab();
           return openDrone(app, 'bench');
         case 'droneHere':
+          // the drone with no place word: its workbench (only fly, flight or simulation words go to the Range)
           leaveLab();
-          return openDrone(app, app.shell.place.value === 'range' ? 'range' : 'bench');
+          return openDrone(app, 'bench');
         case 'drones':
           return true;
         case 'craft':
           leaveLab();
-          // a drone by name with no place word stays where they are: flying if in the Range, else its workbench
-          return openCraft(app, d.id, d.at ?? (app.shell.place.value === 'range' ? 'range' : 'bench'));
+          // a drone by name with no place word opens on its workbench; fly words take it to the Range
+          return openCraft(app, d.id, d.at ?? 'bench');
         case 'bench':
           leaveLab();
           app.shell.closeHome();

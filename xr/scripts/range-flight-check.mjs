@@ -1,5 +1,5 @@
 // Controller flight in the IWER emulator, headless (issue #314), the way a person gets there: Home, the Drones tile with
-// the controller ray and trigger, then the Range. The first-flight hint says how to arm; A arms; the left stick up takes
+// the controller ray and trigger (the drone workbench), then the Range. The first-flight hint says how to arm; A arms; the left stick up takes
 // off (the craft climbs in the room) and the hint goes; a centred stick holds; the right stick flies forward; the left
 // stick turns; A disarms; B puts the craft back on the pad.
 //
@@ -55,8 +55,12 @@ await sleep(400);
 await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 1 }));
 await sleep(200);
 await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 0 }));
+const onBench = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'bench' && window.iynkware.world.scene.getObjectByName('range-bench'), null, { timeout: 60000 }).then(() => true, () => false);
+check('the Drones tile opens the drone workbench', onBench);
+// Run takes the person to the Range
+await page.evaluate(() => window.iynkware.app.shell.go('range'));
 const inRange = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 60000 }).then(() => true, () => false);
-check('the Drones tile opens the Range with a craft to fly', inRange);
+check('the Range has a craft to fly', inRange);
 if (!inRange) {
   await browser.close();
   process.exit(1);

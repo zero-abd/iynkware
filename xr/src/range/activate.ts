@@ -84,7 +84,7 @@ export const activateModule: FeatureModule = {
       title: localized('drones'),
       detail: localized('dronesDetail'),
       open() {
-        // the last craft (quad5 at first), and the picker opens when the person arrives in the Range
+        // the last craft (quad5 at first), and the picker opens on its workbench (or in the Range)
         pickerPendingOf(app).set(true);
         void app.templates.load(`prj_drone-${lastCraftOf(app).value}`).then((doc) => app.project.open(doc));
       },

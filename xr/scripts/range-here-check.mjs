@@ -1,6 +1,7 @@
-// Simulate here in the IWER emulator, headless: the Drones tile opens the Range on its course (the table hidden); back on
-// the bench, the Simulate here plate turns it on; in the Range again the table stays, no course is drawn, the craft sits
-// on its bench spot at real size, and A then the left stick up lifts it off the bench.
+// Run here in the IWER emulator, headless: the Drones tile opens the drone workbench; its Run here plate builds the drone
+// first (as Run does), then flies it from the bench: the table stays, no course is drawn, the craft sits on its bench
+// spot at real size, and A then the left stick up lifts it off the bench. Back on the bench, the Range (as Run goes
+// there) is the course again.
 //
 //   npx vite --mode http --port 23314 --strictPort            # in another terminal
 //   node scripts/range-here-check.mjs [url]                   # url defaults to http://localhost:23314/
@@ -51,16 +52,15 @@ await sleep(400);
 await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 1 }));
 await sleep(200);
 await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 0 }));
-const inRange = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 60000 }).then(() => true, () => false);
-check('the Drones tile opens the Range with a craft to fly', inRange);
-if (!inRange) {
+const onBench = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'bench' && window.iynkware.world.scene.getObjectByName('range-bench')?.userData.hits?.['bench:runHere'], null, { timeout: 60000 }).then(() => true, () => false);
+check('the Drones tile opens the drone workbench, with Run here on it', onBench);
+if (!onBench) {
   await browser.close();
   process.exit(1);
 }
-// the ray off the plates, out of the way
-await page.evaluate(() => window.__x('set_transform', { device: 'controller-right', position: { x: 0.25, y: 1.0, z: -0.2 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }));
+await page.evaluate(() => window.iynkware.app.shell.closeHome?.());
 await sleep(1500);
-
+const A = 3; // IWER's remote button order: trigger, squeeze, thumbstick, A/X, B/Y, thumbrest
 const pad = (device, buttons, axes) => page.evaluate(([d, b, a]) => window.__x('set_gamepad_state', { device: d, buttons: b, axes: a }), [device, buttons, axes]);
 const tap = async (device, index) => {
   await pad(device, [{ index, value: 1 }], []);
@@ -68,47 +68,48 @@ const tap = async (device, index) => {
   await pad(device, [{ index, value: 0 }], []);
   await sleep(300);
 };
-const A = 3, B = 4; // IWER's remote button order: trigger, squeeze, thumbstick, A/X, B/Y, thumbrest
 const sticks = (lx, ly, rx, ry) =>
   Promise.all([
     pad('controller-left', [], [{ index: 0, value: lx }, { index: 1, value: ly }]),
     pad('controller-right', [], [{ index: 0, value: rx }, { index: 1, value: ry }]),
   ]);
-const click = async () => {
-  const q = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench').userData.hits['bench:here'].getWorldPosition(window.iynkware.world.camera.position.clone()).toArray());
+// a plate lying on the bench: a ray coming down at 45 degrees from above
+const pressBench = async (id) => {
+  const q = await page.evaluate((i) => window.iynkware.world.scene.getObjectByName('range-bench').userData.hits[i].getWorldPosition(window.iynkware.world.camera.position.clone()).toArray(), id);
   await page.evaluate(([q]) => window.__x('set_transform', { device: 'controller-right', position: { x: q[0], y: q[1] + 0.25, z: q[2] + 0.25 }, orientation: { x: -0.3827, y: 0, z: 0, w: 0.9239 } }), [q]);
   await sleep(400);
   await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 1 }));
   await sleep(200);
   await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 0 }));
   await sleep(500);
-  return true;
 };
-check('the map Range draws a course and hides the table', await page.evaluate(() => !window.__room().userData.here && !window.iynkware.app.bench.table.visible));
-// back to the bench, Simulate here on the bench
-await page.evaluate(() => window.iynkware.app.shell.go('bench'));
-await page.waitForFunction(() => window.iynkware.world.scene.getObjectByName('range-bench-here'), null, { timeout: 30000 });
-await page.waitForFunction(() => window.iynkware.world.scene.getObjectByName('range-bench')?.userData.hits?.['bench:here'], null, { timeout: 30000 });
-await sleep(1500);
 const spot = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench-drone').getWorldPosition(window.iynkware.world.camera.position.clone()).toArray());
-const clicked = await click();
-await page.evaluate(() => window.iynkware.app.shell.go('range'));
-await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 30000 });
+// the first press builds the drone (as Run does), the second flies it from here
+await pressBench('bench:runHere');
 await sleep(1500);
-const here = await page.evaluate(() => ({ here: window.__room().userData.here, table: window.iynkware.app.bench.table.visible, course: !!window.iynkware.world.scene.getObjectByName('range-room').getObjectByName('range-course'), craft: window.__flight().craft.object.position.toArray(), k: window.__flight().map.k, say: window.__room().userData.readout() }));
-check('the bench plate turns Simulate here on, and the Range flies from the bench', clicked && here.here === true, here);
+check('Run here on an unbuilt drone builds it and stays on the bench', await page.evaluate(() => window.iynkware.app.shell.place.value === 'bench'));
+await pressBench('bench:runHere');
+const went = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 30000 }).then(() => true, () => false);
+await page.evaluate(() => window.__x('set_transform', { device: 'controller-right', position: { x: 0.25, y: 1.0, z: -0.2 }, orientation: { x: 0, y: 0, z: 0, w: 1 } }));
+await sleep(1500);
+const here = await page.evaluate(() => ({ here: window.__room().userData.here, table: window.iynkware.app.bench.table.visible, course: !!window.__room().getObjectByName('range-course'), craft: window.__flight().craft.object.position.toArray(), k: window.__flight().map.k, say: window.__room().userData.readout() }));
+check('Run here flies from the bench', went && here.here === true && !here.course, here);
 check('the table stays', here.table === true);
 check('the craft sits where it sat on the bench, at real size', Math.hypot(here.craft[0] - spot[0], here.craft[2] - spot[2]) < 0.05 && Math.abs(here.craft[1] - spot[1]) < 0.05 && here.k === 1, { spot, craft: here.craft });
-await sleep(400);
 await tap('controller-right', A);
 await sticks(0, -1, 0, 0);
 await sleep(1500);
 await sticks(0, 0, 0, 0);
 const up = await page.evaluate(() => window.__flight().craft.object.position.toArray());
 check('it climbs off the bench', up[1] > spot[1] + 0.3, { spot, up });
+// back to the bench, then Run's way in: the course again
 await page.evaluate(() => window.iynkware.app.shell.go('bench'));
 await sleep(1000);
 check('back on the bench, the bench drone is drawn again', await page.evaluate(() => !!window.iynkware.world.scene.getObjectByName('range-bench-drone') && window.iynkware.app.bench.table.visible));
+await page.evaluate(() => window.iynkware.app.shell.go('range'));
+await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 30000 });
+await sleep(1000);
+check('Run (any other way in) flies the course, the table hidden', await page.evaluate(() => window.__room().userData.here === false && !window.iynkware.app.bench.table.visible));
 await browser.close();
 console.log(fails ? `${fails} FAILED` : 'ALL PASS');
 process.exit(fails ? 1 : 0);

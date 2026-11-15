@@ -36,7 +36,7 @@ describe('destinations by name', () => {
     expect(at('long range drone bench')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-longrange', at: 'bench' }));
     expect(at('tiny whoop')).not.toEqual(expect.objectContaining({ at: 'bench' }));
     expect(at('tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft' }));
-    // another drone by name: its workbench when they say work on it, the Range when they say fly, else where they are
+    // another drone by name: the Range when they say fly, else its workbench (no `at`: the nav host opens the bench)
     expect(at('work on the tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
     expect(at('switch to the tiny whoop workbench')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
     expect(at('fly the tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', at: 'range' }));
