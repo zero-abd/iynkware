@@ -106,6 +106,7 @@ export const CHANGES: ReadonlySet<string> = new Set([
   'redo',
   'apply_fix',
   'run_circuit',
+  'write_code',
   'use_control',
   // moving the person around is an action too
   'go_to',

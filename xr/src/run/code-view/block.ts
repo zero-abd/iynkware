@@ -22,6 +22,8 @@ export interface CodeBlock extends Fading {
   mark(line: number | null): void;
   /** The first row shown, 0-based (for scripts). */
   readonly top: number;
+  /** Moves the rows shown by `rows` (Up and Down); the marker hides while its line is off the rows. */
+  scroll(rows: number): void;
   /** Eases the marker; `instant` skips the ease (reduced motion). */
   tick(dt: number, instant: boolean): void;
 }
@@ -148,6 +150,12 @@ export function codeBlock(o: { w: number; rows: number; distanceM: number }): Co
     get top() {
       return top;
     },
+    scroll(by) {
+      const next = Math.max(0, Math.min(Math.max(0, lines.length - o.rows), top + by));
+      if (next === top) return;
+      top = next;
+      paint();
+    },
     setLines(next) {
       lines = next;
       top = 0;
@@ -174,8 +182,9 @@ export function codeBlock(o: { w: number; rows: number; distanceM: number }): Co
       }
     },
     tick(dt, instant) {
-      const want = marked === null ? 0 : 1;
-      const target = marked === null ? spring.x : rowY(marked - top);
+      const inView = marked !== null && marked >= top && marked < top + o.rows;
+      const want = inView ? 1 : 0;
+      const target = inView && marked !== null ? rowY(marked - top) : spring.x;
       if (instant) {
         spring.x = target;
         spring.v = 0;
