@@ -17,6 +17,9 @@ export type Intent =
   | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
   | { readonly kind: 'go'; readonly where: string }
   | { readonly kind: 'give'; readonly name: string }
+  | { readonly kind: 'empty' }
+  | { readonly kind: 'add'; readonly name: string }
+  | { readonly kind: 'find'; readonly name: string }
   | { readonly kind: 'mode'; readonly mode: 'build' | 'assist' }
   | { readonly kind: 'goto'; readonly target: StepTarget }
   | { readonly kind: 'stopSteps' }
@@ -108,6 +111,12 @@ export function intentOf(raw: string): Intent {
     const lab = LABS.find(([re]) => re.test(t));
     if (lab) return { kind: 'open', lab: lab[1] };
   }
+  // the person's own build: an empty workbench, parts from the library by name
+  if (/\b(?:empty|blank|clear|clean|fresh)\b.*\b(?:bench|workbench|board|project|one)\b|\b(?:new|own) project\b|\b(?:bench|workbench|project)\b.*\b(?:empty|blank)\b|\bfrom scratch\b|\bmy own (?:thing|circuit|build|project)\b|neues projekt|leere werkbank|von null/.test(t)) return { kind: 'empty' };
+  const find = /^(?:is there|do (?:you|we) have|have you got|does the (?:parts )?library have|gibt es|habt ihr|hast du)\s+(?:an?\s+|any\s+|some\s+|eine?n?\s+)?(.+?)(?:\s+(?:in|on) (?:the|your) (?:parts )?(?:library|shelf))?$/.exec(t);
+  if (find) return { kind: 'find', name: find[1]! };
+  const add = /^(?:add|put|place|füge|leg|stell)\s+(?:an?\s+|one\s+|the\s+|another\s+|eine?n?\s+)?(.+?)(?:\s+(?:on|to|onto|in|auf)\s+(?:the\s+|die\s+)?(?:work)?(?:bench|werkbank)|\s+hinzu)?$/.exec(t);
+  if (add) return { kind: 'add', name: add[1]! };
   const give = /^(?:give me|get me|bring me|hand me|i need|i want|can i have|gib mir|ich brauche)\s+(?:some\s+|a\s+|an\s+|the\s+|etwas\s+)?(.+)$/.exec(t);
   if (give) return { kind: 'give', name: give[1]! };
   const mode = /\b(build|assist(?:ant|ance)?|bau|hilfe)[- ]?(?:mode|modus)\b/.exec(t);
@@ -125,7 +134,7 @@ export function intentOf(raw: string): Intent {
 }
 
 /** What Assist mode still answers: reading, pointing, explaining and the mode switch itself. */
-const ASSIST_OK: ReadonlySet<Intent['kind']> = new Set(['next', 'where', 'wrong', 'unknown', 'mode']);
+const ASSIST_OK: ReadonlySet<Intent['kind']> = new Set(['next', 'where', 'wrong', 'unknown', 'mode', 'find']);
 
 const QUESTIONS = (io: BrainIO) => AGENT_TEXT.questions.map((q) => sayL6(q, io.lang()));
 
@@ -158,7 +167,21 @@ export function scriptedBrain(): Brain {
           const r = await io.call('propose_build', { request: intent.request });
           const step = r.step as { label?: string } | null | undefined;
           if (r.ok && step?.label) return done(t(io, R.proposed, { label: step.label }));
-          return done(t(io, R.cannotBuild));
+          return done(t(io, R.freeBuild));
+        }
+        case 'empty': {
+          const r = await io.call('go_to', { where: 'new project' });
+          return done(r.ok ? t(io, R.emptyBench) : t(io, R.cannotGo, { where: 'new project' }));
+        }
+        case 'find': {
+          const r = await io.call('find_parts', { query: intent.name });
+          const parts = ((r.parts ?? []) as Array<{ name: string }>).slice(0, 3).map((p) => p.name);
+          return done(r.ok && parts.length > 0 ? t(io, R.inLibrary, { parts: parts.join(', ') }) : t(io, R.notInLibrary, { name: intent.name }));
+        }
+        case 'add': {
+          const r = await io.call('add_part', { name: intent.name });
+          if (r.ok) return done(t(io, R.added, { part: String(r.part) }));
+          return done(r.inLibrary === false ? t(io, R.notInLibrary, { name: intent.name }) : t(io, R.cannotChange, { why: String(r.say ?? r.error) }));
         }
         case 'give': {
           const r = await io.call('give_substance', { name: intent.name });

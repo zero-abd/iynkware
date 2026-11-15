@@ -129,9 +129,11 @@ describe('a blank project', () => {
     expect(s.apply(led.ops, { label: led.label }).ok).toBe(true);
     expect(Object.values(placement(s.doc, led.id)!.legs!)).toHaveLength(2);
     expect(s.undo()?.ok).toBe(true); // the LED goes
-    // iynk's `view.set` cannot give a surface back, so the breadboard that made it stays (the document refuses, it does not break)
-    const last = s.undo();
-    expect(last?.ok === false && last.reject === 'referenced_by').toBe(true);
+    // the breadboard goes too: removing an unused surface clears it, so the blank project is blank again
+    expect(s.undo()?.ok).toBe(true);
+    expect(view(s.doc).surface).toBeUndefined();
+    expect(s.doc.components).toHaveLength(0);
+    expect(s.redo()?.ok).toBe(true);
     expect(view(s.doc).surface).toBe(bb.id);
   });
 });

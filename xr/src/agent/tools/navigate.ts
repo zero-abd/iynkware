@@ -3,7 +3,8 @@
  *
  *   go_to          a lab (chemistry, physics, electrical, signals), the drone or a drone by name (Tiny Whoop, racer),
  *                  the list of drones ("drone projects": named, not opened), the bench, room size, Home, a template
- *                  (blink, servo, button, piano, robot …) or a saved project, by name. It leaves what is open first
+ *                  (blink, servo, button, piano, robot …), a saved project by name, or a new empty workbench
+ *                  ("new project", "empty bench", "from scratch"). It leaves what is open first
  *                  (a lab, the Range, Home, a lesson guide) through the shell's own switch (`shell/switch`), so it works
  *                  from any workbench: from a lab to the drone, from the drone to a lab, from one lab to another.
  *   list_controls  every menu row (Build with me, Voice, see-through, each lab, …), with its state for a switch
@@ -28,6 +29,8 @@ export type Destination =
   | { readonly kind: 'drones' }
   | { readonly kind: 'craft'; readonly id: string; readonly title: string }
   | { readonly kind: 'bench' }
+  /** A new empty workbench: a blank Uno project, the person's own build. */
+  | { readonly kind: 'new' }
   | { readonly kind: 'room' }
   | { readonly kind: 'home' }
   | { readonly kind: 'template'; readonly id: string; readonly title: string }
@@ -63,6 +66,7 @@ export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lan
   const craft = craftOf(t, lang);
   if (craft) return craft;
   if (/drone|quad|range|fly|flight|drohne/.test(t)) return { kind: 'drone' };
+  if (/\b(new|empty|blank|clean|clear|fresh|own)\b.*\b(project|bench|workbench|board|build|one)\b|\bfrom scratch\b|^(start )?(new|empty|blank|fresh)( one)?$|neues projekt|leere werkbank/.test(t)) return { kind: 'new' };
   if (/^home|main menu|start screen/.test(t)) return { kind: 'home' };
   if (/room size|room scale|full size|life size/.test(t)) return { kind: 'room' };
   if (/^(bench|workbench|circuit bench|circuit|werkbank)( project)?$/.test(t)) return { kind: 'bench' };
@@ -162,6 +166,9 @@ export function createNavHost(app: XrApp): NavHost {
         case 'home':
           app.shell.openHome();
           return true;
+        case 'new':
+          leaveLab();
+          return newProject(app);
         case 'template':
           leaveLab();
           return newProject(app, d.id);

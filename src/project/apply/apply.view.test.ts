@@ -68,6 +68,33 @@ describe("view.remove", () => {
   });
 });
 
+describe("the first surface of a view", () => {
+  const bare: View = { ...second, kind: "breadboard" };
+  const first: Op[] = [
+    bb2,
+    { k: "view.place", view: "vw_two", placement: { c: "cmp_bb2", x_mm: 0, y_mm: 0 } },
+    { k: "view.set", id: "vw_two", surface: "cmp_bb2" },
+  ];
+
+  it("is undone as one batch: placing the first breadboard of a view with no surface round-trips", () => {
+    const state = deepFreeze(accept(blink(), [{ k: "view.add", view: bare }]).state);
+    expect(viewOf(accept(state, first).state, "vw_two").surface).toBe("cmp_bb2");
+    roundTrip(state, first);
+  });
+
+  it("removing an unused surface clears it, and the inverse sets it back", () => {
+    const state = deepFreeze(accept(blink(), [{ k: "view.add", view: bare }, ...first]).state);
+    const removed = accept(state, [{ k: "component.remove", id: "cmp_bb2" }]).state;
+    expect(viewOf(removed, "vw_two").surface).toBeUndefined();
+    roundTrip(state, [{ k: "component.remove", id: "cmp_bb2" }]);
+  });
+
+  it("still refuses to remove a surface that legs or hole wire ends use", () => {
+    const rejected = refuse(deepFreeze(blink()), [{ k: "component.remove", id: "cmp_bb1" }], "referenced_by");
+    expect(rejected.refs).toContain("/views/0/surface");
+  });
+});
+
 describe("view.set", () => {
   it("renames and undoes with the old name", () => {
     const state = deepFreeze(blink());

@@ -9,10 +9,12 @@
  *                    active mistakes
  *   apply_fix        a problem's ready-made fix (iynk's fix plans, as the 2D Studio's Problems panel applies them)
  *   run_circuit      run, pause or stop the simulation, so run-time problems show
+ *   find_parts       the parts library (the shelf: core parts and imported ones), searched by the person's words
+ *   add_part         one part from the library by name onto the bench: into a hole, or loose in a row in front
  *
  * Parts and wires may be named by refdes (LED1, RES1) or id (cmp_led1); the tools map refdes to ids.
  */
-import { builtinRegistry } from '@/parts/builtin';
+import { builtinRegistry, getAppRegistry } from '@/parts/builtin';
 import type { PartRegistry } from '@/parts/registry';
 import { messageAt } from '@/i18n/translate';
 import { resolveFixes } from '@/studio/fixes';
@@ -23,7 +25,8 @@ import faultsEs from '@/i18n/messages/es/faults.json';
 import faultsFr from '@/i18n/messages/fr/faults.json';
 import faultsHi from '@/i18n/messages/hi/faults.json';
 import faultsZh from '@/i18n/messages/zh/faults.json';
-import { ACTIONS, refusalText, runAction } from '../../bench/core/actions';
+import { ACTIONS, breadboardViewOf, refusalText, runAction } from '../../bench/core/actions';
+import { GROUP_IDS, isBreadboard, shelfEntries, type GroupId, type ShelfEntry } from '../../bench/shelf/groups';
 import type { Lang } from '../../contracts/common';
 import type { Project, ProjectStore } from '../../contracts/project';
 import type { SimBridge } from '../../contracts/sim';
@@ -135,6 +138,53 @@ async function findingsNow(b: BenchToolHost): Promise<Finding[]> {
   }
   const rank = { error: 0, warning: 1, note: 2 } as const;
   return out.sort((a, c) => rank[a.severity] - rank[c.severity]);
+}
+
+// ---- the parts library -------------------------------------------------------------------------------------------------
+
+export type LibraryPart = ShelfEntry & { readonly group: GroupId };
+
+/** Every part on the shelf, one per ref. */
+export function libraryParts(reg: PartRegistry): LibraryPart[] {
+  const groups = shelfEntries(reg);
+  return GROUP_IDS.flatMap((g) => groups[g].map((e) => ({ ...e, group: g })));
+}
+
+const WORD_ALIASES: Readonly<Record<string, string>> = { leds: 'led', resistors: 'resistor', buttons: 'button', pushbutton: 'button', switches: 'switch', motors: 'motor', pot: 'potentiometer', arduino: 'uno', buzzers: 'buzzer', servos: 'servo', sensors: 'sensor' };
+const STOP = new Set(['a', 'an', 'the', 'some', 'one', 'part', 'parts', 'component', 'on', 'to', 'bench', 'workbench', 'please', 'me', 'my', 'of']);
+const wordsOf = (s: string) =>
+  s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').split(' ').filter((w) => w && !STOP.has(w)).map((w) => WORD_ALIASES[w] ?? w);
+
+/** Words that describe a part's value or colour, not which part it is (a 220 ohm resistor is a resistor). */
+const VALUE_WORD = /^(\d[\d.,]*\w*|ohms?|kohms?|k|m|mm|v|volts?|uf|nf|pf|red|green|blue|yellow|white|orange|small|big|large|tiny)$/;
+
+/**
+ * Library parts matching the person's words, best first: an exact ref, else parts whose name, ref or category holds
+ * every word that names the part (value and colour words aside), so "flux capacitor" matches no capacitor.
+ */
+export function findParts(reg: PartRegistry, query: string): LibraryPart[] {
+  const all = libraryParts(reg);
+  const q = query.trim().toLowerCase();
+  const exact = all.find((p) => p.ref.toLowerCase() === q);
+  if (exact) return [exact];
+  const all_words = wordsOf(q);
+  const words = all_words.filter((w) => !VALUE_WORD.test(w));
+  if (words.length === 0) return [];
+  const scored = all.flatMap((p) => {
+    const hay = `${p.name} ${p.ref} ${p.category}`.toLowerCase();
+    if (!words.every((w) => hay.includes(w))) return [];
+    const name = wordsOf(p.name);
+    const extra = all_words.filter((w) => VALUE_WORD.test(w) && hay.includes(w)).length;
+    return [{ p, score: words.filter((w) => name.includes(w)).length + extra - name.length * 0.01 }];
+  });
+  return scored.sort((a, b) => b.score - a.score || a.p.name.localeCompare(b.p.name)).map((x) => x.p);
+}
+
+/** Where a loose new part lies: a row in front of the breadboard, one step to the right per loose part already there. */
+function stagingPoint(doc: Project): { x_mm: number; y_mm: number } {
+  const view = breadboardViewOf(doc);
+  const loose = view ? view.placements.filter((p) => p.legs === undefined && p.c !== view.surface && !doc.boards.some((b) => b.id === p.c)).length : 0;
+  return { x_mm: -60 + 28 * (loose % 8), y_mm: 95 + 28 * Math.floor(loose / 8) };
 }
 
 // ---- the executors ----------------------------------------------------------------------------------------------------
@@ -288,6 +338,57 @@ export const BENCH_RUNS: Readonly<Record<string, Run>> = {
     return { ok: true, state: b.sim.state };
   },
 
+  find_parts(h, a) {
+    const b = benchOf(h);
+    const reg = b?.registry ?? getAppRegistry();
+    const q = ((a.query as string | undefined) ?? '').trim();
+    if (!q) {
+      const all = libraryParts(reg);
+      return { ok: true, total: all.length, groups: Object.fromEntries(GROUP_IDS.map((g) => [g, all.filter((p) => p.group === g).map((p) => p.name)])) };
+    }
+    const hits = findParts(reg, q).slice(0, 8);
+    if (hits.length === 0) return { ok: true, inLibrary: false, query: q, note: 'Not in the parts library. Say so; offer the nearest thing from find_parts with no query, or importing the part.' };
+    return { ok: true, inLibrary: true, query: q, parts: hits.map((p) => ({ name: p.name, ref: p.ref, group: p.group })), next: 'add_part with the name or ref puts one on the bench' };
+  },
+
+  add_part(h, a) {
+    const b = benchOf(h);
+    if (!b) return fail('the bench is not available');
+    if (labOpen(h)) return fail('a lab is open: leave_lab first to change the circuit bench');
+    const reg = b.registry ?? getAppRegistry();
+    const want = (a.name as string).trim();
+    const hits = findParts(reg, want);
+    const part = hits[0];
+    if (!part) return fail(`"${want}" is not in the parts library`, { inLibrary: false, say: 'Say it is not in the library and offer the nearest part (find_parts).' });
+    const doc = b.project.doc;
+    if (!breadboardViewOf(doc)) return fail('this project has no bench view; go_to "new project" for an empty workbench');
+    const view = breadboardViewOf(doc)!;
+    const surfacePlaced = view.surface !== undefined && view.placements.some((p) => p.c === view.surface);
+    // a breadboard the project already has, off the mat (an emptied bench): lay that one down instead of a second
+    if (isBreadboard(part.ref) && view.surface !== undefined && !surfacePlaced && doc.components.find((c) => c.id === view.surface)?.definition.ref === part.ref) {
+      const res = b.project.apply([{ k: 'view.place', view: view.id, placement: { c: view.surface, x_mm: 0, y_mm: 0, rotation_deg: 0 } }], { label: `Place ${part.name}` });
+      if (!res.ok) return fail('the change did not apply', { detail: res });
+      return { ok: true, did: `Place ${part.name}`, part: part.name, ref: part.ref, undo: 'say "undo" or call undo to take it back' };
+    }
+    const hole = typeof a.hole === 'string' && a.hole.trim() ? a.hole.trim().toLowerCase() : null;
+    if (hole && !surfacePlaced) return fail('there is no breadboard on the bench to put it into: add_part breadboard first, or leave out hole', { needs: 'breadboard' });
+    const deg = (a.deg as number | undefined) ?? 0;
+    const r = hole ? runAction(doc, 'seatPart', { ref: part.ref, fit: { anchorHole: hole, rotation: deg } }) : runAction(doc, 'placePart', { ref: part.ref, at: stagingPoint(doc) });
+    if (!r.ok) return fail(`refused: ${r.reason}`, { reason: r.reason, args: r.args, part: part.name, say: refusalText(h.lang(), r) });
+    const res = b.project.apply(r.ops, { label: r.label });
+    if (!res.ok) return fail('the change did not apply', { detail: res });
+    const { ok: _ok, ops: _ops, label, ...result } = r as typeof r & Record<string, unknown>;
+    return {
+      ok: true,
+      did: label,
+      part: part.name,
+      ref: part.ref,
+      ...result,
+      ...(hits.length > 1 ? { alsoInLibrary: hits.slice(1, 4).map((p) => p.name) } : {}),
+      undo: 'say "undo" or call undo to take it back',
+    };
+  },
+
   read_code(h) {
     const b = benchOf(h);
     if (!b) return fail('the bench is not available');
@@ -318,4 +419,6 @@ export const BENCH_KINDS = {
   explain_problems: 'read',
   apply_fix: 'act',
   run_circuit: 'act',
+  find_parts: 'read',
+  add_part: 'act',
 } as const;
