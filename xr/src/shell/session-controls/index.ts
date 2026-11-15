@@ -1,8 +1,8 @@
 /**
  * Session controls: Home, Recentre and Exit, three inked buttons in a row, in every mode and every project, shown only
- * inside a session. The cluster is fixed in the room: when the session starts it is put once on the person's left, out
- * of the forward view, 0.85 m from the eyes and a little below eye level (`CLUSTER` in `spot.ts`), turned to face them,
- * and it never follows the head or body after that. It carries the shared grip bar (`ui/panels`): pinch it or ray and
+ * inside a session. The cluster is fixed in the room: when the session starts it is put once about 48 degrees to the
+ * person's left, 0.85 m from the eyes and just above eye level, beside the companion (`CLUSTER` in `spot.ts`), turned
+ * to face them, and it never follows the head or body after that. It carries the shared grip bar (`ui/panels`): pinch it or ray and
  * trigger it to move the cluster; it stays where it is let go, after a reload too, and the menu's Tidy up puts it back.
  *
  *   Home      opens Home in front of the person from anywhere (the bench, Room size, the Range), closing whatever

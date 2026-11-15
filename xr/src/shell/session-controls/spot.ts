@@ -1,26 +1,30 @@
 /**
- * Where the session-controls cluster stands by default: fixed in the room, on the person's left and out of the forward
- * view, a little below eye level, turned to face them. It is worked out once from where the person stands and faces
+ * Where the session-controls cluster stands by default: fixed in the room, about 48 degrees to the person's left, just
+ * above eye level, beside the companion, turned to face them. It is worked out once from where the person stands and faces
  * (when the session starts, and again on Recentre) and then never follows the head or body. Pure maths, tested;
  * `index.ts` feeds it the camera. Yaw is the bench's convention: 0 looks down -z, positive turns to the left.
  */
 import type { Vec3 } from '../../contracts/common';
 import { placementFrom, type Placement } from '../kit/place';
 
-/** The default place, all in one place to tune (owner, 2026-11-14: "on the left side", "a bit further"). */
+/**
+ * The default place, all in one place to tune (owner, 2026-11-14: "on the left side", "a bit further"; 2026-11-15 on a
+ * Quest 3S: "around 45 to 50 degree to the left from the center", "a couple degrees above horizontal", beside the
+ * companion).
+ */
 export const CLUSTER = {
   /** Eyes to the cluster's centre, metres: past touch range, read and pressed by ray or hand ray. */
   distance: 0.85,
   /**
-   * Towards the left of the heading (negative is left): clear of the bench's run cluster, the forward view and the
-   * panel ring's `side` slot at 58 degrees (bench/core/ring.ts), whose fault panel would otherwise stand behind it.
+   * Towards the left of the heading (negative is left): half way round, between the lesson guide (31 degrees) and the
+   * panel ring's `side` slot (58 degrees, bench/core/ring.ts), above the panels' top edges.
    */
-  sideDeg: -86,
+  sideDeg: -48,
   /**
-   * A little under eye level: above the companion on the bench's front-left corner (about 46 degrees left, 12 to 30
-   * below from the eyes), which would otherwise stand in front of Exit.
+   * Negative is above eye level: just over the horizon, so it sits above the companion on the bench's front-left
+   * corner (about 46 degrees left, 12 to 30 below from the eyes) and above the ring's panels, not in front of them.
    */
-  belowDeg: 6,
+  belowDeg: -3,
 } as const;
 
 /** The yaw (bench convention) of a forward vector; keeps `fallback` when the head looks straight up or down. */
@@ -52,7 +56,7 @@ export function clusterHome(eye: Vec3, forward: Vec3, keepYaw = 0): Placement {
  * `cone`, that look is not a heading; the heading is the last one the head held for `steadyS` seconds, within
  * `steadyRad`, anywhere else. A head that does not look at the cluster is its own heading (a ray pressed from the side).
  */
-export const HEADING = { cone: (40 * Math.PI) / 180, steadyS: 0.5, steadyRad: (12 * Math.PI) / 180 } as const;
+export const HEADING = { cone: (30 * Math.PI) / 180, steadyS: 0.5, steadyRad: (12 * Math.PI) / 180 } as const;
 
 export interface HeadingTracker {
   /** Feeds one frame: the head's yaw, the cluster's yaw from the eyes (null when it is not shown), seconds since the last. */
