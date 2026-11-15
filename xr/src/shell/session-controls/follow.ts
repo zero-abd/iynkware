@@ -1,5 +1,5 @@
 /**
- * A lazy follower for the corner cluster: it is not glued to the face. It keeps a heading and a position of its own,
+ * A lazy follower for the session-controls cluster: it is not glued to the face. It keeps a heading and a position of its own,
  * and chases the head only once the head has turned more than `deadDeg` from it (or moved more than `posDead` metres),
  * easing in until it is within `restDeg` (or `posRest`), then it is still again. So it settles after the head stops, and
  * a glance round the room does not drag it along. Pure maths, tested; `index.ts` feeds it the camera each frame.
@@ -10,13 +10,13 @@ import { placementFrom } from '../kit/place';
 
 export const FOLLOW = {
   /** Reading distance, metres: touch range (XR_DESIGN.md 2.1 puts touch UI at 0.42 to 0.46 m). */
-  distance: 0.46,
+  distance: 0.45,
   /**
-   * Towards the left of the heading, and below eye level: the lower left corner of the view, beside the bench. Seated at
-   * the bench, 26 and 38 degrees put it over the bench's front edge, between the hands and the rail and lab controls,
-   * where it took their rays; 55 and 45 keep it in front of the bench's left end, still within reach.
+   * The placement, all in one place to tune: centred below the view (0 degrees to the side, straight ahead), 45 below eye
+   * level and tilted up to face the eyes. An easy glance and reach down, clear of the bench's Run cluster and the rail.
+   * Positive `sideDeg` is towards the right, negative towards the left.
    */
-  sideDeg: -55,
+  sideDeg: 0,
   belowDeg: 45,
   deadDeg: 28,
   restDeg: 3,

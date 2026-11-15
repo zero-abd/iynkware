@@ -84,11 +84,12 @@ describe('lazy follow', () => {
     expect(s.x).toBeGreaterThan(0.95);
   });
 
-  test('sits to the left, below eye level, at touch range', () => {
+  test('sits centred, below eye level, at touch range', () => {
     const s = startFollow(head(0));
     const { position } = clusterSpot(s);
-    expect(position[0]).toBeLessThan(-0.15);
-    expect(position[1]).toBeLessThan(1.5 - 0.2);
+    expect(Math.abs(position[0])).toBeLessThan(1e-9);
+    expect(position[2]).toBeLessThan(-0.2);
+    expect(position[1]).toBeLessThan(1.5 - 0.25);
     expect(Math.hypot(position[0], position[1] - 1.5, position[2])).toBeCloseTo(FOLLOW.distance, 6);
     expect(yawOfForward(0, 0, 0.3)).toBe(0.3);
   });

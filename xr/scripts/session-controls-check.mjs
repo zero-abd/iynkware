@@ -39,7 +39,7 @@ const rel = await page.evaluate(() => {
   const e = window.__head();
   return [p[0] - e[0], p[1] - e[1], p[2] - e[2]].map((v) => +v.toFixed(2));
 });
-check('lower left of the view, within reach', rel[0] < -0.05 && rel[1] < -0.2 && Math.hypot(...rel) < 0.6, rel);
+check('centred below the view, within reach', Math.abs(rel[0]) < 0.1 && rel[1] < -0.25 && Math.hypot(...rel) < 0.6, rel);
 
 // Turn the head about the y axis and aim a controller ray at a button.
 const turn = async (deg) => {
