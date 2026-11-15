@@ -97,6 +97,17 @@ export function pickVerb(candidates: { cell: boolean; body: boolean; edge: boole
 export const GRAB_MIN_WORLD_M = 0.03;
 
 /**
+ * Enlarges a tiny part to the hand-reach minimum without turning every thin part into a 30 mm cube. Keeping its aspect
+ * ratio makes the invisible target follow the object people see and stops neighbouring components sharing most of
+ * the same hit volume.
+ */
+export function paddedProxySize(x: number, y: number, z: number, floor: number): readonly [number, number, number] {
+  const largest = Math.max(x, y, z, 1e-4);
+  const k = Math.max(1, floor / largest);
+  return [Math.max(x * k, 1e-4), Math.max(y * k, 1e-4), Math.max(z * k, 1e-4)];
+}
+
+/**
  * Other pillars' controls bind with the default order (0), and a press on a button must never go to the invisible board
  * proxy that happens to lie in its ray, so the proxies sit below every default: body above edge, both under 0.
  */
@@ -110,6 +121,7 @@ interface ProxyRec {
   unbind: Unsubscribe;
   /** The proxy's own pose in the item's frame, to put it back after a grab. */
   readonly base: { x: number; y: number; z: number; sx: number; sy: number; sz: number };
+  readonly outlineBase: { sx: number; sy: number; sz: number };
   hovers: number;
 }
 
@@ -170,28 +182,34 @@ function createRouter(app: XrApp): BenchRouter {
   function sizeProxy(rec: ProxyRec, item: BenchItem) {
     const s = app.bench.scale.value;
     const { min, max } = item.asset.sidecar.bounds;
-    const floor = GRAB_MIN_WORLD_M / s;
-    let sx = Math.max(max[0] - min[0], floor);
-    let sz = Math.max(max[2] - min[2], floor);
+    const rawX = max[0] - min[0];
+    const rawY = max[1] - min[1];
+    const rawZ = max[2] - min[2];
+    let sx = rawX;
+    let sy = rawY;
+    let sz = rawZ;
     let y0 = min[1];
     let y1 = max[1];
     if (item.role !== 'part') {
       // a plate over the whole top: the work edge band lies inside the outline, so the outline is the plate
       y1 += CELL_BAND_WORK_M / s;
+      sy = Math.max(y1 - y0, 0.004 / s);
     } else {
-      y1 = Math.max(y1, y0 + floor);
+      [sx, sy, sz] = paddedProxySize(rawX, rawY, rawZ, GRAB_MIN_WORLD_M / s);
     }
-    const sy = Math.max(y1 - y0, 0.004 / s);
     const cx = (min[0] + max[0]) / 2;
     const cz = (min[2] + max[2]) / 2;
-    sx = Math.max(sx, 1e-4);
-    sz = Math.max(sz, 1e-4);
-    Object.assign(rec.base, { x: cx, y: (y0 + y1) / 2, z: cz, sx, sy, sz });
+    Object.assign(rec.base, { x: cx, y: item.role === 'part' ? (min[1] + max[1]) / 2 : (y0 + y1) / 2, z: cz, sx, sy, sz });
+    Object.assign(rec.outlineBase, {
+      sx: rawX + 0.001 / s,
+      sy: Math.max(max[1] - min[1], 0.004 / s) + 0.001 / s,
+      sz: rawZ + 0.001 / s,
+    });
     restoreProxy(rec);
     if (rec.outline) {
-      // the outline hugs the padded box, a little proud of it
-      rec.outline.position.set(cx, (y0 + y1) / 2, cz);
-      rec.outline.scale.set(sx + 0.001 / s, sy + 0.001 / s, sz + 0.001 / s);
+      // The outline describes the visible asset, not the larger hand-reach collider.
+      rec.outline.position.set(cx, (min[1] + max[1]) / 2, cz);
+      rec.outline.scale.set(rec.outlineBase.sx, rec.outlineBase.sy, rec.outlineBase.sz);
     }
   }
 
@@ -214,7 +232,16 @@ function createRouter(app: XrApp): BenchRouter {
       outline.visible = false;
       outline.raycast = () => undefined;
     }
-    const rec: ProxyRec = { id: item.id, role: item.role, proxy, outline, unbind: () => undefined, base: { x: 0, y: 0, z: 0, sx: 1, sy: 1, sz: 1 }, hovers: 0 };
+    const rec: ProxyRec = {
+      id: item.id,
+      role: item.role,
+      proxy,
+      outline,
+      unbind: () => undefined,
+      base: { x: 0, y: 0, z: 0, sx: 1, sy: 1, sz: 1 },
+      outlineBase: { sx: 1, sy: 1, sz: 1 },
+      hovers: 0,
+    };
     item.object.add(proxy);
     if (outline) item.object.add(outline);
     sizeProxy(rec, item);
@@ -456,8 +483,7 @@ function createRouter(app: XrApp): BenchRouter {
     if (rec.hovers === 1 && rec.outline) {
       const line = rec.outline;
       const mat = line.material as LineBasicMaterial;
-      const pad = 0.001 / app.bench.scale.value;
-      const target = [rec.base.sx + pad, rec.base.sy + pad, rec.base.sz + pad] as const;
+      const target = [rec.outlineBase.sx, rec.outlineBase.sy, rec.outlineBase.sz] as const;
       const wasVisible = line.visible;
       const fromOpacity = wasVisible ? mat.opacity : 0;
       const from = wasVisible
@@ -492,8 +518,7 @@ function createRouter(app: XrApp): BenchRouter {
       const line = rec.outline;
       const mat = line.material as LineBasicMaterial;
       const fromOpacity = mat.opacity;
-      const pad = 0.001 / app.bench.scale.value;
-      const target = [rec.base.sx + pad, rec.base.sy + pad, rec.base.sz + pad] as const;
+      const target = [rec.outlineBase.sx, rec.outlineBase.sy, rec.outlineBase.sz] as const;
       const from = [line.scale.x, line.scale.y, line.scale.z] as const;
       motionOf(app.world).tween({
         key: line,

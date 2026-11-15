@@ -75,6 +75,13 @@ export const coachModule: FeatureModule = {
 
     offs.push(
       app.project.subscribe((c) => {
+        if (c.origin === 'load') {
+          // A project is a new teaching context. Do not show or send turns, pointers or observations from the bench
+          // that just closed (especially important when moving from a circuit to a drone or lab).
+          hub.conversation.clear();
+          hub.callouts.clear();
+          coach.clear();
+        }
         const text = describeChange(c, app.project.doc.meta.title);
         if (text) coach.push({ kind: 'project', text, refs: [] });
       }),
