@@ -12,7 +12,7 @@ import { loadDrone as loadDroneContent } from '@/content/index.generated';
 type DroneId = Parameters<typeof loadDroneContent>[0];
 import type { XrApp, FeatureModule } from '../../../contracts/app';
 import type { Lang } from '../../../contracts/common';
-import { rangeOf } from '../../activate';
+import { provideDroneRun, rangeOf } from '../../activate';
 import {
   bindPlate,
   createCallout,
@@ -26,7 +26,7 @@ import {
   type DroneHandle,
   type Plate,
 } from '../../shared';
-import { applyBench, benchCraft, benchOf, benchOps, loadFigureText, benchText, pickOf, wrongMotors } from '../model';
+import { applyBench, benchCraft, benchOf, benchOps, benchReport, loadFigureText, benchText, pickOf, wrongMotors } from '../model';
 import type { BenchAction, BenchCraft, BenchMessage, BenchState, FigureText } from '../model';
 import { benchFocusOf } from '../focus';
 import { BENCH_STRINGS as S } from './strings';
@@ -353,6 +353,13 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
   }
 
   // ---- wiring ----
+  // The run cluster's Run on a drone: the same automatic build as the plate, or "ready" once it is built and fit.
+  provideDroneRun(app, () => {
+    if (benchReport(craft, benchOf(app.project.doc)).flight.ready) return 'ready';
+    act({ type: 'build' });
+    return 'built';
+  });
+  offs.push(() => provideDroneRun(app, null));
   offs.push(onLookFrame(app.world, tick));
   offs.push(app.project.subscribe(render));
   offs.push(

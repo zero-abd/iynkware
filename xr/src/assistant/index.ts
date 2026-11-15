@@ -25,6 +25,7 @@ import { createBenchPresence } from './presence';
 import { attachPresence } from './service';
 import { benchView } from './snapshot';
 import { value } from '../ui/value';
+import { rangeOf } from '../range/activate';
 
 /** Built when the bench has nothing on it to rebuild. */
 export const DEFAULT_TEMPLATE = 'prj_uno-r3-blink';
@@ -44,14 +45,26 @@ export const assistantModule: FeatureModule = {
     };
     // The calm layout: the pill offers itself only on an empty bench, where there is nothing else to do; the menu row
     // is always there.
-    const bare = () => (benchView(app.project.doc)?.placements?.length ?? 0) === 0;
+    // The LED circuit's helper does not apply to the drone: no pill, no menu row, no steps.
+    const onDrone = () => rangeOf(app).value?.kind === 'drone' || app.shell.place.value === 'range';
+    const bare = () => !onDrone() && (benchView(app.project.doc)?.placements?.length ?? 0) === 0;
     const offerPill = value(bare());
-    const offDoc = app.project.subscribe(() => offerPill.set(bare()));
+    const row = { id: 'assistant/build-with-me', group: 'bench', label: localized('menu'), run: start } as const;
+    let offMenu: (() => void) | null = null;
+    const sync = () => {
+      offerPill.set(bare());
+      if (onDrone()) {
+        app.assistant.session.value?.stop();
+        offMenu?.();
+        offMenu = null;
+      } else if (!offMenu) offMenu = app.shell.addMenuItem(row);
+    };
+    const offs = [app.project.subscribe(sync), rangeOf(app).subscribe(sync), app.shell.place.subscribe(sync)];
     const card = createCard(app, app.assistant.session, start, offerPill);
-    const offMenu = app.shell.addMenuItem({ id: 'assistant/build-with-me', group: 'bench', label: localized('menu'), run: start });
+    sync();
     return () => {
-      offMenu();
-      offDoc();
+      offMenu?.();
+      for (const off of offs) off();
       app.assistant.session.value?.stop();
       detach();
       card.dispose();

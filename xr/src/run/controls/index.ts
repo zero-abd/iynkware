@@ -11,6 +11,7 @@ import { reducedMotionOf as reducedMotion } from '../../look';
 import { bindPlate } from '../kit/plate';
 import { runFeedback } from '../kit/feedback';
 import { onTick } from '../kit/ticker';
+import { runDrone } from '../../range/activate';
 import { createCluster } from './cluster';
 import {
   clockSeconds,
@@ -168,7 +169,17 @@ export const controlsModule: FeatureModule = {
 
     const offs = [
       ...(['reset', 'step', 'run', 'speed'] as const).map((c: Control) =>
-        bindPlate(app, cluster.plates[c], `run:${c}`, (e) => dispatch({ t: 'press', control: c }, e)),
+        bindPlate(app, cluster.plates[c], `run:${c}`, (e) => {
+          // A drone has no sketch: Run builds it, or takes the person to fly it when it is built.
+          if (c === 'run' && state.phase !== 'running') {
+            const d = runDrone(app);
+            if (d) {
+              if (d === 'ready' && app.shell.offered.value.includes('range')) app.shell.go('range');
+              return;
+            }
+          }
+          dispatch({ t: 'press', control: c }, e);
+        }),
       ),
       app.sim.onState((s) => dispatch({ t: 'bridge', state: s })),
       app.sim.onDiagnostic((d) => dispatch({ t: 'diagnostic', kind: d.kind })),

@@ -24,6 +24,23 @@ export const ACTIVATE_STRINGS = defineStrings({
 const localized = (key: 'drones' | 'dronesDetail'): LocalizedText =>
   Object.fromEntries(LANGS.map((l) => [l, ACTIVATE_STRINGS.t(l, key)])) as LocalizedText;
 
+const droneRuns = new WeakMap<object, () => 'built' | 'ready'>();
+
+/** The drone bench (while it is on the table) says what Run does: builds the drone, or says it is ready to fly. */
+export function provideDroneRun(app: Pick<XrApp, 'world'>, run: (() => 'built' | 'ready') | null): void {
+  if (run) droneRuns.set(app.world, run);
+  else droneRuns.delete(app.world);
+}
+
+/**
+ * Run on a drone project: 'built' when it just assembled the drone, 'ready' when it is already built and fit to fly,
+ * 'wait' when the bench is not up yet, null when the open project is not a drone (the normal Run applies).
+ */
+export function runDrone(app: Pick<XrApp, 'world' | 'project'>): 'built' | 'ready' | 'wait' | null {
+  if (rangeOf(app).value?.kind !== 'drone') return null;
+  return droneRuns.get(app.world)?.() ?? 'wait';
+}
+
 const watchers = new WeakMap<object, ReadonlyValue<RangeProject | null>>();
 
 /** The open project's Range kind (one watcher per app, made when Range mounts). */
