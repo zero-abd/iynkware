@@ -134,6 +134,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
       const res = app.project.apply(r.ops, { label: r.label });
       if (res.ok) {
         feedback.play('wire', world, p.hand);
+        feedback.ticker(say(app, WIRE_STRINGS, 'wire.ticker', { a: endLabel(doc, p.from), b: endLabel(doc, to) }));
         callout(say(app, WIRE_STRINGS, 'wire.joined', { a: endLabel(doc, p.from), b: endLabel(doc, to) }), at, 'pass', 'tag');
         return stop();
       }

@@ -49,6 +49,8 @@ export interface BenchFeedback {
   play(event: BenchEvent, at?: Vec3 | null, hand?: Hand | null): void;
   /** One line on the rail naming the last event ("Wire joined D13 to row 10"); already in the person's language. */
   ticker(text: string): void;
+  /** The rail draws the ticker line: it registers here (the last sink wins) and is called for every `ticker` text. */
+  onTicker(sink: (text: string) => void): () => void;
   dispose(): void;
 }
 
@@ -63,13 +65,21 @@ export function playHaptics(app: Pick<XrApp, 'input'>, event: BenchEvent, hand: 
 
 /**
  * The shared feedback service (`app.feedback`: haptic, pop ring for hands, positional sound) when the app has one, else
- * haptics only. The ticker line on the rail comes with the rail (#67).
+ * haptics only. The ticker line is drawn by the rail module (`bench/rail`).
  */
 export function createBenchFeedback(app: Pick<XrApp, 'input'> & Partial<Pick<XrApp, 'feedback'>>): BenchFeedback {
   const shared = app.feedback;
+  const sinks: Array<(text: string) => void> = [];
   return {
     play: (event, at, hand) => (shared ? shared.play(event, at, hand) : playHaptics(app, event, hand)),
-    ticker: () => undefined,
+    ticker: (text) => sinks[sinks.length - 1]?.(text),
+    onTicker(sink) {
+      sinks.push(sink);
+      return () => {
+        const i = sinks.lastIndexOf(sink);
+        if (i >= 0) sinks.splice(i, 1);
+      };
+    },
     dispose: () => undefined,
   };
 }
