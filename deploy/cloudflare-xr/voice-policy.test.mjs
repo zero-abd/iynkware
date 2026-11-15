@@ -69,6 +69,8 @@ test("applies device and global daily caps", () => {
 });
 
 test("uses bounded configurable limits", () => {
+  assert.equal(DEFAULT_DEVICE_DAILY_LIMIT, 200);
+  assert.equal(DEFAULT_GLOBAL_DAILY_LIMIT, 250);
   assert.deepEqual(limitsFrom({}), { device: DEFAULT_DEVICE_DAILY_LIMIT, global: DEFAULT_GLOBAL_DAILY_LIMIT });
   assert.deepEqual(limitsFrom({ VOICE_DEVICE_DAILY_LIMIT: "3", VOICE_GLOBAL_DAILY_LIMIT: "8" }), { device: 3, global: 8 });
   assert.deepEqual(limitsFrom({ VOICE_DEVICE_DAILY_LIMIT: "0", VOICE_GLOBAL_DAILY_LIMIT: "no" }), {

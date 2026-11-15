@@ -5,8 +5,8 @@ export const CONSENT_VERSION = "adult-voice-2026-11-14";
 export const TOOLS_VERSION = "agent-v6";
 /** The agent's tools (xr/src/agent/tools/declarations.json), the same file the headset app executes. */
 export const FUNCTION_DECLARATIONS = AGENT_DECLARATIONS;
-export const DEFAULT_DEVICE_DAILY_LIMIT = 20;
-export const DEFAULT_GLOBAL_DAILY_LIMIT = 200;
+export const DEFAULT_DEVICE_DAILY_LIMIT = 200;
+export const DEFAULT_GLOBAL_DAILY_LIMIT = 250;
 export const TOKEN_SESSION_MINUTES = 10;
 export const TOKEN_START_SECONDS = 60;
 
