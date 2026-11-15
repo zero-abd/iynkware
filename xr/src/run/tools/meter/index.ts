@@ -7,11 +7,12 @@
 import { Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../../contracts/app';
 import type { Unsubscribe, Vec3 } from '../../../contracts/common';
-import type { Reading, SimNetlist } from '../../../contracts/sim';
+import type { Reading } from '../../../contracts/sim';
 import { BANDS, WIRE } from '../../../look/palette';
 import { bindPlate, faceViewer, onTick, runFeedback, textChip, type LoopHandle } from '../../kit';
-import { createAnchorIndex } from '../probes/anchors';
-import { netIndex, type NetIndex } from '../probes/nets';
+import type { AnchorIndex } from '../probes/anchors';
+import type { NetLookup } from '../probes/netcache';
+import type { NetIndex } from '../probes/nets';
 import { createProbe, type Probe } from '../probes/probe';
 import { followLayout, layoutNow } from '../rack';
 import { createMeterBody, BODY_D } from './body';
@@ -22,9 +23,8 @@ import { createGate, lineOf, MODES, planRead, samePlan, settingsFor, shownOf, ty
 const BEHIND = 0.012;
 const SIDE = 0.025;
 
-export function mountMeter(app: XrApp): Unsubscribe {
+export function mountMeter(app: XrApp, anchors: AnchorIndex, nets: NetLookup): Unsubscribe {
   const lang = () => app.settings.lang.value;
-  const anchors = createAnchorIndex(app);
   const body = createMeterBody(app, lang());
   app.bench.table.add(body.group);
   const fb = runFeedback(app);
@@ -60,22 +60,8 @@ export function mountMeter(app: XrApp): Unsubscribe {
   let seq = 0;
   const gate = createGate();
 
-  // The net lookup: rebuilt when the run's netlist or the document changes.
-  let index: NetIndex | null = null;
-  let indexFor: { nl: SimNetlist | null; revision: number } = { nl: null, revision: -1 };
-  const currentIndex = (): NetIndex | null => {
-    const nl = app.sim.netlist;
-    if (nl === null) {
-      index = null;
-      indexFor = { nl: null, revision: -1 };
-      return null;
-    }
-    if (indexFor.nl !== nl || indexFor.revision !== app.project.revision) {
-      index = netIndex(app.project.doc, nl);
-      indexFor = { nl, revision: app.project.revision };
-    }
-    return index;
-  };
+  // The net lookup is shared with the scope: rebuilt when the run's netlist or the document changes.
+  let seenIndex: NetIndex | null = null;
 
   // What the person sees besides the body: a chip above the red tip, and the beep.
   const chip = textChip({ widthDmm: 250, lines: 2, sizeDmm: 22, distanceM: 0.45, mono: true });
@@ -132,7 +118,7 @@ export function mountMeter(app: XrApp): Unsubscribe {
     if (dirty) {
       dirty = false;
       stale = true;
-      const next = planRead(mode, red.target, black.target, currentIndex());
+      const next = planRead(mode, red.target, black.target, nets.current());
       const same = samePlan(plan, next);
       plan = next;
       if (!same) gate.soon();
@@ -141,8 +127,12 @@ export function mountMeter(app: XrApp): Unsubscribe {
         apply(null, plan.reason);
       }
     }
-    // A new netlist (a load) is a change too.
-    if (indexFor.nl !== app.sim.netlist) dirty = true;
+    // A new netlist (a load) is a change too: the lookup is a new object then.
+    const index = nets.current();
+    if (index !== seenIndex) {
+      seenIndex = index;
+      dirty = true;
+    }
     if (!stale || inFlight || !('probes' in plan) || !live() || !gate.due(now)) return;
     stale = false;
     inFlight = true;
@@ -227,6 +217,5 @@ export function mountMeter(app: XrApp): Unsubscribe {
     black.dispose();
     chip.dispose();
     body.dispose();
-    anchors.dispose();
   };
 }
