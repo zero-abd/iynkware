@@ -73,6 +73,9 @@ docs/MASTER_PLAN/**/node_modules/
 /e2e/visual.spec.ts-snapshots/
 /test-results/ui-shots/
 
+# Local Cloudflare Wrangler account cache
+/deploy/cloudflare-xr/.wrangler/
+
 # Frame-time results of e2e/studio-perf.spec.ts
 .perf/
 
@@ -81,3 +84,6 @@ docs/MASTER_PLAN/**/node_modules/
 
 # Engine files built from node_modules by scripts/build-engines.mjs
 public/engines/
+
+# Wrangler local secrets (GEMINI_API_KEY for `wrangler dev`)
+.dev.vars

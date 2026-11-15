@@ -100,6 +100,7 @@ function stageBuild(opts, staging) {
     }
     source = describeSource(dir);
     cpSync(dir, site, { recursive: true });
+    // Voice is the headset app's own client now (xr/src/agent/voice); the old demo page script is not injected.
   }
   copyFileSync(join(here, "_headers"), join(site, "_headers"));
   const ignore = readFileSync(join(here, ".assetsignore"), "utf8");

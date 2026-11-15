@@ -7,9 +7,8 @@
 {
   "name": "iynkware-xr",
   "compatibility_date": "2026-11-13",
-  // Runs only for a non-navigation request that matches no file, and answers 404 (see the file). Every other
-  // request is a static asset response, which costs no Worker invocation.
-  "main": "./not-found.js",
+  // Runs for /api/voice/* and for a non-navigation request that matches no file. Static assets stay asset-first.
+  "main": "./worker.js",
   // https://iynkware-xr.<account subdomain>.workers.dev
   "workers_dev": true,
   // Version and Preview URLs on workers.dev, for `npm run preview` (one Preview per git branch).
@@ -19,6 +18,19 @@
     "directory": "../../xr/dist",
     // A path with no file behind it gets /index.html with 200, so client side routes survive a reload.
     "not_found_handling": "single-page-application"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "VOICE_QUOTA", "class_name": "VoiceQuota" }
+    ]
+  },
+  "exports": {
+    "VoiceQuota": { "type": "durable-object", "storage": "sqlite" }
+  },
+  "secrets": { "required": ["GEMINI_API_KEY"] },
+  "vars": {
+    "VOICE_DEVICE_DAILY_LIMIT": "20",
+    "VOICE_GLOBAL_DAILY_LIMIT": "200"
   },
   // Previews use the top-level assets and compatibility date; nothing else needs a Preview value.
   "previews": {}
