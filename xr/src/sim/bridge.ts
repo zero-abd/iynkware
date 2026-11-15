@@ -246,7 +246,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       return lastMech;
     },
 
-    async load(doc) {
+    async load(doc, opts) {
       if (disposed) throw new Error('the sim bridge was disposed');
       // A new id drops the old run's late events. Cancel stops its pump without rebuilding it (a refused load below
       // never reaches the worker, and the worker's own load would stop the pump too).
@@ -258,7 +258,7 @@ export function createSimBridge(opts: SimBridgeOptions = {}): SimBridge {
       findings = [];
       netlist = null;
       const { net, diagnostics: netDiags } = buildSimNetlist(doc, (parts ??= getAppRegistry()));
-      const program = programOf(doc);
+      const program = opts?.program ?? programOf(doc);
       if (!program) return refuse([...netDiags, simDiag('no-firmware', 'error', {}, { message: 'the project has no code to run' })]);
       if (blocking(netDiags)) return refuse(netDiags);
       loading = id;

@@ -8,7 +8,9 @@
  */
 import type { Project } from '@/project/generated/types';
 import type { Finding } from '@/sim/faults/types';
-import type { HostInput, PartInput, PartState, SimDiagnostic, SimNetlist } from '@/sim/engine';
+import type { HostInput, PartInput, PartState, ProgramImage, SimDiagnostic, SimNetlist } from '@/sim/engine';
+
+export type { ProgramImage };
 import type { AnalogFrame, AnalogWatch, WaveSamples } from '@/sim-host/analog-protocol';
 import type { PinLevel, SimEv, SimRunState } from '@/sim-host/protocol';
 import type { PhysicsFrame } from '@/core/robot-report';
@@ -104,10 +106,11 @@ export interface SimBridge {
   readonly lastMech: PhysicsFrame | null;
 
   /**
-   * Builds the netlist from the document and loads its firmware. Replaces any earlier run. A robot project
+   * Builds the netlist from the document and loads its firmware. Replaces any earlier run. With `opts.program` (a compiled hex or UF2, iynk's `ProgramImage`) that image runs on the
+   * emulated chip instead of the project's source; a board or image the engines cannot run is a failed load. A robot project
    * (`needsPhysics`) also loads the physics engine first; a refused robot is a failed load with `onMechState` `failed`.
    */
-  load(doc: Project): Promise<LoadResult>;
+  load(doc: Project, opts?: { program?: ProgramImage }): Promise<LoadResult>;
   /** Starts or resumes, paced against the wall clock at the current speed. */
   run(): Promise<void>;
   pause(): Promise<void>;
