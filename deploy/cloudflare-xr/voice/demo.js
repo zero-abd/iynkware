@@ -1,10 +1,9 @@
 import {
   CONSENT_VERSION as POLICY_VERSION,
   GEMINI_MODEL as MODEL,
-  LOCKED_LIVE_CONFIG,
   TOOLS_VERSION,
 } from './policy.mjs';
-import { controllerTalkPressed, rawSetup, runtimeBridge, untrustedContext } from './client-core.mjs';
+import { controllerTalkPressed, runtimeBridge, untrustedContext } from './client-core.mjs';
 
 const SOCKET = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
 const DEVICE_KEY = 'iynkware:voice-device:v1';
@@ -37,7 +36,7 @@ const stages = ({
 })[language] || ['Waiting for microphone permission…', 'Starting voice audio…'];
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
-let media, audio, socket, node, source;
+let media, audio, socket, node, source, connectTimer;
 let active = false, released = false, setupReady = false, endSent = false, controllerDown = false, playbackAt = 0;
 let playback = [];
 let pendingAudio = [];
@@ -72,6 +71,7 @@ function play(encoded) {
   item.addEventListener('ended', () => { playback = playback.filter(x => x !== item); }, {once:true}); item.start(at);
 }
 function closeTurn() {
+  clearTimeout(connectTimer); connectTimer = undefined;
   node?.disconnect(); source?.disconnect(); node = source = null;
   pendingAudio = []; setupReady = false; endSent = false;
   const current = socket; socket = null;
@@ -108,6 +108,7 @@ function endQuestion() {
 function onMessage(event) {
   let message; try { message = JSON.parse(event.data); } catch { return; }
   if (message.setupComplete) {
+    clearTimeout(connectTimer); connectTimer = undefined;
     socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:untrustedContext(bridge.context())}]}],turnComplete:true}}));
     setupReady = true;
     for (const chunk of pendingAudio) sendAudio(chunk);
@@ -132,12 +133,14 @@ async function beginQuestion() {
   try {
     await audio.resume();
     startCapture();
-    const response = await fetch('/api/voice/token', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),adultConsent:true,consentVersion:POLICY_VERSION,toolsVersion:TOOLS_VERSION})});
+    const response = await deadline(fetch('/api/voice/token', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),adultConsent:true,consentVersion:POLICY_VERSION,toolsVersion:TOOLS_VERSION})}), 5000, 'network');
     if (!response.ok) throw new Error(response.status === 429 ? 'quota' : 'token');
     const grant = await response.json();
     if (grant.model !== MODEL || typeof grant.token !== 'string') throw new Error('token');
+    ui.status.textContent = 'Opening Gemini Live…';
     socket = new WebSocket(`${SOCKET}?access_token=${encodeURIComponent(grant.token)}`);
-    socket.addEventListener('open', () => socket.send(JSON.stringify({setup:rawSetup(MODEL, LOCKED_LIVE_CONFIG)})));
+    connectTimer = setTimeout(() => failTurn('Gemini connection timed out. Check Quest Wi-Fi and try again.'), 8000);
+    socket.addEventListener('open', () => socket.send(JSON.stringify({setup:{model:MODEL}})));
     socket.addEventListener('message', onMessage); socket.addEventListener('error', () => failTurn());
     socket.addEventListener('close', () => { if (active) failTurn(); });
   } catch (error) { failTurn(error.message === 'quota' ? quota : failed); }
