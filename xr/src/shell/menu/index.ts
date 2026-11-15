@@ -15,6 +15,7 @@ import { say } from '../copy';
 import { shellButton, placeAhead, type ShellButton, type ShellPanel } from '../kit';
 import { libraryOf } from '../library/types';
 import { providePanel, switching } from '../switch';
+import { claimFocus, onFocusLost } from '../switch/focus';
 import { MENU } from './copy';
 import { createPanel, DISTANCE_M, fill, heightOf, snapshot, type Actions } from './panel';
 import { otherHand, palmButtonAt, palmFacing } from './palm';
@@ -82,6 +83,7 @@ function mountMenu(app: XrApp): Unsubscribe {
     // Home may finish its delayed first-session placement just as the person opens Menu. Panels are exclusive: do not
     // leave Home in front of Menu where its tiles can steal the first trigger.
     app.shell.closeHome();
+    claimFocus(app, 'menu');
     isOpen = true;
     page = 0;
     panel = build();
@@ -113,6 +115,7 @@ function mountMenu(app: XrApp): Unsubscribe {
 
   const toggle = () => (isOpen ? close() : open());
   const unprovide = providePanel(app, 'menu', open);
+  const unfocus = onFocusLost(app, 'menu', () => close());
 
   // The palm button: a small round Menu button 6 cm off the palm of the hand that is not the dominant one.
   const bd = dmm(PALM_BUTTON_DMM, PALM_DISTANCE_M);
@@ -157,6 +160,7 @@ function mountMenu(app: XrApp): Unsubscribe {
   return () => {
     offFrame();
     unprovide();
+    unfocus();
     palm.dispose();
     isOpen = false;
     for (const off of [...watchers, ...toggles]) off();

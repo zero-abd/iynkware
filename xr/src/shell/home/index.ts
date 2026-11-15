@@ -29,6 +29,7 @@ import {
   switching,
   templateTitle,
 } from '../switch';
+import { claimFocus, onFocusLost } from '../switch/focus';
 import type { IconName } from '../../look/icons';
 import { HOME, LANG_NAMES } from './copy';
 
@@ -222,6 +223,7 @@ export const homeModule: FeatureModule = {
     };
 
     const show = () => {
+      claimFocus(app, 'home');
       const p = ensure();
       if (!p.isOpen) placeAhead(app.world, p.group, { distance: D, belowDeg: 8 });
       render();
@@ -231,6 +233,7 @@ export const homeModule: FeatureModule = {
 
     const offs: Unsubscribe[] = [
       providePanel(app, 'home', () => app.shell.openHome()),
+      onFocusLost(app, 'home', () => app.shell.closeHome()),
       app.shell.homeOpen.subscribe((open) => (open ? show() : hide())),
       // Opens on the first entry into the headset; a pillar's onboarding entry takes that first entry instead.
       app.mode.subscribe((mode) => {
