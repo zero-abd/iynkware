@@ -1,34 +1,43 @@
 /**
- * Session controls: Home, Recentre and Exit, three inked buttons centred below the person's view, in every mode and
- * every project. The cluster follows the head lazily (`follow.ts`: it waits until the head has turned 28 degrees, then eases
- * after it and settles), at touch range (0.45 m), straight ahead and 45 degrees below eye level (`FOLLOW` in `follow.ts`), so it never covers
- * the work and a poke or a ray finds it. It is shown only inside a session.
+ * Session controls: Home, Recentre and Exit, three inked buttons in a row, in every mode and every project, shown only
+ * inside a session. The cluster is fixed in the room: when the session starts it is put once on the person's left, out
+ * of the forward view, 0.85 m from the eyes and a little below eye level (`CLUSTER` in `spot.ts`), turned to face them,
+ * and it never follows the head or body after that. It carries the shared grip bar (`ui/panels`): pinch it or ray and
+ * trigger it to move the cluster; it stays where it is let go, after a reload too, and the menu's Tidy up puts it back.
  *
  *   Home      opens Home in front of the person from anywhere (the bench, Room size, the Range), closing whatever
  *             shell panel is open; pressed while Home is open, it brings Home round to where the person now looks.
  *   Recentre  puts the bench (and everything anchored to it) in front of the person again with an eased move, through
  *             `BenchSpace.setBenchTop`, at the height and distance of XR_DESIGN.md 2.1. At Room size or in the Range,
- *             which place their own content from the head when they open, it leaves and re-enters the place.
+ *             which place their own content from the head when they open, it leaves and re-enters the place. It also
+ *             brings this cluster back to its default place beside the person, so it can never be lost in the room.
  *   Exit      ends the immersive session, behind a 700 ms hold with a filling ring (a tap only shows "Hold").
  *
- * Both are bound through `app.input`, so hands (poke, pinch) and controllers (ray, trigger) work alike.
+ * All are bound through `app.input`, so hands (poke, pinch) and controllers (ray, trigger) work alike.
  */
 import { Group, Vector3 } from '@iwsdk/core';
+import type { Unsubscribe } from '../../contracts/common';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import { DURATION, easeIynk } from '../../look/motion';
 import { motionOf, onLookFrame } from '../../look/runner';
+import { dmm } from '../../look/type';
+import { movable } from '../../ui/panels';
 import { dropEntities, ownEntity } from '../kit/entity';
 import { say } from '../copy';
 import { sessionButton, type SessionButton } from './button';
 import { SESSION } from './copy';
-import { clusterSpot, FOLLOW, startFollow, stepFollow, yawOfForward, type FollowState } from './follow';
 import { lerpPose, recentreTarget, type BenchPose } from './recentre';
+import { CLUSTER, clusterHome } from './spot';
 
 /** How long Exit must be held, ms (the design's Arm hold is 600 ms; leaving the headset is rarer, so a little longer). */
 export const EXIT_HOLD_MS = 700;
-const W = 0.1;
-const H = 0.082;
-const GAP = 0.012;
+/** Each button and the gap between them, dmm at the cluster's distance (a generous ray target, labels on one line). */
+export const BUTTON_DMM = { w: 150, h: 118, gap: 14 } as const;
+/** The grip's stored-place id (`ui/panels`). */
+export const CONTROLS_ID = 'shell/session-controls';
+/** Frames and time to wait after entering before the cluster is placed (the headset pose arrives after the start). */
+const SETTLE_FRAMES = 4;
+const SETTLE_MS = 300;
 const TWEEN_KEY = 'session-controls/recentre';
 
 const eye = new Vector3();
@@ -65,12 +74,26 @@ export function recentre(app: XrApp): BenchPose {
 export const sessionControlsModule: FeatureModule = {
   id: 'shell/session-controls',
   mount(app: XrApp) {
-    const d = FOLLOW.distance;
+    const d = CLUSTER.distance;
+    const W = dmm(BUTTON_DMM.w, d);
+    const H = dmm(BUTTON_DMM.h, d);
+    const GAP = dmm(BUTTON_DMM.gap, d);
     const lang = () => app.settings.lang.value;
     const root = new Group();
     root.name = 'session-controls';
     root.visible = false;
     ownEntity(app.world, root);
+
+    /** Puts the cluster at its default place beside the person as they stand and face now, turned to them. */
+    const placeHome = () => {
+      const cam = app.world.camera;
+      cam.updateMatrixWorld(true);
+      cam.getWorldPosition(eye);
+      cam.getWorldDirection(dir);
+      const p = clusterHome([eye.x, eye.y, eye.z], [dir.x, dir.y, dir.z], app.bench.benchTop.value.yawRad);
+      root.position.set(p.position[0], p.position[1], p.position[2]);
+      root.lookAt(eye);
+    };
 
     const homeButton: SessionButton = sessionButton(
       app,
@@ -79,7 +102,19 @@ export const sessionControlsModule: FeatureModule = {
     );
     const recentreButton: SessionButton = sessionButton(
       app,
-      { id: 'session/recentre', w: W, h: H, distanceM: d, icon: 'target', onSelect: () => recentre(app) },
+      {
+        id: 'session/recentre',
+        w: W,
+        h: H,
+        distanceM: d,
+        icon: 'target',
+        onSelect: () => {
+          recentre(app);
+          // The cluster comes back beside the person too, whatever place it was moved to.
+          grip.forget();
+          placeHome();
+        },
+      },
       { label: say(SESSION, lang(), 'recentre') },
     );
     const exitButton: SessionButton = sessionButton(
@@ -90,32 +125,19 @@ export const sessionControlsModule: FeatureModule = {
     homeButton.group.position.x = -(W + GAP);
     exitButton.group.position.x = W + GAP;
     root.add(homeButton.group, recentreButton.group, exitButton.group);
+    // The shared grip bar under the row moves the whole cluster (ui/panels); its place is kept per id.
+    const grip = movable(app, { id: CONTROLS_ID, group: root, width: 3 * W + 2 * GAP, height: H, distanceM: d });
 
-    let follow: FollowState | null = null;
     let opacity = 0;
     const setOpacity = (a: number) => {
       opacity = a;
       homeButton.setOpacity(a);
       recentreButton.setOpacity(a);
       exitButton.setOpacity(a);
+      grip.setOpacity(a);
       root.visible = a > 0.001;
     };
     setOpacity(0);
-
-    const head = (): { x: number; y: number; z: number; yaw: number } => {
-      const cam = app.world.camera;
-      cam.updateMatrixWorld(true);
-      cam.getWorldPosition(eye);
-      cam.getWorldDirection(dir);
-      return { x: eye.x, y: eye.y, z: eye.z, yaw: yawOfForward(dir.x, dir.z, follow?.yaw ?? 0) };
-    };
-
-    const place = () => {
-      if (!follow) return;
-      const spot = clusterSpot(follow);
-      root.position.set(spot.position[0], spot.position[1], spot.position[2]);
-      root.lookAt(spot.eye[0], spot.eye[1], spot.eye[2]);
-    };
 
     const fade = (to: number) => {
       const from = opacity;
@@ -126,16 +148,32 @@ export const sessionControlsModule: FeatureModule = {
       });
     };
 
+    // Placed once per session, from where the person stands and faces once the headset pose has arrived.
+    let inSession = false;
+    let placed = false;
+    let stopWait: Unsubscribe | null = null;
     const syncMode = () => {
       if (app.mode.value === 'flat') {
-        follow = null;
+        inSession = false;
+        placed = false;
+        stopWait?.();
+        stopWait = null;
         motionOf(app.world).cancel('session-controls/fade');
         setOpacity(0);
         return;
       }
-      follow = startFollow(head());
-      place();
-      fade(1);
+      if (inSession) return;
+      inSession = true;
+      let frames = 0;
+      const since = performance.now();
+      stopWait = onLookFrame(app.world, () => {
+        if (++frames < SETTLE_FRAMES || performance.now() - since < SETTLE_MS) return;
+        stopWait?.();
+        stopWait = null;
+        placeHome();
+        placed = true;
+        fade(1);
+      });
     };
 
     const offs = [
@@ -146,22 +184,25 @@ export const sessionControlsModule: FeatureModule = {
         exitButton.set({ label: say(SESSION, lang(), 'exit'), hint: say(SESSION, lang(), 'hold') });
       }),
       onLookFrame(app.world, (dt) => {
-        if (!follow) return;
-        stepFollow(follow, head(), dt);
-        place();
+        if (!placed) return;
+        // Fixed in the room, only turned to keep facing the person (a moved place is turned by ui/panels as well).
+        app.world.camera.getWorldPosition(eye);
+        root.lookAt(eye);
         exitButton.tick(dt * 1000);
       }),
     ];
     syncMode();
     // For scripts and tests: where the buttons are and what Exit is doing.
-    root.userData.sessionControls = { home: homeButton, recentre: recentreButton, exit: exitButton };
+    root.userData.sessionControls = { home: homeButton, recentre: recentreButton, exit: exitButton, grip };
 
     return () => {
       for (const off of offs) off();
+      stopWait?.();
       motionOf(app.world).cancel(TWEEN_KEY);
       homeButton.dispose();
       recentreButton.dispose();
       exitButton.dispose();
+      grip.dispose();
       dropEntities(app.world, root);
     };
   },

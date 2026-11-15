@@ -6,7 +6,7 @@
  */
 import type { Vec3 } from '../../contracts/common';
 import type { XrSettings } from '../../contracts/settings';
-import { yawOfForward, angleDiff } from './follow';
+import { yawOfForward, angleDiff } from './spot';
 
 export interface BenchPose {
   readonly position: Vec3;

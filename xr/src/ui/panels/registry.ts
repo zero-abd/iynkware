@@ -41,6 +41,8 @@ export interface PanelHandle {
   end(): void;
   /** The person's place for it in world space, if they moved it; false when it keeps its pillar's place. */
   placed(out: Vector3): boolean;
+  /** Forgets the person's place (and any drag): the panel keeps whatever place its pillar gives it next. */
+  forget(): void;
   remove(): void;
 }
 
@@ -245,6 +247,12 @@ export function createPanelPlaces(ctx: PlacesContext): PanelPlaces {
           ctx.frame.updateWorldMatrix(true, false);
           ctx.frame.localToWorld(out.set(t[0], t[1], t[2]));
           return true;
+        },
+        forget() {
+          e.hold = null;
+          e.live = null;
+          e.owning = false;
+          ctx.store.forget(p.id);
         },
         remove() {
           entries.delete(e);

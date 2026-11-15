@@ -84,6 +84,8 @@ export interface Movable {
   resize(width: number, height: number, centreY?: number): void;
   /** The person's place for the panel in world space, when they moved it (to draw a leader to it). */
   placed(out: Vector3): boolean;
+  /** Forgets the person's place for this panel alone (and ends a drag): its kit's own placement holds again. */
+  forget(): void;
   dispose(): void;
 }
 
@@ -352,6 +354,11 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
     },
     resize: layout,
     placed: (out) => reg.placed(out),
+    forget() {
+      reg.forget();
+      pressId = null;
+      refresh();
+    },
     dispose() {
       reg.remove();
       unbind?.();

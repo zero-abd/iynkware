@@ -2,9 +2,9 @@ import { describe, expect, test } from 'vitest';
 import { LANGS } from '../src/contracts/common';
 import { say } from '../src/shell/copy';
 import { SESSION } from '../src/shell/session-controls/copy';
-import { angleDiff, clusterSpot, FOLLOW, startFollow, stepFollow, yawOfForward } from '../src/shell/session-controls/follow';
 import { createHold } from '../src/shell/session-controls/hold';
 import { lerpPose, recentreTarget } from '../src/shell/session-controls/recentre';
+import { angleDiff, CLUSTER, clusterHome, yawOfForward } from '../src/shell/session-controls/spot';
 
 const DEG = Math.PI / 180;
 
@@ -56,41 +56,45 @@ describe('eased move', () => {
   });
 });
 
-describe('lazy follow', () => {
-  const head = (yaw: number) => ({ x: 0, y: 1.5, z: 0, yaw });
+describe('default place of the cluster', () => {
+  const eye = [0, 1.5, 0] as const;
 
-  test('a small turn does not move it', () => {
-    const s = startFollow(head(0));
-    for (let i = 0; i < 90; i++) stepFollow(s, head(20 * DEG), 1 / 90);
-    expect(s.yaw).toBe(0);
+  test('on the left, out of the forward view, 0.8 to 0.9 m away and a little below eye level, facing the eyes', () => {
+    const { position: p, faceTo } = clusterHome(eye, [0, 0, -1]);
+    expect(Math.hypot(p[0] - eye[0], p[1] - eye[1], p[2] - eye[2])).toBeCloseTo(CLUSTER.distance, 9);
+    expect(CLUSTER.distance).toBeGreaterThanOrEqual(0.8);
+    expect(CLUSTER.distance).toBeLessThanOrEqual(0.9);
+    // left of the heading (looking down -z, left is -x) and still ahead of the shoulders
+    expect(p[0]).toBeLessThan(-0.5);
+    expect(p[2]).toBeLessThan(-0.3);
+    const off = Math.atan2(-p[0], -p[2]) / DEG;
+    expect(off).toBeCloseTo(-CLUSTER.sideDeg, 6);
+    expect(off).toBeGreaterThan(45);
+    // below eye level, but well above the bench top (eye height minus 0.47 m)
+    expect(p[1]).toBeCloseTo(1.5 - CLUSTER.distance * Math.sin(CLUSTER.belowDeg * DEG), 9);
+    expect(p[1]).toBeLessThan(1.5 - 0.1);
+    expect(p[1]).toBeGreaterThan(1.5 - 0.4);
+    expect(faceTo).toEqual(eye);
   });
 
-  test('a big turn drags it after the head, and it settles within the rest angle once the head stops', () => {
-    const s = startFollow(head(0));
-    stepFollow(s, head(60 * DEG), 1 / 90);
-    expect(s.chasingYaw).toBe(true);
-    expect(s.yaw).toBeLessThan(60 * DEG);
-    for (let i = 0; i < 90 * 4; i++) stepFollow(s, head(60 * DEG), 1 / 90);
-    expect(s.chasingYaw).toBe(false);
-    expect(Math.abs(s.yaw - 60 * DEG)).toBeLessThan(FOLLOW.restDeg * DEG);
-    const settled = s.yaw;
-    stepFollow(s, head(60 * DEG), 1 / 90);
-    expect(s.yaw).toBe(settled);
+  test('takes the heading only: looking down at the bench puts it in the same place', () => {
+    const level = clusterHome(eye, [0, 0, -1]).position;
+    const down = clusterHome(eye, [0, -0.9, -0.3]).position;
+    for (let i = 0; i < 3; i++) expect(down[i]).toBeCloseTo(level[i]!, 9);
   });
 
-  test('walking away brings it along', () => {
-    const s = startFollow(head(0));
-    for (let i = 0; i < 90 * 4; i++) stepFollow(s, { x: 1, y: 1.5, z: 0, yaw: 0 }, 1 / 90);
-    expect(s.x).toBeGreaterThan(0.95);
+  test('turns with the heading and moves with where the person stands', () => {
+    // facing +x, the left is -z
+    const p = clusterHome([2, 1.2, 1], [1, 0, 0]).position;
+    expect(p[0]).toBeGreaterThan(2);
+    expect(p[2]).toBeLessThan(1 - 0.5);
+    expect(Math.hypot(p[0] - 2, p[1] - 1.2, p[2] - 1)).toBeCloseTo(CLUSTER.distance, 9);
   });
 
-  test('sits centred, below eye level, at touch range', () => {
-    const s = startFollow(head(0));
-    const { position } = clusterSpot(s);
-    expect(Math.abs(position[0])).toBeLessThan(1e-9);
-    expect(position[2]).toBeLessThan(-0.2);
-    expect(position[1]).toBeLessThan(1.5 - 0.25);
-    expect(Math.hypot(position[0], position[1] - 1.5, position[2])).toBeCloseTo(FOLLOW.distance, 6);
+  test('straight up or down keeps the given heading', () => {
+    const kept = clusterHome(eye, [0, -1, 0], Math.PI / 2).position;
+    const facing = clusterHome(eye, [-1, 0, 0]).position;
+    for (let i = 0; i < 3; i++) expect(kept[i]).toBeCloseTo(facing[i]!, 9);
     expect(yawOfForward(0, 0, 0.3)).toBe(0.3);
   });
 });
