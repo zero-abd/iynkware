@@ -28,6 +28,7 @@ import {
 } from '../../shared';
 import { applyBench, benchCraft, benchOf, benchOps, loadFigureText, benchText, pickOf, wrongMotors } from '../model';
 import type { BenchAction, BenchCraft, BenchMessage, BenchState, FigureText } from '../model';
+import { benchFocusOf } from '../focus';
 import { BENCH_STRINGS as S } from './strings';
 import { benchView, lastSay, motorSequence, panelCells, toneOf, type SpinStep } from './view';
 
@@ -39,6 +40,8 @@ const SAY_S = 5;
 const SAY_FADE_S = 0.6;
 /** A part that goes on flashes this long. */
 const FLASH_S = 0.6;
+/** How long a part the crash card named stays picked out. */
+const FOCUS_S = 4;
 const SMOKE_S = 0.9;
 const MOTOR_S = 0.8;
 
@@ -197,6 +200,8 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
   let shown: BenchState | null = null;
   let anim: Anim | null = null;
   let flashLeft = 0;
+  let focusId: string | null = null;
+  let focusLeft = 0;
   let callout: Callout | null = null;
   let sayLeft = 0;
   let disposed = false;
@@ -238,6 +243,7 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
       }
     }
     shown = st;
+    if (focusId) drone.highlight(focusId);
     view.parts.forEach((pv, i) => {
       const part = craft.parts[i]!;
       const { main, turn } = partPlates[i]!;
@@ -245,7 +251,7 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
         label: text[part.short] ?? part.short,
         lang: l,
         latched: pv.state === 'on',
-        badge: pv.state === 'next' ? { text: S.t(l, 'next'), tone: 'accent' } : pv.turned ? { text: S.t(l, 'turned'), tone: 'warn' } : null,
+        badge: part.id === focusId ? { text: '!', tone: 'bad' } : pv.state === 'next' ? { text: S.t(l, 'next'), tone: 'accent' } : pv.turned ? { text: S.t(l, 'turned'), tone: 'warn' } : null,
       });
       turn?.set({ label: S.t(l, 'fitTurned'), lang: l, latched: pv.turned });
     });
@@ -315,6 +321,14 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
         if (anim.t >= SMOKE_S) finish();
       }
     }
+    if (focusLeft > 0) {
+      focusLeft -= dt;
+      if (focusLeft <= 0) {
+        focusId = null;
+        drone.highlight(null);
+        render();
+      }
+    }
     if (flashLeft > 0) {
       flashLeft -= dt;
       if (flashLeft <= 0) drone.highlight(null);
@@ -351,7 +365,21 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
       });
     }),
   );
+  // A part the crash card named: picked out for a few seconds, once.
+  const focus = benchFocusOf(app);
+  const takeFocus = () => {
+    const id = focus.value;
+    if (!id) return;
+    focus.set(null);
+    if (!craft.parts.some((p) => p.id === id)) return;
+    focusId = id;
+    focusLeft = FOCUS_S;
+    flashLeft = 0;
+    render();
+  };
+  offs.push(focus.subscribe(takeFocus));
   render();
+  takeFocus();
 
   // Arrival.
   dropIn(app.world, rig, { height: 0.08 });
