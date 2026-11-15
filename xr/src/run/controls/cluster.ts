@@ -21,7 +21,11 @@ const ORDER: readonly Control[] = ['reset', 'step', 'run', 'speed'];
 export interface Cluster {
   readonly group: Group;
   readonly plates: Readonly<Record<Control, Plate>>;
+  /** A drone's Run here, right of Run (shown by `drone(true)`). */
+  readonly here: Plate;
   readonly clock: Chip;
+  /** A drone project: only Run (Run on range) and Run here show; Reset, Step and Speed hide. */
+  drone(on: boolean): void;
   /** Puts the cluster on the rail for this posture and hand. */
   place(posture: XrSettings['posture'], hand: XrSettings['dominantHand']): void;
   /** World position of a plate's top, for cues. */
@@ -52,6 +56,13 @@ export function createCluster(app: XrApp, lang: Lang): Cluster {
     row.add(p.group);
   }
 
+  // A drone's Run here: as big as Run, just right of it (where Speed is; Speed hides for a drone).
+  const here = plateButton(app, { ...PRIMARY, primary: true }, { ...look, icon: 'run' });
+  here.hit.name = 'run:here';
+  here.group.position.x = plates.run.group.position.x + PRIMARY.w + GAP;
+  here.group.visible = false;
+  row.add(here.group);
+
   // The clock: mono at 22 dmm, lying in the rail's plane just above (beyond) the row.
   const clock = textChip({ widthDmm: 280, lines: 1, sizeDmm: 22, distanceM: 0.47, mono: true });
   clock.group.name = 'run-clock';
@@ -63,7 +74,12 @@ export function createCluster(app: XrApp, lang: Lang): Cluster {
   return {
     group,
     plates,
+    here,
     clock,
+    drone(on) {
+      plates.reset.group.visible = plates.step.group.visible = plates.speed.group.visible = !on;
+      here.group.visible = on;
+    },
     place(posture, hand) {
       const spot = runLayout(posture, hand).cluster;
       group.position.set(spot.position[0], spot.position[1], spot.position[2]);
@@ -75,6 +91,7 @@ export function createCluster(app: XrApp, lang: Lang): Cluster {
     },
     dispose() {
       for (const c of ORDER) plates[c].dispose();
+      here.dispose();
       clock.dispose();
       group.removeFromParent();
     },

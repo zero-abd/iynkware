@@ -22,6 +22,8 @@ export interface FlightHead {
 
 export interface FlightScene {
   readonly contentId: string;
+  /** Run here: flying from the drone workbench. No plates, readout, screen or hint float in the air then. */
+  readonly here: boolean;
   /** The craft's iynk content (design, figure, flight, fixes). */
   readonly content: DroneContent;
   /** The flight model's craft: rates, `camTilt`, `fov`, `hitRadius`, modes. */

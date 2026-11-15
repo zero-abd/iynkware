@@ -86,7 +86,7 @@ export const hintModule: FeatureModule = {
       if (scene === current) return;
       current = scene;
       session?.dispose();
-      session = scene ? start(app, scene) : null;
+      session = scene && !scene.here ? start(app, scene) : null;
     };
     const unsubscribe = flightSceneOf(app).subscribe(sync);
     sync(flightSceneOf(app).value);

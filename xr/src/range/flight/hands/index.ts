@@ -91,6 +91,8 @@ function start(app: XrApp, scene: FlightScene): Session {
   plates.name = 'hands-plates';
   plates.position.set(head.x + PLATE_AHEAD_M * fx + PLATE_RIGHT_M * rx, head.y - PLATE_BELOW_M, head.z + PLATE_AHEAD_M * fz + PLATE_RIGHT_M * rz);
   plates.rotation.y = faceY;
+  // Run here: nothing floats (A arms, the hand rings still fly)
+  plates.visible = !scene.here;
   scene.root.add(plates);
   const makePlate = (name: string, slot: number, icon: 'run' | 'reset', label: string, primary: boolean): Plate => {
     const p = plateButton(app, { w: PLATE_M, d: PLATE_M, standing: true, primary }, { icon, label, lang: lang() });

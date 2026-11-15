@@ -37,7 +37,8 @@ export const screenModule: FeatureModule = {
     let current: { dispose(): void } | null = null;
     const sync = (scene: FlightScene | null) => {
       current?.dispose();
-      current = scene ? openScreen(app, scene) : null;
+      // Run here has no FPV screen in the air
+      current = scene && !scene.here ? openScreen(app, scene) : null;
     };
     const off = flightSceneOf(app).subscribe(sync);
     sync(flightSceneOf(app).value);
