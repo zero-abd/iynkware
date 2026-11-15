@@ -17,8 +17,8 @@
  *   guide      -31         1.10 m     10     the lesson guide (27 degrees)
  *   side       -58         1.10 m     12     the fault panel, Look inside, the lab panel (up to 31 degrees)
  *
- * The session controls stand further round on the left (`shell/session-controls/spot.ts`, 86 degrees), fixed in the
- * room, so they never stand in front of the `side` slot.
+ * The session controls stand between the guide and the `side` slot on the left (`shell/session-controls/spot.ts`, 48
+ * degrees), just above eye level, fixed in the room, so they stand over the panels' top edges, not in front of them.
  *
  * A person can still drag any panel anywhere (`ui/panels`); Tidy up puts it back in its slot.
  */

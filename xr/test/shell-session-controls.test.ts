@@ -59,22 +59,22 @@ describe('eased move', () => {
 describe('default place of the cluster', () => {
   const eye = [0, 1.5, 0] as const;
 
-  test('on the left, out of the forward view, 0.8 to 0.9 m away and a little below eye level, facing the eyes', () => {
+  test('about 48 degrees left, 0.8 to 0.9 m away and just above eye level, facing the eyes', () => {
     const { position: p, faceTo } = clusterHome(eye, [0, 0, -1]);
     expect(Math.hypot(p[0] - eye[0], p[1] - eye[1], p[2] - eye[2])).toBeCloseTo(CLUSTER.distance, 9);
     expect(CLUSTER.distance).toBeGreaterThanOrEqual(0.8);
     expect(CLUSTER.distance).toBeLessThanOrEqual(0.9);
-    // left of the heading (looking down -z, left is -x), round past the panel ring's side slot, still ahead of the
-    // shoulders (about 0.1 m behind the eyes)
-    expect(p[0]).toBeLessThan(-0.8);
-    expect(p[2]).toBeLessThan(0);
+    // left of the heading (looking down -z, left is -x), half way round (owner, 2026-11-15: 45 to 50 degrees)
+    expect(p[0]).toBeLessThan(-0.5);
+    expect(p[2]).toBeLessThan(-0.5);
     const off = Math.atan2(-p[0], -p[2]) / DEG;
     expect(off).toBeCloseTo(-CLUSTER.sideDeg, 6);
-    expect(off).toBeGreaterThan(45);
-    // below eye level, but well above the bench top (eye height minus 0.47 m)
+    expect(off).toBeGreaterThanOrEqual(45);
+    expect(off).toBeLessThanOrEqual(50);
+    // a couple of degrees above eye level, over the companion and the ring's panels
     expect(p[1]).toBeCloseTo(1.5 - CLUSTER.distance * Math.sin(CLUSTER.belowDeg * DEG), 9);
-    expect(p[1]).toBeLessThan(1.5 - 0.05);
-    expect(p[1]).toBeGreaterThan(1.5 - 0.4);
+    expect(p[1]).toBeGreaterThan(1.5);
+    expect(p[1]).toBeLessThan(1.5 + 0.08);
     expect(faceTo).toEqual(eye);
   });
 
@@ -160,15 +160,18 @@ describe('exit guard', () => {
 });
 
 describe('the heading Recentre uses', () => {
-  const CL = 86 * DEG; // the cluster, on the left of a person facing yaw 0
+  const CL = 48 * DEG; // the cluster, on the left of a person facing yaw 0
 
   test('turning to the buttons on the left keeps the heading held before', () => {
     const h = headingTracker(0);
     for (let i = 0; i < 60; i++) h.update(0, CL, 1 / 60);
-    // A smooth quarter turn to the left in a third of a second, then reading the buttons for two seconds.
-    for (let i = 1; i <= 20; i++) h.update((90 * DEG * i) / 20, CL, 1 / 60);
-    for (let i = 0; i < 120; i++) h.update(90 * DEG, CL, 1 / 60);
-    expect(h.heading(90 * DEG, CL)).toBeCloseTo(0, 9);
+    // A smooth turn to the buttons on the left in a third of a second, then reading them for two seconds.
+    for (let i = 1; i <= 20; i++) h.update((CL * i) / 20, CL, 1 / 60);
+    for (let i = 0; i < 120; i++) h.update(CL, CL, 1 / 60);
+    expect(h.heading(CL, CL)).toBeCloseTo(0, 9);
+    // straight ahead is never a look at the buttons
+    expect(h.heading(0, CL)).toBeCloseTo(0, 9);
+    expect(h.heading(-5 * DEG, CL)).toBeCloseTo(-5 * DEG, 9);
   });
 
   test('a new heading held for half a second elsewhere is the heading', () => {
@@ -181,7 +184,7 @@ describe('the heading Recentre uses', () => {
   test('a glance does not count, and a head not at the buttons is its own heading', () => {
     const h = headingTracker(0);
     for (let i = 0; i < 15; i++) h.update(-120 * DEG, CL, 1 / 60);
-    expect(h.heading(80 * DEG, CL)).toBeCloseTo(0, 9);
+    expect(h.heading(60 * DEG, CL)).toBeCloseTo(0, 9);
     expect(h.heading(-30 * DEG, CL)).toBeCloseTo(-30 * DEG, 9);
     expect(h.heading(10 * DEG, null)).toBeCloseTo(10 * DEG, 9);
     h.reset(0.4);

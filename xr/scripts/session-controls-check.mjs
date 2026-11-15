@@ -1,5 +1,5 @@
-// Home, Recentre and Exit in the IWER emulator, headless: enter a session; the cluster sits on the left, 0.8 to 0.9 m
-// away, a little below eye level, facing the head, with a grip bar; drag it by controller ray and trigger, then by hand
+// Home, Recentre and Exit in the IWER emulator, headless: enter a session; the cluster sits about 48 degrees left, 0.8
+// to 0.9 m away, just above eye level, facing the head, with a grip bar; drag it by controller ray and trigger, then by hand
 // pinch; turn and walk away (it stays put in the room); press Recentre with a controller ray (the bench eases to in front
 // of the head and the cluster comes back beside it); press Home (Home opens in front of the turned head), turn back and
 // pinch Home by hand (Home comes round to the new view); the menu's Tidy up puts a moved cluster back; a moved cluster
@@ -87,7 +87,7 @@ const clusterFrom = (deg) =>
     const left = -(dx * Math.cos(a) - dz * Math.sin(a));
     return { d: +Math.hypot(dx, p[1] - e[1], dz).toFixed(3), leftDeg: +((Math.atan2(left, along) * 180) / Math.PI).toFixed(1), below: +(e[1] - p[1]).toFixed(3) };
   }, deg);
-const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg > 78 && c.leftDeg < 94 && c.below > 0.05 && c.below < 0.4;
+const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg >= 43 && c.leftDeg <= 53 && c.below < 0 && c.below > -0.1;
 
 // Turn the head about the y axis and aim a controller ray at a button.
 const turn = async (deg, pos = { x: 0, y: 1.2, z: 0 }) => {
@@ -153,7 +153,7 @@ await page.evaluate(() => localStorage.removeItem('iynk:xr:panels:v1'));
 await boot();
 check('controls shown in the session', await waitFor(() => window.iynkware.world.scene.getObjectByName('session-controls')?.visible === true, null, 8000), await page.evaluate(() => window.iynkware.app.mode.value));
 const start = await clusterFrom(0);
-check('on the left, out of the forward view, 0.8 to 0.9 m away, a little below eye level', atDefault(start), start);
+check('about 48 degrees left, 0.8 to 0.9 m away, just above eye level', atDefault(start), start);
 check('turned to face the head', (await page.evaluate(() => window.__facing('session-controls'))) > 0.98);
 check('the cluster has the grip bar and it takes rays', await page.evaluate((g) => window.__hittable(g), GRIP));
 if (SHOT) await page.screenshot({ path: SHOT });
@@ -177,7 +177,7 @@ await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
 await sleep(600);
 
 // 3. Turn the head and walk: the cluster stays where it is in the room.
-await turn(90);
+await turn(48);
 await sleep(2500);
 const p3 = await page.evaluate(() => window.__spot('session-controls'));
 check('fixed in the room: turning and walking leave it put', dist(p2, p3) < 0.005, { before: r3(p2), after: r3(p3) });
@@ -189,7 +189,7 @@ const before = await page.evaluate(() => window.iynkware.app.bench.benchTop.valu
 await press('button:session/recentre');
 await sleep(1200);
 const after = await page.evaluate(() => window.iynkware.app.bench.benchTop.value);
-// Head at (0, 1.2, 0), facing -z before it turned 90 degrees left to the cluster: the bench is ahead at negative z.
+// Head at (0, 1.2, 0), facing -z before it turned 48 degrees left to the cluster: the bench is ahead at negative z.
 check('Recentre while looking at the buttons puts the bench in front of the heading held before', after.position[2] < -0.3 && Math.abs(after.position[0]) < 0.1 && Math.abs(after.yawRad) < 0.05, { before, after });
 const rec = await clusterFrom(0);
 check('Recentre brings the cluster back to its place on the left of that heading', atDefault(rec), rec);
@@ -201,7 +201,7 @@ await page.evaluate(() => window.iynkware.app.shell.closeHome());
 await sleep(600);
 await press('button:session/home');
 await sleep(1000);
-const turned = await homeFrom(90);
+const turned = await homeFrom(48);
 check('Home button opens Home in front of the turned head', !!turned && turned.along > 0.6 && Math.abs(turned.across) < 0.25, turned);
 
 // Turn back and pinch Home by hand while Home is still open: it comes round to the new view.
