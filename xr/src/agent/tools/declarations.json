@@ -329,7 +329,7 @@
   },
   {
     "name": "go_to",
-    "description": "Go anywhere in the app from wherever the person is, leaving what is open first: a lab (chemistry, physics, electrical, signals and systems), the drone, the workbench, room size, Home, a template (blink, button, servo, piano, robot …), a saved project by name, or 'new project': a new empty workbench (a blank Uno bench) to build their own thing. Use it for 'go to', 'open', 'switch to', 'take me to', and for 'start empty', 'clear the bench', 'start from scratch'.",
+    "description": "Go anywhere in the app from wherever the person is, leaving what is open first: a lab (chemistry, physics, electrical, signals and systems), the drone workbench (where they build, wire and test the drone: where 'drone workbench'), flying the drone in the Range (where 'fly the drone'), the circuit workbench ('workbench'), room size, Home, a template (blink, button, servo, piano, robot …), a saved project by name, or 'new project': a new empty workbench (a blank Uno bench) to build their own thing. Use it for 'go to', 'open', 'switch to', 'take me to', and for 'start empty', 'clear the bench', 'start from scratch'.",
     "parameters": {
       "type": "OBJECT",
       "properties": {

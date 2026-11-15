@@ -20,6 +20,26 @@ describe('destinations by name', () => {
     expect(at('the moon')).toBeNull();
   });
 
+  it('tells the drone workbench from flying the drone and from the circuit bench', () => {
+    for (const w of ['drone workbench', 'the drone bench', 'back to the drone workbench', 'build the drone', 'assemble the quad', 'test the drone motors', 'Drohnenwerkbank']) {
+      expect(at(w)).toEqual({ kind: 'droneBench' });
+    }
+    for (const w of ['fly the drone', 'drone fly test', 'the drone flight range', 'range', 'drone', 'the drone project']) expect(at(w)).toEqual({ kind: 'drone' });
+    for (const w of ['workbench', 'circuit bench', 'circuit']) expect(at(w)).toEqual({ kind: 'bench' });
+    expect(at('tiny whoop bench')).toEqual(expect.objectContaining({ kind: 'craft', at: 'bench' }));
+    expect(at('long range')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-longrange' }));
+    expect(at('long range drone bench')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-longrange', at: 'bench' }));
+    expect(at('tiny whoop')).not.toEqual(expect.objectContaining({ at: 'bench' }));
+    expect(at('tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft' }));
+  });
+
+  it('typed drone requests go to the drone, not the circuit build', () => {
+    expect(intentOf('build the drone')).toEqual({ kind: 'go', where: 'build the drone' });
+    expect(intentOf('fly the drone')).toEqual({ kind: 'go', where: 'fly the drone' });
+    expect(intentOf('go to the drone workbench')).toEqual({ kind: 'go', where: 'the drone workbench' });
+    expect(intentOf('build blink with me')).toEqual(expect.objectContaining({ kind: 'build' }));
+  });
+
   it('typed requests become go_to', () => {
     expect(intentOf('go to the drone project')).toEqual({ kind: 'go', where: 'the drone project' });
     expect(intentOf('switch to my signals and systems lab')).toEqual({ kind: 'go', where: 'my signals and systems lab' });
@@ -46,7 +66,8 @@ describe('go_to and the controls', () => {
     const { h, went } = setup();
     expect((await NAV_RUNS.go_to!(h, { where: 'signals lab' })).ok).toBe(true);
     expect((await NAV_RUNS.go_to!(h, { where: 'drone' })).ok).toBe(true);
-    expect(went).toEqual([{ kind: 'lab', lab: 'signals' }, { kind: 'drone' }]);
+    expect((await NAV_RUNS.go_to!(h, { where: 'drone workbench' })).ok).toBe(true);
+    expect(went).toEqual([{ kind: 'lab', lab: 'signals' }, { kind: 'drone' }, { kind: 'droneBench' }]);
     const r = await NAV_RUNS.go_to!(h, { where: 'the moon' });
     expect(r.ok).toBe(false);
     expect(r.try).toEqual(expect.arrayContaining(['drone', 'signals lab']));
