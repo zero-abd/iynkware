@@ -1,6 +1,6 @@
 /**
- * The companion: a small inked figure (a mustard body in three bands, two ink eyes, an ink nib it points with, an ink
- * silhouette and the flat blue shadow on the mat), in the bench's table frame (metres, +z toward the person). It
+ * The companion: a small inked bunny (a white body in three bands, tall ears, ink eyes and nose, an ink silhouette and
+ * the flat blue shadow on the mat), in the bench's table frame (metres, +z toward the person). It
  * hovers at the bench edge, points its nib and an ink leader at an anchor, and flies along eased arcs. Under reduced
  * motion a flight is a short fade out and in at the far end, and nothing bobs or wobbles (XR_DESIGN.md 11.2).
  *
@@ -11,7 +11,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   CircleGeometry,
-  ConeGeometry,
   Group,
   LineBasicMaterial,
   LineSegments,
@@ -25,7 +24,7 @@ import type { Unsubscribe } from '../../contracts/common';
 import { shadowOffset } from '../../look/light';
 import { easeIynk } from '../../look/motion';
 import type { MotionRunner } from '../../look/motion';
-import { FIGURE_ACCENT, hexNum, INK, SHADOW } from '../../look/palette';
+import { hexNum, INK, SHADOW } from '../../look/palette';
 import { motionOf, onLookFrame } from '../../look/runner';
 import { bodyMaterial, hullOf, merge, outlineMaterial, paintBands, paintFlat } from './ink';
 import { arcLift, arcPoint, flightMs, turnTo, yawTowards } from './pose';
@@ -60,22 +59,39 @@ export interface Companion {
 
 /** Body radius, metres: about a ping-pong ball, small beside the work. */
 export const BODY_R = 0.02;
-const NIB_H = 0.014;
 const OUTLINE = 0.0011;
 
+/** The bunny's white, a touch warmer than the paper so it reads against the mat. */
+const FUR = '#fbf8f1';
+
+/** A sphere of radius `BODY_R`, squashed to `sx, sy, sz`, tipped by `tilt` about z, at `x, y, z` (all in BODY_R). */
+function blob(sx: number, sy: number, sz: number, x: number, y: number, z: number, tilt = 0, seg = 16): BufferGeometry {
+  const g = new SphereGeometry(BODY_R, seg + 4, seg);
+  g.scale(sx, sy, sz);
+  if (tilt) g.rotateZ(tilt);
+  g.translate(x * BODY_R, y * BODY_R, z * BODY_R);
+  return g;
+}
+
+/**
+ * The companion as an inked bunny (sitting, facing +z): a pear body, a round head, two tall ears leaning apart, little
+ * feet, two ink eyes and a nose. One merged geometry in the look kit's bands, so the hull outline makes the thick ink
+ * line. The body centre stays at the origin, so flights and pointing are unchanged.
+ */
 function figureGeometry(): BufferGeometry {
-  const body = new SphereGeometry(BODY_R, 22, 16);
-  body.scale(1, 1.12, 1);
-  const nib = new ConeGeometry(BODY_R * 0.36, NIB_H, 12);
-  nib.rotateX(Math.PI / 2);
-  nib.translate(0, -BODY_R * 0.05, BODY_R * 0.88 + NIB_H / 2);
-  const eye = (x: number) => {
-    const e = new SphereGeometry(BODY_R * 0.15, 10, 8);
-    e.scale(1, 1.25, 0.6);
-    e.translate(x, BODY_R * 0.32, BODY_R * 0.86);
-    return paintFlat(e, INK);
-  };
-  return merge([paintBands(body, FIGURE_ACCENT), paintFlat(nib, INK), eye(-BODY_R * 0.38), eye(BODY_R * 0.38)]);
+  const fur = (g: BufferGeometry) => paintBands(g, FUR);
+  const ink = (g: BufferGeometry) => paintFlat(g, INK);
+  return merge([
+    fur(blob(0.82, 0.95, 0.78, 0, -0.1, 0)), // body
+    fur(blob(0.34, 0.2, 0.42, -0.42, -0.95, 0.42, 0, 10)), // feet
+    fur(blob(0.34, 0.2, 0.42, 0.42, -0.95, 0.42, 0, 10)),
+    fur(blob(0.66, 0.6, 0.62, 0, 1.05, 0.1)), // head
+    fur(blob(0.2, 0.72, 0.14, -0.26, 2.05, -0.02, 0.16, 12)), // ears
+    fur(blob(0.2, 0.72, 0.14, 0.3, 2.05, -0.02, -0.2, 12)),
+    ink(blob(0.075, 0.1, 0.05, -0.24, 1.12, 0.66, 0, 8)), // eyes
+    ink(blob(0.075, 0.1, 0.05, 0.24, 1.12, 0.66, 0, 8)),
+    ink(blob(0.08, 0.05, 0.05, 0, 0.96, 0.7, 0, 8)), // nose
+  ]);
 }
 
 export function createCompanion(world: World, opts: { home: Vector3; top: () => { halfW: number; halfD: number } }): Companion {
@@ -168,9 +184,10 @@ export function createCompanion(world: World, opts: { home: Vector3; top: () => 
     leader.visible = pointing && opacity > 0.01;
     if (leader.visible) {
       const a = leaderPos.array as Float32Array;
-      a[0] = pos.x + Math.sin(yaw) * (BODY_R + NIB_H);
-      a[1] = pos.y + figure.position.y;
-      a[2] = pos.z + Math.cos(yaw) * (BODY_R + NIB_H);
+      // from the nose
+      a[0] = pos.x + Math.sin(yaw) * BODY_R * 0.75;
+      a[1] = pos.y + figure.position.y + BODY_R * 0.96;
+      a[2] = pos.z + Math.cos(yaw) * BODY_R * 0.75;
       a[3] = pointAt.x;
       a[4] = pointAt.y;
       a[5] = pointAt.z;
