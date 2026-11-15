@@ -45,7 +45,7 @@ test("locks a single-use token to Gemini Live audio", () => {
   assert.deepEqual(LOCKED_LIVE_CONFIG.inputAudioTranscription, {});
   assert.deepEqual(LOCKED_LIVE_CONFIG.outputAudioTranscription, {});
   assert.equal(LOCKED_LIVE_CONFIG.realtimeInputConfig.automaticActivityDetection.disabled, true);
-  assert.equal(LOCKED_LIVE_CONFIG.historyConfig.initialHistoryInClientContent, true);
+  assert.match(SYSTEM_INSTRUCTION, /Respond in English/);
   assert.deepEqual(LOCKED_LIVE_CONFIG.tools, []);
   assert.match(SYSTEM_INSTRUCTION, /UNTRUSTED_BENCH_CONTEXT/);
   assert.match(SYSTEM_INSTRUCTION, /never claim to change/i);

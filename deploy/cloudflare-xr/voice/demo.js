@@ -3,10 +3,10 @@ import {
   GEMINI_MODEL as MODEL,
   TOOLS_VERSION,
 } from './policy.mjs';
-import { controllerTalkPressed, runtimeBridge, untrustedContext } from './client-core.mjs';
+import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
-const DEVICE_KEY = 'iynkware:voice-device:v1';
+const DEVICE_KEY = 'iynkware:voice-device:v2';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold B in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
@@ -131,7 +131,6 @@ function onMessage(event) {
   }
   if (message.setupComplete) {
     clearTimeout(connectTimer); connectTimer = undefined;
-    socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:untrustedContext(bridge.context())}]}],turnComplete:true}}));
     setupReady = true;
     socket.send(JSON.stringify({realtimeInput:{activityStart:{}}}));
     for (const chunk of pendingAudio) sendAudio(chunk);

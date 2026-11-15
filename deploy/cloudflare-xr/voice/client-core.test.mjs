@@ -35,14 +35,12 @@ test("maps the locked SDK-style config to a raw Live setup", () => {
     inputAudioTranscription: {},
     outputAudioTranscription: {},
     realtimeInputConfig: { automaticActivityDetection: { disabled: true } },
-    historyConfig: { initialHistoryInClientContent: true },
     tools: [],
   };
   const setup = rawSetup("models/test", config);
   assert.equal(setup.model, "models/test");
   assert.deepEqual(setup.generationConfig.responseModalities, ["AUDIO"]);
   assert.deepEqual(setup.tools, []);
-  assert.equal(setup.historyConfig.initialHistoryInClientContent, true);
   assert.equal(setup.realtimeInputConfig.automaticActivityDetection.disabled, true);
 });
 
