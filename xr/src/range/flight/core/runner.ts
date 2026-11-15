@@ -91,7 +91,7 @@ export interface FlightRunner {
   disarm(): void;
   /** The A button. */
   toggleArm(): void;
-  /** The B button: back to the pad. */
+  /** The Y button: back to the pad. */
   reset(): void;
   setMode(id: string): void;
   setDesign(calc: CalcOutputs, faults?: CraftFaults): void;

@@ -488,7 +488,7 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   world-locked, rendered at 15 Hz [custom]), never your eyes. Y (C) or the view button cycles them.
 - **Controllers, mode 2:** left y = climb rate (centre holds altitude: the climb mode of `readSticks`, since Quest
   sticks spring back), left x = yaw, right y = pitch, right x = roll. A arms and disarms (arming only with sticks
-  centred and the craft level), B resets to the pad, X replays the last crash. Mode 1 in settings. Rates come from
+  centred and the craft level), Y resets to the pad, X replays the last crash. Mode 1 in settings. Rates come from
   the craft.
 - **Hands, virtual sticks** (`app.input.stick`; the ring is [custom]): pinch in the air in front of the chest, off
   any target: an ink gimbal ring appears at the pinch point and the hand's offset from it is the stick: 60 mm is full
@@ -504,7 +504,7 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   trail. A 0.40 m timeline under the card has a playhead (pinch drag to scrub), Play and Pause, and marks for events
   (stick spikes, motors saturated, battery sag) with labels. The camera does not move.
 - **Robots on the floor:** at 1:1 on the real floor, starting 1.0 m ahead, inside the guardian inset 0.3 m.
-  Controllers: left stick arcade drive (y speed, x turn), A stop, B reset. Hands: one virtual stick on the dominant
+  Controllers: left stick arcade drive (y speed, x turn), A stop, Y reset. B on the right controller is only the hands on and off switch. Hands: one virtual stick on the dominant
   hand, same numbers. A dashed ink trail shows the last 5 s of path. Obstacles are virtual, placed by the lesson.
 
 ## 9. Spatial UI kit

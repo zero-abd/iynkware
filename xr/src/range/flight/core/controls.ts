@@ -22,15 +22,15 @@ export interface ControllerFrame {
   readonly sticks: Sticks;
   /** A went down: arm, or disarm when armed. */
   arm: boolean;
-  /** B went down: back to the pad. */
+  /** Y went down: back to the pad. */
   reset: boolean;
 }
 
 export const newControllerFrame = (): ControllerFrame => ({ sticks: { throttle: 0.5, yaw: 0, pitch: 0, roll: 0 }, arm: false, reset: false });
 
-/** The controller buttons of the room: A (right lower) arms and disarms, B (right upper) resets. */
+/** The controller buttons of the room: A (right lower) arms and disarms, Y (left upper) resets. B is the input switch's. */
 export const ARM_BUTTON = { hand: 'right', which: 'lower' } as const satisfies { hand: Hand; which: FaceButton };
-export const RESET_BUTTON = { hand: 'right', which: 'upper' } as const satisfies { hand: Hand; which: FaceButton };
+export const RESET_BUTTON = { hand: 'left', which: 'upper' } as const satisfies { hand: Hand; which: FaceButton };
 
 /** Reads this frame's thumbsticks and buttons into `out` (mode `layout`, `expo` from `controllerExpo`). */
 export function readController(src: PadSource, layout: StickLayout, expo: number, out: ControllerFrame): ControllerFrame {

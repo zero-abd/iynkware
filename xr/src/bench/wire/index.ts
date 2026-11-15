@@ -133,7 +133,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
     else p.loss.lost(now, 'wire');
     if (p.loss.update(now) === 'drop') return stop();
     if (pose && p.ended) return stop();
-    const upper = app.input.button(p.hand, 'upper').pressed;
+    const upper = app.input.button('left', 'upper').pressed;
     const cancel = upper && !p.upper;
     p.upper = upper;
     if (cancel) return stop();
@@ -158,7 +158,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
       from,
       loss: createTrackingLoss(),
       ended: false,
-      upper: app.input.button(press.hand, 'upper').pressed,
+      upper: app.input.button('left', 'upper').pressed,
       start: _o.clone(),
       end: _o.clone(),
     };
@@ -167,7 +167,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
       keepHover: true,
       end() {
         if (cur !== p) return;
-        if (app.input.button(p.hand, 'upper').pressed) return stop();
+        if (app.input.button('left', 'upper').pressed) return stop();
         if (!app.input.pose(p.hand)) {
           p.ended = true;
           return;

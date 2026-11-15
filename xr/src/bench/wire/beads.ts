@@ -4,7 +4,7 @@
  * bead and a pinch lower on the cell still starts a new wire. Grab one (pinch hold near or on the ray, grip near, trigger
  * hold on the ray) and that end lifts: the wire is drawn live from the kept end to the hand (the pending wire), the drawn
  * wire hides, and the router's ring shows the cell it would land on. Release on a ringed cell moves the end
- * (`moveWireEnd`, one undo), off any cell pulls the wire out (`removeWire`, one undo), B or Y cancels. Under
+ * (`moveWireEnd`, one undo), off any cell pulls the wire out (`removeWire`, one undo), Y cancels (B is the input switch's). Under
  * `BEADS_ALWAYS_MAX` wires every bead shows; above that only those of the hovered or selected wire.
  *
  * The beads and their colliders are rebuilt on `onLayout` and scale change, never per frame.
@@ -368,7 +368,7 @@ export function createWireBeads(deps: BeadDeps): WireBeads {
       tracker: createPressTracker(),
       hidden: drawnOf(b.wire),
       ended: false,
-      upper: app.input.button(hand, 'upper').pressed,
+      upper: app.input.button('left', 'upper').pressed,
     };
     d.tracker.start(performance.now(), pose?.position[0] ?? 0, pose?.position[1] ?? 0, pose?.position[2] ?? 0);
     for (const o of d.hidden) o.visible = false;
@@ -426,7 +426,7 @@ export function createWireBeads(deps: BeadDeps): WireBeads {
         restoreBox(b);
         const d = drag;
         if (!d || d.bead !== b) return;
-        if (app.input.button(d.hand, 'upper').pressed) return stop();
+        if (app.input.button('left', 'upper').pressed) return stop();
         if (!app.input.pose(d.hand)) {
           d.ended = true;
           return;
@@ -447,7 +447,7 @@ export function createWireBeads(deps: BeadDeps): WireBeads {
     else d.loss.lost(now, 'wire');
     if (d.loss.update(now) === 'drop') return stop();
     if (pose && d.ended) return stop();
-    const upper = app.input.button(d.hand, 'upper').pressed;
+    const upper = app.input.button('left', 'upper').pressed;
     const cancel = upper && !d.upper;
     d.upper = upper;
     if (cancel) return stop();

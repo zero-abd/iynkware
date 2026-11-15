@@ -74,7 +74,7 @@ function questPads(profiles?: string[]) {
 const centred = (): Sticks => ({ throttle: 0.5, yaw: 0, pitch: 0, roll: 0 });
 
 describe('the Quest controller layout through IWSDK', () => {
-  it('reads the thumbstick from axes 2 and 3 and A and B from buttons 4 and 5 (xr-standard)', () => {
+  it('reads the thumbstick from axes 2 and 3, A from button 4 and Y from button 5 (xr-standard)', () => {
     const { pads, service, frame } = questPads();
     const out = newControllerFrame();
     // the touchpad slots (axes 0 and 1) are not the stick
@@ -93,7 +93,7 @@ describe('the Quest controller layout through IWSDK', () => {
     readController(service, 2, 0, out);
     expect(out.arm).toBe(false);
 
-    pads.right.gamepad.buttons[5]!.pressed = true; // B
+    pads.left.gamepad.buttons[5]!.pressed = true; // Y (B is the input switch)
     frame();
     readController(service, 2, 0, out);
     expect(out.reset).toBe(true);
