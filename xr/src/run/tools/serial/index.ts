@@ -54,6 +54,8 @@ export function mountSerial(app: XrApp): Unsubscribe {
   let seenNetlist: object | null = null;
 
   const panel = createPanel(app, PANEL_W, PANEL_H, 'run-serial-panel');
+  // named so a lab can tell the circuit bench's things from its own (lab/scope.ts)
+  if (!panel.group.name) panel.group.name = 'run:serial:panel';
   app.bench.table.add(panel.group);
   const text = canvasFace(TEXT_W, TEXT_H, { distanceM: VIEW_M });
   text.mesh.position.set(0, PANEL_H / 2 - 0.012 - TEXT_H / 2, 0);
@@ -69,6 +71,7 @@ export function mountSerial(app: XrApp): Unsubscribe {
   // The plate on the rack's deck slot.
   const deck = plateButton(app, { w: 0.05, d: 0.044, h: 0.008 }, { icon: 'serial', label: S.t(lang(), 'plate'), lang: lang() });
   deck.hit.name = 'run:serial:plate';
+  deck.group.name = 'run:serial:deck';
   app.bench.table.add(deck.group);
 
   const paintText = (t: number) => {

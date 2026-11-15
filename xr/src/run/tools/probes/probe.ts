@@ -110,6 +110,8 @@ export function createProbe(app: XrApp, anchors: AnchorIndex, opts: ProbeOptions
   group.add(hit);
 
   const lead: Lead = createLead(opts.leadHex);
+  // named so a lab can tell the circuit bench's leads from its own things (lab/scope.ts)
+  lead.mesh.name = 'run:probe:lead';
   const table = app.bench.table;
   table.add(group);
   table.add(lead.mesh);
@@ -121,6 +123,7 @@ export function createProbe(app: XrApp, anchors: AnchorIndex, opts: ProbeOptions
   ring.renderOrder = 6;
   ring.visible = false;
   ring.raycast = () => undefined;
+  ring.name = 'run:probe:ring';
   table.add(ring);
 
   let layout = initial;

@@ -23,6 +23,7 @@ import { ACCENT, INK, PAPER } from '../../look/palette';
 import { onLookFrame } from '../../look/runner';
 import { textLabel, type TextLabel } from '../../ui/text';
 import { labOf, type LabContext } from '../context';
+import { createBenchScope } from '../scope';
 import { modelOf } from '../model/registry';
 import type { PlacedItem } from '../model/store';
 import { say } from '../text';
@@ -98,7 +99,11 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
 
   // ---- the circuit bench, hidden while a lab is open ----
   const saved = new Map<Pointerish, PointerEvents | undefined>();
+  // the circuit bench's own furniture (shelf, run cluster, rails, meter, code panel, guide …) leaves with its parts
+  const scope = createBenchScope(() => [app.bench.table, app.world.scene]);
+  let sinceScan = 0;
   const hideBench = (hide: boolean) => {
+    scope.set(hide);
     const benchRoot = app.bench.root as Pointerish;
     if (hide && saved.size === 0) {
       benchRoot.traverse((o) => {
@@ -313,6 +318,11 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     return to.worldToLocal(out);
   };
   const offFrame = onLookFrame(app.world, (dt) => {
+    sinceScan += dt;
+    if (sinceScan > 0.5) {
+      sinceScan = 0;
+      scope.rescan();
+    }
     if (list.length === 0) return;
     const k = 1 - Math.exp(-FOLLOW * Math.min(dt, 0.1));
     for (let i = 0; i < list.length; i++) {
