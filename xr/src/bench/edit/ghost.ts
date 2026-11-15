@@ -64,6 +64,35 @@ export function seatPose(
   return true;
 }
 
+/**
+ * The ghost's copy of a part material, one per source material and kept for the session: disposing it at the end of a
+ * carry would release its shader program, and the next grab would compile it again mid-frame.
+ */
+const ghosts = new WeakMap<Material, Material>();
+function ghostOf(m: Material): Material {
+  let c = ghosts.get(m);
+  if (c) return c;
+  c = m.clone();
+  const u = (c as { uniforms?: { uOpacity?: { value: number } } }).uniforms;
+  if (u?.uOpacity) u.uOpacity.value = GHOST_OPACITY;
+  else (c as Material & { opacity: number }).opacity = GHOST_OPACITY;
+  c.transparent = true;
+  c.depthWrite = false;
+  ghosts.set(m, c);
+  return c;
+}
+
+/** The marks' materials, one per colour, shared by every ghost (as `ghostOf`, kept). */
+const marks = new Map<string, MeshBasicMaterial>();
+function markMaterial(hex: string): MeshBasicMaterial {
+  let m = marks.get(hex);
+  if (!m) {
+    m = new MeshBasicMaterial({ color: hexNum(hex), side: DoubleSide, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+    marks.set(hex, m);
+  }
+  return m;
+}
+
 function markGeometry(kind: 'dot' | 'cross' | 'tri'): BufferGeometry {
   if (kind === 'dot') {
     const g = new CircleGeometry(DOT_R, 20);
@@ -110,18 +139,10 @@ export function createGhostView(parent: Object3D, asset: PartAsset, bi: Pick<Ben
   object.name = 'bench:ghost';
   object.visible = false;
   delete object.userData.partId;
-  const owned: Material[] = [];
   const ghostify = (m: Material): Material => {
     const role = (m.userData as { inkRole?: string }).inkRole;
     if (role === 'line' || role === 'outline' || role === 'text') return m;
-    const c = m.clone();
-    const u = (c as { uniforms?: { uOpacity?: { value: number } } }).uniforms;
-    if (u?.uOpacity) u.uOpacity.value = GHOST_OPACITY;
-    else (c as Material & { opacity: number }).opacity = GHOST_OPACITY;
-    c.transparent = true;
-    c.depthWrite = false;
-    owned.push(c);
-    return c;
+    return ghostOf(m);
   };
   object.traverse((o) => {
     o.raycast = () => undefined;
@@ -137,7 +158,6 @@ export function createGhostView(parent: Object3D, asset: PartAsset, bi: Pick<Ben
   });
   parent.add(object);
 
-  const markMaterial = (hex: string) => new MeshBasicMaterial({ color: hexNum(hex), side: DoubleSide, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   const mk = (kind: 'dot' | 'cross' | 'tri', hex: string): Marks => {
     const mesh = new InstancedMesh(markGeometry(kind), markMaterial(hex), CAPACITY);
     mesh.name = `bench:ghost-${kind}`;
@@ -235,11 +255,10 @@ export function createGhostView(parent: Object3D, asset: PartAsset, bi: Pick<Ben
     dispose() {
       clear();
       object.removeFromParent();
-      for (const m of owned) m.dispose();
+      // the ghost and mark materials are shared and kept (see ghostOf)
       for (const m of kinds) {
         m.mesh.removeFromParent();
         m.mesh.geometry.dispose();
-        (m.mesh.material as Material).dispose();
         m.mesh.dispose();
       }
       tag?.dispose();

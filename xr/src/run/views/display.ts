@@ -19,6 +19,7 @@ import {
 import type { Anchor, XrAsset } from '../../contracts/assets';
 import type { PartState, PartView, PartViewFactory } from '../../contracts/part-view';
 import { INK, PAPER, hexNum } from '../../look/palette';
+import { uploadNow } from '../../look/upload';
 
 /** The shortest time between two redraws, milliseconds (at most 10 Hz). */
 export const REDRAW_MS = 100;
@@ -133,6 +134,7 @@ export const displayView: PartViewFactory = (ctx): PartView => {
   const draw = (now: number) => {
     paintRows(data, pw, ph, latest ?? { on: false, inverted: false, rows: [] });
     texture.needsUpdate = true;
+    uploadNow(texture);
     drawnKey = wantKey;
     drawnAt = now;
   };

@@ -14,6 +14,7 @@ import { fitLines, paintIcon, paintKicker, paintPlate, PLATE, PX_PER_DMM } from 
 import { ACCENT, FIGURE_ACCENT, INK, MUTED, PAPER, RULE, SHADOW } from '../../look/palette';
 import { dmm, TYPE, type TypeRole } from '../../look/type';
 import { movable } from '../../ui/panels';
+import { uploadNow } from '../../look/upload';
 
 export interface ButtonLook {
   readonly primary?: boolean;
@@ -170,6 +171,7 @@ export function createLabPanel(app: XrApp, o: { id: string; widthM: number; heig
       if (hovered === id) hovered = null;
     }
     tex.needsUpdate = true;
+    uploadNow(tex);
   };
 
   return {

@@ -10,6 +10,7 @@ import { CanvasTexture, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, Plane
 import { INK, PAPER } from '../look/palette';
 import { fitLines, paintPlate } from '../look/paint';
 import { onFontsReady, TYPE, type TypeName } from '../look/type';
+import { uploadNow } from '../look/upload';
 
 export interface TextLabel {
   readonly mesh: Mesh;
@@ -20,7 +21,7 @@ export interface TextLabel {
 export interface TextLabelOptions {
   bg?: string;
   fg?: string;
-  /** Canvas pixels per metre. */
+  /** Canvas pixels per metre (2400 by default), lowered so neither side exceeds `MAX_TEXELS`. */
   px?: number;
   /** The type role (look/type.ts); `label` by default. */
   role?: TypeName;
@@ -29,11 +30,15 @@ export interface TextLabelOptions {
   align?: 'center' | 'left';
 }
 
+/** The longest side of a label's canvas, texels (as `run/kit/face.ts`). */
+export const MAX_TEXELS = 2048;
+
 const transparent = (c: string) => /^#[0-9a-f]{6}00$/i.test(c) || /rgba\([^)]*,\s*0\)$/.test(c) || c === 'transparent';
 
 /** A label `widthM` metres wide; the canvas is `px` pixels per metre. Text wraps, then shrinks, never clips. */
 export function textLabel(widthM: number, heightM: number, opts: TextLabelOptions = {}): TextLabel {
-  const px = opts.px ?? 2400;
+  // at most MAX_TEXELS on the longer side: a bigger texture costs memory and upload time, not sharpness at that size
+  const px = Math.min(opts.px ?? 2400, MAX_TEXELS / Math.max(widthM, heightM));
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(64, Math.round(widthM * px));
   canvas.height = Math.max(32, Math.round(heightM * px));
@@ -74,6 +79,7 @@ export function textLabel(widthM: number, heightM: number, opts: TextLabelOption
     const top = (h - shadow) / 2 - ((fit.lines.length - 1) * fit.lineHeight) / 2;
     fit.lines.forEach((line, i) => g.fillText(line, x, top + i * fit.lineHeight));
     tex.needsUpdate = true;
+    uploadNow(tex);
   };
   // text drawn before the self-hosted fonts arrive is in the system stack: draw it again in Geist
   const offFonts = onFontsReady(() => draw(true));

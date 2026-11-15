@@ -8,6 +8,7 @@ import type { BufferGeometry } from '@iwsdk/core';
 import type { Lang } from '../../contracts/common';
 import { roundedQuad } from './ink';
 import { dmm } from './tokens';
+import { uploadNow } from '../../look/upload';
 
 export const SANS = '"Geist", system-ui, "Noto Sans", "Noto Sans Devanagari", "Noto Sans SC", sans-serif';
 export const MONO = '"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono", monospace';
@@ -57,6 +58,7 @@ export function canvasFace(w: number, h: number, opts: { distanceM?: number; up?
       g.clearRect(0, 0, canvas.width, canvas.height);
       fn(g, canvas.width, canvas.height);
       tex.needsUpdate = true;
+      uploadNow(tex);
     },
     dispose() {
       tex.dispose();

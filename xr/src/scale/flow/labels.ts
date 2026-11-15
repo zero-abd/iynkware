@@ -10,6 +10,7 @@ import { TAG } from '../../look/palette';
 import { dmm, TYPE } from '../../look/type';
 import { num } from '../kit/text';
 import type { NodeSpot } from './paths';
+import { uploadNow } from '../../look/upload';
 
 export const MAX_LABELS = 8;
 const COLS = 2;
@@ -159,6 +160,7 @@ export class FlowLabels {
       paintTag(g, text, cx + (CELL_W - w) / 2, cy + (CELL_H - TAG_H) / 2, w, TAG_H, { fill: i === CHIP ? TAG : undefined });
     }
     this.texture.needsUpdate = true;
+    uploadNow(this.texture);
     this.dirty = false;
   }
 

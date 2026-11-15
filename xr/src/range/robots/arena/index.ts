@@ -14,6 +14,7 @@ import { bindPlate, dropIn, fadeIn, langOf, onLookFrame, plateButton, textLabel,
 import { drawArena, type ArenaDrawing } from './draw';
 import { arenaOf, createPoseTrack, createTrail, placeArena, readoutLines, TRAIL_LIFT_M } from './model';
 import { ARENA_STRINGS as S } from './strings';
+import { warmUp } from '../../../look/upload';
 
 const PLATE_AHEAD_M = 0.45;
 const PLATE_BELOW_M = 0.38;
@@ -126,7 +127,8 @@ function enter(app: XrApp, head: Head): Session | null {
 
   // the readout stands behind the far edge, turned towards where the person stood
   const { rx, rz, fx, fz } = place;
-  const label: TextLabel = textLabel(1.5, 0.42, { role: 'label', maxLines: 5, align: 'left' });
+  // read from past the far edge: 1000 texels a metre is as sharp as the headset shows it there
+  const label: TextLabel = textLabel(1.5, 0.42, { role: 'label', maxLines: 5, align: 'left', px: 1000 });
   const behind = 1.0 + spec.depth + 0.15;
   label.mesh.position.set(head.x + behind * fx, 0.55, head.z + behind * fz);
   label.mesh.lookAt(head.x, 0.55, head.z);
@@ -267,6 +269,9 @@ function enter(app: XrApp, head: Head): Session | null {
       }
     }),
   );
+
+  // its programs compile now, in parallel, not on the first frames of the flight
+  warmUp(app.world, root);
 
   let disposed = false;
   return {

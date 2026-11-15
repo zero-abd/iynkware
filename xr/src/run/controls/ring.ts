@@ -20,6 +20,7 @@ import {
 import type { XrApp } from '../../contracts/app';
 import { drawnBox } from '../../look/ink';
 import { INK } from '../kit/tokens';
+import { uploadNow } from '../../look/upload';
 
 /** Board frame metres (real size; at the default 4x a 3 mm margin is 12 mm on the bench). */
 const MARGIN = 0.003;
@@ -106,6 +107,7 @@ export function createBoardRings(app: XrApp, reduced: () => boolean): BoardRings
   tex.wrapS = RepeatWrapping;
   tex.generateMipmaps = false;
   tex.minFilter = LinearFilter;
+  uploadNow(tex);
   const mat = new MeshBasicMaterial({ color: INK.accent, map: tex, alphaTest: 0.5, side: DoubleSide });
 
   const meshes: Mesh[] = [];

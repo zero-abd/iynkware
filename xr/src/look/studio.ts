@@ -36,6 +36,7 @@ import { DURATION } from './motion';
 import { makeCanvas } from './paint';
 import { BANDS, INK, ROOM, hexNum, mixHex } from './palette';
 import { motionOf } from './runner';
+import { uploadNow } from './upload';
 
 /** XR_DESIGN.md 2.5. */
 const DOME_R = 30;
@@ -167,6 +168,7 @@ export function mountStudio(app: XrApp, kit: InkKit): Unsubscribe {
     (dome.material as MeshBasicMaterial).color.set(tokens.paper);
     paintFloor(canvas, mixHex(tokens.paper, INK, 0.06));
     texture.needsUpdate = true;
+    uploadNow(texture);
   };
 
   const build = () => {

@@ -31,6 +31,7 @@ import { ACID_AT, dishX, LOOP_REST, SALT_DISHES } from './controls';
 import type { ChannelValue, ItemVisual, ItemVisualSource } from './visual';
 import { elementBySymbol, FAMILY_HEX } from '../elements/data';
 import { containerOf, SUBSTANCES } from '../substances/data';
+import { uploadNow } from '../../look/upload';
 
 const DEG = Math.PI / 180;
 const CLEAR = '#cfe6ee';
@@ -488,6 +489,7 @@ const BUILDERS: Readonly<Record<string, Build>> = {
       g.fillRect(0, 0, cw, ch);
       if (key === 'off') {
         tex.needsUpdate = true;
+        uploadNow(tex);
         return;
       }
       const [present, periods, divs, wave, head, meas] = key.split('|');
@@ -539,6 +541,7 @@ const BUILDERS: Readonly<Record<string, Build>> = {
         g.restore();
       }
       tex.needsUpdate = true;
+      uploadNow(tex);
     };
     draw('off');
     const time = knob(p, [0.085, 0.118, 0.103], 0.012);

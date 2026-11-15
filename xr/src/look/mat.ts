@@ -26,6 +26,7 @@ import { paintBands, smoothOutlineNormals, type InkKit } from './ink';
 import { makeCanvas } from './paint';
 import { BANDS, MAT_GRID, MUTED, type Bands } from './palette';
 import { FONT_MONO, onFontsReady } from './type';
+import { uploadNow } from './upload';
 
 /** XR_DESIGN.md 2.4: the rail is the first 0.04 m of depth, raised 0.03 m and tilted 30 degrees up towards the person. */
 export const RAIL = { depth: 0.04, raise: 0.03, tiltRad: (30 * Math.PI) / 180 } as const;
@@ -187,6 +188,7 @@ export function createWorkMat(
   const paint = () => {
     paintMatTop(canvas, w, d, bands, grid);
     texture.needsUpdate = true;
+    uploadNow(texture);
   };
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

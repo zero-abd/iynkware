@@ -5,6 +5,7 @@
  * Usage: const s = surface({ widthM: 0.52, heightM: 0.4, pxPerM: 2200 }); s.redraw(key, (g, w, h) => { ... });
  */
 import { CanvasTexture, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from '@iwsdk/core';
+import { uploadNow } from '../../look/upload';
 
 export interface Surface {
   readonly mesh: Mesh;
@@ -53,6 +54,7 @@ export function surface(opts: { widthM: number; heightM: number; pxPerM: number;
       g.clearRect(0, 0, canvas.width, canvas.height);
       draw(g, canvas.width, canvas.height);
       texture.needsUpdate = true;
+      uploadNow(texture);
       return true;
     },
     invalidate() {
