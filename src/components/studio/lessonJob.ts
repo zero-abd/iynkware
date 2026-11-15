@@ -41,11 +41,9 @@ export function lessonJobFor(project: Project, opts: LessonJobOpts = {}): CheckJ
 
   const profile = getProfile(job.board as BoardId, board.variant);
   const descriptor = getAppRegistry().get(board.definition.ref, board.definition.version);
-  const parameters = job.language === "verilog" ? project.parameters.flatMap((p) => (typeof p.value === "number" ? [[p.id, p.value] as const] : [])) : [];
   return {
     ...job,
     logicV: profile.logicV,
     nets: descriptor && descriptorNets(profile, descriptor),
-    params: parameters.length > 0 ? Object.fromEntries(parameters) : undefined,
   };
 }

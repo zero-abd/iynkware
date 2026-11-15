@@ -1,5 +1,4 @@
 import { verdictsById } from "@/components/studio/checkJob";
-import { withoutPinChecks } from "@/components/studio/lessonChecks";
 import { lessonJobFor, type JobError } from "@/components/studio/lessonJob";
 import { CHECK_BUDGET_MS, LIMIT_MESSAGE, runChecks } from "@/lib/interp";
 import type { Project } from "@/project/generated/types";
@@ -78,19 +77,11 @@ export function runTest(project: Project, testId: string | undefined, opts: Chec
   const test = project.tests.find((t) => t.id === testId);
   const id = test?.id ?? DEFAULT_RUN;
   const name = test?.name;
-  let used = project;
-  let job = lessonJobFor(used, { testId: test?.id });
-  if ("error" in job && job.error === "unsupported-language" && test) {
-    const pruned = withoutPinChecks(project, test.id);
-    if (pruned) {
-      used = pruned;
-      job = lessonJobFor(used, { testId: test?.id });
-    }
-  }
+  const job = lessonJobFor(project, { testId: test?.id });
   if ("error" in job) return skippedRun(project, id, name, job.error as SkipReason);
 
   const outcome = runChecks(job, { budgetMs: opts.budgetMs ?? CHECK_BUDGET_MS });
-  const ran = verdictsById(used.tests.find((t) => t.id === id)?.checks ?? [], outcome.results);
+  const ran = verdictsById(project.tests.find((t) => t.id === id)?.checks ?? [], outcome.results);
   const limit = outcome.trace.error?.message === LIMIT_MESSAGE;
   const checks = (test?.checks ?? []).map((c): CheckLine => {
     const verdict = ran.get(c.id);

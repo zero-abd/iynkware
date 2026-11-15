@@ -1,7 +1,7 @@
 import { CHECK_BUDGET_MS, LIMIT_MESSAGE, runChecks, type CheckJob, type CheckOutcome } from "@/lib/interp";
 import type { Project } from "@/project/generated/types";
 import type { CheckVerdict, LessonRun, Tier, TestRun } from "@/project/guided/record";
-import { PIN_KINDS, verdictsById } from "./checkJob";
+import { verdictsById } from "./checkJob";
 import { lessonJobFor } from "./lessonJob";
 
 export type { CheckVerdict, LessonRun, TestRun };
@@ -23,14 +23,6 @@ export const inlineRun: RunDeps["run"] = (job, onProgress) => {
   return { result, cancel: () => void (cancelled = true) };
 };
 
-/** The project with the pin-reading checks of one test left out, which is all a Verilog board can run. Undefined when none is left. */
-export function withoutPinChecks(project: Project, testId: string): Project | undefined {
-  const test = project.tests.find((t) => t.id === testId);
-  const [first, ...rest] = test?.checks.filter((c) => !PIN_KINDS.includes(c.kind)) ?? [];
-  if (!test || !first) return undefined;
-  return { ...project, tests: project.tests.map((t) => (t === test ? { ...t, checks: [first, ...rest] } : t)) };
-}
-
 /**
  * Runs every test of a lesson project in order, one job each. A hidden check is evaluated like a visible one.
  * Cancelling resolves with the tests finished so far, and then `passedAll` is false.
@@ -50,15 +42,7 @@ export function runLessonTests(
   async function runTest(index: number): Promise<TestRun | "cancelled"> {
     const test = project.tests[index]!;
     const jobOpts = { testId: test.id, source: opts.source };
-    let used = project;
-    let job = lessonJobFor(used, jobOpts);
-    if ("error" in job && job.error === "unsupported-language") {
-      const pruned = withoutPinChecks(project, test.id);
-      if (pruned) {
-        used = pruned;
-        job = lessonJobFor(used, jobOpts);
-      }
-    }
+    const job = lessonJobFor(project, jobOpts);
     const verdict = (c: (typeof test.checks)[number], ok: boolean, detail?: string): CheckVerdict => ({
       testId: test.id,
       checkId: c.id,
@@ -79,7 +63,7 @@ export function runLessonTests(
     const ms = Math.round(performance.now() - started);
     if (outcome.trace.error?.message === LIMIT_MESSAGE) return { testId: test.id, verdicts: [], error: null, ms, limit: true };
 
-    const ran = verdictsById(used.tests.find((t) => t.id === test.id)?.checks ?? [], outcome.results);
+    const ran = verdictsById(project.tests.find((t) => t.id === test.id)?.checks ?? [], outcome.results);
     const verdicts = test.checks.map((c) => {
       const r = ran.get(c.id);
       return r ? verdict(c, r.ok, r.detail) : verdict(c, false, "unsupported-language");
