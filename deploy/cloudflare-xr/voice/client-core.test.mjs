@@ -34,12 +34,14 @@ test("maps the locked SDK-style config to a raw Live setup", () => {
     systemInstruction: { parts: [{ text: "guide" }] },
     inputAudioTranscription: {},
     outputAudioTranscription: {},
+    historyConfig: { initialHistoryInClientContent: true },
     tools: [],
   };
   const setup = rawSetup("models/test", config);
   assert.equal(setup.model, "models/test");
   assert.deepEqual(setup.generationConfig.responseModalities, ["AUDIO"]);
   assert.deepEqual(setup.tools, []);
+  assert.equal(setup.historyConfig.initialHistoryInClientContent, true);
 });
 
 test("reads the demo-only right upper controller button", () => {

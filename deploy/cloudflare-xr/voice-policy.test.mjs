@@ -6,6 +6,7 @@ import {
   DEFAULT_DEVICE_DAILY_LIMIT,
   DEFAULT_GLOBAL_DAILY_LIMIT,
   GEMINI_MODEL,
+  LOCKED_BIDI_SETUP,
   LOCKED_LIVE_CONFIG,
   SYSTEM_INSTRUCTION,
   TOKEN_SESSION_MINUTES,
@@ -36,12 +37,14 @@ test("locks a single-use token to Gemini Live audio", () => {
   const now = Date.parse("2026-11-14T20:00:00Z");
   const request = tokenRequest(now);
   assert.equal(request.uses, 1);
-  assert.equal(request.liveConnectConstraints.model, GEMINI_MODEL);
-  assert.deepEqual(request.liveConnectConstraints.config, LOCKED_LIVE_CONFIG);
+  assert.equal(request.bidiGenerateContentSetup.model, GEMINI_MODEL);
+  assert.deepEqual(request.bidiGenerateContentSetup, LOCKED_BIDI_SETUP);
+  assert.deepEqual(request.bidiGenerateContentSetup.generationConfig.responseModalities, ["AUDIO"]);
   assert.deepEqual(LOCKED_LIVE_CONFIG.responseModalities, ["AUDIO"]);
   assert.equal(LOCKED_LIVE_CONFIG.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, "Puck");
   assert.deepEqual(LOCKED_LIVE_CONFIG.inputAudioTranscription, {});
   assert.deepEqual(LOCKED_LIVE_CONFIG.outputAudioTranscription, {});
+  assert.equal(LOCKED_LIVE_CONFIG.historyConfig.initialHistoryInClientContent, true);
   assert.deepEqual(LOCKED_LIVE_CONFIG.tools, []);
   assert.match(SYSTEM_INSTRUCTION, /UNTRUSTED_BENCH_CONTEXT/);
   assert.match(SYSTEM_INSTRUCTION, /never claim to change/i);

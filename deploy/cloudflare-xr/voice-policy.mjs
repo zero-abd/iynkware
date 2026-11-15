@@ -19,8 +19,22 @@ export const LOCKED_LIVE_CONFIG = Object.freeze({
   speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } },
   inputAudioTranscription: {},
   outputAudioTranscription: {},
+  historyConfig: { initialHistoryInClientContent: true },
   systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
   tools: [],
+});
+
+export const LOCKED_BIDI_SETUP = Object.freeze({
+  model: GEMINI_MODEL,
+  generationConfig: {
+    responseModalities: LOCKED_LIVE_CONFIG.responseModalities,
+    speechConfig: LOCKED_LIVE_CONFIG.speechConfig,
+  },
+  systemInstruction: LOCKED_LIVE_CONFIG.systemInstruction,
+  inputAudioTranscription: LOCKED_LIVE_CONFIG.inputAudioTranscription,
+  outputAudioTranscription: LOCKED_LIVE_CONFIG.outputAudioTranscription,
+  historyConfig: LOCKED_LIVE_CONFIG.historyConfig,
+  tools: LOCKED_LIVE_CONFIG.tools,
 });
 
 const DEVICE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -54,10 +68,7 @@ export function tokenRequest(now = Date.now()) {
     uses: 1,
     expireTime: new Date(now + TOKEN_SESSION_MINUTES * 60_000).toISOString(),
     newSessionExpireTime: new Date(now + TOKEN_START_SECONDS * 1_000).toISOString(),
-    liveConnectConstraints: {
-      model: GEMINI_MODEL,
-      config: LOCKED_LIVE_CONFIG,
-    },
+    bidiGenerateContentSetup: LOCKED_BIDI_SETUP,
   };
 }
 

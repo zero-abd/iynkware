@@ -150,7 +150,10 @@ async function createToken(request, env) {
   } catch {
     return error("gemini_unavailable", 502, requestId);
   }
-  if (!upstream.ok) return error("gemini_token_refused", 502, requestId);
+  if (!upstream.ok) {
+    console.warn("Gemini token request refused", { status: upstream.status, requestId });
+    return error("gemini_token_refused", 502, requestId);
+  }
   const token = await upstream.json().catch(() => null);
   if (!token || typeof token.name !== "string") return error("gemini_token_invalid", 502, requestId);
 
