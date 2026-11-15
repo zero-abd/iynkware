@@ -35,7 +35,7 @@ function setup(initial: RoomKind) {
 }
 
 describe('hand materials', () => {
-  it('draws depth only in passthrough, hides the outline, and restores', () => {
+  it('draws depth only in passthrough, keeps the outline showing the hand, and restores', () => {
     const t = setup('passthrough');
     const h = fakeHand();
     t.visuals.push({ kind: 'hand', model: h.model });
@@ -44,7 +44,8 @@ describe('hand materials', () => {
     expect(m.colorWrite).toBe(false);
     expect(m.depthWrite).toBe(true);
     expect(h.fill.renderOrder).toBe(OCCLUDER_ORDER);
-    expect(h.outline.visible).toBe(false);
+    expect(h.outline.visible).toBe(true);
+    expect(h.outline.material).toBe(h.outlineMat);
     t.skin.dispose();
     expect(h.fill.material).toBe(h.fillMat);
     expect(h.outline.material).toBe(h.outlineMat);
@@ -67,7 +68,8 @@ describe('hand materials', () => {
     expect(h.outline.visible).toBe(true);
     t.room.set('passthrough');
     expect((h.fill.material as MeshBasicMaterial).colorWrite).toBe(false);
-    expect(h.outline.visible).toBe(false);
+    expect(h.outline.visible).toBe(true);
+    expect(h.outline.material).toBe(h.outlineMat);
     t.room.set('paper');
     expect(h.fill.material).toBe(fill);
     expect(h.outline.visible).toBe(true);
