@@ -7,7 +7,8 @@
  *   store.ts     one place per panel id in the bench's frame, in localStorage (`iynk:xr:panels:v1`)
  *   registry.ts  the late pass that puts moved panels where they were left, notes each pillar's own place, tidies
  *   grip.ts      the inked grip bar, its hover and held looks, its input, and `movable(app, ...)`
- *   copy.ts      Tidy up in six languages
+ *   open.ts      `openable`: a panel or tool that starts closed and opens from its menu row (the calm layout)
+ *   copy.ts      Tidy up and the menu rows of the calm layout, in six languages
  *
  * This module adds "Tidy up" to the menu: every panel goes back to where its pillar puts it.
  */
@@ -17,6 +18,8 @@ import { panelPlacesOf, tidyPanels } from './grip';
 
 export { movable, panelPlacesOf, tidyPanels, type Movable, type MovableOptions } from './grip';
 export { REACH } from './drag';
+export { openable, openState, type Openable, type OpenableOptions } from './open';
+export { PANELS_COPY } from './copy';
 export { PLACES_KEY } from './store';
 
 export const panelsModule: FeatureModule = {

@@ -6,7 +6,8 @@
  *          current step, Scale plus, Room size. Lying plates, poke and ray, 48 mm.
  *   panel  the Look inside panel: a standing paper panel in reach zone 3 (0.80 m, 16 degrees below eye level, 38 degrees
  *          away from the dominant hand), clear of the guide, the shelf and the tools rack, one column of wide rows for
- *          the ray (poke where it reaches): See-through, Take apart, Current flow, Inspect, Paper room.
+ *          the ray (poke where it reaches): See-through, Take apart, Current flow, Inspect, Paper room. It starts closed
+ *          (the calm layout): the menu's Look inside row opens it, the Close beside its grip bar closes it.
  *
  *   const controls = scaleControls(app);
  *   const off = controls.add({
@@ -22,13 +23,14 @@
  */
 import { Group } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
-import type { Lang, ReadonlyValue, Unsubscribe, Vec3 } from '../../contracts/common';
+import { LANGS, type Lang, type ReadonlyValue, type Unsubscribe, type Vec3 } from '../../contracts/common';
 import type { InteractionEvent } from '../../contracts/input';
 import type { IconName } from '../../look/icons';
+import { panelClose, panelOpen, setPanelHit } from '../../look/moves';
 import { paintText } from '../../look/paint';
 import { MUTED, PAPER } from '../../look/palette';
 import { dmm, TYPE } from '../../look/type';
-import { movable } from '../../ui/panels';
+import { movable, openable } from '../../ui/panels';
 import { bindPlate, scalePlate, type Plate } from './plate';
 import { tr, type Strings } from './text';
 import { benchLayout, canvasFace, inkShadow, inkSolid, roundedSlab, type BenchLayout } from './ui';
@@ -157,9 +159,14 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
   standing.rotation.x = Math.PI / 2;
   panel.add(standing);
   app.bench.table.add(rail, panel);
+  // The calm layout: Look inside starts closed and opens from its menu row; the Close beside its grip closes it again.
+  const look = openable(app, { id: 'scale/look-inside', label: Object.fromEntries(LANGS.map((l) => [l, TITLE[l].title])) });
   // The shared grip bar under the panel moves it (ui/panels); it follows the panel's size.
   const first = panelGrid(1);
-  const grip = movable(app, { id: 'scale/look-inside', group: panel, width: first.w, height: first.h, distanceM: PANEL.distance, z: 0.012 });
+  const grip = movable(app, { id: 'scale/look-inside', group: panel, width: first.w, height: first.h, distanceM: PANEL.distance, z: 0.012, onClose: () => look.set(false) });
+  panel.visible = false;
+  setPanelHit(panel, false);
+  let shown = false;
 
   // The panel's own slab, shadow and title, rebuilt when its size changes.
   let back: { dispose(): void } | null = null;
@@ -220,7 +227,8 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
       [...entries.values()].filter((e) => e.control.host === host && !(e.control.hidden?.() ?? false)).sort((a, b) => a.control.order - b.control.order);
     const onRail = visible('rail');
     const onPanel = visible('panel');
-    const key = `${xr.posture}:${xr.dominantHand}:${onRail.map((e) => e.control.id).join()}|${onPanel.map((e) => e.control.id).join()}:${lang()}`;
+    const open = look.open.value && onPanel.length > 0;
+    const key = `${xr.posture}:${xr.dominantHand}:${onRail.map((e) => e.control.id).join()}|${onPanel.map((e) => e.control.id).join()}:${lang()}:${open}`;
     if (key === laidOut) return;
     laidOut = key;
 
@@ -229,7 +237,13 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
     rail.rotation.set(c.tiltRad, c.yawRad, 0, 'YXZ');
     railXs(onRail.length, bl.d).forEach((x, i) => onRail[i]!.plate.group.position.set(x, 0, 0));
 
-    panel.visible = onPanel.length > 0;
+    if (open !== shown) {
+      shown = open;
+      if (open) panelOpen(app.world, panel);
+      else panelClose(app.world, panel);
+    }
+    // Rows added while it is closed take no rays either.
+    if (!shown) setPanelHit(panel, false);
     if (onPanel.length > 0) {
       const spot = panelSpot(bl);
       panel.position.set(...spot.position);
@@ -247,10 +261,13 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
     layout();
   });
   const offXr = app.settings.xr.subscribe(() => layout());
+  const offOpen = look.open.subscribe(() => layout());
 
   const dispose = () => {
     offLang();
     offXr();
+    offOpen();
+    look.dispose();
     back?.dispose();
     grip.dispose();
     rail.removeFromParent();

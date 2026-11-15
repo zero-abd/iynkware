@@ -1,7 +1,7 @@
 /**
  * The co-builder (contracts/assistant.ts): "Build it with me". `app.ts` builds the service (`app.assistant`); this
  * module gives it a body on the bench: the companion and its ghosts become the service's presence, the proposal card
- * stands beside the work, and "Build it with me" is both a pill on the bench and a row in the Bench menu.
+ * stands beside the work, and "Build it with me" is both a pill on an empty bench and a row in the Bench menu.
  *
  *   await app.assistant.buildWithMe('prj_uno-r3-blink');        // any pillar: a guided build of a template
  *
@@ -24,6 +24,7 @@ import { localized } from './copy';
 import { createBenchPresence } from './presence';
 import { attachPresence } from './service';
 import { benchView } from './snapshot';
+import { value } from '../ui/value';
 
 /** Built when the bench has nothing on it to rebuild. */
 export const DEFAULT_TEMPLATE = 'prj_uno-r3-blink';
@@ -41,10 +42,16 @@ export const assistantModule: FeatureModule = {
     const start = () => {
       void app.assistant.buildWithMe(menuTarget(app.project.doc)).catch((err) => console.warn('[assistant] build with me', err));
     };
-    const card = createCard(app, app.assistant.session, start);
+    // The calm layout: the pill offers itself only on an empty bench, where there is nothing else to do; the menu row
+    // is always there.
+    const bare = () => (benchView(app.project.doc)?.placements?.length ?? 0) === 0;
+    const offerPill = value(bare());
+    const offDoc = app.project.subscribe(() => offerPill.set(bare()));
+    const card = createCard(app, app.assistant.session, start, offerPill);
     const offMenu = app.shell.addMenuItem({ id: 'assistant/build-with-me', group: 'bench', label: localized('menu'), run: start });
     return () => {
       offMenu();
+      offDoc();
       app.assistant.session.value?.stop();
       detach();
       card.dispose();

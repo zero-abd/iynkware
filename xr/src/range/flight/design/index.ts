@@ -3,7 +3,8 @@
  * motor and prop as option plates (a pick is one `param.set` op, one undo), the calculator's numbers, the design
  * checks with their level, the arming checklist for the bench build and a primary Fly plate that goes to the range.
  *
- * It exists while the open project is a drone and the person is at the bench; it redraws only when the project or the
+ * It exists while the open project is a drone, the person is at the bench and has opened it from the menu's Drone design
+ * row (it starts closed: the calm layout); it redraws only when the project or the
  * language changes (never per frame) and takes everything away when another project opens or the place leaves the bench.
  */
 import { Group } from '@iwsdk/core';
@@ -16,7 +17,8 @@ import { onFontsReady } from '../../../look/type';
 import { releaseEntities } from '../../../learn/kit/entities';
 import { canvasFace } from '../../../run/kit/face';
 import { PAPER } from '../../../look/palette';
-import { movable } from '../../../ui/panels';
+import { movable, openable, PANELS_COPY } from '../../../ui/panels';
+import { value } from '../../../ui/value';
 import { rangeOf } from '../../activate';
 import { bindPlate, inkShadow, inkSolid, panelOpen, plateButton, roundedSlab, type Plate } from '../../shared';
 import { benchArmRules, benchCraft, benchOf, benchReport, designView, pickOf, pickOp, type PickSlot } from '../model';
@@ -43,8 +45,14 @@ export interface DesignPanel {
   dispose(): void;
 }
 
-/** Builds the panel for a drone's content (not yet in the scene). */
-export function createDesignPanel(app: XrApp, contentId: string, content: DroneContent, first: { lang: Lang; messages: Readonly<Record<string, unknown>> }): DesignPanel {
+/** Builds the panel for a drone's content (not yet in the scene). `onClose` shows a Close beside its grip bar. */
+export function createDesignPanel(
+  app: XrApp,
+  contentId: string,
+  content: DroneContent,
+  first: { lang: Lang; messages: Readonly<Record<string, unknown>> },
+  onClose?: () => void,
+): DesignPanel {
   let lang = first.lang;
   let say = sayOf(first.messages);
   let rev = 0;
@@ -70,7 +78,7 @@ export function createDesignPanel(app: XrApp, contentId: string, content: DroneC
   face.mesh.position.z = PANEL.thick + 0.0003;
   root.add(face.mesh);
   // The shared grip bar moves it (ui/panels); on the top edge, since the sheet stands on the bench.
-  const grip = movable(app, { id: 'range/design', group: root, width: PANEL.w, height: PANEL.h, distanceM: PANEL.distanceM, edge: 'top', z: PANEL.thick + 0.003 });
+  const grip = movable(app, { id: 'range/design', group: root, width: PANEL.w, height: PANEL.h, distanceM: PANEL.distanceM, edge: 'top', z: PANEL.thick + 0.003, onClose });
   offs.push(() => grip.dispose());
 
   const plates: OptionPlate[] = [];
@@ -172,11 +180,17 @@ export const designModule: FeatureModule = {
     let token = 0;
     const lang = () => app.settings.lang.value;
 
-    /** The drone id the panel belongs to now: a drone is open and the person is at the bench. */
-    const wanted = (): string | null => {
+    /** The drone at the bench: a drone is open and the person is at the bench. */
+    const here = (): string | null => {
       const r = range.value;
       return r && r.kind === 'drone' && app.shell.place.value === 'bench' ? r.contentId : null;
     };
+    // The calm layout: the panel starts closed; the menu's Drone design row (there while a drone is at the bench) opens
+    // it, and the Close beside its grip bar closes it again.
+    const atBench = value(here() !== null);
+    const design = openable(app, { id: 'range/design', label: PANELS_COPY.droneDesign, available: atBench });
+    /** The drone id the panel belongs to now: a drone is at the bench and the person opened the panel. */
+    const wanted = (): string | null => (design.open.value ? here() : null);
 
     const drop = () => {
       token++;
@@ -185,6 +199,7 @@ export const designModule: FeatureModule = {
     };
 
     const sync = () => {
+      atBench.set(here() !== null);
       const id = wanted();
       if (!id) {
         drop();
@@ -196,7 +211,7 @@ export const designModule: FeatureModule = {
       const l = lang();
       void Promise.all([loadDroneContent(id as DroneId), loadDroneLabText(l)]).then(([content, messages]) => {
         if (mine !== token || !content) return;
-        const panel = createDesignPanel(app, id, content, { lang: lang(), messages });
+        const panel = createDesignPanel(app, id, content, { lang: lang(), messages }, () => design.set(false));
         app.bench.table.add(panel.group);
         panelOpen(app.world, panel.group);
         current = { id, panel };
@@ -216,11 +231,13 @@ export const designModule: FeatureModule = {
     const offs = [
       range.subscribe(sync),
       app.shell.place.subscribe(sync),
+      design.open.subscribe(sync),
       app.project.subscribe(() => current?.panel.refresh()),
       app.settings.lang.subscribe(() => void relang()),
     ];
     return () => {
       for (const off of offs) off();
+      design.dispose();
       drop();
     };
   },
