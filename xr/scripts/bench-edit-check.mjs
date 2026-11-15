@@ -256,6 +256,113 @@ await page.evaluate(() => window.iynkware.app.project.undo());
 await sleep(700);
 check('undo puts the resistor back in its holes', JSON.stringify(await legsOf('cmp_res1')) === JSON.stringify(res0), await legsOf('cmp_res1'));
 
+// ---------------------------------------------------------------------------------------------------- 2b. take apart: pull, lay loose, pick up, reseat, put back on a bin
+const wiresOf = (id) => page.evaluate((c) => JSON.stringify(window.iynkware.app.project.doc.views.find((v) => v.kind === 'breadboard').wires ?? []).split(`"${c}"`).length - 1, id);
+const worldNow = (id) => page.evaluate((c) => window.__centre(c), id);
+const binCentre = () =>
+  page.evaluate(() => {
+    const o = window.iynkware.world.scene.getObjectByName('bench:shelf-bin:0');
+    o.updateWorldMatrix(true, false);
+    return o.getWorldPosition(o.position.clone()).toArray();
+  });
+const frameLit = () =>
+  page.evaluate(() => {
+    let lit = 0;
+    window.iynkware.world.scene.traverse((o) => {
+      if (o.name === 'bench:shelf-bin-frame' && o.visible) lit++;
+    });
+    return lit;
+  });
+/** Grabs `id` where it is, lifts it, runs `move`, and lets go (hand: pinch; controller: grip). Returns the new device position. */
+const takeApart = async (label, device, side, grip, id, partLegs, firstPin, seatHole, moveDelta) => {
+  const hands = device.startsWith('hand');
+  const down = (on) => (hands ? press(device, on) : page.evaluate(([d, v]) => window.__x('set_gamepad_state', { device: d, buttons: [{ index: 1, value: v }], axes: [] }), [device, on ? 1 : 0]));
+  const grab = async (lift) => {
+    const at = await worldNow(id);
+    let p = await place(device, side, add(sub(at, grip), [0, 0.05, 0]));
+    p = await glide(device, side, p, sub(at, grip), 5);
+    await sleep(250);
+    await down(true);
+    await sleep(300);
+    return glide(device, side, p, add(p, [0, lift, 0]), 5);
+  };
+  // 1. pull it out of its holes (past one pitch), carry it off the board, let go: it lies loose on the mat
+  const rev0 = await page.evaluate(() => window.iynkware.app.project.revision);
+  let p = await grab(0.02);
+  p = await glide(device, side, p, add(p, moveDelta), 12);
+  await sleep(300);
+  await down(false);
+  await sleep(1000);
+  const loose = await page.evaluate(([c]) => {
+    const pl = window.__placement(c);
+    return { legs: pl.legs ?? null, y: window.iynkware.app.bench.objectOf(c).position.y, rev: window.iynkware.app.project.revision };
+  }, [id]);
+  const unseated = !loose.legs || Object.keys(loose.legs).length === 0;
+  check(`${label}: pulled out past one pitch and let go on the mat, the part is out of the circuit, lying loose`, unseated && loose.rev > rev0, { loose, rev0 });
+  // 2. pick it up again and reseat it elsewhere
+  p = await grab(0.01);
+  const pinNow = await page.evaluate(([c, pin]) => window.iynkware.app.bench.worldOf({ kind: 'pin', part: c, pin }), [id, firstPin]);
+  p = await glide(device, side, p, add(p, sub(await page.evaluate((h) => window.__hole(h), seatHole), pinNow)), 14);
+  const against = await page.evaluate((h) => window.__hole(h), seatHole);
+  const tip = await page.evaluate(() => window.__ghost());
+  await sleep(500);
+  await down(false);
+  await sleep(1000);
+  const reseated = await legsOf(id);
+  check(`${label}: picked up again from the mat and reseated in other holes`, reseated?.[firstPin] === seatHole, { reseated, tip, against });
+  // 3. pull it again and put it back on a shelf bin
+  const rev1 = await page.evaluate(() => window.iynkware.app.project.revision);
+  const wires0 = await wiresOf(id);
+  await page.evaluate(() => window.__fresh());
+  p = await grab(0.02);
+  const evs = await page.evaluate(() => window.__ev.filter((e) => e.startsWith('grab-start')));
+  const centre = await worldNow(id);
+  const bin = await binCentre();
+  p = await glide(device, side, p, add(p, add(sub(bin, centre), [0, 0.06, 0])), 22);
+  await sleep(500);
+  const lit = await frameLit();
+  check(`${label}: over a shelf bin that bin shows it will take the part`, lit === 1, lit);
+  if (SHOT && label.startsWith('hand')) await page.screenshot({ path: SHOT.replace(/\.png$/, '-bin.png'), clip: { x: 340, y: 120, width: 700, height: 460 } });
+  const revHeld = await page.evaluate(() => window.iynkware.app.project.revision);
+  await down(false);
+  await sleep(1200);
+  const gone = await page.evaluate(([c]) => ({ has: !!window.__placement(c), rev: window.iynkware.app.project.revision, ob: window.iynkware.app.bench.objectOf(c) ? 'object' : null }), [id]);
+  check(`${label}: released over the bin the part is gone from the document with its wires, in one change`, !gone.has && gone.rev === rev1 + 1 && revHeld === rev1 && (await wiresOf(id)) === 0, { gone, wires0, rev1, evs });
+  check(`${label}: the bin's light goes out`, (await frameLit()) === 0);
+  await page.evaluate(() => window.iynkware.app.project.undo());
+  await sleep(900);
+  check(`${label}: one undo brings it back with its legs and wires`, !!(await legsOf(id)) && (await wiresOf(id)) === wires0, { legs: await legsOf(id), wires: await wiresOf(id), wires0 });
+};
+
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
+await sleep(600);
+await takeApart('hand/LED', 'hand-right', 'right', gripH, 'cmp_led1', null, 'A', 'c20', [0.32, 0, 0.02]);
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await sleep(800);
+await takeApart('controller/LED', 'controller-left', 'left', gripC, 'cmp_led1', null, 'A', 'c26', [0.32, 0, 0.02]);
+
+// the only board stays: carried to a bin, the Uno says so and goes back
+{
+  const unoAt = await worldNow('brd_main');
+  const uno0 = await page.evaluate(() => ({ ...window.__placement('brd_main') }));
+  const rev = await page.evaluate(() => window.iynkware.app.project.revision);
+  let c = await place('controller-left', 'left', add(sub(unoAt, gripC), [0, 0.04, 0]));
+  c = await glide('controller-left', 'left', c, sub(unoAt, gripC), 5);
+  await sleep(300);
+  await press('controller-left', true);
+  await sleep(300);
+  const bin = await binCentre();
+  c = await glide('controller-left', 'left', c, add(c, add(sub(bin, unoAt), [0, 0.06, 0])), 20);
+  await sleep(500);
+  check('board: carried over a bin the bin lights', (await frameLit()) === 1);
+  await press('controller-left', false);
+  await sleep(200);
+  const card = await page.evaluate(() => !!window.iynkware.world.scene.getObjectByName('look:callout')?.visible);
+  await sleep(1200);
+  const uno1 = await page.evaluate(() => ({ ...window.__placement('brd_main') }));
+  check('board: the only board is refused, says why and goes back', card && uno1.x_mm === uno0.x_mm && uno1.y_mm === uno0.y_mm && (await page.evaluate(() => window.iynkware.app.project.revision)) === rev, { card, uno0, uno1 });
+}
+
 // ---------------------------------------------------------------------------------------------------- 3. off the bench
 const ledNow = await page.evaluate(() => window.__centre('cmp_led1'));
 const gripR = await calibrate('controller-right', 'right');
