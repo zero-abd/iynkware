@@ -79,6 +79,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
     if (on.value || !hub.bridge) return;
     const bridge = hub.bridge;
     on.set(true);
+    blockSelection(true);
     note('starting');
     let s: VoiceSession | null = null;
     const io = createAudioIO({
@@ -135,12 +136,34 @@ export function mountVoice(app: XrApp): Unsubscribe {
     audio?.stop();
     audio = null;
     down = false;
+    blockSelection(false);
     if (on.value) on.set(false);
     note('off');
   };
 
+  // Quest Browser selects the words under a pointer held down (the trigger on Talk, or the right stick over the 2D
+  // page, where the browser keeps the controllers). While voice is on nothing on the page can be selected, and a turn
+  // starts by clearing any selection.
+  let blocking = false;
+  const clearSelection = () => {
+    if (typeof document !== 'undefined') document.getSelection()?.removeAllRanges();
+  };
+  const blockSelection = (block: boolean) => {
+    blocking = block;
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement.style;
+    root.setProperty('user-select', block ? 'none' : '');
+    root.setProperty('-webkit-user-select', block ? 'none' : '');
+    if (block) clearSelection();
+  };
+  const noSelect = (e: Event) => {
+    if (blocking) e.preventDefault();
+  };
+  if (typeof document !== 'undefined') document.addEventListener('selectstart', noSelect);
+
   const press = () => {
     if (!session) return;
+    clearSelection();
     audio?.wake();
     session.press();
   };
@@ -190,7 +213,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
   const offDom: Array<() => void> = [];
   if (dom) {
     dom.id = 'agent-voice';
-    dom.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:20;display:flex;flex-direction:column;gap:6px;align-items:flex-end;max-width:min(360px,calc(100vw - 24px));font:600 15px system-ui,sans-serif';
+    dom.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:20;display:flex;flex-direction:column;gap:6px;align-items:flex-end;max-width:min(360px,calc(100vw - 24px));font:600 15px system-ui,sans-serif;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
     const btn = (id: string) => {
       const b = document.createElement('button');
       b.id = id;
@@ -228,6 +251,8 @@ export function mountVoice(app: XrApp): Unsubscribe {
       press();
     });
     for (const t of ['pointerup', 'pointercancel'] as const) talk.addEventListener(t, () => release());
+    // a long press is a turn, not a context menu
+    talk.addEventListener('contextmenu', (e) => e.preventDefault());
     offDom.push(on.subscribe(paint), app.settings.lang.subscribe(paint));
     paint();
   }
@@ -262,6 +287,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
 
   return () => {
     if (typeof window !== 'undefined') window.removeEventListener('pagehide', onHide);
+    if (typeof document !== 'undefined') document.removeEventListener('selectstart', noSelect);
     offFrame();
     offMenu();
     offCoach();
