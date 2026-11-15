@@ -6,8 +6,9 @@ import { designModule } from './design';
 import { deskModule } from './desk';
 import { handsModule } from './hands';
 import { hintModule } from './hint';
+import { motorModule } from './motor';
 import { pickerModule } from './picker';
 import { roomModule } from './room';
 import { screenModule } from './screen';
 
-export const flightModule = composeModules('range/flight', [benchModule, designModule, roomModule, crashModule, handsModule, screenModule, deskModule, pickerModule, hintModule]);
+export const flightModule = composeModules('range/flight', [benchModule, designModule, roomModule, crashModule, handsModule, screenModule, deskModule, pickerModule, hintModule, motorModule]);
