@@ -30,6 +30,7 @@ import { textLabel, type TextLabel } from '../../ui/text';
 import { ACID_AT, dishX, LOOP_REST, SALT_DISHES } from './controls';
 import type { ChannelValue, ItemVisual, ItemVisualSource } from './visual';
 import { elementBySymbol, FAMILY_HEX } from '../elements/data';
+import { containerOf, SUBSTANCES } from '../substances/data';
 
 const DEG = Math.PI / 180;
 const CLEAR = '#cfe6ee';
@@ -558,6 +559,26 @@ const BUILDERS: Readonly<Record<string, Build>> = {
         else if (ch === 'led:POWER') power.set(v as number);
       },
     };
+  },
+
+  substance(p, root, label) {
+    // a beaker of the solution, or a dish with a mound of the solid; the formula on a tag
+    const s = SUBSTANCES.find((x) => x.id === label);
+    const hex = s?.hex ?? '#e8e8e8';
+    if (s && containerOf(s) === 'dish') {
+      root.add(p.body(cyl(0.04, 0.012, 24, 0.044), BANDS.ceramic, [0, 0.006, 0]));
+      const mound = new SphereGeometry(0.028, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      mound.scale(1, 0.45, 1);
+      root.add(p.glow(mound, hex, { opacity: 0.95, at: [0, 0.011, 0] }));
+    } else {
+      root.add(p.glow(cyl(0.031, 0.05), hex, { opacity: 0.75, at: [0, 0.027, 0] }));
+      root.add(p.glass(cyl(0.034, 0.085), [0, 0.0425, 0]));
+    }
+    const tag = p.text(0.06, 0.022, {});
+    tag.mesh.position.set(0, s && containerOf(s) === 'dish' ? 0.03 : 0.06, s && containerOf(s) === 'dish' ? 0.045 : 0.0355);
+    tag.set(s?.formula ?? label ?? '?');
+    root.add(tag.mesh);
+    return { set: () => undefined };
   },
 
   'element-sample'(p, root, label) {

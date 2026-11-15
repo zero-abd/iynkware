@@ -94,6 +94,10 @@ export const AGENT_TEXT = {
     cannotChange: l6('I could not do that: {why}', 'Das konnte ich nicht tun: {why}', 'No pude hacerlo: {why}', 'Je n’ai pas pu le faire : {why}', 'मैं यह नहीं कर सका: {why}', '我做不到：{why}'),
     went: l6('Here you are: {where}.', 'Da sind wir: {where}.', 'Aquí estás: {where}.', 'Te voilà : {where}.', 'आप यहाँ हैं: {where}।', '到了：{where}。'),
     cannotGo: l6('I could not open {where}.', 'Ich konnte {where} nicht öffnen.', 'No pude abrir {where}.', 'Je n’ai pas pu ouvrir {where}.', 'मैं {where} नहीं खोल सका।', '我没能打开{where}。'),
+    gaveBeaker: l6('Here is {name}, in a beaker on the right.', 'Hier ist {name}, im Becherglas rechts.', 'Aquí tienes {name}, en un vaso a la derecha.', 'Voici {name}, dans un bécher à droite.', 'यह रहा {name}, दाईं ओर बीकर में।', '{name} 在右边的烧杯里。'),
+    gaveDish: l6('Here is {name}, in a dish on the right.', 'Hier ist {name}, in einer Schale rechts.', 'Aquí tienes {name}, en una cápsula a la derecha.', 'Voici {name}, dans une coupelle à droite.', 'यह रहा {name}, दाईं ओर प्याली में।', '{name} 在右边的皿里。'),
+    gaveJar: l6('Here is a sample of {name}, on the left.', 'Hier ist eine Probe {name}, links.', 'Aquí tienes una muestra de {name}, a la izquierda.', 'Voici un échantillon de {name}, à gauche.', 'यह रहा {name} का नमूना, बाईं ओर।', '{name} 的样品在左边。'),
+    noStock: l6('The stockroom has no “{name}”. Try copper sulfate, vinegar, baking soda or an element symbol.', 'Im Vorrat gibt es kein „{name}“. Versuch Kupfersulfat, Essig, Natron oder ein Elementsymbol.', 'El almacén no tiene «{name}». Prueba sulfato de cobre, vinagre, bicarbonato o un símbolo de elemento.', 'La réserve n’a pas « {name} ». Essaie sulfate de cuivre, vinaigre, bicarbonate ou un symbole d’élément.', 'भंडार में “{name}” नहीं है। कॉपर सल्फ़ेट, सिरका, बेकिंग सोडा या किसी तत्व का प्रतीक आज़माओ।', '库房里没有“{name}”。试试硫酸铜、醋、小苏打或元素符号。'),
     assistNo: l6(
       'I’m in Assist mode, so I can’t do that myself, but I can walk you through it or point at it. Say “build mode” and I’ll do it.',
       'Ich bin im Hilfe-Modus und kann das nicht selbst tun, aber ich erkläre es dir oder zeige darauf. Sag „Bau-Modus“, dann mache ich es.',

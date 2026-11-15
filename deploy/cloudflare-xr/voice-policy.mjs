@@ -2,7 +2,7 @@ import AGENT_DECLARATIONS from "../../xr/src/agent/tools/declarations.json" with
 
 export const GEMINI_MODEL = "models/gemini-3.8-live";
 export const CONSENT_VERSION = "adult-voice-2026-11-14";
-export const TOOLS_VERSION = "agent-v6";
+export const TOOLS_VERSION = "agent-v7";
 /** The agent's tools (xr/src/agent/tools/declarations.json), the same file the headset app executes. */
 export const FUNCTION_DECLARATIONS = AGENT_DECLARATIONS;
 export const DEFAULT_DEVICE_DAILY_LIMIT = 200;

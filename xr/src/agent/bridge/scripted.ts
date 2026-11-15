@@ -16,6 +16,7 @@ export type Intent =
   | { readonly kind: 'edit'; readonly action: 'removePart' | 'pullPart' | 'turnPart'; readonly thing: string; readonly half?: boolean }
   | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
   | { readonly kind: 'go'; readonly where: string }
+  | { readonly kind: 'give'; readonly name: string }
   | { readonly kind: 'mode'; readonly mode: 'build' | 'assist' }
   | { readonly kind: 'goto'; readonly target: StepTarget }
   | { readonly kind: 'stopSteps' }
@@ -107,6 +108,8 @@ export function intentOf(raw: string): Intent {
     const lab = LABS.find(([re]) => re.test(t));
     if (lab) return { kind: 'open', lab: lab[1] };
   }
+  const give = /^(?:give me|get me|bring me|hand me|i need|i want|can i have|gib mir|ich brauche)\s+(?:some\s+|a\s+|an\s+|the\s+|etwas\s+)?(.+)$/.exec(t);
+  if (give) return { kind: 'give', name: give[1]! };
   const mode = /\b(build|assist(?:ant|ance)?|bau|hilfe)[- ]?(?:mode|modus)\b/.exec(t);
   if (mode) return { kind: 'mode', mode: /^(build|bau)/.test(mode[1]!) ? 'build' : 'assist' };
   const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
@@ -156,6 +159,11 @@ export function scriptedBrain(): Brain {
           const step = r.step as { label?: string } | null | undefined;
           if (r.ok && step?.label) return done(t(io, R.proposed, { label: step.label }));
           return done(t(io, R.cannotBuild));
+        }
+        case 'give': {
+          const r = await io.call('give_substance', { name: intent.name });
+          if (!r.ok) return done(t(io, R.noStock, { name: intent.name }));
+          return done(t(io, r.container === 'dish' ? R.gaveDish : r.container === 'jar' ? R.gaveJar : R.gaveBeaker, { name: String(r.formula ?? r.gave) }));
         }
         case 'go': {
           const r = await io.call('go_to', { where: intent.where });

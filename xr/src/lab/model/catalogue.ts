@@ -11,6 +11,7 @@
 import { l6, same, type L6 } from '../text';
 import { GENERIC_KIND } from './items/generic';
 import { ELEMENT_KIND } from './items/element';
+import { SUBSTANCE_KIND } from './items/substance';
 import { FIGURE_NOTES } from './notes-figures';
 import type { LabId } from './types';
 
@@ -214,6 +215,20 @@ const NEW_NOTES: Readonly<Record<string, ItemNotes>> = {
     },
   },
 
+  [SUBSTANCE_KIND]: {
+    name: l6('Stock substance', 'Vorratschemikalie', 'Sustancia de reserva', 'Produit du stock', 'भंडार का पदार्थ', '库存试剂'),
+    summary: l6(
+      'A substance from the school stockroom: a solution in a beaker or a solid in a dish, its formula on the tag. Wear goggles and gloves; many are corrosive or toxic.',
+      'Eine Chemikalie aus der Schulsammlung: eine Lösung im Becherglas oder ein Feststoff in einer Schale, die Formel auf dem Etikett. Schutzbrille und Handschuhe tragen; viele sind ätzend oder giftig.',
+      'Una sustancia del almacén escolar: una disolución en un vaso o un sólido en una cápsula, con su fórmula en la etiqueta. Usa gafas y guantes; muchas son corrosivas o tóxicas.',
+      'Un produit de la réserve de l’école : une solution dans un bécher ou un solide dans une coupelle, sa formule sur l’étiquette. Porte lunettes et gants ; beaucoup sont corrosifs ou toxiques.',
+      'स्कूल भंडार का पदार्थ: बीकर में घोल या प्याली में ठोस, लेबल पर उसका सूत्र। चश्मा और दस्ताने पहनो; कई संक्षारक या विषैले होते हैं।',
+      '学校库房的试剂：烧杯里的溶液或皿里的固体，标签上写着化学式。戴好护目镜和手套；许多试剂有腐蚀性或毒性。',
+    ),
+    safeUse: [],
+    hazards: [],
+    mistakes: {},
+  },
   [ELEMENT_KIND]: {
     name: l6('Element sample', 'Elementprobe', 'Muestra de elemento', 'Échantillon d’élément', 'तत्व का नमूना', '元素样品'),
     summary: l6(
