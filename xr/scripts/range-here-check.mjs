@@ -86,6 +86,7 @@ const press = async (name) => {
 const windows = () => page.evaluate(() => window.iynkware.world.scene.children.filter((o) => /^(shell-panel:|shell-button:|session-controls|agent:)/.test(o.name) && o.visible).map((o) => o.name));
 const shown = await windows();
 const spot = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench-drone').getWorldPosition(window.iynkware.world.camera.position.clone()).toArray());
+const benchScale = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench-drone').getWorldScale(window.iynkware.world.camera.position.clone()).x);
 // the first press builds the drone (as Run does), the second flies it from the bench
 await press('run:here');
 await sleep(1500);
@@ -110,6 +111,7 @@ check('Run here flies on the workbench (no Range, no course)', went && here.plac
 check('nothing floats: no plates, readout or screen', !here.plates && !here.readout && !here.screen, here);
 check('the craft sits where the bench drone sat, at real size; the bench drone steps aside', Math.hypot(here.craft[0] - spot[0], here.craft[2] - spot[2]) < 0.05 && Math.abs(here.craft[1] - spot[1]) < 0.05 && here.k === 1 && !here.benchDrone, { spot, craft: here.craft });
 await sleep(300);
+check('the flying drone keeps its bench size', await page.evaluate((b) => Math.abs(window.__flight().craft.object.scale.x - b) < 1e-3, benchScale), { benchScale, now: await page.evaluate(() => window.__flight().craft.object.scale.x) });
 check('the other windows hide', (await windows()).length === 0, { before: shown, now: await windows() });
 await tap('controller-right', A);
 await sticks(0, -1, 0, 0);

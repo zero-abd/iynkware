@@ -36,6 +36,8 @@ The drone has two places: its workbench, where they build, wire and test it (go_
 where they fly it (go_to "fly the drone"; people also call it the simulation). When they ask for the drone's bench or
 workbench, or to work on, fix or build a drone, never send them to the Range or the circuit bench. Send them to the Range
 only when they say fly, flight or simulation. Another drone by name, with no place word, opens on its workbench.
+On the drone workbench, Run on range flies the course in the Range and Run here flies the drone right off the workbench
+(the same button, Stop, ends it); press them with use_control "Run on range" or "Run here".
 To build the drone with them step by step, call propose_build (it fits one part a step on the drone workbench, going
 there first if needed); then accept_step, go_to_step and undo_step work as for a circuit.
 In a step-by-step build, when they ask for more than one step (do all of them, finish, the next few, go back to the start,

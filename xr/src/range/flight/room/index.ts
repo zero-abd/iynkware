@@ -207,6 +207,14 @@ function hideForRunHere(app: XrApp): () => void {
   };
 }
 
+/** The world scale of the bench's own drone (the bench draws it larger than real); null when it is not there. */
+function benchDroneScale(app: XrApp): number | null {
+  const rig = app.bench.table.getObjectByName('range-bench-drone');
+  if (!rig) return null;
+  rig.updateWorldMatrix(true, false);
+  return rig.getWorldScale(new Vector3()).x;
+}
+
 /** Where the craft sat on the bench top, in the world (the bench's own drone spot, `BENCH_DRONE_AT`). */
 function benchSpot(app: XrApp): BenchSpot {
   app.bench.table.updateWorldMatrix(true, false);
@@ -288,6 +296,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     disposers.push(() => drone.dispose());
   }
   const pose = newPose();
+  // Run here: the craft keeps the size it had on the bench (the bench draws it larger than real), not real size
+  const benchScale = here ? benchDroneScale(app) : null;
 
   // a short ink trail, 2 s of the path, in one preallocated buffer
   const trail = createTrail();
@@ -517,7 +527,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
       const o: Object3D = drone.object;
       o.position.set(pose.x, pose.y, pose.z);
       o.rotation.set(pose.rx, pose.ry, pose.rz, 'YXZ');
-      o.scale.setScalar(pose.scale);
+      o.scale.setScalar(benchScale ?? pose.scale);
       const rpm = propRpm(f.thr, f.armed);
       for (let i = 0; i < PROPS.length; i++) drone.set(PROPS[i]!, rpm);
       drone.update(dt);
