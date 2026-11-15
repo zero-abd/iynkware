@@ -32,7 +32,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 FIG = os.path.join(ROOT, 'figures')
 VENDOR = os.path.join(FIG, 'vendor', 'colorfigures')
 OUT_DIR = os.path.join(ROOT, 'public', 'figures')
-KINDS = ('boards', 'parts', 'modules', 'robotics', 'drones', 'flight')
+KINDS = ('boards', 'parts', 'modules', 'robotics', 'drones', 'flight', 'lab')
 
 # core.js globals a figure must never declare (colorfigures-guide 1.14, plus the iynk patch names); the top-level
 # declarations of the vendored core are added at run time, so a new core cannot slip past this list

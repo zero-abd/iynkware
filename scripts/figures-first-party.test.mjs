@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 const root = process.cwd();
 const figuresDir = join(root, 'public/figures');
-const KINDS = ['boards', 'drones', 'modules', 'parts', 'robotics'];
+const KINDS = ['boards', 'drones', 'lab', 'modules', 'parts', 'robotics'];
 
 // Figure pages run inline scripts under their own CSP, so every file here must be build output.
 const REMOTE_LOADS = [

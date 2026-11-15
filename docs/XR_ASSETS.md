@@ -37,8 +37,14 @@ out/<dir>/<id>.json            the sidecar
 ```
 
 `<dir>/<id>` is the figure's path under `figures/` without `.js`: `boards/uno-r3`, `parts/breadboard`,
-`modules/l298n`, `robotics/l298n`, `drones/quad5`. `<dir>` is one of `boards`, `parts`, `modules`, `robotics`,
-`drones`, `flight`; the sidecar's `kind` says the same in the singular (`robotics` is `bench`).
+`modules/l298n`, `robotics/l298n`, `drones/quad5`, `lab/beaker-250`. `<dir>` is one of `boards`, `parts`, `modules`,
+`robotics`, `drones`, `flight`, `lab`; the sidecar's `kind` says the same in the singular (`robotics` is `bench`, `lab`
+stays `lab`).
+
+**Lab equipment** (`lab`) is glassware, burners, bench instruments and physics apparatus for the headset's training
+labs. Its figures are drawn by the bench engine, so `source.engine` is `bench`, the frame is `board-mm` and the origin
+rule is the bench items' one. What a voice tutor needs about an item (what it is, safe use, common mistakes, hazards)
+rides in `extras.lab` until a later `contract-change` PR makes it a field.
 
 Generated assets are built, not committed: `out/` is git-ignored and the app's build copies what it needs (pass
 `--out <dir>` to write straight into the app's static folder). Only `samples/` is committed, so the app and the viewer
@@ -51,8 +57,8 @@ work without a build: the Blink scene (`boards/uno-r3`, `parts/breadboard`, `par
 
 - Units are **metres**. Axes are glTF's: right-handed, **+Y up**, the item's **front faces +Z**. A person standing at
   +Z looking towards -Z sees the item's front; +X is on their right (the item's own left).
-- **Origin.** Bench items (boards, parts, modules, benches): x and z at the centre of the geometry's bounds, y = 0 on
-  the surface the item stands on (the top of the cutting mat in the figure; standoffs and feet rest on it). A part
+- **Origin.** Bench items (boards, parts, modules, benches, lab equipment): x and z at the centre of the geometry's
+  bounds, y = 0 on the surface the item stands on (the top of the cutting mat in the figure; standoffs and feet rest on it). A part
   that plugs into a breadboard (an LED, a resistor, a jumper wire: every `parts/*` page that shows the part in a
   breadboard) has y = 0 on the breadboard's top face, where its legs enter, so its leg anchors sit at y = 0 and it
   seats by matching a leg anchor to a hole anchor. Its sidecar says so in `extras.bench.partPage`. Drones:
@@ -265,6 +271,7 @@ channel node, so on screen a mesh node costs its primitives plus up to two.
 | Item | Triangles | Draw calls |
 |---|---|---|
 | part | 12,000 | 12 |
+| lab equipment | 20,000 | 16 |
 | board, module | 40,000 | 32 |
 | bench | 150,000 | 96 |
 | drone | 80,000 | 64 |
