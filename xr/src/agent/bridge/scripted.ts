@@ -122,6 +122,8 @@ export function intentOf(raw: string): Intent {
   const mode = /\b(build|assist(?:ant|ance)?|bau|hilfe)[- ]?(?:mode|modus)\b/.exec(t);
   if (mode) return { kind: 'mode', mode: /^(build|bau)/.test(mode[1]!) ? 'build' : 'assist' };
   // the drone's two places, before the circuit's build: its workbench ("build the drone") or the Range ("fly the drone")
+  // "build the drone with me" / "step by step": the co-builder (propose_build fits the drone's parts one at a time)
+  if (/\b(?:drone|quad)\b|drohne/.test(t) && /with me|for me|step by step|mit mir|schritt für schritt/.test(t)) return { kind: 'build', request: t };
   if (/\b(?:drone|quad)\b|drohne/.test(t) && /\b(?:build|assemble|put (?:it )?together|fly|calibrate)\b|test the motors|bauen|fliegen/.test(t)) return { kind: 'go', where: t };
   const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|(?:let'?s )?work on|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
   if (go && !/\bbuild\b/.test(t)) return { kind: 'go', where: /^(?:let'?s )?work on/.test(t) ? `work on ${go[1]!}` : go[1]! };

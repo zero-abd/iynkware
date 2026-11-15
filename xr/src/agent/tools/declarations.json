@@ -41,7 +41,7 @@
   },
   {
     "name": "propose_build",
-    "description": "Start 'Build it with me' for a template project (for example Blink): the co-builder proposes each step as a ghost on the bench; nothing changes until the person accepts. Only for templates. For the person's own free build do not use this: go_to 'new project' for an empty workbench, then add_part for parts and edit_bench addWire for wires.",
+    "description": "Start 'Build it with me' for a template project (for example Blink): the co-builder proposes each step as a ghost on the bench; nothing changes until the person accepts. Only for templates. For the person's own free build do not use this: go_to 'new project' for an empty workbench, then add_part for parts and edit_bench addWire for wires. On the drone workbench (or when they ask to build the drone with them), it builds the drone step by step instead: one part a step, in build order; the step tools (accept_step, go_to_step, undo_step) work the same.",
     "parameters": {
       "type": "OBJECT",
       "properties": {
