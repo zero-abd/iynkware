@@ -29,7 +29,7 @@ import {
 import { applyBench, benchCraft, benchOf, benchOps, benchReport, loadFigureText, benchText, pickOf, wrongMotors } from '../model';
 import type { BenchAction, BenchCraft, BenchMessage, BenchState, FigureText } from '../model';
 import { benchFocusOf } from '../focus';
-import { BENCH_DRONE_AT, flyHereOf } from '../here';
+import { BENCH_DRONE_AT } from '../here';
 import { BENCH_STRINGS as S } from './strings';
 import { benchView, lastSay, motorSequence, panelCells, toneOf, type SpinStep } from './view';
 
@@ -52,8 +52,6 @@ const PANEL_Z = -0.235;
 const PANEL_LEAN = 0.5;
 const ACTION_COLS = [0.256, 0.328, 0.4] as const;
 const ACTION_ROWS = [0.04, 0.13] as const;
-/** The Run here plate, behind the actions and the smoke stopper's lamp. */
-const HERE_AT = { x: 0.328, z: -0.125 } as const;
 
 type Anim =
   | { kind: 'motors'; t: number; steps: SpinStep[]; length: number; active: number; say: Pending | null }
@@ -170,18 +168,6 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
     return plate;
   });
 
-  // Run here: like Run (it builds the drone first when it is not built), but the flight starts from this bench instead
-  // of the course in the room. Run itself always flies the course.
-  const herePlate = mk({ w: 0.21, d: 0.05 }, { icon: 'run', label: S.t(lang(), 'runHere'), lang: lang() });
-  herePlate.group.name = 'range-bench-here';
-  herePlate.group.position.set(HERE_AT.x, 0, HERE_AT.z);
-  actions.add(herePlate.group);
-  bind(herePlate, 'bench:runHere', () => {
-    if (runOrBuild() !== 'ready' || !app.shell.offered.value.includes('range')) return;
-    flyHereOf(app).set(true);
-    app.shell.go('range');
-  });
-
   // Phase leads: one small plate per motor, shown while the motor wires are on.
   const leads = new Group();
   leads.name = 'range-bench-leads';
@@ -281,7 +267,6 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
         badge: v.done ? { text: S.t(l, a.id === 'plug' ? 'pluggedIn' : 'passed'), tone: 'good' } : null,
       });
     });
-    herePlate.set({ label: S.t(l, 'runHere'), lang: l });
     leads.visible = view.leads.length > 0;
     view.leads.forEach((lv, i) =>
       leadPlates[i]?.set({
@@ -360,7 +345,7 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
     }
   };
 
-  /** Run and Run here: 'ready' when the drone is built and fit to fly, else it builds it ('built'). */
+  /** Run on range and Run here: 'ready' when the drone is built and fit to fly, else it builds it ('built'). */
   function runOrBuild(): 'built' | 'ready' {
     if (benchReport(craft, benchOf(app.project.doc)).flight.ready) return 'ready';
     act({ type: 'build' });

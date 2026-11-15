@@ -6,6 +6,7 @@
 import type { FeatureModule, XrApp } from '../contracts/app';
 import type { LocalizedText, ReadonlyValue, Unsubscribe } from '../contracts/common';
 import { LANGS } from '../contracts/common';
+import { flyHereOf } from './flight/here';
 import { lastCraftOf, pickerPendingOf } from './flight/picker/model';
 import { defineStrings, watchRangeProject, type RangeProject } from './shared';
 
@@ -39,6 +40,21 @@ export function provideDroneRun(app: Pick<XrApp, 'world'>, run: (() => 'built' |
 export function runDrone(app: Pick<XrApp, 'world' | 'project'>): 'built' | 'ready' | 'wait' | null {
   if (rangeOf(app).value?.kind !== 'drone') return null;
   return droneRuns.get(app.world)?.() ?? 'wait';
+}
+
+/**
+ * Run here on a drone project: flies it from the workbench ('flying'), or stops that flight ('stopped'). Like Run, it
+ * builds the drone first when it is not built ('built'); 'wait' and null as `runDrone`.
+ */
+export function runDroneHere(app: Pick<XrApp, 'world' | 'project'>): 'flying' | 'stopped' | 'built' | 'wait' | null {
+  const here = flyHereOf(app);
+  if (here.value) {
+    here.set(false);
+    return 'stopped';
+  }
+  const d = runDrone(app);
+  if (d === 'ready') here.set(true);
+  return d === 'ready' ? 'flying' : d;
 }
 
 const watchers = new WeakMap<object, ReadonlyValue<RangeProject | null>>();

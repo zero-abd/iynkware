@@ -4,6 +4,7 @@
  * ticker, one inked line naming the last event ("Undid: wire"), fading after 4 s. Everything sits on `app.bench.table`
  * and follows the posture and the dominant hand live. The ticker is fed through `benchKit(app).feedback.ticker`.
  */
+import { flyHereOf } from '../../range/flight/here';
 import { Group, type Mesh, type MeshBasicMaterial } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe, Vec3 } from '../../contracts/common';
@@ -122,7 +123,8 @@ function mountRail(app: XrApp): Unsubscribe {
   offs.push(bindPlate(app, undoPlate, 'bench/rail/undo', (e) => run('undo', e.pointer.hand)));
   offs.push(bindPlate(app, redoPlate, 'bench/rail/redo', (e) => run('redo', e.pointer.hand)));
 
-  // A or X undoes while the bench is the place (the Range's flight room reads A for itself)
+  // A or X undoes while the bench is the place (the Range's flight room reads A for itself, and so does a drone's Run
+  // here, which flies on the bench)
   const held: Record<Hand, boolean> = { left: true, right: true };
   offs.push(
     onLookFrame(app.world, () => {
@@ -130,7 +132,7 @@ function mountRail(app: XrApp): Unsubscribe {
         const down = app.input.button(hand, 'lower').pressed;
         const edge = down && !held[hand];
         held[hand] = down;
-        if (edge && app.shell.place.value === 'bench') run('undo', hand);
+        if (edge && app.shell.place.value === 'bench' && !flyHereOf(app).value) run('undo', hand);
       }
     }),
   );

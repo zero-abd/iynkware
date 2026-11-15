@@ -3,7 +3,6 @@ import { defineStrings } from '../../shared';
 
 export const BENCH_STRINGS = defineStrings({
   en: {
-    runHere: 'Run here',
     fit: 'Fit',
     fitTurned: 'Fit turned round',
     next: 'Next',
@@ -21,7 +20,6 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'The drone model is not available',
   },
   de: {
-    runHere: 'Hier starten',
     fit: 'Einbauen',
     fitTurned: 'Verkehrt einbauen',
     next: 'Als Nächstes',
@@ -39,7 +37,6 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'Das Drohnenmodell ist nicht verfügbar',
   },
   es: {
-    runHere: 'Ejecutar aquí',
     fit: 'Montar',
     fitTurned: 'Montar al revés',
     next: 'Siguiente',
@@ -57,7 +54,6 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'El modelo del dron no está disponible',
   },
   fr: {
-    runHere: 'Lancer ici',
     fit: 'Monter',
     fitTurned: 'Monter à l’envers',
     next: 'Suivant',
@@ -75,7 +71,6 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'Le modèle du drone n’est pas disponible',
   },
   hi: {
-    runHere: 'यहीं चलाओ',
     fit: 'लगाओ',
     fitTurned: 'उल्टा लगाओ',
     next: 'अगला',
@@ -93,7 +88,6 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'ड्रोन मॉडल उपलब्ध नहीं है',
   },
   zh: {
-    runHere: '在这里运行',
     fit: '安装',
     fitTurned: '反向安装',
     next: '下一步',

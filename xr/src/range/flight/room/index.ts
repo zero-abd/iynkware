@@ -3,9 +3,10 @@
  * flown with the controller thumbsticks on the flight core. The person never moves; only the mapping places the craft.
  * While in the range the bench is hidden (a stopgap until the bench pillar hides its own content).
  *
- * Run here (`../here.ts`, the drone bench's plate): no course is drawn and the bench stays; the craft takes off at real
- * size from the spot it sat on the bench top and flies around the person. Leaving the Range turns it off, so every other
- * way in (Run, the mode switch, Fly) is the course.
+ * Run here (`../here.ts`, beside Run on the run cluster): the flight runs on the drone workbench itself. No course is
+ * drawn and the bench stays; the craft takes off at real size from the spot it sat on the bench top and flies around
+ * the person. Nothing floats meanwhile (no plates, readout, screen or hint) and the other windows hide until Stop.
+ * Leaving the bench turns it off, so every way into the Range (Run on range, the mode switch, Fly) is the course.
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, Quaternion, Vector3, type Object3D } from '@iwsdk/core';
 import { loadDrone as loadDroneContent } from '@/content/index.generated';
@@ -49,6 +50,7 @@ import { ROOM_STRINGS as S } from './strings';
 import { nextSize, volumeFor, type CourseSize } from './size';
 import { value, type Value } from '../../../ui/value';
 import { warmUp } from '../../../look/upload';
+import { claimFocus } from '../../../shell/switch/focus';
 
 /** The course size the person chose on the Size plate, per app; Room (the volume as it always was) until then. */
 const sizes = new WeakMap<object, Value<CourseSize>>();
@@ -114,10 +116,13 @@ export const roomModule: FeatureModule = {
     let flying = '';
     const keyOf = () => {
       const p = rangeOf(app).value;
-      return `${p?.kind === 'drone' ? p.contentId : ''}|${courseChoiceOf(app).value ?? ''}`;
+      return `${p?.kind === 'drone' ? p.contentId : ''}|${courseChoiceOf(app).value ?? ''}|${flyHereOf(app).value}`;
     };
     const sync = () => {
-      const inRange = app.shell.place.value === 'range' && rangeOf(app).value?.kind === 'drone';
+      // Run here lasts while the person is on the bench
+      if (app.shell.place.value !== 'bench' && flyHereOf(app).value) flyHereOf(app).set(false);
+      // the course flies in the Range; Run here flies on the bench
+      const inRange = rangeOf(app).value?.kind === 'drone' && app.shell.place.value === (flyHereOf(app).value ? 'bench' : 'range');
       if (inRange && (session || entering) && flying !== keyOf()) leave();
       if (inRange && !session && !entering) {
         flying = keyOf();
@@ -134,7 +139,6 @@ export const roomModule: FeatureModule = {
             if (mine === epoch) entering = false;
           });
       } else if (!inRange && (session || entering)) leave();
-      if (app.shell.place.value !== 'range') flyHereOf(app).set(false);
     };
     const offPlace = app.shell.place.subscribe(sync);
     // a new size lays the course out again from where the person stands now
@@ -145,10 +149,9 @@ export const roomModule: FeatureModule = {
     });
     const offRange = rangeOf(app).subscribe(sync);
     const offChoice = courseChoiceOf(app).subscribe(sync);
-    // Run here on or off while flying: the flight starts again, from the bench or on the course
+    // Run here or Stop: the flight on the bench starts or ends
     const offHere = flyHereOf(app).subscribe(() => {
-      if (!session && !entering) return;
-      leave();
+      if (session || entering) leave();
       sync();
     });
     sync();
@@ -168,6 +171,40 @@ interface Head {
   readonly y: number;
   readonly z: number;
   readonly heading: Heading;
+}
+
+/** Top-level windows that hide while Run here flies: shell panels and buttons, the session controls, the agent's. */
+const WINDOW_PREFIXES = ['shell-panel:', 'shell-button:', 'session-controls', 'agent:'];
+
+/**
+ * Run here: the bench's own drone steps aside (the flying one took off from its spot) and every other window hides
+ * until Stop. Windows that redraw their own visibility each frame are hidden again just before each render.
+ */
+function hideForRunHere(app: XrApp): () => void {
+  claimFocus(app, 'range/run-here');
+  const benchDrone = app.bench.table.getObjectByName('range-bench-drone');
+  const droneWas = benchDrone?.visible ?? false;
+  if (benchDrone) benchDrone.visible = false;
+  const scene = app.world.scene;
+  const saved = new Map<Object3D, boolean>();
+  const hide = () => {
+    for (const o of scene.children) {
+      if (!WINDOW_PREFIXES.some((p) => o.name.startsWith(p))) continue;
+      if (!saved.has(o)) saved.set(o, o.visible);
+      o.visible = false;
+    }
+  };
+  hide();
+  const before = scene.onBeforeRender;
+  scene.onBeforeRender = function (...args) {
+    hide();
+    return before.apply(this, args);
+  };
+  return () => {
+    scene.onBeforeRender = before;
+    for (const [o, v] of saved) o.visible = v;
+    if (benchDrone) benchDrone.visible = droneWas;
+  };
 }
 
 /** Where the craft sat on the bench top, in the world (the bench's own drone spot, `BENCH_DRONE_AT`). */
@@ -228,6 +265,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     });
   }
 
+  if (here) disposers.push(hideForRunHere(app));
+
   // the course, fading in and dropping onto the floor (Run here draws none)
   const drawing: CourseDrawing | null = here ? null : drawCourse(map, course);
   if (drawing) {
@@ -285,15 +324,20 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     label.dispose();
     dropEntities(app.world, label.mesh);
   });
-  // The shared grip bar under the readout moves it (ui/panels).
-  const grip = movable(app, { id: 'range/readout', group: label.mesh, width: 1.7, height: 0.6, distanceM: 2.2, z: 0.004 });
-  disposers.push(() => grip.dispose());
+  // The shared grip bar under the readout moves it (ui/panels). Run here shows no readout.
+  label.mesh.visible = !here;
+  if (!here) {
+    const grip = movable(app, { id: 'range/readout', group: label.mesh, width: 1.7, height: 0.6, distanceM: 2.2, z: 0.004 });
+    disposers.push(() => grip.dispose());
+  }
 
   // the plates: Arm, Reset, Back, Craft (3), the screen's View (4, screen/index.ts) and Size (5), standing a little to the person's left at chest height
   const plates = new Group();
   plates.name = 'range-plates';
   plates.position.set(head.x + PLATE_AHEAD_M * fx - PLATE_LEFT_M * rx, head.y - PLATE_BELOW_M, head.z + PLATE_AHEAD_M * fz - PLATE_LEFT_M * rz);
   plates.rotation.y = Math.atan2(-fx, -fz);
+  // Run here: no plates in the air (A arms, B resets; Stop is beside Run on the bench)
+  plates.visible = !here;
   root.add(plates);
   const lang = () => langOf(app);
   const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope', primary: boolean, label: string): Plate => {
@@ -413,6 +457,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const scene: FlightScene | null = drone
     ? {
         contentId: project.contentId,
+        here,
         content,
         spec: flight.craft,
         course,

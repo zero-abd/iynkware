@@ -11,7 +11,8 @@ import { reducedMotionOf as reducedMotion } from '../../look';
 import { bindPlate } from '../kit/plate';
 import { runFeedback } from '../kit/feedback';
 import { onTick } from '../kit/ticker';
-import { runDrone } from '../../range/activate';
+import { rangeOf, runDrone, runDroneHere } from '../../range/activate';
+import { flyHereOf } from '../../range/flight/here';
 import { createCluster } from './cluster';
 import {
   clockSeconds,
@@ -93,11 +94,15 @@ export const controlsModule: FeatureModule = {
     const draw = () => {
       const l = lang();
       const v = viewOf(state);
+      // A drone has no sketch: Run on range and Run here (Stop while it flies here), nothing else.
+      const drone = rangeOf(app).value?.kind === 'drone';
+      cluster.drone(drone);
+      cluster.here.set({ label: S.t(l, flyHereOf(app).value ? 'stopHere' : 'runHere'), lang: l, icon: flyHereOf(app).value ? 'stop' : 'run' });
       cluster.plates.run.set({
         icon: v.run.icon,
-        label: S.t(l, v.run.label),
+        label: drone ? S.t(l, 'runOnRange') : S.t(l, v.run.label),
         lang: l,
-        badge: v.run.badge ? { text: S.t(l, v.run.badge), tone: v.run.tone ?? 'warn' } : null,
+        badge: !drone && v.run.badge ? { text: S.t(l, v.run.badge), tone: v.run.tone ?? 'warn' } : null,
       });
       cluster.plates.step.set({ label: S.t(l, 'step'), lang: l, disabled: v.stepDisabled });
       cluster.plates.reset.set({ label: S.t(l, 'reset'), lang: l });
@@ -181,6 +186,9 @@ export const controlsModule: FeatureModule = {
           dispatch({ t: 'press', control: c }, e);
         }),
       ),
+      bindPlate(app, cluster.here, 'run:here', () => void runDroneHere(app)),
+      rangeOf(app).subscribe(() => draw()),
+      flyHereOf(app).subscribe(() => draw()),
       app.sim.onState((s) => dispatch({ t: 'bridge', state: s })),
       app.sim.onDiagnostic((d) => dispatch({ t: 'diagnostic', kind: d.kind })),
       app.sim.onFrame((f) => {

@@ -12,6 +12,9 @@ import { defineStrings } from '../kit/strings';
 
 export const controlStrings = defineStrings({
   en: {
+    runOnRange: 'Run on range',
+    runHere: 'Run here',
+    stopHere: 'Stop',
     run: en.bar.run,
     reset: en.bar.reset,
     pause: 'Pause',
@@ -28,6 +31,9 @@ export const controlStrings = defineStrings({
     stuck: 'Endless loop',
   },
   de: {
+    runOnRange: 'Auf der Strecke starten',
+    runHere: 'Hier starten',
+    stopHere: 'Stopp',
     run: de.bar.run,
     reset: de.bar.reset,
     pause: 'Pause',
@@ -44,6 +50,9 @@ export const controlStrings = defineStrings({
     stuck: 'Endlosschleife',
   },
   es: {
+    runOnRange: 'Correr en la pista',
+    runHere: 'Correr aquí',
+    stopHere: 'Parar',
     run: es.bar.run,
     reset: es.bar.reset,
     pause: 'Pausa',
@@ -60,6 +69,9 @@ export const controlStrings = defineStrings({
     stuck: 'Bucle sin fin',
   },
   fr: {
+    runOnRange: 'Lancer sur le terrain',
+    runHere: 'Lancer ici',
+    stopHere: 'Arrêter',
     run: fr.bar.run,
     reset: fr.bar.reset,
     pause: 'Pause',
@@ -76,6 +88,9 @@ export const controlStrings = defineStrings({
     stuck: 'Boucle sans fin',
   },
   hi: {
+    runOnRange: 'रेंज पर चलाओ',
+    runHere: 'यहीं चलाओ',
+    stopHere: 'रोको',
     run: hi.bar.run,
     reset: hi.bar.reset,
     pause: 'रोकें',
@@ -92,6 +107,9 @@ export const controlStrings = defineStrings({
     stuck: 'अंतहीन लूप',
   },
   zh: {
+    runOnRange: '到场地运行',
+    runHere: '在这里运行',
+    stopHere: '停止',
     run: zh.bar.run,
     reset: zh.bar.reset,
     pause: '暂停',
