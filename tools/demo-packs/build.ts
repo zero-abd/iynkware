@@ -45,7 +45,7 @@ export function variantOf(spec: DemoPart): Descriptor {
   const d = structuredClone(base) as Descriptor & Record<string, unknown>;
   d.id = `demo.${spec.slug}`;
   d.version = "1.0.0";
-  const identity = d.identity as Record<string, unknown>;
+  const identity = d.identity as unknown as Record<string, unknown>;
   identity.manufacturer = spec.manufacturer;
   identity.model = spec.model;
   // Generic: the demo brands are invented, so there is no datasheet to cite (the schema asks a non-generic part for one).
@@ -54,7 +54,7 @@ export function variantOf(spec: DemoPart): Descriptor {
   identity.tags = [...new Set([...(spec.tags ?? []), ...((identity.tags as string[] | undefined) ?? [])])];
   delete identity.legacy_ids;
   if (spec.mpn) identity.mpn = spec.mpn;
-  const provenance = d.provenance as Record<string, unknown>;
+  const provenance = d.provenance as unknown as Record<string, unknown>;
   provenance.origin = "imported-pack";
   provenance.authors = [PACK_AUTHOR];
   provenance.created = PACK_CREATED.slice(0, 10);
@@ -65,7 +65,7 @@ export function variantOf(spec: DemoPart): Descriptor {
     behaviour_change: false,
   }];
   // Imported parts may not ship executable figure pages (HTML with script); they draw with the generic fallback.
-  const visual = d.visual as Record<string, unknown>;
+  const visual = d.visual as unknown as Record<string, unknown>;
   delete visual.breadboard;
   const fallback = visual.fallback as Record<string, unknown> | undefined;
   if (fallback) {

@@ -28,6 +28,8 @@ const check = (name, ok, detail) => {
 
 const waitFor = (fn, arg, ms = 15000) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
 
+// A person who has been through the first-run onboarding: for a first-timer it opens on entry in Home's place.
+await page.addInitScript(() => localStorage.setItem('iynkware:xr:onboarding:v1', 'skipped'));
 await page.goto(URL, { waitUntil: 'load' });
 await page.click('#flat');
 await page.waitForFunction(() => window.iynkware?.ready, null, { timeout: 60000 });
@@ -124,11 +126,15 @@ check('Close closes home', await page.evaluate(() => !window.iynkware.app.shell.
 
 const perf = await page.evaluate(() => window.iynkware.world.renderer.info.render.calls);
 console.log('draw calls', perf);
-// Closed shell panels draw nothing: no visible mesh under a hidden-or-shown shell root while all are closed.
+// Closed shell panels draw nothing: no visible mesh under a hidden-or-shown shell root while all are closed. The Code
+// window is left out while it is open: it stands open by itself with a board that runs a program on the bench.
 const drawn = await page.evaluate(() => {
   const r = [];
+  const code = window.iynkware.world.scene.getObjectByName('shell-panel:run/code');
+  const codeOpen = code?.userData.code?.open === true;
   window.iynkware.world.scene.traverseVisible((o) => {
     if (!o.isMesh) return;
+    if (codeOpen) for (let p = o; p; p = p.parent) if (p === code) return;
     for (let p = o; p; p = p.parent) if (/^shell-panel:|^shell-button:/.test(p.name)) return void r.push(p.name);
   });
   return r;

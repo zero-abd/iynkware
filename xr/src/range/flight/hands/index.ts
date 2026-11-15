@@ -25,7 +25,11 @@ import { HANDS_STRINGS as S } from './strings';
 
 const PLATE_AHEAD_M = 0.45;
 const PLATE_BELOW_M = 0.38;
-const PLATE_RIGHT_M = 0.3;
+/**
+ * To the right of the room's row of plates (Arm, Reset, Back, Craft, View, Size: six at 0.125 m from 0.3 m left, so its
+ * right edge is about 0.38 m right), so a pinch on Arm here never lands on the room's Size plate.
+ */
+const PLATE_RIGHT_M = 0.46;
 const PLATE_GAP_M = 0.085;
 const PLATE_M = 0.064;
 const OWNER = 'range/flight/hands';
