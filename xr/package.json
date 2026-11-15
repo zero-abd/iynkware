@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:http": "vite --mode http",
-    "build": "vite build",
+    "build": "vite build && node scripts/bundle-budget.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run"
