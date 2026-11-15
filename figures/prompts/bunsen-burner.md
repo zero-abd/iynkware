@@ -14,13 +14,18 @@ The flame follows the air collar, and lights only with the gas on:
 
 Gas on with no flame shows as dashed grey shimmer rising from the barrel.
 
+Flame test: with **Flame test sample ▾** (lithium, sodium, potassium, calcium, copper, strontium, barium: the metal on
+a loop held in the flame) the whole outer cone of a blue flame takes its colour (crimson, yellow-orange, lilac,
+orange-red, blue-green, red, pale green) while the inner cone stays blue; the yellow safety flame hides it.
+
 What it does:
 
 - **Gas tap on/off**, **Light** (refused with no gas; with the collar open it "lifts off and goes out" and the gas
   keeps flowing), **Air collar ▾** (closed, half open, open; pressing the collar steps it too), **Exploded view**
   (the collar slides up, the barrel lifts off and shows the brass jet).
 - The tutor hears `gasOn`, `lit`, `collar`, `flame` and `mistake`: `gas-unlit` (gas on more than 2 s without a
-  flame), `light-collar-open`, `blue-flame-idle` (a roaring flame left over 20 s).
+  flame), `light-collar-open`, `blue-flame-idle` (a roaring flame left over 20 s with nothing in it),
+  `flame-test-luminous` (a sample held in the yellow flame); and `sample` and `flameColour`.
 - See-through ghosts the barrel: orange gas dots rise from the jet, blue air dots come in through the collar and the
   mix turns blue on the way up.
 
