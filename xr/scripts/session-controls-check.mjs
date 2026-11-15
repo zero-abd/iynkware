@@ -87,7 +87,7 @@ const clusterFrom = (deg) =>
     const left = -(dx * Math.cos(a) - dz * Math.sin(a));
     return { d: +Math.hypot(dx, p[1] - e[1], dz).toFixed(3), leftDeg: +((Math.atan2(left, along) * 180) / Math.PI).toFixed(1), below: +(e[1] - p[1]).toFixed(3) };
   }, deg);
-const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg > 45 && c.leftDeg < 70 && c.below > 0.05 && c.below < 0.4;
+const atDefault = (c) => !!c && c.d > 0.8 && c.d < 0.9 && c.leftDeg > 78 && c.leftDeg < 94 && c.below > 0.05 && c.below < 0.4;
 
 // Turn the head about the y axis and aim a controller ray at a button.
 const turn = async (deg, pos = { x: 0, y: 1.2, z: 0 }) => {
