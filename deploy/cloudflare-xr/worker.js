@@ -210,9 +210,12 @@ function liveProxy(request) {
       }
 
       upstream = new WebSocket(`${GEMINI_LIVE_SOCKET}?access_token=${encodeURIComponent(token)}`);
+      upstream.binaryType = "arraybuffer";
       upstream.addEventListener("open", () => server.send(JSON.stringify({ proxyReady: true })));
       upstream.addEventListener("message", (message) => {
-        if (server.readyState === 1) server.send(message.data);
+        if (server.readyState !== 1) return;
+        const data = typeof message.data === "string" ? message.data : new TextDecoder().decode(message.data);
+        server.send(data);
       });
       upstream.addEventListener("close", (closed) => close(server, closed.code || 1011, closed.reason || "Gemini closed"));
       upstream.addEventListener("error", () => close(server, 1011, "Gemini connection failed"));
