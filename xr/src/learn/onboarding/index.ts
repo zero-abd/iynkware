@@ -8,6 +8,8 @@
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import { LANGS, type Lang, type LocalizedText, type Unsubscribe } from '../../contracts/common';
 import { RING_SLOTS } from '../../bench/core/ring';
+import { PROXY_ORDER_BASE } from '../../bench/core/router';
+import { onLookFrame } from '../../look/runner';
 import { setPanelHit } from '../../look/moves';
 import { dmm } from '../../look/type';
 import { shellButton, shellPanel, shellText, type ShellPanel } from '../../shell/kit';
@@ -32,6 +34,19 @@ const BTN_W = 140;
 const BTN_STEP = 156;
 const BTN_H = 62;
 const TICK_MS = 700;
+/**
+ * The card sits at bench height, so a ray through a part, pin or wire bead also crosses it, and pointer-events takes the
+ * highest `pointerEventsOrder` first. Everything in the card goes below every bench target (router.ts: PROXY_ORDER_BASE
+ * plus 1..5), so the bench wins any ray that hits both; the card still wins where nothing of the bench is behind it.
+ */
+const ORDER = PROXY_ORDER_BASE - 10;
+type Ordered = { pointerEventsOrder?: number };
+function sink(group: { traverse(fn: (o: unknown) => void): void }): void {
+  group.traverse((o) => {
+    const own = (o as Ordered).pointerEventsOrder;
+    (o as Ordered).pointerEventsOrder = own === undefined ? ORDER : own > PROXY_ORDER_BASE ? ORDER + own : own;
+  });
+}
 /** Home calls the entry's `open` on the first immersive entry; a call within this long of entering is that one. */
 const AUTO_WINDOW_MS = 6000;
 
@@ -111,7 +126,10 @@ function startOnboarding(app: XrApp, onClosed: () => void): Unsubscribe {
     panel.group.visible = want;
     setPanelHit(panel.group, want);
   };
-  const offs = [offMachine, offDetect, app.input.sources.subscribe(schedule), app.settings.lang.subscribe(schedule), app.shell.place.subscribe(follow)];
+  // Bindings set an object's order from its kind when they bind (the grip a frame after the card is added, buttons on
+  // every redraw), so re-sink each frame while the card is open.
+  const offSink = onLookFrame(app.world, () => sink(panel.group));
+  const offs = [offSink, offMachine, offDetect, app.input.sources.subscribe(schedule), app.settings.lang.subscribe(schedule), app.shell.place.subscribe(follow)];
 
   function close() {
     if (closed) return;

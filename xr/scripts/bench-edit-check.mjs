@@ -42,8 +42,11 @@ await page.evaluate(() => {
     if (e.type === 'grab-move' || e.type === 'drag-move') return;
     window.__ev.push(`${e.type}:${e.target}:${e.pointer.source}/${e.pointer.mode}`);
     window.__last[e.pointer.hand] = { type: e.type, target: e.target, origin: [...e.pointer.origin] };
+    // calibrate() reads only the grab-start origin: a ray hover on a panel is the last event otherwise.
+    if (e.type === 'grab-start') window.__grab[e.pointer.hand] = [...e.pointer.origin];
   });
   window.__last = {};
+  window.__grab = {};
   const { app } = window.iynkware;
   window.__placement = (id) => app.project.doc.views.find((v) => v.kind === 'breadboard').placements.find((p) => p.c === id);
   window.__hole = (h) => app.bench.worldOf({ kind: 'hole', surface: 'cmp_bb', hole: h });
@@ -98,17 +101,17 @@ const calibrate = async (device, side) => {
     const b = window.iynkware.app.bench.objectOf('cmp_bb').children.find((c) => c.name.startsWith('bench:proxy'));
     return b.getWorldPosition(b.position.clone()).toArray();
   });
-  await page.evaluate(() => (window.__last = {}));
+  await page.evaluate(() => ((window.__last = {}), (window.__grab = {})));
   const setAt = add(over, [0, 0.01, 0]);
   await place(device, side, setAt);
   await sleep(300);
   await press(device, true);
   await sleep(350);
-  const got = await page.evaluate(([s]) => ({ last: window.__last[s] }), [side]);
+  const got = await page.evaluate(([s]) => ({ origin: window.__grab[s] }), [side]);
   await press(device, false);
   await sleep(300);
-  if (!got.last || got.last.type === undefined) return [0, 0, 0];
-  return sub(got.last.origin, setAt);
+  if (!got.origin) return [0, 0, 0];
+  return sub(got.origin, setAt);
 };
 const legsOf = (id) => page.evaluate((c) => window.__placement(c)?.legs ?? null, id);
 
@@ -146,6 +149,32 @@ const doc0 = await page.evaluate(() => window.iynkware.app.project.revision);
 const ledAt = await page.evaluate(() => window.__centre('cmp_led1'));
 const gripH = await calibrate('hand-right', 'right');
 console.log('hand grab sphere offset from the device', gripH.map((v) => +v.toFixed(3)));
+// With the onboarding card open (low in the ring, behind the board), a ray through the LED towards it must hit the bench.
+{
+  const open = await page.evaluate(() => !!window.iynkware.world.scene.getObjectByName('shell-panel:onboarding')?.visible);
+  if (!open) console.log('SKIP ray through the LED towards the onboarding card: the card is not open');
+  else {
+    const skipAt = await page.evaluate(() => {
+      const o = window.iynkware.world.scene.getObjectByName('button:onboarding/skip');
+      return o.getWorldPosition(o.position.clone()).toArray();
+    });
+    const d = sub(skipAt, ledAt);
+    const n = Math.hypot(...d);
+    const u = d.map((v) => v / n);
+    const q = { x: u[1], y: -u[0], z: 0, w: 1 - u[2] };
+    const m = Math.hypot(q.x, q.y, q.w);
+    await page.evaluate(([p, o]) => window.__x('set_transform', { device: 'hand-right', position: { x: p[0], y: p[1], z: p[2] }, orientation: { x: o.x, y: o.y, z: 0, w: o.w } }), [sub(ledAt, u.map((v) => v * 0.1)), { x: q.x / m, y: q.y / m, w: q.w / m }]);
+    await sleep(400);
+    const hit = await page.evaluate(() => window.iynkware.world.input.xr.multiPointers.right.getPointer('ray').getIntersection()?.object?.name ?? null);
+    const under = await page.evaluate((nm) => {
+      let o = window.iynkware.world.scene.getObjectByName(nm);
+      for (; o; o = o.parent) if (o.name === 'cmp_led1') return true;
+      return false;
+    }, hit ?? '');
+    check('a ray through the LED towards the onboarding card hits the LED, not the card', !!hit && !/onboarding/.test(hit) && (hit === 'bench:proxy:cmp_led1' || under), hit);
+    await place('hand-right', 'right', add(ledAt, [0, 0.3, 0.3]));
+  }
+}
 const aimH = sub(ledAt, gripH);
 let hand = await place('hand-right', 'right', add(aimH, [0, 0.04, 0]));
 check('hand tracked', !!hand, hand);
