@@ -1,4 +1,5 @@
 import { cpSync, createReadStream, existsSync, statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { extname, join, resolve, sep } from 'node:path';
 import { iwsdkDev } from '@iwsdk/vite-plugin-dev';
 import { defineConfig } from 'vite';
@@ -58,13 +59,36 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     resolve: {
-      alias: repoAliases,
+      // The bare `@pmndrs/uikit-lucide` goes to a two-icon stub (4.5 MB of unused icons otherwise); its deep imports stay real.
+      alias: [
+        { find: /^@pmndrs\/uikit-lucide$/, replacement: fileURLToPath(new URL('./stubs/uikit-lucide.js', import.meta.url)) },
+        { find: /^@babylonjs\/havok$/, replacement: fileURLToPath(new URL('./stubs/havok.js', import.meta.url)) },
+        ...repoAliases,
+      ],
       dedupe: ['three'],
     },
     server: { host: 'localhost', port: 8081, strictPort: true, open: false, fs: { allow: [repoRoot] } },
     preview: { host: 'localhost', port: 8082, strictPort: true },
     worker: { format: 'es' },
-    build: { outDir: 'dist', target: 'esnext', sourcemap: false, chunkSizeWarningLimit: 4096 },
+    build: {
+      outDir: 'dist',
+      target: 'esnext',
+      sourcemap: false,
+      chunkSizeWarningLimit: 4096,
+      rollupOptions: {
+        output: {
+          // Cacheable chunks beside the app code: three, IWSDK's stack, and iynk's two generated schema validators
+          // (~2 MB of standalone Ajv). scripts/bundle-budget.mjs holds every chunk the page loads eagerly under 3 MB.
+          manualChunks(id) {
+            if (/\/src\/(project|parts)\/generated\//.test(id)) return 'validators';
+            if (!id.includes('/node_modules/')) return undefined;
+            if (/\/node_modules\/(three|three-mesh-bvh)\//.test(id)) return 'three';
+            if (/\/node_modules\/(?:@iwsdk\/|@drawcall\/|yoga-layout\/|entities\/|@pmndrs\/(?!msdfonts\/))/.test(id)) return 'iwsdk';
+            return undefined;
+          },
+        },
+      },
+    },
     esbuild: { target: 'esnext' },
     optimizeDeps: { esbuildOptions: { target: 'esnext' } },
   };
