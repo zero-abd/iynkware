@@ -37,6 +37,7 @@ import { benchGeometry } from '../core/geometry';
 import { PROXY_ORDER_BASE } from '../core/router';
 import { removeBound } from '../wire/entities';
 import { beginBenchDrag, createBenchPlaceStore, draggedTop, type TopPose } from './move';
+import { uploadNow } from '../../look/upload';
 
 /** The bar's id for `app.input` and its hit's name (the emulator walk finds it by name). */
 export const BENCH_GRIP_ID = 'bench/grip';
@@ -106,6 +107,7 @@ function mountBenchGrip(app: XrApp): Unsubscribe {
     if (g) {
       paintGrip(g, canvas.width, canvas.height, canvas.width / (barW / dmm(1, D)), next);
       tex.needsUpdate = true;
+      uploadNow(tex);
     }
     const up = next === 'hover';
     if (was !== null && (was === 'hover') !== up) hoverLift(app.world, bar, dmm(GRIP_DMM.lift, D), up);

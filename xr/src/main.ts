@@ -9,6 +9,8 @@ import { DirectionalLight, HemisphereLight, ReferenceSpaceType, SessionMode, Vis
 import { createApp, type AppHandle } from './app';
 import type { Project } from './contracts/project';
 import { FEATURES } from './features';
+import { onLookFrame } from './look/runner';
+import { warmUp } from './look/upload';
 import { createTemplateSource } from './project/store';
 
 export type BootStage = 'project' | 'world' | 'bench' | 'ready';
@@ -71,6 +73,9 @@ export async function boot(opts: BootOptions): Promise<Booted> {
     features: { grabbing: { useHandPinchForGrab: true }, locomotion: false, physics: false, spatialUI: false },
   });
 
+  // The shader error check waits on each new program's link status when it first draws: a stall a build can skip.
+  if (!import.meta.env.DEV) world.renderer.debug.checkShaderErrors = false;
+
   // No scene JSON, so no image based light: two plain lights.
   world.scene.add(new HemisphereLight(0xfff6e8, 0x6b6150, 1.6));
   const sun = new DirectionalLight(0xffffff, 1.4);
@@ -81,6 +86,8 @@ export async function boot(opts: BootOptions): Promise<Booted> {
   const handle = createApp(world, doc);
   await handle.ready;
   await handle.mount(FEATURES);
+  // Start compiling what the bench draws before it first draws; again in the session, whose multiview programs differ.
+  warmUp(world);
 
   world.visibilityState.subscribe((v) => {
     const immersive = v !== VisibilityState.NonImmersive;
@@ -88,6 +95,13 @@ export async function boot(opts: BootOptions): Promise<Booted> {
     const s = world.session as FrameRateSession | undefined;
     const want = handle.app.settings.xr.value.refresh;
     if (immersive && s?.updateTargetFrameRate && Array.from(s.supportedFrameRates ?? []).includes(want)) void s.updateTargetFrameRate(want).catch(() => undefined);
+    if (immersive) {
+      // inside a session frame, where the multiview target is current
+      const off = onLookFrame(world, () => {
+        off();
+        warmUp(world);
+      });
+    }
     if (v === VisibilityState.VisibleBlurred && handle.app.sim.state === 'running') void handle.app.sim.pause();
   });
 

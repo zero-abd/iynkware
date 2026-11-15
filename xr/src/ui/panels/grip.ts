@@ -34,6 +34,7 @@ import { ACCENT, INK, PAPER, SHADOW } from '../../look/palette';
 import { dmm } from '../../look/type';
 import { createPanelPlaces, type PanelPlaces } from './registry';
 import { createPlaceStore } from './store';
+import { uploadNow } from '../../look/upload';
 
 /** The grip in dmm at its panel's reading distance: the pill, its shadow, the gap under the panel, and the hit. */
 export const GRIP_DMM = { barH: 16, shadow: 4, gap: 18, hitH: 56, hitPad: 14, minW: 96, maxW: 200, lift: 3 } as const;
@@ -265,6 +266,7 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
     if (g) {
       paintGrip(g, canvas.width, canvas.height, canvas.width / (barW / dmm(1, D)), next);
       tex.needsUpdate = true;
+      uploadNow(tex);
     }
     const up = next === 'hover';
     if (was !== null && (was === 'hover') !== up) hoverLift(app.world, bar, dmm(GRIP_DMM.lift, D), up);
@@ -415,6 +417,7 @@ function closeDisc(app: Pick<XrApp, 'world' | 'input'>, D: number, id: string, o
     if (g) {
       paintClose(g, side, side / CLOSE_DMM.size, next);
       tex.needsUpdate = true;
+      uploadNow(tex);
     }
     if (was !== null && (was === 'hover') !== (next === 'hover')) hoverLift(app.world, disc, dmm(GRIP_DMM.lift, D), next === 'hover');
   };

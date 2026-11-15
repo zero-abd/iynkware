@@ -5,6 +5,7 @@
 import { CanvasTexture, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from '@iwsdk/core';
 import { makeCanvas, PX_PER_DMM } from '../../look/paint';
 import { dmm } from '../../look/type';
+import { uploadNow } from '../../look/upload';
 
 export type Ctx = CanvasRenderingContext2D;
 
@@ -53,6 +54,7 @@ export function canvasFace(w: number, h: number, distanceM: number, opts: { hit?
       g.clearRect(0, 0, cw, ch);
       paint(g, cw, ch);
       tex.needsUpdate = true;
+      uploadNow(tex);
     },
     setOpacity(a) {
       mat.opacity = a;

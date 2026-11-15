@@ -208,9 +208,12 @@ export function drawCourse(map: CourseMap, course: Course): CourseDrawing {
     },
     setOpacity(a) {
       for (const m of mats) {
-        m.transparent = a < 1;
         m.opacity = a;
-        m.needsUpdate = true;
+        // a new program only when transparency flips, not every frame of the fade
+        if (m.transparent !== a < 1) {
+          m.transparent = a < 1;
+          m.needsUpdate = true;
+        }
       }
     },
     dispose() {

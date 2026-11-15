@@ -17,6 +17,7 @@ import { movable } from '../ui/panels';
 import { say } from './copy';
 import { createPlate, type Plate, type PlateLook } from './plate';
 import { spotsOf } from './presence/spots';
+import { uploadNow } from '../look/upload';
 
 export type CardAction = 'accept' | 'acceptAll' | 'reject' | 'undo' | 'stop';
 
@@ -185,6 +186,7 @@ export function createCard(
       y += body.lineHeight;
     }
     tex.needsUpdate = true;
+    uploadNow(tex);
   };
 
   let stateOff: Unsubscribe | null = null;

@@ -183,6 +183,21 @@ function openScreen(app: XrApp, scene: FlightScene): { dispose(): void } {
     }),
   );
 
+  // The screen draws into a single-view target, whose programs are not the headset's multiview ones: start compiling
+  // them now rather than on the screen's first render (look/upload.ts warmUp).
+  {
+    const renderer = app.world.renderer;
+    const previous = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(target);
+      renderer.compile(app.world.scene, camera);
+    } catch {
+      // compiled on first use, as before
+    } finally {
+      renderer.setRenderTarget(previous);
+    }
+  }
+
   let disposed = false;
   return {
     dispose() {

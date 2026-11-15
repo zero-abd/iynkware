@@ -12,6 +12,7 @@ import { ACCENT, INK, MUTED, PAPER, RULE } from '../look/palette';
 import { fitLines, makeCanvas, paintIcon, paintPill } from '../look/paint';
 import type { IconName } from '../look/icons';
 import { TYPE } from '../look/type';
+import { uploadNow } from '../look/upload';
 
 export interface PlateLook {
   label: string;
@@ -80,6 +81,7 @@ export function createPlate(app: Pick<XrApp, 'world' | 'input'>, id: string, siz
     g.textBaseline = 'middle';
     g.fillText(text, x0 + iconSize + gap, inner / 2 + border * 0.2);
     tex.needsUpdate = true;
+    uploadNow(tex);
   };
 
   return {

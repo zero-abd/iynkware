@@ -43,6 +43,7 @@ import {
 import { ROOM_STRINGS as S } from './strings';
 import { nextSize, volumeFor, type CourseSize } from './size';
 import { value, type Value } from '../../../ui/value';
+import { warmUp } from '../../../look/upload';
 
 /** The course size the person chose on the Size plate, per app; Room (the volume as it always was) until then. */
 const sizes = new WeakMap<object, Value<CourseSize>>();
@@ -237,7 +238,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   });
 
   // the readout, world-locked beside the volume, turned towards where the person stood
-  const label: TextLabel = textLabel(1.7, 0.6, { role: 'label', maxLines: 6, align: 'left' });
+  // read from about 2 m: 1000 texels a metre is as sharp as the headset shows it there, and a quarter of the upload
+  const label: TextLabel = textLabel(1.7, 0.6, { role: 'label', maxLines: 6, align: 'left', px: 1000 });
   const { rx, rz, fx, fz } = volume;
   const lateral = volume.left + 0.55, ahead = volume.far - 0.15;
   label.mesh.position.set(head.x + lateral * rx + ahead * fx, 1.0, head.z + lateral * rz + ahead * fz);
@@ -473,6 +475,9 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   runner.tick(0);
   craftPose(map, runner.frame, span, pose);
   trail.reset(pose.x, pose.y, pose.z);
+
+  // its programs compile now, in parallel, not on the first frames of the flight
+  warmUp(app.world, root);
 
   let disposed = false;
   return {

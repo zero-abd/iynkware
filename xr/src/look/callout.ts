@@ -25,6 +25,7 @@ import type { IconName } from './icons';
 import { FIGURE_ACCENT, hexNum, INK, PAPER, TAG, TONE_INK } from './palette';
 import { fitLines, makeCanvas, paintIcon, paintPill, paintPlate, PX_PER_DMM, useFont } from './paint';
 import { dmm, onFontsReady, TYPE } from './type';
+import { uploadNow } from './upload';
 
 export type CalloutTone = 'do' | 'pass' | 'fail' | 'warn' | 'info';
 
@@ -95,6 +96,20 @@ export function createCallout(text: string, opts: CalloutOptions = {}): Callout 
   holder.add(quad);
   group.add(holder);
 
+  // The label's size in canvas pixels. The canvas only grows: a GPU texture cannot change size, so growing it makes
+  // a new one (uploaded at once, so no frame samples it black); a smaller label draws into the corner of the old one.
+  let cw = 0;
+  let ch = 0;
+  const room = (w: number, h: number): CanvasRenderingContext2D => {
+    if (w > canvas.width || h > canvas.height) {
+      canvas.width = Math.max(canvas.width, Math.ceil(w / 64) * 64);
+      canvas.height = Math.max(canvas.height, Math.ceil(h / 64) * 64);
+      tex.dispose();
+    }
+    const g = canvas.getContext('2d')!;
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    return g;
+  };
   const set = (t: string) => {
     const px = PX_PER_DMM * 2; // 4 texels per dmm: sharp at arm's length
     const shape = opts.shape ?? (t.length <= 22 && !/[.!?]\s/.test(t) ? 'tag' : 'card');
@@ -109,12 +124,11 @@ export function createCallout(text: string, opts: CalloutOptions = {}): Callout 
       const w = Math.round(textW + h * 0.9 + iconW + (icon ? size * 0.3 : 0));
       const border = Math.round(2.5 * px * 0.6);
       const shadow = Math.round(3 * px);
-      canvas.width = w + shadow + border;
-      canvas.height = h + shadow + border;
-      const g = canvas.getContext('2d')!;
-      g.clearRect(0, 0, canvas.width, canvas.height);
+      cw = w + shadow + border;
+      ch = h + shadow + border;
+      const g = room(cw, ch);
       const fill = tone === 'do' ? FIGURE_ACCENT : TAG;
-      paintPill(g, 0, 0, canvas.width, canvas.height, { fill, border, shadow });
+      paintPill(g, 0, 0, cw, ch, { fill, border, shadow });
       let x = h * 0.45 + border / 2;
       if (icon) {
         paintIcon(g, icon, x, (h - size * 1.15) / 2 + border / 2, size * 1.15, TONE_INK[tone]);
@@ -136,11 +150,10 @@ export function createCallout(text: string, opts: CalloutOptions = {}): Callout 
       const h = Math.round(fit.lines.length * fit.lineHeight + 2 * pad);
       const longest = Math.max(...fit.lines.map((l) => g0.measureText(l).width));
       const w = Math.round(Math.min(width, longest + 2 * pad + iconW));
-      canvas.width = w + shadow + border;
-      canvas.height = h + shadow + border;
-      const g = canvas.getContext('2d')!;
-      g.clearRect(0, 0, canvas.width, canvas.height);
-      paintPlate(g, 0, 0, canvas.width, canvas.height, { fill: tone === 'do' ? TAG : PAPER, border, shadow, radius: 12 * px });
+      cw = w + shadow + border;
+      ch = h + shadow + border;
+      const g = room(cw, ch);
+      paintPlate(g, 0, 0, cw, ch, { fill: tone === 'do' ? TAG : PAPER, border, shadow, radius: 12 * px });
       if (icon) paintIcon(g, icon, pad, pad + (fit.lineHeight - size * 1.2) / 2, size * 1.2, TONE_INK[tone]);
       useFont(g, CARD_TEXT, fit.size, t);
       g.fillStyle = INK;
@@ -148,12 +161,15 @@ export function createCallout(text: string, opts: CalloutOptions = {}): Callout 
       g.textAlign = 'left';
       fit.lines.forEach((line, i) => g.fillText(line, pad + iconW, pad + fit.lineHeight * (i + 0.5)));
     }
-    tex.dispose(); // the canvas changed size: a new GPU texture
+    // the label is the canvas's top-left cw by ch (a canvas texture's v runs up from the canvas's bottom row)
+    tex.repeat.set(cw / canvas.width, ch / canvas.height);
+    tex.offset.set(0, 1 - ch / canvas.height);
     tex.needsUpdate = true;
+    uploadNow(tex);
     const metresPerPx = dmm(1, distance) / px;
-    quad.scale.set(canvas.width * metresPerPx, canvas.height * metresPerPx, 1);
+    quad.scale.set(cw * metresPerPx, ch * metresPerPx, 1);
     // the label sits on its leader by its bottom edge
-    quad.position.y = opts.bare ? 0 : (canvas.height * metresPerPx) / 2;
+    quad.position.y = opts.bare ? 0 : (ch * metresPerPx) / 2;
   };
   let current = text;
   const show = (t: string) => {

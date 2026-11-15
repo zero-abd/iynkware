@@ -20,12 +20,14 @@
  *   bench.ts     the bench in the look: mat, rail, wires, and parts dropping in, easing and leaving
  *   studio.ts    the paper studio: dome, horizon ring, floor disc and an inked table, for the plain VR space
  *   fx.ts        effectsOf(world): pop and snap rings, spark, heat lines, smoke; one instanced draw per kind
+ *   upload.ts    uploadNow(tex), warmUp(world): textures and shaders onto the GPU outside the multiview pass
  */
 import type { FeatureModule, XrApp } from '../contracts/app';
 import { mountBenchLook } from './bench';
 import { motionOf, prefersReducedMotion } from './runner';
 import { mountStage } from './stage';
 import { loadFonts } from './type';
+import { bindUploads } from './upload';
 
 /** Reduced motion: the headset's own setting once it exists (#17), else the 2D app's, else the browser's. */
 export function reducedMotionOf(app: Pick<XrApp, 'settings'>): boolean {
@@ -40,6 +42,7 @@ export function reducedMotionOf(app: Pick<XrApp, 'settings'>): boolean {
 export const lookModule: FeatureModule = {
   id: 'look',
   mount(app) {
+    const offUploads = bindUploads(app.world.renderer);
     void loadFonts();
     const motion = motionOf(app.world);
     const sync = () => {
@@ -55,6 +58,7 @@ export const lookModule: FeatureModule = {
       offShared();
       offStage();
       offBench();
+      offUploads();
     };
   },
 };
