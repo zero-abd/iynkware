@@ -83,7 +83,7 @@ const press = async (name) => {
   await sleep(500);
   await page.evaluate(() => window.__x('set_transform', { device: 'controller-right', position: { x: 0.25, y: 1.0, z: -0.2 }, orientation: { x: 0, y: 0, z: 0, w: 0.7071 } }));
 };
-const windows = () => page.evaluate(() => window.iynkware.world.scene.children.filter((o) => /^(shell-panel:|shell-button:|session-controls|agent:)/.test(o.name) && o.visible).map((o) => o.name));
+const windows = () => page.evaluate(() => window.iynkware.world.scene.children.filter((o) => /^(shell-panel:|shell-button:|agent:)/.test(o.name) && o.visible).map((o) => o.name));
 const shown = await windows();
 const spot = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench-drone').getWorldPosition(window.iynkware.world.camera.position.clone()).toArray());
 const benchScale = await page.evaluate(() => window.iynkware.world.scene.getObjectByName('range-bench-drone').getWorldScale(window.iynkware.world.camera.position.clone()).x);
@@ -119,6 +119,7 @@ await sleep(1500);
 await sticks(0, 0, 0, 0);
 const up = await page.evaluate(() => window.__flight().craft.object.position.toArray());
 check('it climbs off the bench', up[1] > spot[1] + 0.3, { spot, up });
+check('the session controls stay', await page.evaluate(() => window.iynkware.world.scene.getObjectByName('session-controls').visible));
 check('A arms the drone, it does not undo the bench build', await page.evaluate(() => window.iynkware.app.project.canUndo()) );
 // Stop (the same button)
 await press('run:here');
@@ -131,6 +132,20 @@ await press('run:run');
 const ranged = await page.waitForFunction(() => window.iynkware.app.shell.place.value === 'range' && window.__flight(), null, { timeout: 30000 }).then(() => true, () => false);
 await sleep(800);
 check('Run on range flies the course in the Range, the table hidden', ranged && (await page.evaluate(() => window.__room().userData.here === false && !window.iynkware.app.bench.table.visible)));
+// a switch while something runs stops it first: Run here again, then the companion opens a lab
+await page.evaluate(() => window.iynkware.app.shell.go('bench'));
+await sleep(1500);
+await press('run:here');
+await page.waitForFunction(() => window.__flight(), null, { timeout: 30000 });
+await page.evaluate(async () => (await import('/src/agent/tools/navigate.ts')).createNavHost(window.iynkware.app).go({ kind: 'lab', lab: 'physics' }));
+await sleep(1500);
+check('opening a lab while the drone flies here stops the flight first', await page.evaluate(() => !window.__flight?.() && window.iynkware.app.shell.place.value === 'bench'));
+// Reset: an empty workbench from anywhere, the lab left
+const before = await page.evaluate(() => window.iynkware.app.project.doc.id);
+await page.evaluate(() => window.iynkware.world.scene.getObjectByName('session-controls').userData.sessionControls.reset);
+await page.evaluate(async () => (await import('/src/shell/switch/index.ts')).newProject(window.iynkware.app));
+await sleep(2000);
+check('Reset opens a new empty workbench', await page.evaluate((b) => window.iynkware.app.project.doc.id !== b && window.iynkware.app.shell.place.value === 'bench', before));
 await browser.close();
 console.log(fails ? `${fails} FAILED` : 'ALL PASS');
 process.exit(fails ? 1 : 0);

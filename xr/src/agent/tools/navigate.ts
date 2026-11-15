@@ -22,7 +22,7 @@ import { pickText, type Lang } from '../../contracts/common';
 import { labOf } from '../../lab/context';
 import { LAB_IDS, type LabId } from '../../lab/model/types';
 import { libraryOf } from '../../shell/library/types';
-import { continueLast, goPlace, leaveLab as leaveLabOf, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
+import { continueLast, goPlace, leaveLab as leaveLabOf, newProject, openCraft, openDrone, openProject, stopRunning } from '../../shell/switch';
 import { rangeProjectOf } from '../../range/shared/detect';
 import { droneCrafts } from '../knowledge';
 import type { Args, ToolHost, ToolResult } from './catalog';
@@ -165,6 +165,8 @@ export function createNavHost(app: XrApp): NavHost {
   return {
     projects: () => (libraryOf(app)?.rows.value ?? []).map((r) => ({ id: r.id, title: r.title })),
     async go(d) {
+      // whatever runs (a drone flying, the Range, a circuit run) stops before going anywhere; Home just opens over it
+      if (d.kind !== 'home' && d.kind !== 'drones') stopRunning(app);
       switch (d.kind) {
         case 'lab': {
           const lab = labOf(app.world);
