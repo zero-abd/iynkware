@@ -42,7 +42,7 @@ import {
 } from '@iwsdk/core';
 import type { Entity, Intersection, Object3D, Quaternion, World } from '@iwsdk/core';
 import type { ReadonlyValue, Unsubscribe } from '../contracts/common';
-import { blocks, toggled, type InputMode } from './mode';
+import { blocks, newIdleState, preferHand, stepIdle, toggled, type IdleState, type InputMode } from './mode';
 import type {
   BindOptions,
   ButtonState,
@@ -199,12 +199,12 @@ export interface InputServiceOptions {
   /** Read on every `pulse`: false silences controller haptics (`XrSettings.haptics`). Default: always on. */
   readonly haptics?: () => boolean;
   /** Called after B on the right controller toggles the input mode (the app shows a notice). */
-  readonly onModeChange?: (mode: Exclude<InputMode, 'auto'>) => void;
+  readonly onModeChange?: (mode: Exclude<InputMode, 'hands'>) => void;
 }
 
 /** The service plus the quick input switch (not in the contract: only the app and the emulator checks read it). */
 export interface InputServiceImpl extends InputService {
-  /** `auto` (both) until B on the right controller toggles it: `controllers` (hands off), then `hands` (hands on). */
+  /** `auto` (hands and controllers, hands win over a still controller); B toggles `controllers` (hands off) and back. */
   readonly inputMode: ReadonlyValue<InputMode>;
   setInputMode(mode: InputMode): void;
 }
@@ -223,6 +223,49 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
     const mp = xr.multiPointers[hand];
     const update = mp.update.bind(mp);
     mp.update = (connected, delta, time, input) => update(connected && !blocked(hand), delta, time, input);
+  }
+
+  // A Quest can keep a put-down controller in the session's input sources, and IWSDK then keeps it primary over the
+  // tracked hand on that side, so the hand drives nothing. Right after IWSDK sorts the sources each frame, a side with
+  // a tracked hand and a controller lying still makes the hand primary (pointers, poses, pinch). Lifting the
+  // controller (it moves, or a button is held) gives it back; under `controllers` the controller always keeps it.
+  const internal = xr as unknown as XrInternal;
+  const idle: Record<Hand, IdleState> = { left: newIdleState(), right: newIdleState() };
+  if (typeof internal.updateActiveInputSources === 'function' && internal.activeInputSources && internal.primaryInputSources) {
+    const sortSources = internal.updateActiveInputSources.bind(xr);
+    internal.updateActiveInputSources = (session: XRSession) => {
+      sortSources(session);
+      try {
+        preferTrackedHands();
+      } catch {
+        // never break IWSDK's input frame
+      }
+    };
+  }
+  function preferTrackedHands() {
+    const frame = world.renderer.xr.getFrame?.();
+    const ref = world.renderer.xr.getReferenceSpace?.();
+    if (!frame || !ref) return;
+    const now = performance.now();
+    for (const side of HANDS) {
+      const ctrl = internal.activeInputSources.controller[side];
+      const hand = internal.activeInputSources.hand[side];
+      if (!ctrl) {
+        idle[side].seen = false;
+        continue;
+      }
+      const space = ctrl.inputSource.gripSpace ?? ctrl.inputSource.targetRaySpace;
+      const p = frame.getPose(space, ref)?.transform.position;
+      const held = !!ctrl.inputSource.gamepad?.buttons.some((b) => b.pressed || b.touched);
+      const still = p ? stepIdle(idle[side], p.x, p.y, p.z, held, now) : true;
+      if (!hand || internal.primaryInputSources[side] === hand.inputSource) continue;
+      const wrist = hand.inputSource.hand?.get('wrist');
+      const tracked = !!wrist && !!frame.getJointPose?.(wrist, ref);
+      if (!preferHand(inputMode.value, tracked, still)) continue;
+      hand.isPrimary = true;
+      ctrl.isPrimary = false;
+      internal.primaryInputSources[side] = hand.inputSource;
+    }
   }
 
   // Pointers outside XR come from the canvas; keep the scene's target lists so the mouse only hits bound objects.
@@ -1003,6 +1046,13 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
     },
   };
   return service;
+}
+
+/** IWSDK's XRInputManager internals the hand preference reorders (private in its typings, stable in 1.1.0). */
+interface XrInternal {
+  updateActiveInputSources(session: XRSession): void;
+  activeInputSources: Record<'controller' | 'hand', Record<Hand, { inputSource: XRInputSource; isPrimary: boolean } | undefined>>;
+  primaryInputSources: Record<Hand, XRInputSource | undefined>;
 }
 
 /** WebXR controllers expose `hapticActuators` (not in the DOM typings); some runtimes only `vibrationActuator`. */

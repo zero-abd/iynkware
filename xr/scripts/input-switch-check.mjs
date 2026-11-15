@@ -1,4 +1,4 @@
-// The quick input switch in the IWER emulator: B on the right controller turns hands off (hands tracked but ignored:
+// The quick input switch in the IWER emulator: tracked hands work with no press, B on the right controller turns hands off (hands tracked but ignored:
 // no source, no pose, no pointers), and B again turns them on (hands drive the app).
 //
 //   npx vite --mode http --port 23645          # in another terminal
@@ -51,6 +51,13 @@ await sleep(800);
 const s0 = await page.evaluate(() => window.__state());
 check('starts in auto with the controllers driving', s0.mode === 'auto' && s0.sources.right === 'controller' && s0.ray, s0);
 
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
+await sleep(800);
+const sh = await page.evaluate(() => window.__state());
+check('with no B press, tracked hands drive the app', sh.mode === 'auto' && sh.sources.right === 'hand' && sh.pose && sh.ray, sh);
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await sleep(800);
+
 await pressB();
 const s1 = await page.evaluate(() => window.__state());
 check('B turns hands off (controllers only); controllers still drive', s1.mode === 'controllers' && s1.sources.right === 'controller' && s1.ray, s1);
@@ -64,12 +71,12 @@ await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
 await sleep(800);
 await pressB();
 const s3 = await page.evaluate(() => window.__state());
-check('B again turns hands on; the held controller is now ignored', s3.mode === 'hands' && s3.sources.right === null && !s3.ray, s3);
+check('B again turns hands back on (default); the held controller still drives', s3.mode === 'auto' && s3.sources.right === 'controller' && s3.ray, s3);
 
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
 await sleep(800);
 const s4 = await page.evaluate(() => window.__state());
-check('hands drive the app: source, pose and ray', s4.sources.right === 'hand' && s4.pose && s4.ray, s4);
+check('hands drive the app again: source, pose and ray', s4.mode === 'auto' && s4.sources.right === 'hand' && s4.pose && s4.ray, s4);
 
 await browser.close();
 console.log(fails ? `${fails} failed` : 'all passed');
