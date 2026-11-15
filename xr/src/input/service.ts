@@ -42,7 +42,7 @@ import {
 } from '@iwsdk/core';
 import type { Entity, Intersection, Object3D, Quaternion, World } from '@iwsdk/core';
 import type { ReadonlyValue, Unsubscribe } from '../contracts/common';
-import { blocks, newIdleState, preferHand, stepIdle, toggled, type IdleState, type InputMode } from './mode';
+import { blocks, newIdleState, preferHand, stepIdle, type IdleState, type InputMode } from './mode';
 import type {
   BindOptions,
   ButtonState,
@@ -198,13 +198,13 @@ const noop = () => {};
 export interface InputServiceOptions {
   /** Read on every `pulse`: false silences controller haptics (`XrSettings.haptics`). Default: always on. */
   readonly haptics?: () => boolean;
-  /** Called after B on the right controller toggles the input mode (the app shows a notice). */
+  /** Called when the input mode changes (nothing changes it by button now; kept for scripts). */
   readonly onModeChange?: (mode: Exclude<InputMode, 'hands'>) => void;
 }
 
 /** The service plus the quick input switch (not in the contract: only the app and the emulator checks read it). */
 export interface InputServiceImpl extends InputService {
-  /** `auto` (hands and controllers, hands win over a still controller); B toggles `controllers` (hands off) and back. */
+  /** `auto` (hands and controllers, hands win over a still controller), the default; only `setInputMode` changes it. */
   readonly inputMode: ReadonlyValue<InputMode>;
   setInputMode(mode: InputMode): void;
 }
@@ -213,7 +213,7 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
   const xr = world.input.xr;
   const player = world.player;
 
-  // The quick input switch (B toggles hands on and off): a side whose primary source the mode ignores has its pointers disconnected before they
+  // The input mode (`auto` unless a script sets it; no button changes it): a side whose primary source the mode ignores has its pointers disconnected before they
   // raycast or press (IWSDK's MultiPointer.update), so its hand or controller hits, hovers and pinches nothing.
   const inputMode = signal<InputMode>('auto');
   const primaryOf = (hand: Hand): PointerSource | null =>
@@ -924,11 +924,7 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
 
   const updateButtons = (hand: Hand, source: PointerSource | null) => {
     const gp = source === 'controller' ? xr.gamepads[hand] : undefined;
-    for (const which of FACE_BUTTONS) {
-      // B is the input switch's alone (updateMode): no feature sees it
-      const own = hand === 'right' && which === 'upper';
-      stepButton(buttons[hand][which], gp && !own ? gp.getButtonPressed(BUTTON_IDS[hand][which]) : false);
-    }
+    for (const which of FACE_BUTTONS) stepButton(buttons[hand][which], gp ? gp.getButtonPressed(BUTTON_IDS[hand][which]) : false);
   };
 
   /** After the poses, and after this frame's pointer events (InputSystem runs first), so presses are already counted. */
@@ -945,31 +941,7 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
     stepHold(state, down, consumed, nowMs, isHand ? 'pinch' : 'grip', p[0], p[1], p[2]);
   };
 
-  /**
-   * B on the right controller toggles hands on and off, read from the gamepad itself so it works whatever the mode
-   * blocks. B does nothing else: `button('right', 'upper')` always reports it released.
-   */
-  let bWasDown = false;
-  const updateMode = () => {
-    // Read from the right controller's own gamepad whether or not it is the primary source: with the controller put
-    // down the tracked hand is primary, and B must still turn hands off and on (xr-standard: buttons[5] is B).
-    const ctrl = internal.activeInputSources?.controller.right;
-    const down = !!ctrl?.inputSource.gamepad?.buttons[5]?.pressed;
-    const edge = down && !bWasDown;
-    bWasDown = down;
-    if (!edge) return;
-    const next = toggled(inputMode.value);
-    inputMode.value = next;
-    service.pulse('right', 0.6, 60);
-    try {
-      opts.onModeChange?.(next);
-    } catch (err) {
-      console.error('[input] onModeChange threw', err);
-    }
-  };
-
   const tick = (time: number) => {
-    updateMode();
     const left = sourceNow('left');
     const right = sourceNow('right');
     const cur = sources.value;

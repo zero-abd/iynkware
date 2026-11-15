@@ -1,8 +1,7 @@
 /**
- * The quick input switch. By default (`auto`) tracked hands and controllers both work, and a side's tracked hand wins
- * over a controller lying still (`preferHand`). B on the right controller is the override: one press turns hands off
- * (`controllers`: hands are ignored even when tracked), the next goes back to the default. `hands` (controllers
- * ignored) is kept for `setInputMode`. Pure: the service reads the button and applies these every frame.
+ * The input mode. Hands are always on: in `auto` (the default) tracked hands and controllers both work, and a side's
+ * tracked hand wins over a controller lying still (`preferHand`). No button changes it; `controllers` and `hands` are
+ * kept for `setInputMode` (scripts and tests). Pure: the service reads the button and applies these every frame.
  */
 import type { Lang } from '../contracts/common';
 import type { PointerSource } from '../contracts/input';
