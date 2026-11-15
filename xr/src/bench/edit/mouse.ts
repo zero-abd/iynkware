@@ -165,6 +165,8 @@ export function mountMouseDrag(app: XrApp, transitions: Transitions): Unsubscrib
   // capture phase: a press on a bench item is ours, and the bench's own pointer handling never sees it
   const onDown = (e: PointerEvent) => {
     if (!flat() || e.button !== 0) return;
+    // a control the mouse is over (a rail plate, a panel's button) takes the press, even with a part behind it
+    if (overControl.size > 0) return;
     const item = itemAt(e);
     if (!item) return;
     last = item.id;
@@ -214,12 +216,19 @@ export function mountMouseDrag(app: XrApp, transitions: Transitions): Unsubscrib
     }
   };
   // the wheel moves the item, not the page, while dragging
+  const overControl = new Set<string>();
+  const offAny = app.input.onAny((e) => {
+    if (e.pointer.source !== 'mouse' || bi.items.has(e.target) || e.target.startsWith('bench/wire:')) return;
+    if (e.type === 'hover-start') overControl.add(e.target);
+    else if (e.type === 'hover-end') overControl.delete(e.target);
+  });
   canvas.addEventListener('pointerdown', onDown, true);
   window.addEventListener('pointermove', onMove, true);
   window.addEventListener('pointerup', onUp, true);
   canvas.addEventListener('wheel', onWheel, { capture: true, passive: false });
   window.addEventListener('keydown', onKey);
   return () => {
+    offAny();
     canvas.removeEventListener('pointerdown', onDown, true);
     window.removeEventListener('pointermove', onMove, true);
     window.removeEventListener('pointerup', onUp, true);

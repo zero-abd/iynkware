@@ -293,6 +293,20 @@
     }
   },
   {
+    "name": "read_code",
+    "description": "Read the program of the board on the bench (the Code window: Menu, Tools, Code): file, language, board and the full text. A board with no program yet returns the empty starter for its language. Read it before you change the code.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "write_code",
+    "description": "Replace the whole program of the board on the bench with new code (it shows in the Code window). Write the complete file in the board's language (read_code says which, e.g. arduino-cpp for an Uno), using the pins the circuit is wired to (look shows the wiring). Applied as one change the person can undo; it runs on the next Run. Say in a sentence what the program does.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": { "code": { "type": "STRING", "description": "The complete program text." } },
+      "required": ["code"]
+    }
+  },
+  {
     "name": "go_to",
     "description": "Go anywhere in the app from wherever the person is, leaving what is open first: a lab (chemistry, physics, electrical, signals and systems), the drone, the workbench, room size, Home, a template (blink, button, servo, piano, robot …) or a saved project, by name. Use it for 'go to', 'open', 'switch to', 'take me to'.",
     "parameters": {

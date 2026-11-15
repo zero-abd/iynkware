@@ -28,6 +28,7 @@ import type { Lang } from '../../contracts/common';
 import type { Project, ProjectStore } from '../../contracts/project';
 import type { SimBridge } from '../../contracts/sim';
 import type { Args, ToolHost, ToolResult } from './catalog';
+import { languagesFrom, programOf, writeProgramOps } from '../../run/code/model';
 
 /** What the bench tools need beyond the base host; absent in hosts without a project store (some tests). */
 export interface BenchToolHost {
@@ -286,9 +287,30 @@ export const BENCH_RUNS: Readonly<Record<string, Run>> = {
     else await b.sim.stop();
     return { ok: true, state: b.sim.state };
   },
+
+  read_code(h) {
+    const b = benchOf(h);
+    if (!b) return fail('the bench is not available');
+    const p = programOf(b.project.doc, languagesFrom((ref, v) => b.project.describe(ref, v)));
+    if (!p) return fail('no board on the bench runs a program: place a board such as an Uno first');
+    return { ok: true, board: p.boardName, file: p.path, language: p.language, saved: p.sourceId !== null, code: p.text };
+  },
+
+  write_code(h, a) {
+    const b = benchOf(h);
+    if (!b) return fail('the bench is not available');
+    if (labOpen(h)) return fail('a lab is open: leave_lab first to change the bench program');
+    const ops = writeProgramOps(b.project.doc, a.code as string, languagesFrom((ref, v) => b.project.describe(ref, v)));
+    if (typeof ops === 'string') return fail(ops);
+    const res = b.project.apply(ops, { label: 'code' });
+    if (!res.ok) return fail('the change did not apply', { detail: res });
+    return { ok: true, did: 'wrote the program', lines: (a.code as string).split('\n').length, next: 'run_circuit run to try it', undo: 'say "undo" or call undo to take it back' };
+  },
 };
 
 export const BENCH_KINDS = {
+  read_code: 'read',
+  write_code: 'act',
   bench_actions: 'read',
   edit_bench: 'act',
   undo: 'act',
