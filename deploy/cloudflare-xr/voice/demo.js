@@ -16,8 +16,17 @@ const COPY = {
   hi: ['Gemini वॉइस गाइड','केवल वयस्कों के लिए प्रोटोटाइप। दबाने पर ऑडियो सीधे Google Gemini को जाता है। iynkware इसे जानबूझकर संग्रहीत नहीं करता।','मेरी आयु 18 वर्ष या अधिक है और मैं ऑडियो भेजने की सहमति देता/देती हूँ।','वॉइस चालू करें','वॉइस बंद करें','बोलने के लिए दबाएँ','वॉइस बंद है।','वॉइस तैयार। MR में B या नीचे का बटन दबाएँ।','जुड़ रहा है…','सुन रहा है… पूरा होने पर छोड़ें।','Gemini उत्तर दे रहा है…','वॉइस विफल। फिर प्रयास करें।','दैनिक सीमा पूरी हुई।'],
   zh: ['Gemini 语音向导','仅限成人的原型。按住说话时，音频会直接发送给 Google Gemini。iynkware 不会有意存储。','我已年满 18 岁，并同意将麦克风音频发送给 Google。','启用语音','停用语音','按住说话','语音已关闭。','语音就绪。在 MR 中按住 B 或下方按钮。','正在连接…','正在聆听…说完后松开。','Gemini 正在回答…','语音失败。请重试。','已达到每日上限。'],
 };
-const c = COPY[(document.documentElement.lang || navigator.language || 'en').slice(0,2).toLowerCase()] || COPY.en;
+const language = (document.documentElement.lang || navigator.language || 'en').slice(0,2).toLowerCase();
+const c = COPY[language] || COPY.en;
 const [title, disclosure, consentText, enableText, disableText, talkText, idle, ready, connecting, listening, speaking, failed, quota] = c;
+const micBlocked = ({
+  en: 'Microphone access is blocked. Allow Microphone in this site’s Quest Browser permissions, reload, then enable voice again.',
+  de: 'Der Mikrofonzugriff ist blockiert. Erlaube das Mikrofon in den Website-Berechtigungen des Quest Browsers und lade neu.',
+  es: 'El acceso al micrófono está bloqueado. Permite el micrófono en los permisos del sitio de Quest Browser y recarga.',
+  fr: 'L’accès au microphone est bloqué. Autorisez-le dans les permissions du site de Quest Browser, puis rechargez.',
+  hi: 'माइक्रोफ़ोन अनुमति अवरुद्ध है। Quest Browser की साइट अनुमतियों में माइक्रोफ़ोन चालू करके पेज फिर लोड करें।',
+  zh: '麦克风权限被阻止。请在 Quest Browser 的网站权限中允许麦克风，然后重新加载。',
+})[language] || 'Microphone access is blocked. Allow it in Quest Browser site permissions and reload.';
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
 let media, audio, socket, node, source;
@@ -125,13 +134,31 @@ async function beginQuestion() {
     socket.addEventListener('close', () => { if (active) failTurn(); });
   } catch (error) { failTurn(error.message === 'quota' ? quota : failed); }
 }
+function microphone() {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    const timer = setTimeout(() => {
+      finished = true;
+      reject(new Error('microphone_blocked'));
+    }, 8000);
+    navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false}).then(stream => {
+      if (finished) { stream.getTracks().forEach(track => track.stop()); return; }
+      finished = true; clearTimeout(timer); resolve(stream);
+    }, () => {
+      if (finished) return;
+      finished = true; clearTimeout(timer); reject(new Error('microphone_blocked'));
+    });
+  });
+}
 async function enable() {
   ui.enable.disabled = true; ui.status.textContent = connecting;
   try {
-    media = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+    const permission = await navigator.permissions?.query?.({name:'microphone'}).catch(() => null);
+    if (permission?.state === 'denied') throw new Error('microphone_blocked');
+    media = await microphone();
     audio = new AudioContext({latencyHint:'interactive'}); await audio.audioWorklet.addModule('/voice/input-worklet.js'); await audio.resume();
     ui.disable.disabled = false; ui.talk.disabled = false; ui.status.textContent = ready;
-  } catch { await disable(); ui.status.textContent = failed; }
+  } catch (error) { await disable(); ui.status.textContent = error?.message === 'microphone_blocked' ? micBlocked : failed; }
 }
 async function disable() {
   released = true; active = false; closeTurn(); clearPlayback(); media?.getTracks().forEach(track => track.stop()); media = null;
