@@ -164,6 +164,67 @@ check('carried off the bench and let go, the beaker falls to the floor and stand
 await page.evaluate(([id, b]) => window.iynkware.lab.store.move(id, { x: b.x, z: b.z, yaw: 0 }), [beaker.id, beaker]);
 await sleep(800);
 
+// Holds a ray grab on the world point `at` and carries it through `deltas` (world metres, each from `at`), in steps.
+const add = (a, d) => [a[0] + d[0], a[1] + d[1], a[2] + d[2]];
+const aimTo = (p) => page.evaluate(([q, a, up, out]) => window.__x('set_transform', { device: 'controller-right', position: { x: q[0], y: q[1] + up, z: q[2] + out }, orientation: a }), [p, AIM, UP, OUT]);
+// From the right, level, pointing left: for things up high, where a panel floats in front.
+const SIDE = { x: 0, y: Math.SQRT1_2, z: 0, w: Math.SQRT1_2 };
+const aimSide = (p) => page.evaluate(([q, a]) => window.__x('set_transform', { device: 'controller-right', position: { x: q[0] + 0.35, y: q[1], z: q[2] }, orientation: a }), [p, SIDE]);
+const carry = async (at, from, to, steps = 8, aimer = aimTo) => {
+  for (let i = 1; i <= steps; i++) {
+    await aimer(add(at, from.map((f, k) => f + ((to[k] - f) * i) / steps)));
+    await sleep(70);
+  }
+  await sleep(450);
+};
+const trigger = (v) => page.evaluate((v) => window.__x('set_select_value', { device: 'controller-right', value: v }), v);
+
+// The spatula: pick it up by a ray grab, dip its blade into the salt, carry the scoop to the beaker and tip it in.
+const spat = await page.evaluate(() => {
+  const lab = window.iynkware.lab;
+  const sp = lab.store.byKind('spatula');
+  const salt = lab.store.items().find((i) => i.kind === 'substance');
+  const b = lab.store.byKind('beaker-250');
+  const scene = window.iynkware.world.scene;
+  const world = (name, x, y, z) => {
+    const o = scene.getObjectByName(name);
+    o.updateWorldMatrix(true, false);
+    return o.localToWorld(o.position.clone().set(x, y, z)).toArray();
+  };
+  return {
+    id: sp?.id,
+    salt: salt?.id,
+    beaker: b.id,
+    grab: window.__pos(`lab-grab:${sp?.id}`),
+    tip: sp && world(`lab-item:${sp.id}`, 0.07, 0.008, 0),
+    dish: salt && world(`lab-item:${salt.id}`, 0, 0.012, 0),
+    rim: world(`lab-item:${b.id}`, 0, 0.12, 0),
+  };
+});
+check('the chemistry lab lays out a spatula beside a dish of salt', !!(spat.id && spat.salt && spat.grab), { id: spat.id, salt: spat.salt });
+if (spat.id && spat.grab) {
+  await aimTo(spat.grab);
+  await sleep(350);
+  await trigger(1);
+  await sleep(200);
+  const toDish = [spat.dish[0] - spat.tip[0], spat.dish[1] - spat.tip[1], spat.dish[2] - spat.tip[2]];
+  const lift = add(toDish, [0, 0.08, 0]);
+  await carry(spat.grab, [0, 0, 0], lift);
+  await carry(spat.grab, lift, toDish, 4);
+  const scooped = await page.evaluate((id) => window.iynkware.lab.store.get(id).state.s.load, spat.id);
+  check('the spatula dipped in the salt takes a scoop', scooped === 'sodium-chloride', { load: scooped });
+  await shot('lab-2b-spatula-scoop');
+  const toRim = [spat.rim[0] - spat.tip[0], spat.rim[1] - spat.tip[1], spat.rim[2] - spat.tip[2]];
+  await carry(spat.grab, toDish, add(toDish, [0, 0.12, 0]), 4);
+  await carry(spat.grab, add(toDish, [0, 0.12, 0]), toRim);
+  const tipped = await page.evaluate(([s, b]) => ({ load: window.iynkware.lab.store.get(s).state.s.load, added: window.iynkware.lab.store.report(b).added }), [spat.id, spat.beaker]);
+  check('carried over the beaker, the scoop tips in and the beaker records it', tipped.load === '' && tipped.added === 'sodium-chloride', tipped);
+  await trigger(0);
+  await sleep(800);
+  const lies = await page.evaluate(([s, b]) => ({ moved: window.iynkware.lab.store.get(s).pose.x, beaker: window.iynkware.lab.store.get(b).pose }), [spat.id, spat.beaker]);
+  check('the spatula is let go where it was carried; the beaker stays where it stood', Math.round(lies.beaker.x) === beaker.x && Math.round(lies.beaker.z) === beaker.z, lies);
+}
+
 // The flame test, practice, seeded.
 await page.evaluate(() => {
   window.__events.length = 0;
@@ -223,6 +284,36 @@ check('leaving restores the circuit bench and never touched the project', left.l
 await page.evaluate(() => window.__x('set_transform', { device: 'headset', position: { x: 0, y: 1.2, z: 0.05 }, orientation: { x: -0.3007, y: 0, z: 0, w: 0.9537 } }));
 await sleep(600);
 await shot('lab-5-bench-back');
+// The pendulum: pull the bob aside by a ray grab and let go. It swings from that angle; the stand stays put.
+await page.evaluate(() => window.iynkware.app.shell.menuItems.value.find((m) => m.id === 'lab/physics').run());
+await sleep(1500);
+const pend = await page.evaluate(() => {
+  const st = window.iynkware.lab.store.byKind('pendulum-stand');
+  return { id: st.id, pose: { ...st.pose }, bob: window.__pos(`lab-part:${st.id}:bob`), stand: window.__pos(`lab-item:${st.id}`) };
+});
+check('the pendulum’s bob has its own grab box', !!pend.bob, pend);
+if (pend.bob) {
+  await aimSide(pend.bob);
+  await sleep(350);
+  await trigger(1);
+  await sleep(200);
+  await carry(pend.bob, [0, 0, 0], [0, 0.01, 0.09], 8, aimSide);
+  const held = await page.evaluate((id) => ({ swinging: window.iynkware.lab.store.get(id).state.p.swinging, stand: window.__pos(`lab-item:${id}`) }), pend.id);
+  await shot('lab-5b-bob-pulled');
+  await trigger(0);
+  await sleep(300);
+  const let1 = await page.evaluate((id) => {
+    const it = window.iynkware.lab.store.get(id);
+    return { swinging: it.state.p.swinging, amplitude: it.state.p.amplitude, side: it.state.s.side, angle: window.iynkware.lab.store.report(id).angleDeg, pose: { ...it.pose } };
+  }, pend.id);
+  await sleep(700);
+  const let2 = await page.evaluate((id) => window.iynkware.lab.store.report(id).angleDeg, pend.id);
+  const moved = Math.hypot(held.stand[0] - pend.stand[0], held.stand[1] - pend.stand[1], held.stand[2] - pend.stand[2]);
+  check('holding the bob does not move the stand', held.swinging === false && moved < 0.002, { moved, held });
+  check('let go, the bob swings from the angle it was pulled to', let1.swinging === true && let1.amplitude >= 5 && let1.amplitude <= 30 && let2 !== let1.angle, { let1, let2 });
+  check('the stand stays where it stood', let1.pose.x === pend.pose.x && let1.pose.z === pend.pose.z, { before: pend.pose, after: let1.pose });
+}
+
 // Pictures of the other three labs, each working (no checks: the unit tests run their experiments).
 for (const [lab, setup] of [
   ['signals', [['function-generator', 'power'], ['oscilloscope', 'probe'], ['oscilloscope', 'power'], ['oscilloscope', 'timeDiv', -1], ['oscilloscope', 'timeDiv', -1], ['oscilloscope', 'timeDiv', -1], ['oscilloscope', 'voltsDiv', -1], ['oscilloscope', 'voltsDiv', -1], ['oscilloscope', 'measure']]],

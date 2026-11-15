@@ -596,6 +596,25 @@ const BUILDERS: Readonly<Record<string, Build>> = {
     return { set: () => undefined };
   },
 
+  spatula(p, root) {
+    // a flat steel spatula lying on the bench: a handle and a blade at +x, a heap of whatever it carries on the blade
+    root.add(p.body(box(0.1, 0.004, 0.012), BANDS.dark, [-0.03, 0.006, 0]));
+    root.add(p.body(box(0.06, 0.002, 0.018), BANDS.steel, [0.05, 0.005, 0]));
+    const heap = new SphereGeometry(0.009, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    heap.scale(1.4, 0.6, 1);
+    const load = p.glow(heap, '#f2f2ee', { at: [0.062, 0.006, 0], name: 'LOAD' });
+    load.visible = false;
+    const colour = (load.material as MeshBasicMaterial).color;
+    return {
+      nodes: { LOAD: load },
+      set(ch, v) {
+        if (ch !== 'tint:LOAD') return;
+        load.visible = !!v;
+        if (v) colour.set(v as string);
+      },
+    };
+  },
+
   generic(p, root, label) {
     root.add(p.body(box(0.12, 0.12, 0.12), BANDS.paper, [0, 0.06, 0]));
     const tag = p.text(0.11, 0.03, {});

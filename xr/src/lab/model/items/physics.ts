@@ -14,9 +14,11 @@ export const period = (mm: number, deg: number): number => {
   const q = rad(deg);
   return periodSmall(mm) * (1 + (q * q) / 16 + (11 * q ** 4) / 3072);
 };
-/** The bob's angle in degrees, `t` seconds after release. */
-export const angleAt = (p: Readonly<Record<string, Prim>>, t: number): number =>
-  p.swinging ? (p.amplitude as number) * Math.cos((2 * Math.PI * t) / period(p.length as number, p.amplitude as number)) : 0;
+/** The bob's angle in degrees, `t` seconds after release; `side` is -1 when it was let go on the near side. */
+export const angleAt = (p: Readonly<Record<string, Prim>>, t: number, side = 1): number =>
+  p.swinging ? side * (p.amplitude as number) * Math.cos((2 * Math.PI * t) / period(p.length as number, p.amplitude as number)) : 0;
+/** The largest release angle the stand allows, degrees (the amplitude's range). */
+export const MAX_RELEASE = 60;
 
 export const BOB_GRAMS = { brass: 50, wood: 5 } as const;
 /** Swings to time before `record` takes the period (the figure's advice: time 10 and divide by 10). */
@@ -35,9 +37,19 @@ export const pendulum = defineItem({
     swinging: { values: [false, true] },
   },
   defaults: { length: 400, amplitude: 10, bob: 'brass', swinging: false },
-  init: () => ({ swingT: 0, records: 0, r1L: 0, r1T: 0, r1A: 0, r2L: 0, r2T: 0, r2A: 0 }),
+  init: () => ({ swingT: 0, side: 1, records: 0, r1L: 0, r1T: 0, r1A: 0, r2L: 0, r2T: 0, r2A: 0 }),
   actions: {
     swing: (d) => d.set('swinging', !d.p.swinging),
+    /** The bob pulled aside by hand and let go at `value` degrees (signed): it swings from there. */
+    release: (d, a) => {
+      const deg = a.value;
+      if (typeof deg !== 'number' || !Number.isFinite(deg)) return 'bad-value';
+      const amp = Math.min(MAX_RELEASE, Math.round(Math.abs(deg)));
+      if (amp < 1) return void d.set('swinging', false);
+      d.s.side = deg < 0 ? -1 : 1;
+      d.set('amplitude', amp);
+      d.set('swinging', true);
+    },
     length: (d, a) => {
       if (d.p.swinging) return 'stop-first';
       d.set('length', a.value ?? cycle(pendulum.params.length!, d.p.length!));
@@ -72,7 +84,7 @@ export const pendulum = defineItem({
   report: ({ p, s }) => ({
     // live: seconds since release and the bob's angle now (held at the release angle until it swings)
     tS: +(s.swingT as number).toFixed(2),
-    angleDeg: +(p.swinging ? (p.amplitude as number) * Math.cos((2 * Math.PI * (s.swingT as number)) / period(p.length as number, p.amplitude as number)) : (p.amplitude as number)).toFixed(1),
+    angleDeg: +(p.swinging ? angleAt(p, s.swingT as number, (s.side as number) ?? 1) : (p.amplitude as number)).toFixed(1),
     swings: swingsOf(p, s.swingT as number),
     periodS: +period(p.length as number, p.amplitude as number).toFixed(2),
     periodSmallS: +periodSmall(p.length as number).toFixed(2),

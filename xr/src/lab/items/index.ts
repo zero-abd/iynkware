@@ -16,7 +16,7 @@
 import { BoxGeometry, BufferAttribute, BufferGeometry, Euler, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Quaternion, Vector3, type Object3D } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
-import type { InteractionEvent } from '../../contracts/input';
+import type { Hand, InteractionEvent } from '../../contracts/input';
 import { restBelow } from '../../bench/core/rest';
 import { inkKit, loadInk, type InkKit } from '../../look/ink';
 import { ACCENT, INK, PAPER } from '../../look/palette';
@@ -25,11 +25,15 @@ import { textLabel, type TextLabel } from '../../ui/text';
 import { labOf, type LabContext } from '../context';
 import { createBenchScope } from '../scope';
 import { modelOf } from '../model/registry';
-import type { PlacedItem } from '../model/store';
+import { angleAt } from '../model/items/physics';
+import { SPATULA_KIND } from '../model/items/spatula';
+import { SUBSTANCE_KIND } from '../model/items/substance';
+import type { ApplyOutcome, PlacedItem } from '../model/store';
 import { say } from '../text';
 import { channelsOf, liveChannels } from './channels';
 import { ACID_AT, actionOf, controlsOf, dishX, LOOP_REST, SALT_DISHES, type ControlSpec } from './controls';
 import { chooseSource, createGltfSource } from './gltf';
+import { bobPoint, PRESS_DEG, pullAngle, SPATULA_TIP, spatulaMove } from './hands';
 import { CONTROL_LABELS } from './labels';
 import { createPrimitiveSource } from './primitives';
 import type { ItemVisual, ItemVisualSource } from './visual';
@@ -59,6 +63,14 @@ interface Holder {
   grabbing: boolean;
   /** Falling speed after a release, m/s (table frame). */
   vy: number;
+  /** The hand holding the item, or its bob, for a buzz on a scoop or a release. */
+  hand: Hand | null;
+  /** The pendulum's bob: its own grab box (in `root`), held or not, the angle the hand holds it at and where it began. */
+  readonly bob: Mesh | null;
+  bobHeld: boolean;
+  bobDeg: number;
+  bobStart: number;
+  bobWasSwinging: boolean;
   readonly offs: Unsubscribe[];
   readonly labels: Array<{ label: TextLabel; key?: keyof typeof CONTROL_LABELS; symbol?: string }>;
   /** The per-frame channel setter, made once. */
@@ -182,6 +194,31 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     }
   };
 
+  const buzz = (hand: Hand | null | undefined, res: ApplyOutcome) => {
+    if (hand) app.input.pulse(hand, res.ok ? 0.35 : 0.6, res.ok ? 12 : 30);
+  };
+  /** The bob's angle as drawn now, degrees. */
+  const bobAngle = (item: PlacedItem) => angleAt(item.state.p, item.state.s.swingT as number, (item.state.s.side as number) ?? 1);
+  // The pendulum's bob: catch it (a swinging bob stops in the hand), pull it aside, let go and it swings from that
+  // angle (`release`). A press that hardly moves it starts or stops the swing, as the old press on the bob did.
+  const onBob = (h: Holder, e: InteractionEvent) => {
+    const item = store.get(h.id);
+    if (!item) return;
+    if (e.type === 'select') return buzz(e.pointer.hand, store.apply(h.id, { type: 'swing' }));
+    if (e.type === 'grab-start') {
+      h.bobHeld = true;
+      h.hand = e.pointer.hand ?? null;
+      h.bobWasSwinging = item.state.p.swinging === true;
+      h.bobStart = h.bobDeg = bobAngle(item);
+      if (h.bobWasSwinging) store.apply(h.id, { type: 'swing' });
+      return;
+    }
+    if (e.type !== 'grab-end') return;
+    h.bobHeld = false;
+    if (Math.abs(h.bobDeg - h.bobStart) >= PRESS_DEG) buzz(h.hand, store.apply(h.id, { type: 'release', value: Math.round(h.bobDeg) }));
+    else if (!h.bobWasSwinging) buzz(h.hand, store.apply(h.id, { type: 'swing' }));
+  };
+
   const create = (item: PlacedItem) => {
     const model = modelOf(item.kind);
     const [w, d, ht] = model.foot;
@@ -202,6 +239,12 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
       visual: null,
       grabbing: false,
       vy: 0,
+      hand: null,
+      bob: item.kind === 'pendulum-stand' ? new Mesh(new BoxGeometry(0.045, 0.045, 0.045), hit) : null,
+      bobHeld: false,
+      bobDeg: 0,
+      bobStart: 0,
+      bobWasSwinging: false,
       offs: [],
       labels: [],
       live: (ch, v) => h.visual?.set(ch, v),
@@ -212,6 +255,7 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
         if (e.type === 'grab-start') {
           h.grabbing = true;
           h.vy = 0;
+          h.hand = e.pointer.hand ?? null;
         }
         if (e.type !== 'grab-end') return;
         h.grabbing = false;
@@ -225,12 +269,19 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
         store.move(h.id, { x: proxy.position.x * 1000, z: proxy.position.z * 1000, yaw: yaw.y / DEG, y: rest.onBench ? 0 : foot.y * 1000 });
       }),
     );
+    if (h.bob) {
+      // The bob is held apart from its stand: its grab box wins over the stand's, like a control.
+      h.bob.name = `lab-part:${item.id}:bob`;
+      (h.bob as Pointerish).pointerEventsOrder = CONTROL_ORDER;
+      root.add(h.bob);
+      h.offs.push(app.input.bind(h.bob, { id: h.bob.name, ray: true, poke: true, grab: 'both' }, (e) => onBob(h, e)));
+    }
     // Controls on the item itself go on the group now; those on a moving node wait for the visual.
     for (const spec of controlsOf(item.kind)) if (!spec.node) addControl(h, spec, group);
     holders.set(item.id, h);
     list = [...holders.values()];
     void inkReady
-      .then(() => source.create(item.kind, { label: item.label }))
+      .then(() => source.create(item.kind, { label: item.label ?? (item.kind === SUBSTANCE_KIND ? String(item.state.p.substance) : undefined) }))
       .then((visual) => {
         if (holders.get(item.id) !== h) return visual.dispose();
         h.visual = visual;
@@ -250,6 +301,10 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     for (const l of h.labels.splice(0)) l.label.dispose();
     dropEntities(app, h.proxy);
     h.proxy.geometry.dispose();
+    if (h.bob) {
+      dropEntities(app, h.bob);
+      h.bob.geometry.dispose();
+    }
     h.group.traverse((o) => {
       if ((o as Mesh).isMesh && (o as Mesh).material === hit) (o as Mesh).geometry.dispose();
     });
@@ -357,6 +412,32 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
       }
       if (!item || !h.visual) continue;
       liveChannels(h.kind, item.state, h.live);
+      if (h.bob) {
+        g.updateWorldMatrix(true, false);
+        if (h.bobHeld) {
+          // the string points at the hand: the bob's grab box, moved by the grab, seen from the pivot
+          between(root, h.bob.position, g, w);
+          h.bobDeg = pullAngle(w);
+          h.visual.set('swing:BOB', h.bobDeg);
+        } else {
+          bobPoint(item.state.p.length as number, bobAngle(item), w);
+          between(g, w, root, h.bob.position);
+          h.bob.quaternion.identity();
+        }
+      }
+      if (h.grabbing && h.kind === SPATULA_KIND) {
+        // the blade dipped in a solid takes a scoop; over a beaker or flask, a scoop tips in
+        g.updateWorldMatrix(true, false);
+        between(g, w.set(SPATULA_TIP.x, SPATULA_TIP.y, SPATULA_TIP.z), root, target);
+        const mv = spatulaMove(target, item.state.s.load as string, store.items(), (kind) => modelOf(kind).foot);
+        if (mv?.type === 'scoop') buzz(h.hand, store.apply(h.id, { type: 'scoop', value: mv.what }));
+        else if (mv?.type === 'tip') {
+          const what = item.state.s.load as string;
+          const res = store.apply(mv.id, { type: 'add', value: what });
+          if (res.ok) store.apply(h.id, { type: 'tip' });
+          buzz(h.hand, res);
+        }
+      }
       h.visual.update(dt);
     }
     // The nichrome loop goes to the acid, a dish or the burner's flame.

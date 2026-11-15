@@ -5,6 +5,7 @@
  */
 import { FLAMES, LIQUID_COLOUR, FLAME_COLOUR, type Collar, type Liquid, type Salt } from '../model/items/chemistry';
 import { angleAt } from '../model/items/physics';
+import { SUBSTANCES } from '../substances/data';
 import { traceOf } from '../model/items/signals';
 import type { ItemState, LabEnv, Report } from '../model/types';
 import type { ChannelValue } from './visual';
@@ -73,6 +74,10 @@ export function channelsOf(kind: string, st: Readonly<ItemState>, report: Report
         ['length:STRING', p.length as number],
         ['text:READ', `L ${p.length} mm  θ ${p.amplitude}°  n ${report.swings}`],
       ];
+    case 'spatula': {
+      const load = st.s.load as string;
+      return [['tint:LOAD', load ? (SUBSTANCES.find((x) => x.id === load)?.hex ?? '#c8c8c4') : '']];
+    }
     case 'beaker-250':
       return [['tint:LIQUID', LIQUID_COLOUR[p.liquid as Liquid] ?? LIQUID_COLOUR.water], ['led:HEAT', p.heat ? 1 : 0], ['text:TEMP', `${report.tempC} °C`]];
     case 'erlenmeyer-250':
@@ -114,7 +119,7 @@ export function channelsOf(kind: string, st: Readonly<ItemState>, report: Report
 export function liveChannels(kind: string, st: Readonly<ItemState>, set: (channel: string, value: number) => void): void {
   switch (kind) {
     case 'pendulum-stand':
-      set('swing:BOB', angleAt(st.p, st.s.swingT as number));
+      set('swing:BOB', angleAt(st.p, st.s.swingT as number, (st.s.side as number) ?? 1));
       break;
     case 'beaker-250':
       set('level:LIQUID', levelMm(BEAKER_LEVEL, st.s.vol as number));
