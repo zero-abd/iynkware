@@ -7,6 +7,7 @@
  *   running   the step to do, the answer choices when the step asks, Hint (practice), Finish, Stop, the tutor's line
  *   results   the score, every check with its detail, what was logged
  */
+import { atSlot, ringSpot } from '../../bench/core/ring';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import type { IconName } from '../../look/icons';
@@ -25,16 +26,19 @@ import type { Mode } from './types';
 const LAB_ICON: Readonly<Record<LabId, IconName>> = { chemistry: 'flame', physics: 'timer', electrical: 'lightning', signals: 'waveform' };
 export const PANEL = { widthM: 0.46, heightM: 0.5, distanceM: 0.8 } as const;
 /**
- * Table frame: behind the bench on the right, turned to the seated eye. The left is the learn guide's and the
- * assistant card's; the run pillar's scope and serial panels open further right and higher (run/kit/layout.ts).
+ * Where it stands: the panel ring's `side` slot (bench/core/ring.ts), away from the dominant hand, past the guide; the
+ * code window can stay out in a lab, so the code slot is not free. Drawn at the slot's distance, scaled up from `PANEL`
+ * so it looks the same size.
  */
-const PANEL_AT = { x: 0.47, y: 0.3, z: -0.14, yaw: -0.6, tilt: -0.18 } as const;
+const SLOT = 'side' as const;
 
 export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
   const { store, runner } = lab;
-  const panel = createLabPanel(app, { id: 'lab', ...PANEL });
-  panel.group.position.set(PANEL_AT.x, PANEL_AT.y, PANEL_AT.z);
-  panel.group.rotation.set(PANEL_AT.tilt, PANEL_AT.yaw, 0, 'YXZ');
+  const panel = createLabPanel(app, { id: 'lab', ...atSlot(PANEL, SLOT) });
+  const xr = app.settings.xr.value;
+  const at = ringSpot(SLOT, xr.posture, xr.dominantHand);
+  panel.group.position.set(...at.position);
+  panel.group.rotation.set(at.tiltRad, at.yawRad, 0, 'YXZ');
   app.bench.table.add(panel.group);
   const picker = value(false);
   let hint: L6 | null = null;

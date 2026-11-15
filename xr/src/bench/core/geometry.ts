@@ -68,16 +68,17 @@ export interface BenchGeometry {
 export const EYE_TO_FRONT = 0.15;
 const RAIL_DEPTH = 0.04;
 const WORK_DEPTH = 0.3;
-/** The ring's centre is this far behind the eyes (about 0.2 m behind the torso); its inner radius reaches the front edge. */
-const RING_BEHIND_EYES = 0.3;
-/** The wings: how far round they go, and where the shelf and the rack stand on them (angle, radius from the centre). */
-const RING_HALF_SPAN_DEG = 70;
-const WING_DEG = 56;
-const WING_R = 0.76;
+/**
+ * The ring's centre is this far behind the eyes; its inner radius reaches the front edge. Far enough back for a gentle
+ * curve (a 0.9 m radius), like a curved desk rather than a cockpit.
+ */
+const RING_BEHIND_EYES = 0.75;
+/** How far round the wings go, from straight ahead. */
+const RING_HALF_SPAN_DEG = 48;
 
 const SIZES = {
-  standing: { top: { w: 1.0, d: 0.55 }, ringD: 0.6, mat: { w: 0.9, d: 0.48 }, workW: 0.6, wing: { w: 0.24, d: 0.22 } },
-  seated: { top: { w: 0.9, d: 0.5 }, ringD: 0.55, mat: { w: 0.86, d: 0.44 }, workW: 0.54, wing: { w: 0.22, d: 0.2 } },
+  standing: { top: { w: 1.0, d: 0.55 }, ringD: 0.6, mat: { w: 0.9, d: 0.48 }, workW: 0.6, wing: { w: 0.24, d: 0.22, deg: 38, r: 1.05 } },
+  seated: { top: { w: 0.9, d: 0.5 }, ringD: 0.55, mat: { w: 0.86, d: 0.44 }, workW: 0.54, wing: { w: 0.22, d: 0.2, deg: 36.5, r: 1.03 } },
 } as const;
 
 export function benchGeometry(posture: XrSettings['posture'], dominantHand: XrSettings['dominantHand'] = 'right'): BenchGeometry {
@@ -96,11 +97,12 @@ export function benchGeometry(posture: XrSettings['posture'], dominantHand: XrSe
   const workW = size.workW;
   const rail = { x: 0, z: front - RAIL_DEPTH / 2, w: mat.w, d: RAIL_DEPTH, raise: 0.03, tiltRad: (30 * Math.PI) / 180 };
   const work = { x: 0, z: front - RAIL_DEPTH - WORK_DEPTH / 2, w: workW, d: WORK_DEPTH };
-  // The wings: the shelf on side D, the rack mirrored, each at WING_DEG round the ring, its front turned to the centre.
-  const a = (WING_DEG * Math.PI) / 180;
+  // The wings: the shelf on side D, the rack mirrored, each `wing.deg` round the ring and `wing.r` from its centre (3 cm
+  // clear of the mat), its front turned to the centre.
+  const a = (size.wing.deg * Math.PI) / 180;
   const wing = (side: 1 | -1): TurnedRect => ({
-    x: side * Math.sin(a) * WING_R,
-    z: table.cz - Math.cos(a) * WING_R,
+    x: side * Math.sin(a) * size.wing.r,
+    z: table.cz - Math.cos(a) * size.wing.r,
     w: size.wing.w,
     d: size.wing.d,
     yawRad: -side * a,

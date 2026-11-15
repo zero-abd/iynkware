@@ -8,13 +8,12 @@
  * Slot angles mirror for a left-handed person: the code side is always the dominant hand's.
  *
  * Each slot is at its panel's own design distance (its text is sized in dmm for it) and the angles leave about 3
- * degrees between neighbours at their widths. The table's back edge is 0.75 to 0.88 m from the eyes along these
- * angles, so every slot stands just beyond it.
+ * degrees between neighbours at their widths. Every slot stands just beyond the table's outer edge.
  *
  *   slot      towards D   distance   below   holds (width as seen)
  *   scope        0         0.95 m     20     the scope screen, behind the board (25 degrees)
- *   code       +32         0.90 m     10     the code window (33 degrees)
- *   serial     +64         1.00 m     12     the serial monitor (29 degrees)
+ *   code       +30         0.90 m     10     the code window (33 degrees)
+ *   serial     +62         1.10 m     12     the serial monitor (27 degrees; drawn for 1.00 m)
  *   guide      -29         1.10 m     10     the lesson guide (27 degrees)
  *   side       -58         1.10 m     12     the fault panel, Look inside, the lab panel (up to 31 degrees)
  *
@@ -35,8 +34,8 @@ export const EYE_ABOVE_TOP = 0.47;
 /** Each slot: its angle towards side D (degrees), how far from the eyes (metres) and how far below eye level (degrees). */
 export const RING_SLOTS: Readonly<Record<RingSlot, { readonly sideDeg: number; readonly distanceM: number; readonly belowDeg: number }>> = {
   scope: { sideDeg: 0, distanceM: 0.95, belowDeg: 20 },
-  code: { sideDeg: 32, distanceM: 0.9, belowDeg: 10 },
-  serial: { sideDeg: 64, distanceM: 1.0, belowDeg: 12 },
+  code: { sideDeg: 30, distanceM: 0.9, belowDeg: 10 },
+  serial: { sideDeg: 62, distanceM: 1.1, belowDeg: 12 },
   guide: { sideDeg: -29, distanceM: 1.1, belowDeg: 10 },
   side: { sideDeg: -58, distanceM: 1.1, belowDeg: 12 },
 };
@@ -70,4 +69,14 @@ export function ringSpot(slot: RingSlot, posture: XrSettings['posture'], dominan
     tiltRad: -down,
     yawRad: -side,
   };
+}
+
+/**
+ * A panel drawn for `size.distanceM`, scaled to stand in `slot`: its metres grow with the slot's distance, so it looks
+ * the same size and its dmm-sized text and layout are unchanged.
+ */
+export function atSlot<T extends { widthM: number; heightM: number; distanceM: number }>(size: T, slot: RingSlot): T {
+  const d = RING_SLOTS[slot].distanceM;
+  const k = d / size.distanceM;
+  return { ...size, widthM: size.widthM * k, heightM: size.heightM * k, distanceM: d };
 }

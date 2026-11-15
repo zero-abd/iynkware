@@ -9,6 +9,7 @@
  *
  * Sampling runs on the lab clock (`store.now`), so a paused lab records nothing new.
  */
+import { atSlot, ringSpot } from '../../bench/core/ring';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import { ACCENT, INK, MUTED, RULE } from '../../look/palette';
@@ -38,9 +39,9 @@ export const DATA_TEXT = {
   points: l6('{n} points', '{n} Punkte', '{n} puntos', '{n} points', '{n} बिंदु', '{n} 个点'),
 };
 
-/** Table frame: past the lab panel's right edge, turned further toward the person. */
+/** Drawn for 0.7 m; it stands in the panel ring's `serial` slot beyond the lab panel (bench/core/ring.ts), scaled to match. */
 const PANEL = { widthM: 0.38, heightM: 0.36, distanceM: 0.7 } as const;
-const AT = { x: 0.7, y: 0.14, z: 0.16, yaw: -0.85, tilt: -0.3 } as const;
+const SLOT = 'serial' as const;
 const SAMPLE_MS = 50;
 const MAX_POINTS = 1200;
 /** Repaint at most this often while recording, ms of wall time. */
@@ -49,10 +50,12 @@ const PAINT_MS = 120;
 export function mountData(app: XrApp, lab: LabContext): Unsubscribe {
   const store = lab.store;
   const lang = () => app.settings.lang.value;
-  const panel = createLabPanel(app, { id: 'lab-data', ...PANEL });
+  const panel = createLabPanel(app, { id: 'lab-data', ...atSlot(PANEL, SLOT) });
   panel.group.name = 'lab:data';
-  panel.group.position.set(AT.x, AT.y, AT.z);
-  panel.group.rotation.set(AT.tilt, AT.yaw, 0, 'YXZ');
+  const xr = app.settings.xr.value;
+  const at = ringSpot(SLOT, xr.posture, xr.dominantHand);
+  panel.group.position.set(...at.position);
+  panel.group.rotation.set(at.tiltRad, at.yawRad, 0, 'YXZ');
   panel.setVisible(false);
   app.bench.table.add(panel.group);
 

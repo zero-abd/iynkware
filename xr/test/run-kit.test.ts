@@ -91,7 +91,7 @@ describe('run kit layout', () => {
     const l = runLayout('seated', 'right');
     const dist = (p: readonly number[]) => Math.hypot(p[0]! - l.eye[0], p[1]! - l.eye[1], p[2]! - l.eye[2]);
     expect(dist(l.scopeScreen.position)).toBeCloseTo(0.95, 6);
-    expect(dist(l.serial.position)).toBeCloseTo(1.0, 6);
+    expect(dist(l.serial.position)).toBeCloseTo(1.1, 6);
     expect(l.serial.position[0]).toBeGreaterThan(0);
     expect(l.serial.yawRad).toBeLessThan(0);
     expect(runLayout('seated', 'left').serial.position[0]).toBeLessThan(0);
