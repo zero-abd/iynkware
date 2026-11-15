@@ -10,7 +10,7 @@ import { BANDS, type Bands } from '../../look/palette';
 import { BASE, TIER_RISE, TIERS, type ShelfLayout } from './layout';
 
 /** The standing header board behind the far tier: where it stands, and how tall it is. */
-export const HEADER = { gap: 0.012, thick: 0.008, bottom: 0.085, height: 0.125, rowH: 0.036, rowGap: 0.004, margin: 0.0045 } as const;
+export const HEADER = { gap: 0.012, thick: 0.008, bottom: 0.125, height: 0.161, rowH: 0.048, rowGap: 0.004, margin: 0.0045 } as const;
 
 /** Centre height of header row `r` (0 the top row). */
 export const headerRowY = (r: number): number => HEADER.bottom + HEADER.height - HEADER.margin - HEADER.rowH / 2 - r * (HEADER.rowH + HEADER.rowGap);

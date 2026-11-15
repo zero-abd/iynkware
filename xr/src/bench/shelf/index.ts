@@ -72,17 +72,31 @@ export const shelfModule: FeatureModule = {
     const prev = add({ icon: 'arrowLeft', label: say(app, shelfStrings, 'shelf.prev') }, 2, 0, (lang) => shelfStrings[lang]['shelf.prev']);
     const mid = add({ icon: null, label: '', value: '1/1' }, 2, 1, null);
     const next = add({ icon: 'arrowRight', label: say(app, shelfStrings, 'shelf.next') }, 2, 2, (lang) => shelfStrings[lang]['shelf.next']);
-    offs.push(
-      bindPlate(app, prev, 'shelf/prev', () => {
-        if (page === 0 || pages() < 2) return;
+    // The pager is bound only while a group has more than one page: a hidden plate still takes pokes, and a poke near
+    // the breadboard's end would win over a pinch on a part.
+    let pagerBound = false;
+    let pagerOff: () => void = () => undefined;
+    const bindPager = (on: boolean) => {
+      pagerOff();
+      pagerOff = () => undefined;
+      if (!on) return;
+      const a = bindPlate(app, prev, 'shelf/prev', () => {
+        if (page === 0) return;
         page--;
         refresh();
-      }),
-      bindPlate(app, next, 'shelf/next', () => {
-        if (page >= pages() - 1 || pages() < 2) return;
+      });
+      const b = bindPlate(app, next, 'shelf/next', () => {
+        if (page >= pages() - 1) return;
         page++;
         refresh();
-      }),
+      });
+      pagerOff = () => {
+        a();
+        b();
+      };
+    };
+    offs.push(
+      () => pagerOff(),
       // the words follow the language
       onLang(app, (lang) => {
         for (const p of plates) if (p.text) p.plate.set({ label: p.text(lang) });
@@ -96,6 +110,10 @@ export const shelfModule: FeatureModule = {
       GROUP_IDS.forEach((id, i) => tabs[i]!.set({ latched: id === group }));
       const many = pages() > 1;
       prev.group.visible = mid.group.visible = next.group.visible = many;
+      if (many !== pagerBound) {
+        pagerBound = many;
+        bindPager(many);
+      }
       mid.set({ value: say(app, shelfStrings, 'shelf.page', { page: page + 1, pages: pages() }) });
       prev.set({ disabled: page === 0 });
       next.set({ disabled: page >= pages() - 1 });
