@@ -16,6 +16,7 @@ import { onFontsReady } from '../../../look/type';
 import { releaseEntities } from '../../../learn/kit/entities';
 import { canvasFace } from '../../../run/kit/face';
 import { PAPER } from '../../../look/palette';
+import { movable } from '../../../ui/panels';
 import { rangeOf } from '../../activate';
 import { bindPlate, inkShadow, inkSolid, panelOpen, plateButton, roundedSlab, type Plate } from '../../shared';
 import { benchArmRules, benchCraft, benchOf, benchReport, designView, pickOf, pickOp, type PickSlot } from '../model';
@@ -68,6 +69,9 @@ export function createDesignPanel(app: XrApp, contentId: string, content: DroneC
   const face = canvasFace(PANEL.w, PANEL.h, { distanceM: PANEL.distanceM });
   face.mesh.position.z = PANEL.thick + 0.0003;
   root.add(face.mesh);
+  // The shared grip bar moves it (ui/panels); on the top edge, since the sheet stands on the bench.
+  const grip = movable(app, { id: 'range/design', group: root, width: PANEL.w, height: PANEL.h, distanceM: PANEL.distanceM, edge: 'top', z: PANEL.thick + 0.003 });
+  offs.push(() => grip.dispose());
 
   const plates: OptionPlate[] = [];
   SLOTS.forEach((slot, row) => {

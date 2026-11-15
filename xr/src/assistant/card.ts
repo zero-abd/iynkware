@@ -13,6 +13,7 @@ import { panelClose, panelOpen } from '../look/moves';
 import { ACCENT, INK, MUTED } from '../look/palette';
 import { fitLines, makeCanvas, paintKicker, paintPlate } from '../look/paint';
 import { onFontsReady, TYPE } from '../look/type';
+import { movable } from '../ui/panels';
 import { say } from './copy';
 import { createPlate, type Plate, type PlateLook } from './plate';
 import { spotsOf } from './presence/spots';
@@ -138,6 +139,12 @@ export function createCard(
     offs.push(p.bind());
     buttons.set(a, p);
   }
+
+  // The shared grip bar under the card and its buttons moves them (ui/panels); the entry pill stays on the bench.
+  const top = CARD.h / 2;
+  const bottom = row2 - BTN.h / 2;
+  const grip = movable(app, { id: 'assistant/card', group: panel, width: CARD.w, height: top - bottom, centreY: (top + bottom) / 2, distanceM: 0.7, z: 0.004 });
+  offs.push(() => grip.dispose());
 
   // The entry: one pill on its own when nothing is being built.
   const entry = createPlate(app, 'build-with-me', { w: 0.17, h: 0.045 }, start);

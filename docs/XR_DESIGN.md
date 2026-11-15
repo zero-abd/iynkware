@@ -516,9 +516,13 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   shadow plate in `shadow` offset 6 dmm right, 6 dmm down and 5 mm behind. No translucency: it keeps text legible over
   any room and needs no sorting. A 40 dmm title bar is the move handle (three ink dots); Close is a 48 dmm hit at top
   right.
-- **Moving:** grab the title bar. A moved panel stays where it is put, relative to the bench, between 0.8 and 2.0 m,
-  always turned towards your head in yaw and pitch, never rolled. UI between 0.5 and 0.8 m is avoided (Meta's
-  touch-or-ray rule): a panel dropped there moves to 0.8 m.
+- **Moving** (owner, 2026-11-14): every floating panel has a grip bar under its lower edge (an inked paper pill with
+  the three dots, `xr/src/ui/panels`; over the upper edge for a panel standing on the bench). Pinch it (near or along
+  the hand ray), or trigger or grip on it with a controller, and drag; the title bar moves the panel too where it has
+  one. The panel follows the hand, keeps turned towards your head in yaw and pitch, never rolled, stays 0.3 to 2.0 m
+  from the eyes and never goes under the bench top. It stays where it is let go, relative to the bench (so Recentre
+  takes it along), for the session and after a reload; reopening it puts it back there. Menu, Tidy up puts every
+  panel back in its default place. The Recentre and Exit cluster is not a panel and does not move.
 - **Budget:** at most six panels visible; opening a seventh closes the oldest that is not the guide. No head-locked UI.
 
 ### 9.2 Type

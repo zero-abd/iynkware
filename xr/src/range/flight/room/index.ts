@@ -9,6 +9,7 @@ import { flightOf, lapClock, startMode, type Sticks } from '@/lib/flight';
 import type { FeatureModule, XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import { headingOf, type Heading } from '../../../input/helpers';
+import { movable } from '../../../ui/panels';
 import { rangeOf } from '../../activate';
 import { bindPlate, dropIn, fadeIn, INK, langOf, loadFlightText, onLookFrame, plateButton, textLabel, type Plate, type TextLabel } from '../../shared';
 import { loadDrone } from '../../shared';
@@ -177,6 +178,9 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   label.mesh.name = 'range-readout';
   root.add(label.mesh);
   disposers.push(() => label.dispose());
+  // The shared grip bar under the readout moves it (ui/panels).
+  const grip = movable(app, { id: 'range/readout', group: label.mesh, width: 1.7, height: 0.6, distanceM: 2.2, z: 0.004 });
+  disposers.push(() => grip.dispose());
 
   // the plates: Arm, Reset, Back, standing a little to the person's left at chest height
   const plates = new Group();

@@ -12,6 +12,7 @@ import type { InteractionEvent } from '../../contracts/input';
 import { fitLines, paintText } from '../../look/paint';
 import { INK, MUTED, PAPER, RULE } from '../../look/palette';
 import { dmm, TYPE, type TypeRole } from '../../look/type';
+import { movable } from '../../ui/panels';
 import { faceViewer } from '../../run/kit/chip';
 import { bindPlate, scalePlate, type Plate } from '../kit/plate';
 import { tr } from '../kit/text';
@@ -74,6 +75,10 @@ export function createCard(app: XrApp, onClose: (e: InteractionEvent) => void): 
   group.add(close.group);
   const unbind: Unsubscribe = bindPlate(app, close, 'scale/probe/close', onClose);
 
+  // The shared grip bar under the card moves it (ui/panels); once moved, the leader runs from where it was put.
+  const grip = movable(app, { id: 'scale/inspector', group, width: dmm(CARD.w, D), height: dmm(CARD.w, D) * 0.6, distanceM: D, z: THICK + 0.002 });
+  const placed = new Vector3();
+
   let slab: Slab | null = null;
   let drawn = '';
   let layout: CardLayout | null = null;
@@ -107,6 +112,7 @@ export function createCard(app: XrApp, onClose: (e: InteractionEvent) => void): 
       },
     };
     halfH = h / 2;
+    grip.resize(w, h);
     // Close sits at the top right, its 48 dmm hit inside the padding.
     close.group.position.set(w / 2 - dmm(CARD.pad + CARD.close / 2, D), h / 2 - dmm(CARD.pad + CARD.close / 2, D), THICK);
     drawn = '';
@@ -190,6 +196,7 @@ export function createCard(app: XrApp, onClose: (e: InteractionEvent) => void): 
       else away.normalize();
       const up = halfH * s + 0.045 * s;
       group.position.set(anchor.x + away.x * 0.03 * s, anchor.y + up, anchor.z + away.z * 0.03 * s);
+      if (grip.placed(placed)) group.position.copy(placed);
       faceViewer(group, camera);
       // The leader runs from the card's lower edge to the part.
       foot.set(group.position.x, group.position.y - halfH * s, group.position.z);
@@ -207,6 +214,7 @@ export function createCard(app: XrApp, onClose: (e: InteractionEvent) => void): 
     },
     dispose() {
       group.visible = false;
+      grip.dispose();
       unbind();
       close.dispose();
       slab?.dispose();

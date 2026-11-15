@@ -28,6 +28,7 @@ import type { IconName } from '../../look/icons';
 import { paintText } from '../../look/paint';
 import { MUTED, PAPER } from '../../look/palette';
 import { dmm, TYPE } from '../../look/type';
+import { movable } from '../../ui/panels';
 import { bindPlate, scalePlate, type Plate } from './plate';
 import { tr, type Strings } from './text';
 import { benchLayout, canvasFace, inkShadow, inkSolid, roundedSlab, type BenchLayout } from './ui';
@@ -156,6 +157,9 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
   standing.rotation.x = Math.PI / 2;
   panel.add(standing);
   app.bench.table.add(rail, panel);
+  // The shared grip bar under the panel moves it (ui/panels); it follows the panel's size.
+  const first = panelGrid(1);
+  const grip = movable(app, { id: 'scale/look-inside', group: panel, width: first.w, height: first.h, distanceM: PANEL.distance, z: 0.012 });
 
   // The panel's own slab, shadow and title, rebuilt when its size changes.
   let back: { dispose(): void } | null = null;
@@ -232,6 +236,7 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
       panel.rotation.set(spot.tiltRad, spot.yawRad, 0, 'YXZ');
       const grid = panelGrid(onPanel.length);
       buildBack(grid);
+      grip.resize(grid.w, grid.h);
       // Plates stand on the slab's face: cell (x, y up) is local (x, slab top, -y).
       grid.cells.forEach(([x, y], i) => onPanel[i]!.plate.group.position.set(x, 0.01, -y));
     }
@@ -247,6 +252,7 @@ function createHosts(app: XrApp, onEmpty: () => void): ScaleControls {
     offLang();
     offXr();
     back?.dispose();
+    grip.dispose();
     rail.removeFromParent();
     panel.removeFromParent();
     onEmpty();

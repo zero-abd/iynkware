@@ -11,6 +11,7 @@
 import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Shape, ShapeGeometry, Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { InteractionEvent } from '../../contracts/input';
+import { movable } from '../../ui/panels';
 import { drawButton, roundRect, type ButtonFace, type DrawCtx } from './button';
 import { dmm } from './dmm';
 import { releaseEntities } from './entities';
@@ -31,8 +32,10 @@ export interface PanelOptions {
   readonly texelsPerDmm?: number;
   /** Shows Close at the top right. */
   readonly onClose?: () => void;
-  /** Called with the panel's new world position while its title bar is dragged; returns the position to use. */
+  /** Called with the panel's new world position while it is dragged (by its grip bar or its title bar). */
   readonly onMove?: (world: Vector3) => void;
+  /** Gives it the shared grip bar and makes it movable (ui/panels). Default true; false for a panel inside another. */
+  readonly movable?: boolean;
 }
 
 /** A button or other hit drawn in the canvas: pixel rectangle, its face (for the lift plate) and what it does. */
@@ -105,7 +108,7 @@ function roundedShape(w: number, h: number, r: number): Shape {
   return s;
 }
 
-export function createPanel(app: Pick<XrApp, 'input' | 'world'>, o: PanelOptions): Panel {
+export function createPanel(app: Pick<XrApp, 'input' | 'world'> & { bench?: Pick<XrApp['bench'], 'table'> }, o: PanelOptions): Panel {
   const T = o.texelsPerDmm ?? 2.4;
   const mPerDmm = dmm(1, o.distanceM);
   const pxPerM = T / mPerDmm;
@@ -186,32 +189,10 @@ export function createPanel(app: Pick<XrApp, 'input' | 'world'>, o: PanelOptions
   };
   const offHits = hits.onChange(refreshLifts);
 
-  // ---- moving by the title bar ----
-  const v = new Vector3();
-  const startOffset = new Vector3();
-  let rayDepth = 0;
-  let moving = false;
-  const move = (e: InteractionEvent) => {
-    const p = e.pointer;
-    if (e.type === 'select-start') {
-      group.getWorldPosition(v);
-      const hit = e.point ?? p.origin;
-      rayDepth = (hit[0] - p.origin[0]) * p.direction[0] + (hit[1] - p.origin[1]) * p.direction[1] + (hit[2] - p.origin[2]) * p.direction[2];
-      startOffset.set(v.x - hit[0], v.y - hit[1], v.z - hit[2]);
-      moving = true;
-    } else if (e.type === 'drag-move' && moving) {
-      v.set(p.origin[0] + p.direction[0] * rayDepth, p.origin[1] + p.direction[1] * rayDepth, p.origin[2] + p.direction[2] * rayDepth).add(startOffset);
-      o.onMove?.(v);
-      const parent = group.parent;
-      if (parent) {
-        parent.updateWorldMatrix(true, false);
-        parent.worldToLocal(v);
-      }
-      group.position.copy(v);
-    } else if (e.type === 'select-end') {
-      moving = false;
-    }
-  };
+  // ---- moving: the shared grip bar under the panel, and the title bar, which feeds it ----
+  const grip =
+    o.movable === false ? null : movable(app, { id: `learn/${o.id}`, group, width: o.widthM, height: o.heightM, distanceM: o.distanceM, onMove: o.onMove });
+  const move = (e: InteractionEvent) => grip?.drag(e);
 
   const draw: Panel['draw'] = (key, c, head, drawContent) => {
     let next: Region[] = [];
@@ -282,9 +263,10 @@ export function createPanel(app: Pick<XrApp, 'input' | 'world'>, o: PanelOptions
       group.lookAt(look);
     },
     get moving() {
-      return moving;
+      return grip?.moving ?? false;
     },
     dispose() {
+      grip?.dispose();
       offHits();
       offPlate();
       hits.dispose();
