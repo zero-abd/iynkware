@@ -59,8 +59,8 @@ export interface Companion {
   dispose(): void;
 }
 
-/** Body radius, metres: about a ping-pong ball, small beside the work. */
-export const BODY_R = 0.02;
+/** Body radius, metres: the bunny stands about 15 cm tall, big enough to read as company beside the work. */
+export const BODY_R = 0.042;
 const OUTLINE = 0.0011;
 
 /** The bunny's white, a touch warmer than the paper so it reads against the mat. */

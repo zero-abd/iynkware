@@ -8,7 +8,7 @@ import { Vector3 } from '@iwsdk/core';
 import type { XrSettings } from '../../contracts/settings';
 
 export interface Spots {
-  /** The companion's rest: hovering at the bench's back corner on the card's outer side. */
+  /** The companion's rest: hovering over the bench's non-dominant side, toward the person. */
   readonly home: Vector3;
   /** The parts shelf's centre on the mat (the bench layout's shelf rectangle). */
   readonly shelf: Vector3;
@@ -30,7 +30,9 @@ export function spotsOf(xr: Pick<XrSettings, 'posture' | 'dominantHand'>): Spots
   const back = standing ? -0.22 : -0.2;
   const lift = standing ? 0.32 : 0.28;
   return {
-    home: new Vector3(-side * (half + 0.05), lift + 0.07, back),
+    // over the bench's left side (the non-dominant side), toward the person and low enough to read as company, clear
+    // of the work zone in the middle (bench/core/geometry.ts: about 0.3 m either side of centre)
+    home: new Vector3(-side * (half - 0.08), standing ? 0.22 : 0.2, standing ? 0.06 : 0.04),
     shelf: new Vector3(side * (standing ? 0.4 : 0.36), 0, standing ? 0.125 : 0.1),
     card: new Vector3(-side * (half - 0.13), lift, back),
     cardLean: 0.26,

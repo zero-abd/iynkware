@@ -7,6 +7,7 @@ import { Vector3 } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import { companionOf } from '../../assistant/presence';
+import { BODY_R } from '../../assistant/presence/companion';
 import { onLookFrame } from '../../look/runner';
 import { say } from '../../lab/text';
 import { shellButton } from '../../shell/kit';
@@ -14,8 +15,8 @@ import { value } from '../../ui/value';
 import { agentOf } from '../hub';
 import { AGENT_TEXT } from '../text';
 
-/** Above the bunny's head, metres (table frame). */
-const LIFT = 0.055;
+/** Above the bunny's ear tips (they reach about 2.8 body radii above its centre), metres (table frame). */
+const LIFT = BODY_R * 3.2;
 const W = 0.07;
 const H = 0.026;
 const READ_AT = 0.6;
