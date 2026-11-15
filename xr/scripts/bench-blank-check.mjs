@@ -357,4 +357,156 @@ check('released on the ghost: the resistor sits in two holes of the breadboard',
 const resId = resSeat.made?.c;
 console.log('legs', JSON.stringify({ led: ledSeat.made?.legs, res: resSeat.made?.legs }));
 if (STOP <= 3 || !ledId || !resId) await finish();
+
+// ---------------------------------------------------------------------------------------------------- 4. wires
+await page.evaluate(() => {
+  window.__netOf = (c, p) => window.iynkware.app.project.doc.nets.find((n) => n.connections.some((x) => x.c === c && x.p === p))?.id ?? null;
+  window.__pending = () => {
+    const m = window.iynkware.world.scene.getObjectByName('bench:wire-pending');
+    return !!m && m.visible;
+  };
+  window.__ring = (side) => {
+    const r = window.iynkware.world.scene.getObjectByName(`bench:hover-cell:${side}`);
+    return r?.visible ? r.getWorldPosition(r.position.clone()).toArray() : null;
+  };
+});
+const netOf = (c, p) => page.evaluate(([a, b]) => window.__netOf(a, b), [c, p]);
+const col = (hole) => hole.slice(1);
+const resA = resSeat.made.legs.P1;
+const resB = resSeat.made.legs.P2;
+const ledA = ledSeat.made.legs.A;
+const ledK = ledSeat.made.legs.K;
+/** A free hole of the strip a leg sits in (the leg is in row e, rows a to d are the same strip). */
+const stripHole = (hole) => `a${col(hole)}`;
+
+let gripH = null;
+/** The hand's grab sphere against its pinch point: one press over the breadboard's middle, read the sphere's origin. */
+const handOffset = async () => {
+  const over = add(await holeW('e28'), [0, 0.0, 0]);
+  await page.evaluate(() => (window.__gs = {}));
+  const setAt = add(over, [0, 0.03, 0]);
+  await place('hand-right', setAt);
+  await sleep(300);
+  await press('hand-right', true);
+  await sleep(350);
+  const got = await page.evaluate(() => window.__gs.right);
+  await press('hand-right', false);
+  await sleep(600);
+  return got ? sub(got.origin, setAt) : (gripOffs['hand-right'] ?? [0, 0, 0]);
+};
+/** Pinches at `at`: aims the grab sphere there; returns the device spot and the pinch point's offset from it. */
+const pinchAt = async (at) => {
+  gripH ??= await handOffset();
+  const d = add(sub(at, gripH), [0, 0.003, 0]);
+  await place('hand-right', add(d, [0, 0.05, 0]));
+  await glide('hand-right', add(d, [0, 0.05, 0]), d, 4);
+  await sleep(250);
+  await press('hand-right', true);
+  await sleep(350);
+  const tip = await tipOf('right');
+  return { dev: d, off: sub(tip, d) };
+};
+const WIRE_STEPS = 10;
+/** A hand draws a wire: pinch at `a`, carry the pinch point over `b`, let go. */
+const handWire = async (a, b) => {
+  await place('hand-right', add(a, [0, 0.3, 0.3]));
+  await sleep(300);
+  const started = await pinchAt(a);
+  let dev = started.dev;
+  const devOver = (p) => sub(add(p, [0, 0.002, 0]), started.off);
+  const step = async (to) => {
+    const from = dev;
+    for (let i = 1; i <= WIRE_STEPS; i++) {
+      await place('hand-right', vec(from, to, i / WIRE_STEPS));
+      await sleep(60);
+    }
+    dev = to;
+  };
+  await step(devOver(add(a, [0, 0.03, 0.03])));
+  const pending = await page.evaluate(() => window.__pending());
+  if (process.env.DBG) console.log('start ring', JSON.stringify(await page.evaluate(() => window.__ring('right'))), 'a', JSON.stringify(a), 'icsp', JSON.stringify(await pinAt(uno, 'ICSP1_2')), 'off', JSON.stringify(started.off), 'grip', JSON.stringify(gripH));
+  await step(devOver(b));
+  await sleep(400);
+  const ring = await page.evaluate(() => window.__ring('right'));
+  await press('hand-right', false);
+  await sleep(800);
+  await place('hand-right', add(b, [0, 0.3, 0.3]));
+  return { pending, ring };
+};
+/** A controller draws a wire: ray on `a`, trigger held, the ray swung to `b`, trigger let go. */
+const rayWire = async (a, b) => {
+  const hi = (p) => add(p, [0, 0.3, 0.35]);
+  await rayAt('controller-right', 'right', a, hi(a));
+  await sleep(300);
+  const ring0 = await page.evaluate(() => window.__ring('right'));
+  await trigger('controller-right', true);
+  await sleep(300);
+  for (let i = 1; i <= 8; i++) await rayAt('controller-right', 'right', vec(a, b, i / 8), vec(hi(a), hi(b), i / 8));
+  await sleep(300);
+  const pending = await page.evaluate(() => window.__pending());
+  const ring = await page.evaluate(() => window.__ring('right'));
+  await trigger('controller-right', false);
+  await sleep(900);
+  return { pending, ring0, ring };
+};
+const endsOf = (w) => [w.from, w.to].map((e) => (e.kind === 'hole' ? e.hole : `${e.c}.${e.p}`)).sort();
+const newWire = async (known) => (await page.evaluate(() => window.__wires())).filter((w) => !known.includes(w.id));
+const wireIds = () => page.evaluate(() => window.__wires().map((w) => w.id));
+
+// (a) a hand: Uno 5V to the resistor's strip
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
+await sleep(700);
+const pin5 = await pinAt(uno, 'P5V');
+const pinG = await pinAt(uno, 'GND');
+check('the Uno has 5V and GND pins on the bench', !!pin5 && !!pinG, { pin5, pinG });
+let known = await wireIds();
+const w1 = await handWire(pin5, await holeW(stripHole(resA)));
+check('a hand pinching the 5V pin draws a pending wire onto the resistor strip', w1.pending === true && !!w1.ring, w1);
+const made1 = await newWire(known);
+check('released there: one wire from 5V to the resistor strip', made1.length === 1 && JSON.stringify(endsOf(made1[0])) === JSON.stringify([`${uno}.P5V`, stripHole(resA)].sort()), made1.map(endsOf));
+// (b) a hand: the resistor's other strip to the LED's anode strip
+known = await wireIds();
+const w2 = await handWire(await holeW(stripHole(resB)), await holeW(stripHole(ledA)));
+const made2 = await newWire(known);
+check('a hand draws a wire from the resistor strip to the LED anode strip', made2.length === 1 && JSON.stringify(endsOf(made2[0])) === JSON.stringify([stripHole(resB), stripHole(ledA)].sort()), { made: made2.map(endsOf), w2 });
+// (c) a controller: the LED's cathode strip to the Uno GND
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await sleep(800);
+known = await wireIds();
+const w3 = await rayWire(await holeW(stripHole(ledK)), pinG);
+const made3 = await newWire(known);
+check('a controller ray and trigger hold draws a wire from the LED cathode strip to GND', made3.length === 1 && JSON.stringify(endsOf(made3[0])) === JSON.stringify([`${uno}.GND`, stripHole(ledK)].sort()), { made: made3.map(endsOf), w3 });
+const nets = {
+  five: [await netOf(uno, 'P5V'), await netOf(resId, 'P1')],
+  mid: [await netOf(resId, 'P2'), await netOf(ledId, 'A')],
+  gnd: [await netOf(ledId, 'K'), await netOf(uno, 'GND')],
+};
+const same = (p) => p[0] !== null && p[0] === p[1];
+check('the nets: 5V reaches the resistor, the resistor reaches the LED anode, the LED cathode reaches GND', same(nets.five) && same(nets.mid) && same(nets.gnd) && nets.five[0] !== nets.mid[0] && nets.mid[0] !== nets.gnd[0], nets);
+if (STOP <= 4) await finish();
+
+// ---------------------------------------------------------------------------------------------------- 5. Run
+await page.evaluate(() => {
+  const { app } = window.iynkware;
+  window.__frames = [];
+  app.sim.onFrame((f) => {
+    window.__frames.push(f);
+    if (window.__frames.length > 5) window.__frames.shift();
+  });
+  window.__ledState = (id) => {
+    const f = app.sim.lastFrame;
+    const s = f?.parts.get(id);
+    return { state: app.sim.state, at: f?.atNs ?? null, part: s ?? null };
+  };
+});
+const runPlate = await page.evaluate(() => window.__pos('run:run'));
+check('the run cluster has a Run plate on the rail', !!runPlate, runPlate);
+await rayAt('controller-right', 'right', runPlate, add(runPlate, [0.02, 0.2, 0.4]));
+await trigger('controller-right', true);
+await sleep(150);
+await trigger('controller-right', false);
+await page.waitForFunction(() => window.iynkware.app.sim.state === 'running', null, { timeout: 30000 }).catch(() => {});
+await sleep(2500);
+const running = await page.evaluate((id) => window.__ledState(id), ledId);
+console.log('led', JSON.stringify(running));
 await finish();
