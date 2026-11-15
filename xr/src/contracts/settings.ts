@@ -32,6 +32,11 @@ export interface XrSettings {
    * `sound` (off by default there) is not read for it.
    */
   sound: boolean;
+  /**
+   * Controller haptics, on by default. Off, `InputService.pulse` does nothing, so every buzz (the feedback table, run
+   * cues, the bench) stops at once. Hands have no haptics either way.
+   */
+  haptics: boolean;
   /** Volume per bus, 0..1. */
   volumes: Readonly<Record<SoundBus, number>>;
   /** Both ears hear the same mix. */
@@ -62,6 +67,7 @@ export const DEFAULT_XR_SETTINGS: Readonly<XrSettings> = Object.freeze({
   dominantHand: 'right',
   refresh: 90,
   sound: true,
+  haptics: true,
   volumes: Object.freeze({ interface: 0.6, bench: 0.8, simulation: 0.7, alerts: 1 }),
   monoSound: false,
   reducedMotion: false,

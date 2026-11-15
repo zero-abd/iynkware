@@ -62,6 +62,7 @@ const VALID: { [K in keyof XrSettings]: (v: unknown) => boolean } = {
   dominantHand: oneOf('left', 'right'),
   refresh: oneOf(72, 90),
   sound: isBool,
+  haptics: isBool,
   volumes: (v) => typeof v === 'object' && v !== null,
   monoSound: isBool,
   reducedMotion: isBool,

@@ -194,7 +194,12 @@ const noop = () => {};
  * Move events (`drag-move`, `grab-move`) reuse one event object per press, and `stick()` reuses one object per hand,
  * so per-frame input allocates nothing here. Copy what you keep.
  */
-export function createInputService(world: World): InputService {
+export interface InputServiceOptions {
+  /** Read on every `pulse`: false silences controller haptics (`XrSettings.haptics`). Default: always on. */
+  readonly haptics?: () => boolean;
+}
+
+export function createInputService(world: World, opts: InputServiceOptions = {}): InputService {
   const xr = world.input.xr;
   const player = world.player;
 
@@ -913,6 +918,7 @@ export function createInputService(world: World): InputService {
       return view;
     },
     pulse(hand, intensity, ms) {
+      if (opts.haptics && !opts.haptics()) return;
       if (!xr.isPrimary('controller', hand)) return;
       const gamepad = xr.getPrimaryInputSource(hand)?.gamepad as HapticGamepad | null | undefined;
       if (!gamepad) return;

@@ -149,7 +149,7 @@ export interface InputService {
   readonly sources: ReadonlyValue<Readonly<Record<Hand, PointerSource | null>>>;
   /** Thumbstick (controller) or virtual stick (hand pinch and move), each axis -1..1. */
   stick(hand: Hand): { x: number; y: number };
-  /** A short buzz on a controller; a no-op on hands. */
+  /** A short buzz on a controller; a no-op on hands, and while the headset setting `haptics` is off. */
   pulse(hand: Hand, intensity: number, ms: number): void;
   /** Every event on any bound object, after its own handler (for tutorials, analytics, the AI partner seam). */
   onAny(fn: (e: InteractionEvent) => void): Unsubscribe;

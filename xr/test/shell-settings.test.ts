@@ -49,6 +49,12 @@ describe('headset settings', () => {
     expect(initialXrSettings(null, { theme: 'system' }, false).roomLight).toBe('bright');
   });
 
+  it('has controller haptics on by default, keeps a saved off, and drops a bad value', () => {
+    expect(initialXrSettings(null, {}).haptics).toBe(true);
+    expect(initialXrSettings({ haptics: false }, {}).haptics).toBe(false);
+    expect(initialXrSettings({ haptics: 'no' }, {}).haptics).toBe(true);
+  });
+
   it('keeps valid saved fields over the 2D ones and drops invalid ones', () => {
     const saved = { reducedMotion: false, roomLight: 'bright', benchScale: 4, textScale: 2, flightMode: 3, volumes: { alerts: 0.2, bench: 7 } };
     const s = initialXrSettings(saved, { reduceMotion: true, theme: 'dark' });
