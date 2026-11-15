@@ -50,19 +50,33 @@ export function switching(app: XrApp): ReadonlyValue<boolean> {
 
 const failed = (): LocalizedText => Object.fromEntries(LANGS.map((l) => [l, say(SWITCH, l, 'failed')])) as LocalizedText;
 
+/**
+ * The longest a switch may take. A switch that never finishes (a lesson waiting on a stuck simulation, storage that
+ * does not answer) would otherwise hold `switching` for good, and every later switch (Home's tiles, the menu, the
+ * companion's go_to) would be refused. Past this, the lock is let go and the switch counts as failed.
+ */
+const SWITCH_LIMIT_MS = 15_000;
+
 async function run(app: XrApp, what: () => Promise<unknown>): Promise<boolean> {
   const b = switching(app) as ReturnType<typeof value<boolean>>;
   if (b.value) return false;
   b.set(true);
   app.shell.closeHome();
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    await what();
+    await Promise.race([
+      what(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`switch took longer than ${SWITCH_LIMIT_MS} ms`)), SWITCH_LIMIT_MS);
+      }),
+    ]);
     return true;
   } catch (err) {
     console.error('[shell/switch]', err);
     app.shell.notify({ id: 'shell/switch-failed', tone: 'fail', text: failed(), ms: 6000 });
     return false;
   } finally {
+    if (timer) clearTimeout(timer);
     b.set(false);
   }
 }

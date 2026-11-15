@@ -40,6 +40,7 @@ import type { CalloutList, CalloutTone, Conversation, PointTarget } from '../bub
 import type { Observation } from '../coach/coach';
 import DECLARATIONS from './declarations.json';
 import { createEditBuilder, planEdits, type EditSpec } from './edit';
+import { createDroneBuilder, planDrone } from './drone-build';
 import { doneFor, stepNow as stepNumber, stopWalk, walkTo, walking, type StepTarget } from './steps';
 import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
 import { NAV_KINDS, NAV_RUNS, type NavHost } from './navigate';
@@ -418,6 +419,21 @@ const RUNS: Readonly<Record<string, Run>> = {
     return { ok: true };
   },
   async propose_build(h, a) {
+    // "build the drone with me" from elsewhere: go to the drone workbench first
+    if (/\b(?:drone|quad|whoop|racer)\b|drohne/i.test((a.request as string) ?? '') && !planDrone(h.project.doc) && h.nav) {
+      if (!(await h.nav.go({ kind: 'droneBench' }))) return fail('could not open the drone workbench');
+    }
+    // on the drone workbench, "build it with me" fits the drone's parts one step at a time (drone-build.ts)
+    const drone = planDrone(h.project.doc);
+    if (drone && !(a.template as string | undefined)) {
+      if (drone.steps.length === 0) return fail('the drone is already built: every part is on the right way round');
+      try {
+        const s = await h.assistant.buildWithMe(h.project.doc, { from: 'bench', builder: createDroneBuilder('Build the drone, one part at a time') });
+        return { ok: true, drone: true, parts: drone.steps.length, summary: s.state.value.plan?.summary ?? null, ...stepJson(s) };
+      } catch (err) {
+        return fail(`the drone build did not start: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
     const asked = (a.template as string | undefined) ?? templateFor(a.request as string);
     const doc = h.project.doc;
     const generic = /build it with me|with me$/i.test(a.request as string);

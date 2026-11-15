@@ -23,7 +23,7 @@ import type { FeatureModule, XrApp } from '../../contracts/app';
 import { DURATION, easeIynk } from '../../look/motion';
 import { motionOf, onLookFrame } from '../../look/runner';
 import { dmm } from '../../look/type';
-import { movable } from '../../ui/panels';
+import { movable, panelPlacesOf } from '../../ui/panels';
 import { dropEntities, ownEntity } from '../kit/entity';
 import { say } from '../copy';
 import { sessionButton, type SessionButton } from './button';
@@ -48,7 +48,10 @@ const at = new Vector3();
 
 /** Opens Home ahead of the person, from anywhere. Exported for the emulator walk. */
 export function goHome(app: XrApp): void {
-  // Closing first makes Home place itself again where the person looks now (it places only when it opens).
+  // Closing first makes Home place itself again where the person looks now (it places only when it opens). A place
+  // the person once dragged Home to would win over that and can be behind them, or follow the bench out of view (in
+  // the Range the bench is hidden), so it is forgotten: the Home button always brings Home in front of the person.
+  panelPlacesOf(app).store.forget('shell/home');
   if (app.shell.homeOpen.value) app.shell.closeHome();
   app.shell.openHome();
 }

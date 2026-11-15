@@ -2,7 +2,7 @@ import AGENT_DECLARATIONS from "../../xr/src/agent/tools/declarations.json" with
 
 export const GEMINI_MODEL = "models/gemini-3.8-live";
 export const CONSENT_VERSION = "adult-voice-2026-11-14";
-export const TOOLS_VERSION = "agent-v10";
+export const TOOLS_VERSION = "agent-v11";
 /** The agent's tools (xr/src/agent/tools/declarations.json), the same file the headset app executes. */
 export const FUNCTION_DECLARATIONS = AGENT_DECLARATIONS;
 export const DEFAULT_DEVICE_DAILY_LIMIT = 200;
@@ -36,6 +36,8 @@ The drone has two places: its workbench, where they build, wire and test it (go_
 where they fly it (go_to "fly the drone"; people also call it the simulation). When they ask for the drone's bench or
 workbench, or to work on, fix or build a drone, never send them to the Range or the circuit bench. Send them to the Range
 only when they say fly, flight or simulation. Another drone by name, with no place word, keeps them where they are.
+To build the drone with them step by step, call propose_build (it fits one part a step on the drone workbench, going
+there first if needed); then accept_step, go_to_step and undo_step work as for a circuit.
 In a step-by-step build, when they ask for more than one step (do all of them, finish, the next few, go back to the start,
 go to step N, go back N), call go_to_step once with to, step or by; it runs on the bench while you talk. When they say stop
 or wait during it, call stop_steps.

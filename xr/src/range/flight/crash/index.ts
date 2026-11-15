@@ -96,13 +96,20 @@ function openCrash(app: XrApp, scene: FlightScene): { dispose(): void } {
     return p;
   };
   const PLATE_Y = -CARD_H / 2 - 0.085;
-  const replayPlate = mk('replay', -0.15, PLATE_Y, 'run', 'replay', () => startReplay(), true);
-  const resetPlate = mk('reset', -0.05, PLATE_Y, 'reset', 'reset', () => scene.reset());
-  const whyPlate = mk('why', 0.05, PLATE_Y, null, 'why', () => {
+  const replayPlate = mk('replay', -0.2, PLATE_Y, 'run', 'replay', () => startReplay(), true);
+  const resetPlate = mk('reset', -0.1, PLATE_Y, 'reset', 'reset', () => scene.reset());
+  const whyPlate = mk('why', 0, PLATE_Y, null, 'why', () => {
     why = !why;
     redraw();
   });
-  const fixPlate = mk('fix', 0.15, PLATE_Y, null, 'fix', () => {
+  // Close: the card goes away for this crash (the next crash shows it again). Every optional window can be closed.
+  let dismissed: ReplayWindow | null = null;
+  const dismissPlate = mk('dismiss', 0.2, PLATE_Y, 'fail', 'close', () => {
+    closeReplay();
+    dismissed = win;
+    hideAll();
+  });
+  const fixPlate = mk('fix', 0.1, PLATE_Y, null, 'fix', () => {
     const part = fixPart();
     if (!part) return;
     benchFocusOf(app).set(part);
@@ -227,6 +234,7 @@ function openCrash(app: XrApp, scene: FlightScene): { dispose(): void } {
     resetPlate.set({ label: S.t(l, 'reset'), lang: l });
     whyPlate.set({ label: S.t(l, 'why'), lang: l, latched: why });
     fixPlate.set({ label: S.t(l, 'fix'), lang: l });
+    dismissPlate.set({ label: S.t(l, 'close'), lang: l });
     fixPlate.group.visible = fixPart() !== null;
     playPlate.set({ label: S.t(l, 'play'), lang: l });
     pausePlate.set({ label: S.t(l, 'pause'), lang: l });
@@ -334,7 +342,9 @@ function openCrash(app: XrApp, scene: FlightScene): { dispose(): void } {
     onLookFrame(app.world, (dt) => {
       const phase = runner.phase;
       const w = runner.crash;
-      if (!w || (phase !== 'frozen' && phase !== 'crashed' && phase !== 'replay')) {
+      // Only in the Range, and not once closed: a crash card never follows the person to the bench or a lab.
+      const away = app.shell.place.value !== 'range';
+      if (!w || w === dismissed || away || (phase !== 'frozen' && phase !== 'crashed' && phase !== 'replay')) {
         if (win) hideAll();
         return;
       }
