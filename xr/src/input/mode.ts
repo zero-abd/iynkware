@@ -1,8 +1,8 @@
 /**
- * The quick input switch: B on the right controller toggles hands off (controllers only, hands are ignored even when
- * tracked) and on (hand tracking drives the app, idle controllers are ignored). Until the first press both drive it
- * (`auto`, the headset decides per side), so the first press turns hands off. Pure: the service reads the button and
- * applies `blocks` to each side's pointers every frame.
+ * The quick input switch. By default (`auto`) tracked hands and controllers both work, and a side's tracked hand wins
+ * over a controller lying still (`preferHand`). B on the right controller is the override: one press turns hands off
+ * (`controllers`: hands are ignored even when tracked), the next goes back to the default. `hands` (controllers
+ * ignored) is kept for `setInputMode`. Pure: the service reads the button and applies these every frame.
  */
 import type { Lang } from '../contracts/common';
 import type { PointerSource } from '../contracts/input';
@@ -16,19 +16,56 @@ export function blocks(mode: InputMode, primary: PointerSource | null): boolean 
   return false;
 }
 
-/** The mode a press of B moves to: hands off from `auto` or `hands`, hands on from `controllers`. */
-export function toggled(mode: InputMode): Exclude<InputMode, 'auto'> {
-  return mode === 'controllers' ? 'hands' : 'controllers';
+/** The mode a press of B moves to: hands off (`controllers`), then back to the default (`auto`, hands on). */
+export function toggled(mode: InputMode): Exclude<InputMode, 'hands'> {
+  return mode === 'controllers' ? 'auto' : 'controllers';
 }
 
-export const MODE_LINES: Readonly<Record<Exclude<InputMode, 'auto'>, Readonly<Record<Lang, string>>>> = {
-  hands: {
-    en: 'Hands on: put the controllers down',
-    de: 'Hände an: Controller ablegen',
-    es: 'Manos activadas: deja los mandos',
-    fr: 'Mains activées : posez les manettes',
-    hi: 'हाथ चालू: कंट्रोलर नीचे रखें',
-    zh: '手势已开启：放下手柄',
+/** A controller still for this long, with no button held, counts as put down. */
+export const CONTROLLER_IDLE_MS = 800;
+/** Moving its grip this far (metres) from where it settled wakes a put-down controller. */
+export const CONTROLLER_WAKE_M = 0.02;
+
+export interface IdleState {
+  x: number;
+  y: number;
+  z: number;
+  sinceMs: number;
+  seen: boolean;
+}
+export const newIdleState = (): IdleState => ({ x: 0, y: 0, z: 0, sinceMs: 0, seen: false });
+
+/** Steps a controller's stillness; true once it has been still (and no button held) for `CONTROLLER_IDLE_MS`. */
+export function stepIdle(s: IdleState, x: number, y: number, z: number, buttonHeld: boolean, nowMs: number): boolean {
+  const moved = !s.seen || Math.hypot(x - s.x, y - s.y, z - s.z) > CONTROLLER_WAKE_M;
+  if (moved || buttonHeld) {
+    s.x = x;
+    s.y = y;
+    s.z = z;
+    s.sinceMs = nowMs;
+    s.seen = true;
+    return false;
+  }
+  return nowMs - s.sinceMs >= CONTROLLER_IDLE_MS;
+}
+
+/**
+ * Whether a side's tracked hand should drive it instead of the controller the runtime still lists (a Quest can keep a
+ * put-down controller in the session's input sources). Hands win while the controller lies still, except under
+ * `controllers`, where the controller always does.
+ */
+export function preferHand(mode: InputMode, handTracked: boolean, controllerIdle: boolean): boolean {
+  return mode !== 'controllers' && handTracked && controllerIdle;
+}
+
+export const MODE_LINES: Readonly<Record<Exclude<InputMode, 'hands'>, Readonly<Record<Lang, string>>>> = {
+  auto: {
+    en: 'Hands on',
+    de: 'Hände an',
+    es: 'Manos activadas',
+    fr: 'Mains activées',
+    hi: 'हाथ चालू',
+    zh: '手势已开启',
   },
   controllers: {
     en: 'Controllers only: hands are ignored',
@@ -41,6 +78,6 @@ export const MODE_LINES: Readonly<Record<Exclude<InputMode, 'auto'>, Readonly<Re
 };
 
 /** The ticker line for a switch to `mode`, in `lang` (English when the language is missing). */
-export function modeLine(mode: Exclude<InputMode, 'auto'>, lang: Lang): string {
+export function modeLine(mode: Exclude<InputMode, 'hands'>, lang: Lang): string {
   return MODE_LINES[mode][lang] ?? MODE_LINES[mode].en;
 }
