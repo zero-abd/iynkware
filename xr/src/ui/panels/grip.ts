@@ -119,9 +119,21 @@ export function panelPlacesOf(app: Pick<XrApp, 'world'> & { bench?: Pick<XrApp['
   return r;
 }
 
+const tidiers = new WeakMap<World, Set<() => void>>();
+
 /** Forgets every moved panel's place and puts each back where its pillar placed it (the menu's Tidy up). */
 export function tidyPanels(app: Pick<XrApp, 'world'>): void {
   worlds.get(app.world)?.tidy();
+  for (const fn of [...(tidiers.get(app.world) ?? [])]) fn();
+}
+
+/** Runs `fn` on every Tidy up too: a thing that keeps its own place (the bench) puts itself back. */
+export function onTidy(app: Pick<XrApp, 'world'>, fn: () => void): Unsubscribe {
+  let set = tidiers.get(app.world);
+  if (!set) tidiers.set(app.world, (set = new Set()));
+  const s = set;
+  s.add(fn);
+  return () => void s.delete(fn);
 }
 
 /**

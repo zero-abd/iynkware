@@ -16,7 +16,7 @@ import type { FeatureModule } from '../../contracts/app';
 import { PANELS_COPY } from './copy';
 import { panelPlacesOf, tidyPanels } from './grip';
 
-export { movable, panelPlacesOf, tidyPanels, type Movable, type MovableOptions } from './grip';
+export { movable, onTidy, panelPlacesOf, tidyPanels, type Movable, type MovableOptions } from './grip';
 export { REACH } from './drag';
 export { openable, openState, type Openable, type OpenableOptions } from './open';
 export { PANELS_COPY } from './copy';
