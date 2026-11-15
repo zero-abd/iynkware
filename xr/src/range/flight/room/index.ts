@@ -346,7 +346,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   plates.name = 'range-plates';
   plates.position.set(head.x + PLATE_AHEAD_M * fx - PLATE_LEFT_M * rx, head.y - PLATE_BELOW_M, head.z + PLATE_AHEAD_M * fz - PLATE_LEFT_M * rz);
   plates.rotation.y = Math.atan2(-fx, -fz);
-  // Run here: no plates in the air (A arms, B resets; Stop is beside Run on the bench)
+  // Run here: no plates in the air (A arms, Y resets; Stop is beside Run on the bench)
   plates.visible = !here;
   root.add(plates);
   const lang = () => langOf(app);

@@ -6,7 +6,7 @@
  * the impact speed in room m/s, the fix, and the plates Replay, Reset, Why and Fix on bench) opens above it turned
  * towards where the person stood, and Replay opens the runner's replay: a see-through ghost craft driven by a
  * `ReplayClock` at a third of real time along a dotted trail, with a timeline under the card (marks, a playhead to
- * drag by pinch or trigger, Play, Pause, Close). A reset (the card's, or B) ends it all. The person's view never
+ * drag by pinch or trigger, Play, Pause, Close). A reset (the card's, or Y) ends it all. The person's view never
  * moves; everything is world-locked in the room and nothing is allocated per frame.
  */
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PlaneGeometry, Points, PointsMaterial, RingGeometry, Vector3, type Object3D } from '@iwsdk/core';

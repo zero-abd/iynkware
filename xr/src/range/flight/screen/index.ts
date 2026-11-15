@@ -3,8 +3,8 @@
  *
  * Views are line of sight (default: the screen is away), chase and FPV. Chase and FPV are a 0.48 x 0.27 m picture on a
  * panel standing beside the flight volume, turned towards where the person stood, never head-locked and never the
- * person's own eyes: the picture is a small render target drawn from a second camera 15 times a second. Controller Y or
- * the View plate cycles the views. Nothing is allocated per frame.
+ * person's own eyes: the picture is a small render target drawn from a second camera 15 times a second. The
+ * View plate cycles the views. Nothing is allocated per frame.
  */
 import { Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, SRGBColorSpace, WebGLRenderTarget, type Object3D } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../../contracts/app';
@@ -141,12 +141,10 @@ function openScreen(app: XrApp, scene: FlightScene): { dispose(): void } {
   const quat: Quat = { x: 0, y: 0, z: 0, w: 1 };
   const pose: Pose = { x: 0, y: 0, z: 0, ry: 0, rx: 0, rz: 0 };
   const clock = { t: 0 };
-  const buttonY = app.input.button('left', 'upper');
   const object: Object3D = craft.object;
 
   disposers.push(
     onLookFrame(app.world, (dt) => {
-      if (buttonY.down) cycle();
       if (view === 'los') return;
       if (!frameDue(clock, dt)) return;
       const renderer = app.world.renderer;

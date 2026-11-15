@@ -1,7 +1,7 @@
 // Wiring by hand in the IWER emulator, headless, the way a person does it: a hand pinches a free breadboard hole and
 // draws a wire to a free hole of another strip (the ring shows there; release adds one wire with exactly those ends;
 // undo removes it), a controller trigger on the ray draws one from an Uno header pin to a hole, a refused end changes
-// nothing and says why, releasing over nothing changes nothing, B cancels, selecting a wire opens its chip (green,
+// nothing and says why, releasing over nothing changes nothing, Y cancels, selecting a wire opens its chip (green,
 // Remove, undo), and a pinch on a seated part's body still grabs the part.
 //
 //   npx vite --mode http --port 23231          # in another terminal
@@ -361,17 +361,17 @@ check('release over the ringed hole adds a wire from the pin to the hole', w3.le
 await page.evaluate(() => window.iynkware.app.project.undo());
 await sleep(500);
 
-// ---------------------------------------------------------------------------------------------------- 4. B cancels
+// ---------------------------------------------------------------------------------------------------- 4. Y cancels
 const revB = await page.evaluate(() => window.__rev());
 await rayAt('controller-right', 'right', pin, pinRay);
 await trigger('controller-right', true);
 await sleep(300);
 for (let i = 1; i <= 8; i++) await rayAt('controller-right', 'right', vec(pin, holeC, i / 8), vec(pinRay, [holeC[0], holeC[1] + 0.3, holeC[2] + 0.35], i / 8));
 await sleep(200);
-await trigger('controller-right', true, [{ index: 4, value: 1 }]);
+await trigger('controller-left', false, [{ index: 4, value: 1 }]);
 await sleep(300);
 const pendingAfterB = await page.evaluate(() => window.__pending());
-await trigger('controller-right', true, [{ index: 4, value: 0 }]);
+await trigger('controller-left', false, [{ index: 4, value: 0 }]);
 await trigger('controller-right', false);
 await sleep(600);
 check('B during the press cancels: no pending wire, no change', pendingAfterB === false && (await page.evaluate(() => window.__rev())) === revB, { pendingAfterB });
@@ -512,19 +512,19 @@ await page.evaluate(() => window.iynkware.app.project.undo());
 await sleep(700);
 check('one undo brings the wire back as it was', await sameWires(wiresStart));
 
-// B cancels a lifted end
+// Y cancels a lifted end
 const bead3 = await page.evaluate(([w, s]) => window.__bead(w, s), [wB.id, sideStart]);
 await rayAt('controller-right', 'right', bead3.box, add(bead3.box, [0, 0.3, -0.12]));
 await trigger('controller-right', true);
 await sleep(400);
 for (let i = 1; i <= 6; i++) await rayAt('controller-right', 'right', vec(bead3.box, nowhere, i / 6), vec(add(bead3.box, [0, 0.3, -0.12]), add(nowhere, [0, 0.3, -0.12]), i / 6));
-await trigger('controller-right', true, [{ index: 4, value: 1 }]);
+await trigger('controller-left', false, [{ index: 4, value: 1 }]);
 await sleep(300);
 const afterB = await page.evaluate(() => window.__pending());
-await trigger('controller-right', true, [{ index: 4, value: 0 }]);
+await trigger('controller-left', false, [{ index: 4, value: 0 }]);
 await trigger('controller-right', false);
 await sleep(700);
-check('B cancels a lifted end: the wire is unchanged and drawn', afterB === false && (await sameWires(wiresStart)) && (await page.evaluate((w) => window.__drawn(w), wB.id)) !== false, { afterB });
+check('Y cancels a lifted end: the wire is unchanged and drawn', afterB === false && (await sameWires(wiresStart)) && (await page.evaluate((w) => window.__drawn(w), wB.id)) !== false, { afterB });
 
 // a pinch on the cell below a bead on a board pin still starts a new wire
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
