@@ -13,6 +13,7 @@ import { benchKit } from '../core/kit';
 import { createTrackingLoss } from '../core/gesture';
 import type { BenchPress } from '../core/router';
 import { benchInternals } from '../space';
+import { binUnder, removeOnBin, showRefusal } from './bin';
 import { holdPointOf } from './hand';
 import type { Holder } from './carry';
 import { RETURN_MS } from './carry';
@@ -49,8 +50,10 @@ export function createBoardHolder(app: XrApp, transitions: Transitions, press: B
   const last = new Vector3();
   const delta = new Vector3();
 
+  let litBin = -1;
   const finish = () => {
     isDone = true;
+    if (litBin >= 0) benchKit(app).bins.highlight(-1);
     for (const g of group) transitions.hold(g.id, false);
   };
   const back = () => {
@@ -77,7 +80,21 @@ export function createBoardHolder(app: XrApp, transitions: Transitions, press: B
     bi.setFree(item.id, { position: _w.clone(), quaternion: o.quaternion.clone() });
     benchKit(app).feedback.play('snap', at, hand);
   };
+  /** Let go over a shelf bin: the board (or the breadboard with its parts) leaves the project, in one undo; the only board stays. */
+  const putBack = (bin: number) => {
+    const ids = group.map((g) => g.id);
+    const refused = removeOnBin(app, transitions, item.id, ids, bin, hand);
+    if (refused) {
+      showRefusal(app, refused, item.object.position, hand);
+      back();
+      return;
+    }
+    // whatever the document kept (a part it did not take with the breadboard) goes back where it was
+    for (const g of group) if (partOrigin(app.project.doc, g.id)) bi.restore(g.id);
+  };
   const place = () => {
+    const over = binUnder(app, last);
+    if (over >= 0) return putBack(over);
     const xr = app.settings.xr.value;
     const geo = benchGeometry(xr.posture, xr.dominantHand);
     const mat = matOf(geo.work, geo.back);
@@ -136,6 +153,11 @@ export function createBoardHolder(app: XrApp, transitions: Transitions, press: B
       }
       if (step !== 'tracking' || !point.now(_hold)) return true;
       last.copy(_hold);
+      const over = binUnder(app, _hold);
+      if (over !== litBin) {
+        litBin = over;
+        benchKit(app).bins.highlight(over);
+      }
       delta.copy(_hold).sub(point.start);
       for (let i = 0; i < group.length; i++) group[i]!.object.position.set(bases[i]!.x + delta.x, bases[i]!.y + delta.y, bases[i]!.z + delta.z);
       return true;
