@@ -5,13 +5,13 @@
  * as a turn. It sits below the eye line and to the left, follows the head's yaw lazily, stays above the bench top,
  * and hides after a while with nothing new.
  */
-import { Euler, Vector3 } from '@iwsdk/core';
+import { Euler, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import { createLabPanel } from '../../lab/kit/panel';
 import { say } from '../../lab/text';
 import { onLookFrame } from '../../look/runner';
-import { MUTED, STATE } from '../../look/palette';
+import { ACCENT, hexNum, MUTED, STATE } from '../../look/palette';
 import { TYPE } from '../../look/type';
 import { AGENT_TEXT } from '../text';
 import type { AgentState, Conversation } from './model';
@@ -29,12 +29,23 @@ export const FADE_MS = 20_000;
 
 const DOT: Readonly<Record<AgentState, string>> = { connecting: MUTED, listening: STATE.good, thinking: STATE.warn, speaking: STATE.info, idle: MUTED };
 
-export function mountSpeech(app: XrApp, conv: Conversation, send: (text: string) => void): Unsubscribe {
+/** `level()` is the microphone's level 0..1 while the person talks, else null (no meter). */
+export function mountSpeech(app: XrApp, conv: Conversation, send: (text: string) => void, level: () => number | null = () => null): Unsubscribe {
   const panel = createLabPanel(app, { id: 'agent-speech', ...SPEECH });
   panel.group.name = 'agent:speech';
   app.world.scene.add(panel.group);
   const lang = () => app.settings.lang.value;
   let quiet = 0;
+  // The mic meter: a bar along the bubble's bottom edge, scaled every frame while talking.
+  const meterGeo = new PlaneGeometry(1, 1);
+  meterGeo.translate(0.5, 0, 0);
+  const meterMat = new MeshBasicMaterial({ color: hexNum(ACCENT), toneMapped: false });
+  const meter = new Mesh(meterGeo, meterMat);
+  meter.name = 'agent:mic-meter';
+  meter.position.set(-SPEECH.widthM / 2 + 0.012, -SPEECH.heightM / 2 + 0.012, 0.002);
+  meter.raycast = () => undefined;
+  meter.visible = false;
+  panel.group.add(meter);
 
   const paint = () => {
     panel.draw(`${conv.version}|${lang()}`, (ui) => {
@@ -51,6 +62,7 @@ export function mountSpeech(app: XrApp, conv: Conversation, send: (text: string)
       const turns = conv.turns;
       const current = turns[turns.length - 1];
       let y = 44 * u;
+      if (conv.note) y = ui.text(conv.note, pad, y, inner, { role: TYPE.caption, colour: conv.noteWarn ? STATE.bad : STATE.info, maxLines: 2 }) + 4 * u;
       for (const t of turns.slice(-3, -1)) {
         const who = t.who === 'user' ? `${say(AGENT_TEXT.you, lang())}: ` : '';
         y = ui.text(who + t.text, pad, y, inner, { role: TYPE.caption, colour: MUTED, maxLines: 1 }) + 4 * u;
@@ -81,7 +93,11 @@ export function mountSpeech(app: XrApp, conv: Conversation, send: (text: string)
   let following = false;
   const offFrame = onLookFrame(app.world, (dt) => {
     quiet += dt * 1000;
-    const show = conv.turns.length > 0 && (conv.state !== 'idle' || quiet < FADE_MS);
+    const lv = level();
+    if (lv !== null) quiet = 0;
+    const show = (conv.turns.length > 0 || conv.note !== '') && (conv.state !== 'idle' || quiet < FADE_MS || lv !== null);
+    meter.visible = show && lv !== null;
+    if (lv !== null) meter.scale.set(Math.max(0.004, Math.min(1, lv * 2)) * (SPEECH.widthM - 0.024), 0.006, 1);
     if (panel.group.visible !== show) panel.setVisible(show);
     if (!show) return;
     const camera = app.world.camera;
@@ -105,6 +121,8 @@ export function mountSpeech(app: XrApp, conv: Conversation, send: (text: string)
   return () => {
     offFrame();
     offConv();
+    meterGeo.dispose();
+    meterMat.dispose();
     panel.dispose();
   };
 }

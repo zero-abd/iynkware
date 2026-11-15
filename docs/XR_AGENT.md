@@ -45,7 +45,33 @@ Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_te
 - `point_at` targets: a lab item id, kind or name when a lab is open; else a bench refdes (`RES1`), a pin
   (`LED1.A`) or a part word (`resistor`, `board`). An unknown target returns close matches.
 
-## Wiring a Gemini Live client
+## Voice in the app (`xr/src/agent/voice/`)
+
+The headset app is its own Gemini Live client; the Worker's old page script (`deploy/cloudflare-xr/voice/demo.js`) is no
+longer injected.
+
+- **On, once:** the Tools menu row "Voice" (an XR select) or the 2D button opens the adult consent and disclosure;
+  "Enable voice" creates one AudioContext and asks for the microphone once (echo cancellation, noise suppression,
+  auto gain), and both stay up until voice is turned off. The bubble says when the track is muted or ended or the
+  context is suspended, and shows a level meter while the person talks.
+- **One session:** `POST /api/voice/token` (consent, versions and device id as before), then the socket straight to
+  Gemini (`BidiGenerateContentConstrained?access_token=`; the page's CSP already allows it). If it has not set up
+  in 4 s, the same-origin relay `/api/voice/live` is used (and preferred from then on). The session is kept across
+  turns and renewed in the background 8 minutes after it started, or at the next press after it closed.
+- **Push-to-talk:** right thumbstick held, or the 2D "Hold to talk". A press sends `agent.context()` as untrusted
+  grounding (a non-completing turn), `activityStart`, then every microphone chunk (no level gate); release sends
+  `activityEnd`. Pressing while the model speaks stops its playback.
+- **Replies:** 24 kHz audio is played gaplessly on the same context; transcripts go to the bubble; tool calls run
+  through `agent.call` and are answered with the same ids.
+- **Coach:** with "Voice tips" on (default), a mistake or hazard while idle becomes one short text turn, at most one
+  every 20 s.
+- **Local dev without the Worker:** when the token route answers 404 in a dev build, `VITE_GEMINI_API_KEY` from
+  `xr/.env.local` (git-ignored) opens the plain v1beta endpoint with the same setup. A production build contains
+  neither that endpoint nor the variable.
+- The Worker locks `tools: [{ functionDeclarations }]` from `xr/src/agent/tools/declarations.json` into the token,
+  and `TOOLS_VERSION` is `agent-v1`.
+
+## Wiring another Gemini Live client
 
 1. In the setup message send `tools: [{ functionDeclarations: agent.functionDeclarations() }]` (the Worker that mints
    the token can import `xr/src/agent/tools/declarations.json` to constrain it to the same list).
@@ -60,6 +86,6 @@ Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_te
 
 ## Not done
 
-No real Gemini session has driven it and it has not been tried on a headset. The scripted brain understands English
+No real Gemini session has driven it and it has not been tried on a headset; the voice checks use a fake socket and the browser's fake microphone. The scripted brain understands English
 and German only (the Ask panel's chips in the other four languages get the "only a few questions" reply). No
 controller button opens the Ask panel.

@@ -11,7 +11,7 @@ export const bubblesModule: FeatureModule = {
   id: 'agent/bubbles',
   mount(app) {
     const hub = agentOf(app.world);
-    const offSpeech = mountSpeech(app, hub.conversation, (text) => void hub.bridge?.ask(text));
+    const offSpeech = mountSpeech(app, hub.conversation, (text) => void hub.bridge?.ask(text), () => hub.micLevel?.() ?? null);
     const offCallouts = mountCallouts(app, hub.callouts);
     return () => {
       offSpeech();

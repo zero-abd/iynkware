@@ -26,6 +26,11 @@ export interface Conversation {
   /** The person's words (a transcript): deltas, as `say`. */
   user(text: string, opts?: { final?: boolean }): void;
   setState(s: AgentState): void;
+  /** A status line under the header (voice: "mic muted"); empty for none. */
+  readonly note: string;
+  /** The note is a problem (drawn in the warning colour). */
+  readonly noteWarn: boolean;
+  setNote(text: string, warn?: boolean): void;
   subscribe(fn: () => void): Unsubscribe;
 }
 
@@ -36,6 +41,8 @@ export function createConversation(): Conversation {
   const turns: Turn[] = [];
   let state: AgentState = 'idle';
   let suggestions: readonly string[] = [];
+  let note = '';
+  let noteWarn = false;
   let version = 0;
   const fns = new Set<() => void>();
   const changed = () => {
@@ -77,6 +84,18 @@ export function createConversation(): Conversation {
     setState(s) {
       if (s === state) return;
       state = s;
+      changed();
+    },
+    get note() {
+      return note;
+    },
+    get noteWarn() {
+      return noteWarn;
+    },
+    setNote(text, warn = false) {
+      if (text === note && warn === noteWarn) return;
+      note = text;
+      noteWarn = warn;
       changed();
     },
     subscribe(fn) {

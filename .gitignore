@@ -84,3 +84,6 @@ docs/MASTER_PLAN/**/node_modules/
 
 # Engine files built from node_modules by scripts/build-engines.mjs
 public/engines/
+
+# Wrangler local secrets (GEMINI_API_KEY for `wrangler dev`)
+.dev.vars
