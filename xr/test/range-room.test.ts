@@ -141,8 +141,8 @@ describe('the readout', () => {
 
   it("falls back to the mode id and a plain crash line, and names a crash from iynk's hit.*", () => {
     expect(modeTitle(flight, 'zzz')).toBe('zzz');
-    expect(crashText(flight, 'tree', 'en')).toBe('Crashed: Hit a tree. Press B to reset');
-    expect(crashText(flight, 'nothing', 'en')).toBe('Crashed. Press B to reset');
+    expect(crashText(flight, 'tree', 'en')).toBe('Crashed: Hit a tree. Press Y to reset');
+    expect(crashText(flight, 'nothing', 'en')).toBe('Crashed. Press Y to reset');
   });
 
   it("turns the runner's refusals into sentences in every language", () => {
