@@ -29,11 +29,12 @@ import {
 import { applyBench, benchCraft, benchOf, benchOps, benchReport, loadFigureText, benchText, pickOf, wrongMotors } from '../model';
 import type { BenchAction, BenchCraft, BenchMessage, BenchState, FigureText } from '../model';
 import { benchFocusOf } from '../focus';
+import { BENCH_DRONE_AT, flyHereOf } from '../here';
 import { BENCH_STRINGS as S } from './strings';
 import { benchView, lastSay, motorSequence, panelCells, toneOf, type SpinStep } from './view';
 
 /** The drone's place on the bench top, and its size against real (a 5-inch quad is small to work on). */
-const DRONE_AT = { x: 0, z: -0.04 };
+const DRONE_AT = BENCH_DRONE_AT;
 const DRONE_SCALE = 1.25;
 /** Seconds the bench's callout stays, and how long it takes to fade. */
 const SAY_S = 5;
@@ -51,6 +52,8 @@ const PANEL_Z = -0.235;
 const PANEL_LEAN = 0.5;
 const ACTION_COLS = [0.256, 0.328, 0.4] as const;
 const ACTION_ROWS = [0.04, 0.13] as const;
+/** The Simulate here toggle, behind the actions and the smoke stopper's lamp. */
+const HERE_AT = { x: 0.328, z: -0.125 } as const;
 
 type Anim =
   | { kind: 'motors'; t: number; steps: SpinStep[]; length: number; active: number; say: Pending | null }
@@ -167,6 +170,15 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
     return plate;
   });
 
+  // Simulate here: the flight starts from this bench instead of a course in the room (a toggle, read by the room flight).
+  const here = flyHereOf(app);
+  const herePlate = mk({ w: 0.21, d: 0.05 }, { icon: 'run', label: S.t(lang(), 'here'), lang: lang() });
+  herePlate.group.name = 'range-bench-here';
+  herePlate.group.position.set(HERE_AT.x, 0, HERE_AT.z);
+  actions.add(herePlate.group);
+  bind(herePlate, 'bench:here', () => here.set(!here.value));
+  offs.push(here.subscribe(() => render()));
+
   // Phase leads: one small plate per motor, shown while the motor wires are on.
   const leads = new Group();
   leads.name = 'range-bench-leads';
@@ -265,6 +277,12 @@ function createSession(app: XrApp, craft: BenchCraft, drone: DroneHandle, conten
         latched: a.id === 'plug' && v.done,
         badge: v.done ? { text: S.t(l, a.id === 'plug' ? 'pluggedIn' : 'passed'), tone: 'good' } : null,
       });
+    });
+    herePlate.set({
+      label: S.t(l, 'here'),
+      lang: l,
+      latched: here.value,
+      badge: { text: S.t(l, here.value ? 'hereOn' : 'hereOff'), tone: here.value ? 'accent' : 'good' },
     });
     leads.visible = view.leads.length > 0;
     view.leads.forEach((lv, i) =>

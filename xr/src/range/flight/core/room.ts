@@ -157,6 +157,14 @@ export function mapCourse(volume: RoomVolume, field: number, ceiling: number, pa
   const clampTo = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
   const right0 = clampTo(-k * pad[0], volume.left, volume.right - span);
   const ahead0 = clampTo(PAD_AHEAD_M - k * pad[1], volume.near, volume.far - span);
+  return placeCourse(volume, k, field, ceiling, right0, ahead0);
+}
+
+/**
+ * A course at scale `k` with course (0, 0) at `right0` metres right of and `ahead0` metres ahead of the volume's
+ * origin. `mapCourse` fits it into the volume; the bench flight (`../here.ts`) puts the pad on the bench top instead.
+ */
+export function placeCourse(volume: RoomVolume, k: number, field: number, ceiling: number, right0: number, ahead0: number): CourseMap {
   const { ox, oz, floorY, fx, fz, rx, rz } = volume;
   const baseYaw = Math.atan2(-rz, rx);
   const map: CourseMap = {

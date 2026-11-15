@@ -3,6 +3,9 @@ import { defineStrings } from '../../shared';
 
 export const ROOM_STRINGS = defineStrings({
   en: {
+    here: 'Simulate here',
+    hereReady: 'Flying from your bench. Centre the sticks and press A to arm',
+    hereReseated: 'Back on the bench',
     arm: 'Arm',
     disarm: 'Disarm',
     reset: 'Reset',
@@ -48,6 +51,9 @@ export const ROOM_STRINGS = defineStrings({
     reseated: 'Back on the pad',
   },
   de: {
+    here: 'Hier simulieren',
+    hereReady: 'Start von deiner Werkbank. Sticks mittig, dann A zum Scharfschalten',
+    hereReseated: 'Zurück auf der Werkbank',
     arm: 'Scharf',
     disarm: 'Entschärfen',
     reset: 'Zurück',
@@ -93,6 +99,9 @@ export const ROOM_STRINGS = defineStrings({
     reseated: 'Zurück auf dem Pad',
   },
   es: {
+    here: 'Simular aquí',
+    hereReady: 'Despegas desde tu banco. Centra los sticks y pulsa A para armar',
+    hereReseated: 'De vuelta en el banco',
     arm: 'Armar',
     disarm: 'Desarmar',
     reset: 'Reiniciar',
@@ -138,6 +147,9 @@ export const ROOM_STRINGS = defineStrings({
     reseated: 'De vuelta en la plataforma',
   },
   fr: {
+    here: 'Simuler ici',
+    hereReady: 'Décollage depuis ton établi. Centre les manches et appuie sur A pour armer',
+    hereReseated: 'De retour sur l’établi',
     arm: 'Armer',
     disarm: 'Désarmer',
     reset: 'Réinitialiser',
@@ -183,6 +195,9 @@ export const ROOM_STRINGS = defineStrings({
     reseated: 'De retour sur la plateforme',
   },
   hi: {
+    here: 'यहीं सिमुलेट करो',
+    hereReady: 'तुम्हारी वर्कबेंच से उड़ान। स्टिक बीच में रखो और आर्म करने के लिए A दबाओ',
+    hereReseated: 'वापस वर्कबेंच पर',
     arm: 'आर्म करो',
     disarm: 'डिसआर्म करो',
     reset: 'रीसेट',
@@ -228,6 +243,9 @@ export const ROOM_STRINGS = defineStrings({
     reseated: 'पैड पर वापस',
   },
   zh: {
+    here: '在这里模拟',
+    hereReady: '从你的工作台起飞。摇杆回中，按 A 解锁',
+    hereReseated: '回到工作台上',
     arm: '解锁',
     disarm: '上锁',
     reset: '复位',

@@ -3,6 +3,9 @@ import { defineStrings } from '../../shared';
 
 export const BENCH_STRINGS = defineStrings({
   en: {
+    here: 'Simulate here',
+    hereOn: 'On',
+    hereOff: 'Off',
     fit: 'Fit',
     fitTurned: 'Fit turned round',
     next: 'Next',
@@ -20,6 +23,9 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'The drone model is not available',
   },
   de: {
+    here: 'Hier simulieren',
+    hereOn: 'An',
+    hereOff: 'Aus',
     fit: 'Einbauen',
     fitTurned: 'Verkehrt einbauen',
     next: 'Als Nächstes',
@@ -37,6 +43,9 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'Das Drohnenmodell ist nicht verfügbar',
   },
   es: {
+    here: 'Simular aquí',
+    hereOn: 'Sí',
+    hereOff: 'No',
     fit: 'Montar',
     fitTurned: 'Montar al revés',
     next: 'Siguiente',
@@ -54,6 +63,9 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'El modelo del dron no está disponible',
   },
   fr: {
+    here: 'Simuler ici',
+    hereOn: 'Oui',
+    hereOff: 'Non',
     fit: 'Monter',
     fitTurned: 'Monter à l’envers',
     next: 'Suivant',
@@ -71,6 +83,9 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'Le modèle du drone n’est pas disponible',
   },
   hi: {
+    here: 'यहीं सिमुलेट करो',
+    hereOn: 'चालू',
+    hereOff: 'बंद',
     fit: 'लगाओ',
     fitTurned: 'उल्टा लगाओ',
     next: 'अगला',
@@ -88,6 +103,9 @@ export const BENCH_STRINGS = defineStrings({
     noDrone: 'ड्रोन मॉडल उपलब्ध नहीं है',
   },
   zh: {
+    here: '在这里模拟',
+    hereOn: '开',
+    hereOff: '关',
     fit: '安装',
     fitTurned: '反向安装',
     next: '下一步',

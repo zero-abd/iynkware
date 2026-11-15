@@ -2,6 +2,9 @@
  * Fly in the room (issue #122): the course mapped into a 3 x 3 m volume in front of the person, the craft in it,
  * flown with the controller thumbsticks on the flight core. The person never moves; only the mapping places the craft.
  * While in the range the bench is hidden (a stopgap until the bench pillar hides its own content).
+ *
+ * Simulate here (`../here.ts`): no course is drawn and the bench stays; the craft takes off at real size from the spot
+ * it sat on the bench top and flies around the person.
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, Quaternion, Vector3, type Object3D } from '@iwsdk/core';
 import { loadDrone as loadDroneContent } from '@/content/index.generated';
@@ -27,6 +30,7 @@ import {
 } from '../core';
 import { courseChoiceOf, pickCourse, pickerOpenOf } from '../picker/model';
 import { flightSceneOf, type FlightScene } from '../scene';
+import { BENCH_DRONE_AT, flyHereOf, hereCourse, hereMap, hereVolume, type BenchSpot } from '../here';
 import { drawCourse, type CourseDrawing } from './course';
 import {
   buildThatFlies,
@@ -139,8 +143,15 @@ export const roomModule: FeatureModule = {
     });
     const offRange = rangeOf(app).subscribe(sync);
     const offChoice = courseChoiceOf(app).subscribe(sync);
+    // Simulate here on or off while flying: the flight starts again, from the bench or on the course
+    const offHere = flyHereOf(app).subscribe(() => {
+      if (!session && !entering) return;
+      leave();
+      sync();
+    });
     sync();
     return () => {
+      offHere();
       offChoice();
       offPlace();
       offRange();
@@ -155,6 +166,13 @@ interface Head {
   readonly y: number;
   readonly z: number;
   readonly heading: Heading;
+}
+
+/** Where the craft sat on the bench top, in the world (the bench's own drone spot, `BENCH_DRONE_AT`). */
+function benchSpot(app: XrApp): BenchSpot {
+  app.bench.table.updateWorldMatrix(true, false);
+  const p = app.bench.table.localToWorld(new Vector3(BENCH_DRONE_AT.x, 0, BENCH_DRONE_AT.z));
+  return { x: p.x, y: p.y, z: p.z };
 }
 
 /** The head pose, once, as the person enters. */
@@ -173,11 +191,15 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const content = await loadDroneContent(project.contentId as Parameters<typeof loadDroneContent>[0]);
   const flight = content ? flightOf(content) : null;
   if (!content || !flight || !alive()) return null;
-  const course = pickCourse(flight.courses, courseChoiceOf(app).value)!;
+  const here = flyHereOf(app).value;
+  const chosen = pickCourse(flight.courses, courseChoiceOf(app).value)!;
+  const course = here ? hereCourse(chosen) : chosen;
   const build: FlyingBuild = buildThatFlies(content, app.project.doc);
   const size = courseSizeOf(app).value;
-  const volume = volumeFor(size, head, size === 'room' ? await readGuardian(app) : null);
-  const map = mapCourse(volume, course.field, course.ceiling ?? flight.craft.ceiling, course.pad);
+  const ceiling = course.ceiling ?? flight.craft.ceiling;
+  const spot = here ? benchSpot(app) : null;
+  const volume = spot ? hereVolume(head, spot) : volumeFor(size, head, size === 'room' ? await readGuardian(app) : null);
+  const map = spot ? hereMap(volume, course, ceiling, spot) : mapCourse(volume, course.field, ceiling, course.pad);
   const runner: FlightRunner = createRunner(flight.craft, course, build.calc, { mode: startMode(content, course.id), faults: build.faults });
   const drone = await loadDrone(project.contentId);
   const flightText = await loadFlightText(langOf(app));
@@ -192,26 +214,30 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   app.world.scene.add(root);
   disposers.push(() => dropEntities(app.world, root));
 
-  // the bench steps aside while the room flies
-  const benchRoot = app.bench.root, benchTable = app.bench.table;
-  const wasVisible = [benchRoot.visible, benchTable.visible];
-  benchRoot.visible = false;
-  benchTable.visible = false;
-  disposers.push(() => {
-    benchRoot.visible = wasVisible[0]!;
-    benchTable.visible = wasVisible[1]!;
-  });
+  // the bench steps aside while the room flies (Simulate here keeps it: the craft takes off from it)
+  if (!here) {
+    const benchRoot = app.bench.root, benchTable = app.bench.table;
+    const wasVisible = [benchRoot.visible, benchTable.visible];
+    benchRoot.visible = false;
+    benchTable.visible = false;
+    disposers.push(() => {
+      benchRoot.visible = wasVisible[0]!;
+      benchTable.visible = wasVisible[1]!;
+    });
+  }
 
-  // the course, fading in and dropping onto the floor
-  const drawing: CourseDrawing = drawCourse(map, course);
-  const stage = new Group();
-  stage.add(drawing.group);
-  root.add(stage);
-  disposers.push(() => drawing.dispose());
-  drawing.setOpacity(0);
-  fadeIn(app.world, drawing.setOpacity, { onDone: () => drawing.setOpacity(1) });
-  dropIn(app.world, stage, { height: 0.05 });
-  drawing.setNext(course.gates.length ? 0 : null);
+  // the course, fading in and dropping onto the floor (Simulate here draws none)
+  const drawing: CourseDrawing | null = here ? null : drawCourse(map, course);
+  if (drawing) {
+    const stage = new Group();
+    stage.add(drawing.group);
+    root.add(stage);
+    disposers.push(() => drawing.dispose());
+    drawing.setOpacity(0);
+    fadeIn(app.world, drawing.setOpacity, { onDone: () => drawing.setOpacity(1) });
+    dropIn(app.world, stage, { height: 0.05 });
+    drawing.setNext(course.gates.length ? 0 : null);
+  }
 
   // the craft
   const span = drone ? drone.sidecar.bounds.max[0] - drone.sidecar.bounds.min[0] : 0.285;
@@ -241,9 +267,16 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   // read from about 2 m: 1000 texels a metre is as sharp as the headset shows it there, and a quarter of the upload
   const label: TextLabel = textLabel(1.7, 0.6, { role: 'label', maxLines: 6, align: 'left', px: 1000 });
   const { rx, rz, fx, fz } = volume;
-  const lateral = volume.left + 0.55, ahead = volume.far - 0.15;
-  label.mesh.position.set(head.x + lateral * rx + ahead * fx, 1.0, head.z + lateral * rz + ahead * fz);
-  label.mesh.lookAt(head.x, 1.0, head.z);
+  if (spot) {
+    // beside the bench, to the person's left of the craft and a little above the table
+    const at = { x: spot.x - 0.75 * rx + 0.3 * fx, y: spot.y + 0.45, z: spot.z - 0.75 * rz + 0.3 * fz };
+    label.mesh.position.set(at.x, at.y, at.z);
+    label.mesh.lookAt(head.x, at.y, head.z);
+  } else {
+    const lateral = volume.left + 0.55, ahead = volume.far - 0.15;
+    label.mesh.position.set(head.x + lateral * rx + ahead * fx, 1.0, head.z + lateral * rz + ahead * fz);
+    label.mesh.lookAt(head.x, 1.0, head.z);
+  }
   label.mesh.name = 'range-readout';
   root.add(label.mesh);
   disposers.push(() => {
@@ -261,7 +294,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   plates.rotation.y = Math.atan2(-fx, -fz);
   root.add(plates);
   const lang = () => langOf(app);
-  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope', primary: boolean, label: string): Plate => {
+  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope' | 'probe', primary: boolean, label: string): Plate => {
     const p = plateButton(app, { w: 0.11, d: 0.055, standing: true, primary }, { icon, label, lang: lang() });
     p.group.name = `room:${name}`;
     p.group.position.x = slot * PLATE_GAP_M;
@@ -278,10 +311,14 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const craftPlate = makePlate('craft', 3, 'restart', false, S.t(lang(), 'craft'));
   const sizeLabel = () => S.t(lang(), 'size', { size: S.t(lang(), `size_${courseSizeOf(app).value}` as 'size_room') });
   const sizePlate = makePlate('size', 5, 'scope', false, sizeLabel());
+  // Simulate here takes the Size plate's place while it is on (there is no course to size)
+  sizePlate.group.visible = !here;
+  const herePlate = makePlate('here', here ? 5 : 6, 'probe', false, S.t(lang(), 'here'));
+  herePlate.set({ label: S.t(lang(), 'here'), lang: lang(), latched: here });
   dropIn(app.world, plates, { height: 0.04 });
 
   // what the label says
-  let message = drone ? S.t(lang(), 'ready') : S.t(lang(), 'noCraft');
+  let message = drone ? S.t(lang(), here ? 'hereReady' : 'ready') : S.t(lang(), 'noCraft');
   let flightMessages = flightText;
   let dirty = true;
   let sinceReadout = 0;
@@ -295,6 +332,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     backPlate.set({ label: S.t(lang(), 'back'), lang: lang() });
     craftPlate.set({ label: S.t(lang(), 'craft'), lang: lang() });
     sizePlate.set({ label: sizeLabel(), lang: lang() });
+    herePlate.set({ label: S.t(lang(), 'here'), lang: lang(), latched: here });
   };
   let shownArmed = false;
   const offLang = app.settings.lang.subscribe((l) => {
@@ -349,8 +387,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     if (!drone) return;
     runner.reset();
     trail.reset(pose.x, pose.y, pose.z);
-    drawing.setNext(course.gates.length ? 0 : null);
-    say(S.t(lang(), 'reseated'));
+    drawing?.setNext(course.gates.length ? 0 : null);
+    say(S.t(lang(), here ? 'hereReseated' : 'reseated'));
   };
   disposers.push(bindPlate(app, armPlate, 'range/room/arm', arm));
   disposers.push(bindPlate(app, resetPlate, 'range/room/reset', reset));
@@ -358,6 +396,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   disposers.push(bindPlate(app, craftPlate, 'range/room/craft', () => pickerOpenOf(app).set(!pickerOpenOf(app).value)));
   // the next size (Room, Compact, Tabletop): the room flight lays out again (courseSizeOf's subscriber in the module)
   disposers.push(bindPlate(app, sizePlate, 'range/room/size', () => courseSizeOf(app).set(nextSize(courseSizeOf(app).value))));
+  // Simulate here on or off: the flight starts again (flyHereOf's subscriber in the module)
+  disposers.push(bindPlate(app, herePlate, 'range/room/here', () => flyHereOf(app).set(!flyHereOf(app).value)));
 
   // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks, read afresh every frame (`readController`)
   const claims: Array<{ owner: string; read: (out: Sticks) => void }> = [];
@@ -411,6 +451,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   root.userData.flight = scene;
   root.userData.readout = () => message;
   root.userData.build = build.source;
+  root.userData.here = here;
 
   let lastGate = -1;
   disposers.push(
@@ -440,10 +481,12 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
       drone.update(dt);
 
       if (trail.tick(dt, pose.x, pose.y, pose.z)) trailAttr.needsUpdate = true;
-      drawing.showNet(map.netFace(f.x, f.y, f.z));
-      if (f.gate !== lastGate) {
-        lastGate = f.gate;
-        drawing.setNext(course.gates.length ? f.gate % course.gates.length : null);
+      if (drawing) {
+        drawing.showNet(map.netFace(f.x, f.y, f.z));
+        if (f.gate !== lastGate) {
+          lastGate = f.gate;
+          drawing.setNext(course.gates.length ? f.gate % course.gates.length : null);
+        }
       }
       if (f.armed !== shownArmed) {
         shownArmed = f.armed;
