@@ -9,13 +9,13 @@ import { CanvasTexture, InstancedMesh, Matrix4, MeshBasicMaterial, PlaneGeometry
 import type { XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import { replayHighlights } from '../../callouts/bus';
-import type { DrawCtx } from '../../kit/button';
+import { buttonWidth, drawButton, type ButtonFace, type DrawCtx } from '../../kit/button';
 import { onFrame } from '../../kit/frame';
 import { drawIcon } from '../../kit/icons';
 import { createPanel, type Region } from '../../kit/panel';
 import { prefs, prefsKey } from '../../kit/prefs';
 import { surface } from '../../kit/surface';
-import { drawTabs, type TabFace } from '../../kit/tabs';
+import { drawTabs, tabRects, type TabFace } from '../../kit/tabs';
 import { tokens } from '../../kit/tokens';
 import { pick } from '../../text';
 import type { LessonSession, StepState } from '../../types';
@@ -147,7 +147,16 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
       if (code.available) faces.push({ id: 'code', label: t(lang, 'tabCode'), icon: 'code' });
       faces.push({ id: 'checks', label: t(lang, 'tabChecks'), icon: 'checks' });
       const row = { x: area.x, y: area.y, w: area.w, h: TAB_DMM * P };
-      const rects = drawTabs(g, row, faces, tab, c);
+      // All lessons at the right end of the tab row: with its word when the tabs leave room, else the icon alone.
+      const nat = tabRects(g, row, faces, c);
+      const used = nat[nat.length - 1]!.x + nat[nat.length - 1]!.w - row.x;
+      const allFace: ButtonFace = { label: t(lang, 'allLessons'), icon: 'steps', kind: 'plain' };
+      const wide = used + 8 * P + buttonWidth(g, allFace, c) <= row.w;
+      const allW = wide ? buttonWidth(g, allFace, c) : 44 * P;
+      const allR = { x: row.x + row.w - allW, y: row.y, w: allW, h: row.h };
+      const allUse: ButtonFace = wide ? allFace : { ...allFace, iconOnly: true };
+      drawButton(g, allR, allUse, c);
+      const rects = drawTabs(g, { ...row, w: row.w - allW - 8 * P }, faces, tab, c);
       const regions: Region[] = faces.map((f, i) => ({
         id: `tab:${f.id}`,
         rect: rects[i]!,
@@ -157,6 +166,7 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
           redraw();
         },
       }));
+      regions.push({ id: 'all-lessons', rect: allR, face: allUse, onSelect: () => app.lessons.showCatalogue() });
       const body = { x: area.x, y: row.y + row.h + 8 * P, w: area.w, h: area.y + area.h - (row.y + row.h + 8 * P) };
       if (tab === 'steps') {
         const fin: StepsFinish = {
