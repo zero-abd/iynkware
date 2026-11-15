@@ -7,6 +7,7 @@
  *   openProject(app, id)         a library project
  *   newProject(app, template?)   a new library project, blank or forked from a template, opened
  *   openDrone(app)               the Range's drone (the `range` home entry), then the Range place
+ *   openCraft(app, templateId)   any drone craft or robot template, then the Range place
  *   goPlace(app, place)          the mode switch; `range` opens the drone first when no Range project is open
  *
  * Each closes Home and the lesson guide as needed, runs one switch at a time (`switching`), and says what failed as a
@@ -147,6 +148,17 @@ export const openDrone = (app: XrApp) =>
       entry.open();
       if (!(await offeredSoon(app, 'range'))) throw new Error('range was not offered');
     }
+    app.shell.go('range');
+  });
+
+/** A drone craft or robot from `content/projects` (LAB_TEMPLATES), opened like the Drones tile, then the Range place. */
+export const openCraft = (app: XrApp, templateId: string) =>
+  run(app, async () => {
+    if (!LAB_TEMPLATES.some((t) => t.id === templateId)) throw new Error(`unknown craft ${templateId}`);
+    app.lessons.close();
+    toBench(app);
+    await app.project.open(await app.templates.load(templateId));
+    if (!(await offeredSoon(app, 'range'))) throw new Error('range was not offered');
     app.shell.go('range');
   });
 

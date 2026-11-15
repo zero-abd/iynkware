@@ -1,7 +1,8 @@
 /**
  * The agent's way around the app: go anywhere from anywhere, and press any button the pillars put in the menu.
  *
- *   go_to          a lab (chemistry, physics, electrical, signals), the drone, the bench, room size, Home, a template
+ *   go_to          a lab (chemistry, physics, electrical, signals), the drone or a drone by name (Tiny Whoop, racer),
+ *                  the list of drones ("drone projects": named, not opened), the bench, room size, Home, a template
  *                  (blink, servo, button, piano, robot …) or a saved project, by name. It leaves what is open first
  *                  (a lab, the Range, Home, a lesson guide) through the shell's own switch (`shell/switch`), so it works
  *                  from any workbench: from a lab to the drone, from the drone to a lab, from one lab to another.
@@ -10,18 +11,22 @@
  *
  * `createNavHost` binds these to the app; the tools only see `NavHost`, so tests can fake it.
  */
-import { TEMPLATES } from '@content/projects';
+import { LAB_TEMPLATES, TEMPLATES } from '@content/projects';
 import type { XrApp } from '../../contracts/app';
 import { pickText, type Lang } from '../../contracts/common';
 import { labOf } from '../../lab/context';
 import { LAB_IDS, type LabId } from '../../lab/model/types';
 import { libraryOf } from '../../shell/library/types';
-import { goPlace, newProject, openDrone, openProject } from '../../shell/switch';
+import { goPlace, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
+import { droneCrafts } from '../knowledge';
 import type { Args, ToolHost, ToolResult } from './catalog';
 
 export type Destination =
   | { readonly kind: 'lab'; readonly lab: LabId }
   | { readonly kind: 'drone' }
+  /** The drones to choose from: listed, nothing opens. */
+  | { readonly kind: 'drones' }
+  | { readonly kind: 'craft'; readonly id: string; readonly title: string }
   | { readonly kind: 'bench' }
   | { readonly kind: 'room' }
   | { readonly kind: 'home' }
@@ -35,7 +40,7 @@ export interface NavHost {
   controls(lang: Lang): ReadonlyArray<{ id: string; label: string; on?: boolean }>;
   runControl(id: string): boolean;
   /** Where the person is now. */
-  where(): { place: string; lab: string | null; project: string };
+  where(): { place: string; lab: string | null; project: string; home?: boolean };
 }
 
 const fail = (error: string, extra: Record<string, unknown> = {}): ToolResult => ({ ok: false, error, ...extra });
@@ -54,6 +59,9 @@ export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lan
   if (!t) return null;
   const lab = LAB_IDS.find((id) => t === id) ?? LAB_WORDS.find(([re]) => re.test(t))?.[1];
   if (lab && /lab|labor|chem|physi|signal|system|electri|ohm|pendul|scope|wave/.test(t)) return { kind: 'lab', lab };
+  if (/\bdrones\b|drohnen|drone (projects|list|crafts|models)|(list|all|which|choose|pick)\b.*\bdrone/.test(t)) return { kind: 'drones' };
+  const craft = craftOf(t, lang);
+  if (craft) return craft;
   if (/drone|quad|range|fly|flight|drohne/.test(t)) return { kind: 'drone' };
   if (/^home|main menu|start screen/.test(t)) return { kind: 'home' };
   if (/room size|room scale|full size|life size/.test(t)) return { kind: 'room' };
@@ -73,6 +81,16 @@ export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lan
   return null;
 }
 
+/** A drone craft by its catalogue id (whoop, racer, quad5) or title words ("tiny whoop", "long range"). */
+function craftOf(t: string, lang: Lang): Destination | null {
+  const key = t.replace(/\b(drone|drones|project|craft|quad|copter|fly|open)\b/g, ' ').replace(/\s+/g, ' ').trim();
+  const flat = (x: string) => x.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  const k = flat(key);
+  if (k.length < 4) return null;
+  const hit = LAB_TEMPLATES.find((x) => x.lab === 'drone' && x.kind === 'craft' && (flat(x.catalogue.id) === k || flat(pickText(x.title, lang)).includes(k) || flat(pickText(x.title, 'en')).includes(k)));
+  return hit ? { kind: 'craft', id: hit.id, title: pickText(hit.title, lang) } : null;
+}
+
 export const NAV_RUNS: Readonly<Record<string, (h: ToolHost, a: Args) => Promise<ToolResult> | ToolResult>> = {
   async go_to(h, a) {
     const nav = h.nav;
@@ -80,8 +98,11 @@ export const NAV_RUNS: Readonly<Record<string, (h: ToolHost, a: Args) => Promise
     const d = destinationOf(a.where as string, nav, h.lang());
     if (!d) {
       return fail(`I do not know a place or project called "${a.where}"`, {
-        try: ['chemistry lab', 'physics lab', 'electrical lab', 'signals lab', 'drone', 'workbench', 'home', ...TEMPLATES.filter((x) => x.id.includes('uno-r3')).slice(0, 6).map((x) => x.id)],
+        try: ['chemistry lab', 'physics lab', 'electrical lab', 'signals lab', 'drone', 'drones', 'workbench', 'home', ...TEMPLATES.filter((x) => x.id.includes('uno-r3')).slice(0, 6).map((x) => x.id)],
       });
+    }
+    if (d.kind === 'drones') {
+      return { ok: true, listed: 'drones', drones: droneCrafts(h.lang()).map((c) => c.title), note: 'Nothing opened: say these and ask which one to open (go_to with its name).' };
     }
     const ok = await nav.go(d);
     return ok ? { ok: true, went: d, now: nav.where() } : fail(`could not open ${d.kind}`, { now: nav.where() });
@@ -126,6 +147,11 @@ export function createNavHost(app: XrApp): NavHost {
         case 'drone':
           leaveLab();
           return openDrone(app);
+        case 'drones':
+          return true;
+        case 'craft':
+          leaveLab();
+          return openCraft(app, d.id);
         case 'bench':
           leaveLab();
           app.shell.closeHome();
@@ -151,6 +177,6 @@ export function createNavHost(app: XrApp): NavHost {
       m.run();
       return true;
     },
-    where: () => ({ place: app.shell.place.value, lab: labOf(app.world)?.store.lab ?? null, project: app.project.doc.id }),
+    where: () => ({ place: app.shell.place.value, lab: labOf(app.world)?.store.lab ?? null, project: app.project.doc.id, home: app.shell.homeOpen.value }),
   };
 }

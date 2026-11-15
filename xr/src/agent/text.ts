@@ -9,6 +9,27 @@ export const AGENT_TEXT = {
   menu: l6('Ask the assistant', 'Den Assistenten fragen', 'Preguntar al asistente', 'Demander à l’assistant', 'सहायक से पूछो', '问助手'),
   you: l6('You', 'Du', 'Tú', 'Toi', 'आप', '你'),
   close: l6('Close', 'Schließen', 'Cerrar', 'Fermer', 'बंद करो', '关闭'),
+  mode: {
+    assist: l6('Assist', 'Beraten', 'Asistir', 'Conseil', 'सहायता', '协助'),
+    build: l6('Build', 'Bauen', 'Construir', 'Construire', 'बनाओ', '动手'),
+    menu: l6('Assistant can build', 'Assistent darf bauen', 'El asistente puede construir', 'L’assistant peut construire', 'सहायक बना सकता है', '助手可以动手'),
+    assistOn: l6(
+      'Assist mode: I explain and suggest, and change nothing.',
+      'Beraten: Ich erkläre und schlage vor und ändere nichts.',
+      'Modo asistir: explico y sugiero, y no cambio nada.',
+      'Mode conseil : j’explique et je propose, sans rien changer.',
+      'सहायता मोड: मैं समझाता हूँ और सुझाव देता हूँ, कुछ नहीं बदलता।',
+      '协助模式：我只讲解和建议，不做任何改动。',
+    ),
+    buildOn: l6(
+      'Build mode: I can change the bench and the lab when you ask.',
+      'Bauen: Ich kann Werkbank und Labor ändern, wenn du mich bittest.',
+      'Modo construir: puedo cambiar el banco y el laboratorio cuando me lo pidas.',
+      'Mode construire : je peux modifier l’établi et le labo quand tu me le demandes.',
+      'बनाओ मोड: कहने पर मैं बेंच और लैब में बदलाव कर सकता हूँ।',
+      '动手模式：你开口，我就能改动工作台和实验室。',
+    ),
+  },
   askTitle: l6('Ask me something', 'Frag mich etwas', 'Pregúntame algo', 'Pose-moi une question', 'मुझसे कुछ पूछो', '问我点什么'),
   state: {
     connecting: l6('Connecting', 'Verbinde', 'Conectando', 'Connexion', 'जुड़ रहा है', '正在连接'),
