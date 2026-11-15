@@ -3,7 +3,8 @@
  * frame in metres (x right, y up, z out of the front), from the lab figures' anchors (`control:TAP`, `control:VSET`...)
  * where they exist. A control is a hit box bound for ray and poke; selecting it sends one action through the store.
  * A knob is two halves: the left steps down (`value: -1`), the right up (`+1`). `node` hangs the hit on a moving node
- * of the visual (the pendulum's bob) instead of the item root.
+ * of the visual (the flame test's loop) instead of the item root. The pendulum's bob is not a control: it is held on
+ * its own grab box (`hands.ts`), and a press on it still starts or stops the swing.
  */
 import type { ItemState, LabAction } from '../model/types';
 import type { ControlLabel } from './labels';
@@ -97,7 +98,6 @@ export const CONTROLS: Readonly<Record<string, readonly ControlSpec[]>> = {
     { id: 'sponge', at: [0.042, 0.012, 0.075], size: [0.05, 0.02, 0.035], label: 'sponge', labelAt: [0, 0.016, 0.01], action: of('sponge') },
   ],
   'pendulum-stand': [
-    { id: 'bob', at: [0, 0, 0], size: [0.035, 0.035, 0.035], node: 'BOB', action: of('swing') },
     pad('length', -0.06, 0.05, 'length', of('length')),
     pad('angle', 0, 0.05, 'angle', of('amplitude')),
     pad('record', 0.06, 0.05, 'record', of('record')),

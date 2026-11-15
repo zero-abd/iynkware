@@ -12,6 +12,7 @@ import { l6, same, type L6 } from '../text';
 import { GENERIC_KIND } from './items/generic';
 import { ELEMENT_KIND } from './items/element';
 import { SUBSTANCE_KIND } from './items/substance';
+import { SPATULA_KIND } from './items/spatula';
 import { FIGURE_NOTES } from './notes-figures';
 import type { LabId } from './types';
 
@@ -238,6 +239,20 @@ const NEW_NOTES: Readonly<Record<string, ItemNotes>> = {
       'Un petit flacon étiqueté d’un élément, pris dans le tableau périodique. Beaucoup d’éléments sont réactifs ou toxiques : dans un vrai labo, consulte d’abord sa fiche de sécurité.',
       'आवर्त सारणी से लिए गए एक तत्व का छोटा लेबल लगा जार। कई तत्व क्रियाशील या विषैले होते हैं: असली लैब में पहले उसकी सुरक्षा शीट देखो।',
       '从元素周期表取出的一个元素的小标签瓶。许多元素活泼或有毒：在真实实验室里请先查看安全说明书。',
+    ),
+    safeUse: [],
+    hazards: [],
+    mistakes: {},
+  },
+  [SPATULA_KIND]: {
+    name: l6('Spatula', 'Spatel', 'Espátula', 'Spatule', 'स्पैचुला', '药匙'),
+    summary: l6(
+      'A steel spatula for solids. Dip its blade into a dish or jar to take a scoop, then tip it over a beaker or flask to add it. Use a clean spatula for each solid.',
+      'Ein Stahlspatel für Feststoffe. Tauch die Klinge in eine Schale oder ein Glas, um etwas aufzunehmen, und kipp es über einem Becherglas oder Kolben hinein. Für jeden Feststoff einen sauberen Spatel nehmen.',
+      'Una espátula de acero para sólidos. Mete la hoja en una cápsula o un frasco para tomar un poco y vuélcalo sobre un vaso o un matraz para añadirlo. Usa una espátula limpia para cada sólido.',
+      'Une spatule en acier pour les solides. Plonge la lame dans une coupelle ou un flacon pour prendre une pointe, puis renverse-la au-dessus d’un bécher ou d’un flacon pour l’ajouter. Une spatule propre pour chaque solide.',
+      'ठोस पदार्थों के लिए स्टील का स्पैचुला। थोड़ा लेने के लिए उसकी पत्ती प्याली या जार में डुबाओ, फिर बीकर या फ्लास्क के ऊपर पलटकर डालो। हर ठोस के लिए साफ़ स्पैचुला लो।',
+      '用于取固体的钢制药匙。把匙头伸进皿或瓶里取一点，再在烧杯或锥形瓶上方倒进去。每种固体用一把干净的药匙。',
     ),
     safeUse: [],
     hazards: [],

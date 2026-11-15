@@ -5,6 +5,7 @@
  * plug in the same way (their figures are being drawn elsewhere; the ids match the coming `lab/<id>` assets).
  */
 import { cycle, defineItem, pickSeeded, type ItemState, type LabEnv, type Prim } from '../types';
+import { addSolid } from './spatula';
 
 const VOLUMES = [0, 50, 100, 150, 200, 250, 300] as const;
 export const LIQUIDS = ['water', 'copper-sulfate', 'permanganate', 'iodine', 'indicator', 'vinegar', 'soap'] as const;
@@ -47,7 +48,7 @@ export const beaker = defineItem({
     heat: { values: [false, true] },
   },
   defaults: { liquid: 'copper-sulfate', volume: 150, heat: false },
-  init: (p) => ({ vol: p.volume as number, temp: 20 }),
+  init: (p) => ({ vol: p.volume as number, temp: 20, added: '' }),
   actions: {
     fill: (d) => {
       if ((d.p.volume as number) >= 300) return 'beaker-full';
@@ -56,6 +57,7 @@ export const beaker = defineItem({
     empty: (d) => d.set('volume', 0),
     heat: (d) => d.set('heat', !d.p.heat),
     liquid: (d, a) => d.set('liquid', a.value ?? cycle(beaker.params.liquid!, d.p.liquid!)),
+    add: addSolid,
   },
   step: (st, dt) => {
     const { p, s } = st;
@@ -68,7 +70,7 @@ export const beaker = defineItem({
   mistakes: ['heating-empty', 'heating-too-full', 'overfilled'],
   mistake: ({ p }) =>
     p.heat && p.volume === 0 ? 'heating-empty' : p.heat && (p.volume as number) > 150 ? 'heating-too-full' : (p.volume as number) > 250 ? 'overfilled' : null,
-  report: ({ p, s }) => ({ tempC: Math.round((s.temp as number) / 5) * 5, boiling: !!(p.heat && (p.volume as number) > 0 && (s.temp as number) >= 99.5) }),
+  report: ({ p, s }) => ({ tempC: Math.round((s.temp as number) / 5) * 5, boiling: !!(p.heat && (p.volume as number) > 0 && (s.temp as number) >= 99.5), added: (s.added as string) || null }),
   stamp: ({ p, s }) => Math.round((s.temp as number) / 5) * 2 + (p.heat && (s.temp as number) >= 99.5 ? 1 : 0),
 });
 
@@ -83,7 +85,7 @@ export const flask = defineItem({
     swirling: { values: [false, true] },
   },
   defaults: { liquid: 'indicator', volume: 100, swirling: false },
-  init: (p) => ({ vol: p.volume as number, swirlT: 0 }),
+  init: (p) => ({ vol: p.volume as number, swirlT: 0, added: '' }),
   actions: {
     fill: (d) => {
       if ((d.p.volume as number) >= 300) return 'flask-full';
@@ -94,6 +96,7 @@ export const flask = defineItem({
       if (!d.p.volume) return 'flask-empty';
       d.set('swirling', true);
     },
+    add: addSolid,
   },
   onParam: (st, k, v) => {
     if (k === 'swirling') st.s.swirlT = v ? SWIRL_S : 0;
@@ -109,6 +112,7 @@ export const flask = defineItem({
   live: (st) => st.s.vol !== st.p.volume || (st.s.swirlT as number) > 0,
   mistakes: ['swirl-too-full', 'overfilled'],
   mistake: ({ p }) => (p.swirling && (p.volume as number) > 150 ? 'swirl-too-full' : (p.volume as number) > 250 ? 'overfilled' : null),
+  report: ({ s }) => ({ added: (s.added as string) || null }),
 });
 
 /** The burner's flame for each collar setting (the figure's FLAMES): its kind, colour and height in mm. */

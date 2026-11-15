@@ -22,6 +22,9 @@ export const LAB_LAYOUTS: Readonly<Record<LabId, readonly KitItem[]>> = {
     { kind: 'beaker-250', x: 250, z: -20 },
     { kind: 'erlenmeyer-250', x: 330, z: -110 },
     { kind: 'ph-meter', x: -330, z: -90 },
+    // a dish of salt and a spatula at the front, to scoop from and tip into the beaker or flask
+    { kind: 'substance', x: 150, z: 170, params: { substance: 'sodium-chloride' } },
+    { kind: 'spatula', x: 300, z: 150 },
   ],
   physics: [{ kind: 'pendulum-stand', x: 0, z: -110 }],
   electrical: [

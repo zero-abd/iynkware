@@ -11,6 +11,7 @@ import { intentOf, scriptedBrain } from '../../src/agent/bridge/scripted';
 import { callTool, createTools, type CompanionMode, type ToolHost } from '../../src/agent/tools/catalog';
 import { containerOf, findSubstance, SUBSTANCES } from '../../src/lab/substances/data';
 import { substanceSpot } from '../../src/agent/tools/chem';
+import { LAB_LAYOUTS } from '../../src/lab/experiments/list';
 
 async function setup(mode: CompanionMode = 'build') {
   const project = createProjectStore(await loadTemplate('prj_uno-r3-blink'));
@@ -49,7 +50,8 @@ describe('give_substance', () => {
     expect(await s.call('give_substance', { name: 'baking soda' })).toEqual(expect.objectContaining({ ok: true, container: 'dish' }));
     expect(await s.call('give_substance', { name: 'Na' })).toEqual(expect.objectContaining({ ok: true, container: 'jar', gave: 'Na' }));
     const kinds = s.lab.store.items().map((i) => i.kind);
-    expect(kinds.filter((k) => k === 'substance')).toHaveLength(2);
+    // the two given, beside the dish of salt the chemistry lab lays out by its spatula
+    expect(kinds.filter((k) => k === 'substance')).toHaveLength(2 + LAB_LAYOUTS.chemistry.filter((k) => k.kind === 'substance').length);
     expect(kinds).toContain('element-sample');
     const no = await s.call('give_substance', { name: 'unobtainium' });
     expect(no.ok).toBe(false);
