@@ -55,6 +55,7 @@ xr/
                         probe/ controls/
     range/              pillar 5, range: flight/ robots/
     lab/                pillar 8, lab: model/ items/ experiments/ tutor/ (training labs beyond circuits)
+    agent/              pillar 9, agent: tools/ bubbles/ coach/ bridge/ (what a voice assistant can do and show)
     shell/              pillar 6, shell and shipping: menu/, settings.ts, service.ts (app.shell), copy.ts
 ```
 
