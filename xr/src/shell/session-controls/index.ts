@@ -1,5 +1,5 @@
 /**
- * Session controls: Home, Recentre and Exit, three inked buttons in a row, in every mode and every project, shown only
+ * Session controls: Home, Reset, Recentre and Exit, four inked buttons in a row, in every mode and every project, shown only
  * inside a session. The cluster is fixed in the room: when the session starts it is put once about 48 degrees to the
  * person's left, 0.85 m from the eyes and just above eye level, beside the companion (`CLUSTER` in `spot.ts`), turned
  * to face them, and it never follows the head or body after that. It carries the shared grip bar (`ui/panels`): pinch it or ray and
@@ -7,6 +7,8 @@
  *
  *   Home      opens Home in front of the person from anywhere (the bench, Room size, the Range), closing whatever
  *             shell panel is open; pressed while Home is open, it brings Home round to where the person now looks.
+ *   Reset     stops whatever runs (a drone flying, the Range, a circuit run, a lab) and opens a new empty workbench,
+ *             from anywhere, without leaving the session (the project that was open stays in Projects).
  *   Recentre  puts the bench (and everything anchored to it) in front of the person again with an eased move, through
  *             `BenchSpace.setBenchTop`, at the height and distance of XR_DESIGN.md 2.1. At Room size or in the Range,
  *             which place their own content from the head when they open, it leaves and re-enters the place. It also
@@ -30,6 +32,7 @@ import { sessionButton, type SessionButton } from './button';
 import { SESSION } from './copy';
 import { lerpPose, recentreTarget, type BenchPose } from './recentre';
 import { CLUSTER, clusterHome, headingTracker, yawOfForward } from './spot';
+import { newProject } from '../switch';
 
 /** How long Exit must be held, ms (the design's Arm hold is 600 ms; leaving the headset is rarer, so a little longer). */
 export const EXIT_HOLD_MS = 700;
@@ -40,6 +43,10 @@ export const CONTROLS_ID = 'shell/session-controls';
 /** Frames and time to wait after entering before the cluster is placed (the headset pose arrives after the start). */
 const SETTLE_FRAMES = 4;
 const SETTLE_MS = 300;
+/** The cluster is always findable: farther than this from the eyes, or this far behind the heading, for `LOST_S`, it comes back. */
+const LOST_M = 2.5;
+const LOST_RAD = (150 * Math.PI) / 180;
+const LOST_S = 2;
 const TWEEN_KEY = 'session-controls/recentre';
 
 const eye = new Vector3();
@@ -129,6 +136,11 @@ export const sessionControlsModule: FeatureModule = {
       { id: 'session/home', w: W, h: H, distanceM: d, icon: 'home', onSelect: () => goHome(app) },
       { label: say(SESSION, lang(), 'home') },
     );
+    const resetButton: SessionButton = sessionButton(
+      app,
+      { id: 'session/reset', w: W, h: H, distanceM: d, icon: 'reset', onSelect: () => void newProject(app) },
+      { label: say(SESSION, lang(), 'reset') },
+    );
     const recentreButton: SessionButton = sessionButton(
       app,
       {
@@ -153,16 +165,18 @@ export const sessionControlsModule: FeatureModule = {
       { id: 'session/exit', w: W, h: H, distanceM: d, icon: 'exit', hold: { ms: EXIT_HOLD_MS, onDone: () => app.world.exitXR() } },
       { label: say(SESSION, lang(), 'exit'), hint: say(SESSION, lang(), 'hold') },
     );
-    homeButton.group.position.x = -(W + GAP);
-    exitButton.group.position.x = W + GAP;
-    root.add(homeButton.group, recentreButton.group, exitButton.group);
+    const row = [homeButton, resetButton, recentreButton, exitButton];
+    row.forEach((b, i) => (b.group.position.x = (i - (row.length - 1) / 2) * (W + GAP)));
+    root.add(...row.map((b) => b.group));
     // The shared grip bar under the row moves the whole cluster (ui/panels); its place is kept per id.
-    const grip = movable(app, { id: CONTROLS_ID, group: root, width: 3 * W + 2 * GAP, height: H, distanceM: d });
+    const grip = movable(app, { id: CONTROLS_ID, group: root, width: row.length * W + (row.length - 1) * GAP, height: H, distanceM: d });
 
     let opacity = 0;
+    let lost = 0;
     const setOpacity = (a: number) => {
       opacity = a;
       homeButton.setOpacity(a);
+      resetButton.setOpacity(a);
       recentreButton.setOpacity(a);
       exitButton.setOpacity(a);
       grip.setOpacity(a);
@@ -211,6 +225,7 @@ export const sessionControlsModule: FeatureModule = {
       app.mode.subscribe(syncMode),
       app.settings.lang.subscribe(() => {
         homeButton.set({ label: say(SESSION, lang(), 'home') });
+        resetButton.set({ label: say(SESSION, lang(), 'reset') });
         recentreButton.set({ label: say(SESSION, lang(), 'recentre') });
         exitButton.set({ label: say(SESSION, lang(), 'exit'), hint: say(SESSION, lang(), 'hold') });
       }),
@@ -220,19 +235,31 @@ export const sessionControlsModule: FeatureModule = {
         if (l.head !== null) heading.update(l.head, l.cluster, dt);
         // Fixed in the room, only turned to keep facing the person (a moved place is turned by ui/panels as well).
         app.world.camera.getWorldPosition(eye);
+        // Always findable: lost far away or behind the person for a moment, it comes back beside them.
+        root.getWorldPosition(at);
+        const far = at.distanceTo(eye) > LOST_M;
+        const behind = l.head !== null && l.cluster !== null && Math.abs(Math.atan2(Math.sin(l.cluster - l.head), Math.cos(l.cluster - l.head))) > LOST_RAD;
+        lost = far || behind ? lost + dt : 0;
+        if (lost > LOST_S) {
+          lost = 0;
+          grip.forget();
+          placeHome();
+        }
+        root.visible = opacity > 0.001;
         root.lookAt(eye);
         exitButton.tick(dt * 1000);
       }),
     ];
     syncMode();
     // For scripts and tests: where the buttons are and what Exit is doing.
-    root.userData.sessionControls = { home: homeButton, recentre: recentreButton, exit: exitButton, grip };
+    root.userData.sessionControls = { home: homeButton, reset: resetButton, recentre: recentreButton, exit: exitButton, grip };
 
     return () => {
       for (const off of offs) off();
       stopWait?.();
       motionOf(app.world).cancel(TWEEN_KEY);
       homeButton.dispose();
+      resetButton.dispose();
       recentreButton.dispose();
       exitButton.dispose();
       grip.dispose();

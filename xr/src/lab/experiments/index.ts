@@ -7,6 +7,7 @@
  *   running   the step to do, the answer choices when the step asks, Hint (practice), Finish, Stop, the tutor's line
  *   results   the score, every check with its detail, what was logged
  */
+import { stopRunning } from '../../shell/switch';
 import { atSlot, ringSpot } from '../../bench/core/ring';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
@@ -43,6 +44,9 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
 
   const openLab = (id: LabId) => {
     hint = null;
+    // whatever runs elsewhere (a drone flying, the Range, a circuit run) stops first, back on the bench place
+    stopRunning(app);
+    if (app.shell.place.value !== 'bench') app.shell.go('bench');
     lab.open(id);
     app.shell.closeHome();
   };

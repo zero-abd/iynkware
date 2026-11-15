@@ -173,8 +173,8 @@ interface Head {
   readonly heading: Heading;
 }
 
-/** Top-level windows that hide while Run here flies: shell panels and buttons, the session controls, the agent's. */
-const WINDOW_PREFIXES = ['shell-panel:', 'shell-button:', 'session-controls', 'agent:'];
+/** Top-level windows that hide while Run here flies: shell panels and buttons, the agent's. The session controls stay. */
+const WINDOW_PREFIXES = ['shell-panel:', 'shell-button:', 'agent:'];
 
 /**
  * Run here: the bench's own drone steps aside (the flying one took off from its spot) and every other window hides

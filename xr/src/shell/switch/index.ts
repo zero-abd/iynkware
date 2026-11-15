@@ -21,6 +21,7 @@ import type { Lang, LocalizedText, ReadonlyValue } from '../../contracts/common'
 import { LANGS, pickText } from '../../contracts/common';
 import type { Place } from '../../contracts/shell';
 import { labOf } from '../../lab/context';
+import { flyHereOf } from '../../range/flight/here';
 import { value } from '../../ui/value';
 import { say } from '../copy';
 import { libraryOf } from '../library/types';
@@ -67,11 +68,24 @@ export function leaveLab(app: XrApp): void {
   if (lab?.store.lab) lab.leave();
 }
 
+/**
+ * Stops whatever is running before a switch, so nothing carries over to the next bench: a drone flying from the bench
+ * (Run here), the flight in the Range (back to the bench place) and a circuit run. Every switch calls it first.
+ */
+export function stopRunning(app: XrApp): void {
+  if (flyHereOf(app).value) flyHereOf(app).set(false);
+  if (app.shell.place?.value === 'range') app.shell.go('bench');
+  // a test app may have no simulator
+  const sim = app.sim as XrApp['sim'] | undefined;
+  if (sim && (sim.state === 'running' || sim.state === 'paused')) void sim.stop().catch(() => undefined);
+}
+
 async function run(app: XrApp, what: () => Promise<unknown>): Promise<boolean> {
   const b = switching(app) as ReturnType<typeof value<boolean>>;
   if (b.value) return false;
   b.set(true);
   app.shell.closeHome();
+  stopRunning(app);
   leaveLab(app);
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
