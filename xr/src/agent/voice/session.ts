@@ -11,6 +11,8 @@
  *   replies   transcripts to `agent.user` / `agent.say` (deltas, final on `turnComplete`), audio to the player,
  *             `toolCall.functionCalls` to `agent.call` and back as `toolResponse.functionResponses` with the same ids.
  *   coach     a mistake or hazard observation while idle: one short text turn per COACH_MS at most.
+ *   ask       a typed turn (a chip, the flat chat, the Ask panel, the code window): grounding and the words as one
+ *             completed text turn; resolves once the answer is complete (voice/index.ts plugs it into the bridge).
  *
  * In a dev build with no Worker (the token route answers 404) `dev` opens the plain v1beta endpoint with the full setup;
  * voice/index.ts passes it only under `import.meta.env.DEV`, so a production build carries neither the URL nor a key.
@@ -25,6 +27,8 @@ export const DIRECT_MS = 4000;
 export const SETUP_MS = 10_000;
 export const REFRESH_MS = 8 * 60_000;
 export const COACH_MS = 20_000;
+/** The longest a typed turn waits for the model's answer before handing the bubble back. */
+export const TEXT_MS = 30_000;
 /** Audio kept while the session is still connecting at a press: about 6 s of 40 ms chunks. */
 const BUFFER_CHUNKS = 150;
 
@@ -67,6 +71,8 @@ export interface VoiceSession {
   audio(chunk: ArrayBuffer): void;
   setCoach(on: boolean): void;
   readonly coach: boolean;
+  /** One typed turn. False when no session could be had (the caller answers some other way), else true once answered. */
+  ask(text: string): Promise<boolean>;
   close(): void;
 }
 
@@ -98,6 +104,15 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
   let refreshTimer: unknown = null;
   let idleTimer: unknown = null;
   let closed = false;
+  let textDone: ((ok: boolean) => void) | null = null;
+  let textTimer: unknown = null;
+  /** Ends a waiting typed turn (its answer is complete, or the session went away). */
+  const endText = () => {
+    const done = textDone;
+    textDone = null;
+    d.clearTimeout(textTimer);
+    done?.(true);
+  };
   const log = (m: string) => d.log?.(`[voice] ${m}`);
   const set = (s: VoiceStatus) => {
     status = s;
@@ -239,6 +254,7 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
     live = null;
     d.clearTimeout(refreshTimer);
     log(`session ${why}`);
+    endText();
     if (l && l.socket.readyState <= 1) l.socket.close(1000, why);
     if (answering || talking) {
       answering = false;
@@ -297,6 +313,7 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
       if (c.turnComplete) {
         closeUser();
         d.agent.say('', { final: true });
+        endText();
         toIdle();
       }
     }
@@ -353,6 +370,27 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
     setCoach(on) {
       coachOn = on;
     },
+    async ask(text) {
+      if (closed || talking) return false;
+      if (!(await connect()) || closed || talking || !live?.ready) return false;
+      endText();
+      d.player.clear();
+      d.clearTimeout(idleTimer);
+      answering = true;
+      set('answering');
+      agentState('thinking');
+      const done = new Promise<boolean>((resolve) => {
+        textDone = resolve;
+        textTimer = d.setTimeout(endText, TEXT_MS);
+      });
+      send({
+        clientContent: {
+          turns: [{ role: 'user', parts: [{ text: untrustedContext(d.agent.context()) }, { text: String(text) }] }],
+          turnComplete: true,
+        },
+      });
+      return done;
+    },
     connect: () => {
       closed = false;
       return connect();
@@ -403,6 +441,7 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
       d.clearTimeout(refreshTimer);
       d.clearTimeout(idleTimer);
       d.player.clear();
+      endText();
       const l = live;
       live = null;
       if (l) l.socket.close(1000, 'voice off');

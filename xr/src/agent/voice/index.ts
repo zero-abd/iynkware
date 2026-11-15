@@ -24,6 +24,8 @@ import { movable } from '../../ui/panels';
 import { spotsOf } from '../../assistant/presence/spots';
 import { companionOf } from '../../assistant/presence';
 import { value } from '../../ui/value';
+import { scriptedBrain } from '../bridge/scripted';
+import type { Brain } from '../bridge/bridge';
 import { agentOf } from '../hub';
 import { createAudioIO, type AudioIO } from './audio';
 import { createVoiceSession, type SocketLike, type VoiceDeps, type VoiceSession, type VoiceStatus } from './session';
@@ -56,6 +58,9 @@ function devConfig(): VoiceDeps['dev'] {
   };
 }
 
+/** Statuses in which a typed turn cannot reach Gemini: the scripted brain answers instead. */
+const DOWN: ReadonlySet<VoiceStatus> = new Set(['off', 'failed', 'quota', 'unavailable']);
+
 const STATUS_NOTE: Partial<Record<VoiceStatus, VoiceStatusKey>> = {
   off: 'off',
   connecting: 'connecting',
@@ -76,6 +81,26 @@ export function mountVoice(app: XrApp): Unsubscribe {
   let session: VoiceSession | null = null;
   let down = false;
   let vstatus: VoiceStatus = 'off';
+  // While the Live session is up, typed turns (chips, the flat chat, the Ask panel, the code window) go to it, not to the
+  // scripted brain. Observations still reach the scripted brain's callouts; the session speaks up on its own.
+  const fallback = scriptedBrain();
+  let unplug: Unsubscribe | null = null;
+  const plug = (up: boolean) => {
+    if (up && !unplug && hub.bridge && session) {
+      const live = session;
+      const brain: Brain = {
+        name: 'gemini-live',
+        async turn(input, io) {
+          if (!(await live.ask(input.text))) await fallback.turn(input, io);
+        },
+        observe: (o, io) => fallback.observe?.(o, io),
+      };
+      unplug = hub.bridge.use(brain);
+    } else if (!up && unplug) {
+      unplug();
+      unplug = null;
+    }
+  };
   const paintTalk = () => {
     const talkingNow = vstatus === 'talking';
     const live = vstatus === 'talking' || vstatus === 'answering';
@@ -126,6 +151,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
       dev: import.meta.env.DEV ? devConfig() : null,
       onStatus: (st) => {
         vstatus = st;
+        if (session === s) plug(!DOWN.has(st));
         paintTalk();
         const k = STATUS_NOTE[st];
         if (st === 'talking' || st === 'answering') note(null);
@@ -149,6 +175,7 @@ export function mountVoice(app: XrApp): Unsubscribe {
   };
 
   const disable = () => {
+    plug(false);
     session?.close();
     session = null;
     audio?.stop();
