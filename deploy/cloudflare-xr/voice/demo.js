@@ -7,7 +7,7 @@ import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v2';
-const VOICE_BUILD = 'voice-ptt-en-v10';
+const VOICE_BUILD = 'voice-ptt-en-v11';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold the right thumbstick click in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
@@ -171,12 +171,16 @@ async function beginQuestion() {
   if (!media || active) return;
   clearPlayback();
   active = true; released = false; setupReady = false; activityStarted = false; endSent = false; pendingAudio = []; preRoll = []; audioChunks = 0; speechPeak = 0; capRetried = false;
-  ui.talk.disabled = true; ui.status.textContent = 'Refreshing Quest microphone…'; bridge.state('connecting');
+  ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
   try {
-    media.getTracks().forEach(track => track.stop());
-    media = null;
-    media = watchTracks(await microphone());
-    ui.status.textContent = connecting;
+    // Keep ONE persistent stream, exactly like the probe page that measures real audio on this hardware. Quest
+    // Browser hands back an all-zero stream when tracks are stopped and immediately reacquired per turn (the v9
+    // behaviour), so only reacquire when the track has actually died or been muted by the system.
+    const track = media.getAudioTracks?.()[0];
+    if (!track || track.readyState !== 'live' || track.muted) {
+      media.getTracks().forEach(item => item.stop());
+      media = watchTracks(await microphone());
+    }
     await audio.resume();
     startCapture();
     zeroWatch();
