@@ -35,6 +35,7 @@ import type { Observation } from '../coach/coach';
 import DECLARATIONS from './declarations.json';
 import { createEditBuilder, planEdits, type EditSpec } from './edit';
 import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
+import { NAV_KINDS, NAV_RUNS, type NavHost } from './navigate';
 
 export type SchemaType = 'OBJECT' | 'STRING' | 'NUMBER' | 'INTEGER' | 'BOOLEAN' | 'ARRAY';
 export interface Schema {
@@ -73,6 +74,8 @@ export interface ToolHost {
   locate?(t: BoardTarget): unknown;
   /** The project store and the simulator, for editing, undo, redo and the circuit check (tools/bench.ts). */
   readonly bench?: BenchToolHost;
+  /** Switching places, labs and projects from anywhere, and the menu's buttons (tools/navigate.ts). */
+  readonly nav?: NavHost;
 }
 
 export const DECLS = DECLARATIONS as unknown as readonly FunctionDeclaration[];
@@ -96,6 +99,7 @@ export const KIND_OF: Readonly<Record<string, ToolKind>> = {
   request_item: 'act',
   next_step_hint: 'act',
   ...BENCH_KINDS,
+  ...NAV_KINDS,
 };
 
 /** How long a callout from `point_at` stays, ms. */
@@ -333,6 +337,7 @@ const coerce = (v: unknown): Prim | undefined => {
 
 const RUNS: Readonly<Record<string, Run>> = {
   ...BENCH_RUNS,
+  ...NAV_RUNS,
   look: (h) => ({ ok: true, ...lookNow(h) }),
   list_targets(h) {
     const lab = labOpen(h);
@@ -424,10 +429,13 @@ const RUNS: Readonly<Record<string, Run>> = {
     if (s.state.value.performed.length >= st.performed.length) return fail('nothing was undone', stepJson(s));
     return { ok: true, undone: label, ...stepJson(s) };
   },
-  open_lab(h, a) {
+  async open_lab(h, a) {
     const lab = h.lab();
     if (!lab) return fail('the lab is not available');
-    lab.open(a.lab as LabId);
+    // from anywhere (the Range, room size, Home, another lab): the nav host leaves what is open first
+    if (h.nav) {
+      if (!(await h.nav.go({ kind: 'lab', lab: a.lab as LabId }))) return fail(`could not open the ${a.lab} lab`);
+    } else lab.open(a.lab as LabId);
     return { ok: true, lab: a.lab, items: lab.store.items().map((i) => ({ id: i.id, kind: i.kind })), experiments: EXPERIMENTS.filter((e) => e.lab === a.lab).map((e) => e.id) };
   },
   leave_lab(h) {

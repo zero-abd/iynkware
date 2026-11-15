@@ -32,7 +32,7 @@ import type { Args, ToolHost, ToolResult } from './catalog';
 /** What the bench tools need beyond the base host; absent in hosts without a project store (some tests). */
 export interface BenchToolHost {
   readonly project: ProjectStore;
-  readonly sim?: Pick<SimBridge, 'check' | 'state' | 'findings' | 'load' | 'run' | 'pause' | 'stop'>;
+  readonly sim?: Pick<SimBridge, 'check' | 'state' | 'findings' | 'load' | 'run' | 'pause' | 'stop' | 'step'>;
   readonly registry?: PartRegistry;
 }
 
@@ -266,8 +266,9 @@ export const BENCH_RUNS: Readonly<Record<string, Run>> = {
     const b = benchOf(h);
     if (!b?.sim) return fail('the simulator is not available');
     if (labOpen(h)) return fail('a lab is open');
-    const action = a.action as 'run' | 'pause' | 'stop';
-    if (action === 'run') {
+    const action = a.action as 'run' | 'pause' | 'stop' | 'step' | 'restart';
+    if (action === 'restart') await b.sim.stop();
+    if (action === 'run' || action === 'restart') {
       // the run is built from the document as it is now: a run of an older version is started again
       if (b.sim.state === 'paused' || b.sim.state === 'idle') await b.sim.stop();
       if (b.sim.state !== 'running') {
@@ -275,6 +276,12 @@ export const BENCH_RUNS: Readonly<Record<string, Run>> = {
         if (!loaded.ok) return fail('the circuit did not load', { detail: loaded });
       }
       await b.sim.run();
+    } else if (action === 'step') {
+      if (b.sim.state !== 'paused' && b.sim.state !== 'idle') {
+        if (b.sim.state === 'running') await b.sim.pause();
+        else if (!(await b.sim.load(b.project.doc)).ok) return fail('the circuit did not load');
+      }
+      await b.sim.step(Math.max(1, Math.min(10_000, (a.ms as number | undefined) ?? 100)));
     } else if (action === 'pause') await b.sim.pause();
     else await b.sim.stop();
     return { ok: true, state: b.sim.state };

@@ -14,6 +14,7 @@ export type Intent =
   | { readonly kind: 'undo' | 'redo' | 'yes' | 'all' | 'no' | 'next' | 'wrong' | 'fix' }
   | { readonly kind: 'edit'; readonly action: 'removePart' | 'pullPart' | 'turnPart'; readonly thing: string; readonly half?: boolean }
   | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
+  | { readonly kind: 'go'; readonly where: string }
   | { readonly kind: 'where'; readonly thing: string }
   | { readonly kind: 'build'; readonly request: string }
   | { readonly kind: 'open'; readonly lab: LabId }
@@ -69,6 +70,8 @@ export function intentOf(raw: string): Intent {
     const lab = LABS.find(([re]) => re.test(t));
     if (lab) return { kind: 'open', lab: lab[1] };
   }
+  const go = /^(?:go (?:back )?to|switch to|take me to|bring me to|open|show me|geh(?: zu| zum| zur| ins)?|wechsle zu|öffne)\s+(.+)$/.exec(t);
+  if (go && !/\bbuild\b/.test(t)) return { kind: 'go', where: go[1]! };
   if (/\bbuild\b|\bbau(?:e|en)?\b|aufbauen/.test(t)) return { kind: 'build', request: /with me|mit mir/.test(t) && !/blink/.test(t) ? 'build it with me' : t };
   if (/what (?:should i do )?next|next step|what now|what do i do|als nächstes|nächster schritt|was jetzt|was soll ich/.test(t)) return { kind: 'next' };
   const w = WHERE.exec(t);
@@ -105,6 +108,10 @@ export function scriptedBrain(): Brain {
           const step = r.step as { label?: string } | null | undefined;
           if (r.ok && step?.label) return done(t(io, R.proposed, { label: step.label }));
           return done(t(io, R.cannotBuild));
+        }
+        case 'go': {
+          const r = await io.call('go_to', { where: intent.where });
+          return done(r.ok ? t(io, R.went, { where: intent.where }) : t(io, R.cannotGo, { where: intent.where }));
         }
         case 'open': {
           const r = await io.call('open_lab', { lab: intent.lab });

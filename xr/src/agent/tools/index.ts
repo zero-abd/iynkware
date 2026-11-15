@@ -6,6 +6,7 @@ import type { FeatureModule } from '../../contracts/app';
 import { labOf } from '../../lab/context';
 import { agentOf } from '../hub';
 import { createTools, type ToolHost } from './catalog';
+import { createNavHost } from './navigate';
 
 export const toolsModule: FeatureModule = {
   id: 'agent/tools',
@@ -22,6 +23,7 @@ export const toolsModule: FeatureModule = {
       observations: (n) => hub.coach.recent(n),
       locate: (t) => app.bench.worldOf(t),
       bench: { project: app.project, sim: app.sim },
+      nav: createNavHost(app),
     };
     hub.host = host;
     hub.tools = createTools(host);
