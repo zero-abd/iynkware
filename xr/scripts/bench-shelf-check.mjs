@@ -24,6 +24,8 @@ const check = (name, ok, detail) => {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail !== undefined ? '  ' + JSON.stringify(detail) : ''}`);
 };
 
+// SHELF_MOVED=1 starts with the shelf moved (a stored place, as after a drag by its grip bar): picking must still work.
+if (process.env.SHELF_MOVED) await page.addInitScript(() => localStorage.setItem('iynk:xr:panels:v1', JSON.stringify({ v: 1, places: { 'bench/shelf': [0.44, 0, 0.02] } })));
 await page.goto(target.href, { waitUntil: 'load' });
 await page.click('#flat');
 await page.waitForFunction(() => window.iynkware?.ready, null, { timeout: 60000 });

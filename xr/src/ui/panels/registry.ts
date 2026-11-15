@@ -23,6 +23,8 @@ export interface PlacedPanel {
   /** Metres from the root's origin down to its lowest point (the grip included), and half its width: the bench guard. */
   drop: number;
   halfWidth: number;
+  /** A fixture lying on the bench (the parts shelf): it slides on the bench top at its own height and keeps its own turn. */
+  readonly flat?: boolean;
   /** The panel was shown or hidden (the grip's hit follows). */
   onShown?(shown: boolean): void;
   /** The root is in the scene for the first time (bind input now: binding a parentless object would move it). */
@@ -80,7 +82,12 @@ interface Entry {
   /** The place while dragging, in the frame. */
   live: MVec3 | null;
   readonly liveBuf: MVec3;
+  /** The frame-space height the drag began at (a flat fixture keeps it). */
+  startY: number;
 }
+
+/** How far a flat fixture's origin may slide from the bench's centre, metres (the bench is 1.0 x 0.55 m). */
+const FLAT_BOX = { x: 0.7, z: 0.4 } as const;
 
 const NEAR = 1e-4;
 const differs = (a: Vector3, b: Vector3) => Math.abs(a.x - b.x) > NEAR || Math.abs(a.y - b.y) > NEAR || Math.abs(a.z - b.z) > NEAR;
@@ -130,7 +137,7 @@ export function createPanelPlaces(ctx: PlacesContext): PanelPlaces {
     parent.updateWorldMatrix(true, false);
     parent.worldToLocal(v);
     g.position.copy(v);
-    g.lookAt(eye);
+    if (!e.p.flat) g.lookAt(eye);
     e.set.copy(g.position);
     e.owning = true;
   };
@@ -188,6 +195,7 @@ export function createPanelPlaces(ctx: PlacesContext): PanelPlaces {
         hold: null,
         live: null,
         liveBuf: [0, 0, 0],
+        startY: 0,
       };
       entries.add(e);
       return {
@@ -204,6 +212,7 @@ export function createPanelPlaces(ctx: PlacesContext): PanelPlaces {
           e.liveBuf[0] = v.x;
           e.liveBuf[1] = v.y;
           e.liveBuf[2] = v.z;
+          e.startY = v.y;
           e.live = e.liveBuf;
         },
         move(pointer) {
@@ -219,7 +228,12 @@ export function createPanelPlaces(ctx: PlacesContext): PanelPlaces {
           e.liveBuf[0] = v.x;
           e.liveBuf[1] = v.y;
           e.liveBuf[2] = v.z;
-          if (ctx.bench) keepAboveBench(e.liveBuf, p.drop, floorY(), p.halfWidth);
+          if (p.flat) {
+            // A fixture on the bench top: it keeps its own height and stays within the bench's reach.
+            e.liveBuf[0] = Math.max(-FLAT_BOX.x, Math.min(FLAT_BOX.x, e.liveBuf[0]));
+            e.liveBuf[1] = e.startY;
+            e.liveBuf[2] = Math.max(-FLAT_BOX.z, Math.min(FLAT_BOX.z, e.liveBuf[2]));
+          } else if (ctx.bench) keepAboveBench(e.liveBuf, p.drop, floorY(), p.halfWidth);
           e.live = e.liveBuf;
         },
         end() {

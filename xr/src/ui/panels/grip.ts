@@ -60,6 +60,8 @@ export interface MovableOptions {
   readonly distanceM?: number;
   /** The root-frame z of the bar (just in front of the plate). */
   readonly z?: number;
+  /** A fixture lying on the bench (the parts shelf): moved flat on the bench top, keeping its own turn and height. */
+  readonly flat?: boolean;
   /** Called with the panel's new world position while it is dragged. */
   onMove?(world: Vector3): void;
 }
@@ -273,6 +275,7 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
     group: o.group,
     drop: 0,
     halfWidth: 0,
+    flat: o.flat,
     onShown(shown: boolean) {
       setPanelHit(grip, shown);
       if (!shown) {
