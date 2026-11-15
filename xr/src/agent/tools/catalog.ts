@@ -14,6 +14,9 @@
  *         edit_bench, undo, redo, apply_fix, run_circuit      (tools/bench.ts: the project itself, one undo each)
  *   read  bench_actions, explain_problems                     (tools/bench.ts: the build actions, the circuit check)
  *
+ * The companion's mode (`ToolHost.mode`): in `assist` it talks, reads, points, shows ghosts (propose_edit) and moves
+ * around (go_to, open_lab, leave_lab), and every tool in `CHANGES` refuses; in `build` everything runs.
+ *
  * Every result is a small JSON object: `{ ok: true, ... }` or `{ ok: false, error }`. Arguments are checked against the
  * declaration (unknown keys, missing or mistyped ones are refused). In an exam the acting lab tools and hints refuse.
  */
@@ -37,6 +40,7 @@ import { createEditBuilder, planEdits, type EditSpec } from './edit';
 import { doneFor, stepNow as stepNumber, stopWalk, walkTo, walking, type StepTarget } from './steps';
 import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
 import { NAV_KINDS, NAV_RUNS, type NavHost } from './navigate';
+import { sceneBrief } from '../knowledge';
 
 export type SchemaType = 'OBJECT' | 'STRING' | 'NUMBER' | 'INTEGER' | 'BOOLEAN' | 'ARRAY';
 export interface Schema {
@@ -77,7 +81,31 @@ export interface ToolHost {
   readonly bench?: BenchToolHost;
   /** Switching places, labs and projects from anywhere, and the menu's buttons (tools/navigate.ts). */
   readonly nav?: NavHost;
+  /** Assist (advise only) or build (may act); absent means build. */
+  mode?(): CompanionMode;
 }
+
+export type CompanionMode = 'assist' | 'build';
+export const COMPANION_MODES: readonly CompanionMode[] = ['assist', 'build'];
+
+/** The tools that change the project, the lab, the run or the app's switches: refused in assist mode. */
+export const CHANGES: ReadonlySet<string> = new Set([
+  'propose_build',
+  'accept_step',
+  'reject_step',
+  'undo_step',
+  'go_to_step',
+  'start_experiment',
+  'set_lab_control',
+  'request_item',
+  'edit_bench',
+  'undo',
+  'redo',
+  'apply_fix',
+  'run_circuit',
+  'use_control',
+]);
+export const ASSIST_REFUSAL = 'assist mode: I can explain, point and suggest (propose_edit shows a ghost), but not change anything. Ask the person to switch the companion to build mode (the button over the bunny) if they want me to do it.';
 
 export const DECLS = DECLARATIONS as unknown as readonly FunctionDeclaration[];
 export const functionDeclarations = (): readonly FunctionDeclaration[] => DECLS;
@@ -285,10 +313,13 @@ export function stepNow(h: ToolHost): StepNow | null {
 export function lookNow(h: ToolHost): Record<string, unknown> {
   const lang = h.lang();
   const lab = labOpen(h);
-  const out: Record<string, unknown> = { mode: lab ? 'lab' : 'bench', lang };
+  const out: Record<string, unknown> = { mode: lab ? 'lab' : 'bench', companion: h.mode?.() ?? 'build', lang };
+  const where = h.nav?.where() ?? { place: 'bench', lab: lab?.store.lab ?? null };
+  // the scene's brief carries each item's notes (summary, safe use, hazards, actions), so the snapshot drops its own
+  out.scene = sceneBrief(where, lang, lab ? lab.store.items().map((i) => i.kind) : []);
   if (lab) {
-    const snap = lab.feed.snapshot(lang);
-    out.lab = { ...snap, notes: Object.fromEntries(Object.entries(snap.notes).map(([k, n]) => [k, { name: n.name, hazards: n.hazards, actions: modelOf(k).actions }])) };
+    const { notes: _notes, ...snap } = lab.feed.snapshot(lang);
+    out.lab = snap;
   } else {
     const snap = h.assistant.snapshot();
     out.bench = { ...snap, project: { ...snap.project, sources: snap.project.sources.map((s) => ({ path: s.path, language: s.language, chars: s.text.length })) } };
@@ -531,7 +562,8 @@ export function createTools(h: ToolHost): AgentTool[] {
   return DECLS.map((d) => {
     const run = RUNS[d.name];
     if (!run) throw new Error(`[agent] no executor for ${d.name}`);
-    return { ...d, kind: KIND_OF[d.name] ?? 'act', run: async (args: Args) => run(h, args) };
+    const gated = CHANGES.has(d.name);
+    return { ...d, kind: KIND_OF[d.name] ?? 'act', run: async (args: Args) => (gated && h.mode?.() === 'assist' ? fail(ASSIST_REFUSAL, { mode: 'assist' }) : run(h, args)) };
   });
 }
 

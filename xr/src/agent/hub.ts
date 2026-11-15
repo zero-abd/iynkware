@@ -6,7 +6,8 @@
 import { createCalloutList, createConversation, type CalloutList, type Conversation } from './bubbles/model';
 import { createCoach, type Coach } from './coach/coach';
 import type { AgentBridge } from './bridge/bridge';
-import type { AgentTool, ToolHost } from './tools/catalog';
+import { value, type Value } from '../ui/value';
+import type { AgentTool, CompanionMode, ToolHost } from './tools/catalog';
 
 export interface AgentHub {
   readonly conversation: Conversation;
@@ -16,6 +17,8 @@ export interface AgentHub {
   tools: AgentTool[] | null;
   host: ToolHost | null;
   bridge: AgentBridge | null;
+  /** Assist (advise only) or build (may act): the button over the bunny and the menu row flip it. */
+  readonly mode: Value<CompanionMode>;
   /** The microphone level while the person talks (voice), else null. */
   micLevel: (() => number | null) | null;
 }
@@ -26,7 +29,7 @@ const clock = () => (typeof performance !== 'undefined' ? performance.now() : Da
 export function agentOf(world: object): AgentHub {
   let h = hubs.get(world);
   if (!h) {
-    h = { conversation: createConversation(), callouts: createCalloutList(clock), coach: createCoach(clock), now: clock, tools: null, host: null, bridge: null, micLevel: null };
+    h = { conversation: createConversation(), callouts: createCalloutList(clock), coach: createCoach(clock), now: clock, tools: null, host: null, bridge: null, micLevel: null, mode: value<CompanionMode>('build') };
     hubs.set(world, h);
   }
   return h;

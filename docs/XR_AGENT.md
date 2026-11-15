@@ -1,15 +1,17 @@
 # XR agent (pillar 9)
 
-Updated 2026-11-14. The model-agnostic layer a voice client plugs into (#201): tools, speech and callout bubbles,
+Updated 2026-11-15. The model-agnostic layer a voice client plugs into (#201): tools, speech and callout bubbles,
 coach observations and one bridge object. Voice transport is not here (#180, #197). Code: `xr/src/agent/`. Tests:
-`xr/test/agent/`. Emulator walk: `xr/scripts/agent-check.mjs`.
+`xr/test/agent/`. Emulator walks: `xr/scripts/agent-check.mjs`, `xr/scripts/agent-mode-check.mjs`.
 
 ```
 xr/src/agent/
   text.ts                 fixed strings, six languages (the lab's L6)
   hub.ts                  shared state per world: conversation, callouts, coach, tools, bridge
   tools/declarations.json the function declarations (Gemini Live shape); a Worker can import the same file
-  tools/catalog.ts        argument checks, target resolution and the executors
+  tools/catalog.ts        argument checks, target resolution, the executors and the Assist gate (CHANGES)
+  knowledge/              the scene brief: what the companion knows where the person is, built from the registries
+  mode/                   Assist or Build: the button over the bunny and the Tools menu switch
   bubbles/                model.ts (conversation, callout list), speech.ts, callouts.ts
   coach/                  coach.ts (coalescing ring), index.ts (sources, local hazard callouts)
   bridge/                 bridge.ts, scripted.ts (the default brain), index.ts (window, menu row, Ask panel)
@@ -19,7 +21,7 @@ xr/src/agent/
 
 | Call | What it does |
 |---|---|
-| `context()` | `{ system, mode, lang, bench or lab, selection, step, cobuild, callouts, observations }`: the rules for a model and the `look` JSON with the last 5 observations. The client stringifies it (about 4 kB with the chemistry lab open). |
+| `context()` | `{ system, mode, companion, lang, scene, bench or lab, selection, step, cobuild, callouts, observations }`: the rules for a model and the `look` JSON with the last 5 observations. `companion` is `assist` or `build`; `scene` is the scene brief (below). About 2 kB of brief on the bench, 7 kB with the chemistry lab open. |
 | `state(s)` | `connecting`, `listening`, `thinking`, `speaking` or `idle`: the bubble's indicator. |
 | `user(text, { final })` | Input transcription deltas, appended to the person's turn. |
 | `say(text, { final, suggestions })` | Output transcription deltas, appended to the agent's turn; `final` closes it. |
@@ -28,6 +30,28 @@ xr/src/agent/
 | `observe(fn)` | Coach observations (at most one per 1.5 s; hazards at once). |
 | `ask(text)` | A text turn for the plugged-in brain (the scripted one by default). |
 | `use(brain)` | Plugs in `{ name, turn({ text, context }, io), observe?(o, io) }`; returns the restore. |
+
+## Scene knowledge (`xr/src/agent/knowledge/`)
+
+Every turn carries `scene`, a brief built from the registries, never written per lab:
+
+| Source | What the brief takes from it |
+|---|---|
+| `lab/experiments/list.ts` (`EXPERIMENTS`, `LAB_LAYOUTS`) | each lab's experiments: title, goal, steps, hazards; the items it lays out |
+| `lab/model/catalogue.ts` (`notesOf`, `LAB_NAMES`), `lab/model/registry.ts` | each item: name, summary, safe use, hazards, actions |
+| `content/projects` (`LAB_TEMPLATES`, `TEMPLATES`) | the drone crafts, the robots, the board projects |
+
+The open lab is in full; everywhere else the brief is the index (every lab with its experiment titles, the drones,
+the robots, a few board projects). To plug in a lab, experiment, item or drone, register it in its own registry; the
+companion knows it at once. `look` carries the same brief, so the lab snapshot no longer repeats the item notes.
+
+## Assist and Build
+
+`hub.mode` is `assist` or `build` (build by default). The button floating over the bunny shows it and flips it, and
+the Tools menu has the same switch ("Assistant can build"). In assist every tool in `CHANGES` (catalog.ts) returns
+`{ ok: false, mode: 'assist' }`: `propose_build`, the step tools, `start_experiment`, `set_lab_control`,
+`request_item`, `edit_bench`, `undo`, `redo`, `apply_fix`, `run_circuit`, `use_control`. Reading, pointing, ghosts
+(`propose_edit`, which changes nothing until accepted) and moving around (`go_to`, `open_lab`, `leave_lab`) still run.
 
 ## Tools
 
@@ -55,6 +79,9 @@ Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_te
 
   It answers at once and walks in the background. Forward steps go through `accept()`, with the companion's carry and one undo entry each; back steps go through the co-builder's own `undo()`. A new walk, a single `accept_step`, `reject_step`, `undo_step` or `stop_steps` ends the running walk where it is. `accept_step { all: true }` is the same walk to the end.
 - Lab tools go through the lab context and `LabStore.apply`, so the tutor and the run log see them.
+- `go_to` takes "drones" or "drone projects" as the list: it returns the craft names and opens nothing. A craft by
+  name ("tiny whoop", "racer") opens that craft and the Range (`openCraft` in `shell/switch`); "the drone" stays the
+  5-inch quad.
 - In an exam `set_lab_control`, `request_item` and `next_step_hint` refuse.
 - `point_at` targets: a lab item id, kind or name when a lab is open; else a bench refdes (`RES1`), a pin
   (`LED1.A`) or a part word (`resistor`, `board`). An unknown target returns close matches.

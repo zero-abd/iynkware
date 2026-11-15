@@ -46,6 +46,10 @@ type Shown =
   | { kind: 'wire'; a: Vector3; b: Vector3; color?: string; ghost: WireGhost }
   | { kind: 'point'; target: BoardTarget };
 
+const companions = new WeakMap<object, Companion>();
+/** The bench's companion (the bunny), for what floats beside it (the agent's mode button); undefined before mount. */
+export const companionOf = (world: object): Companion | undefined => companions.get(world);
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 export function createBenchPresence(app: PresenceHost): BenchPresence {
@@ -58,6 +62,7 @@ export function createBenchPresence(app: PresenceHost): BenchPresence {
   bench.root.add(layer);
   const companion = createCompanion(app.world, { home: spots().home, top: () => spots().top });
   bench.table.add(companion.group);
+  companions.set(app.world, companion);
 
   let token = 0;
   let shown: Shown | null = null;
@@ -300,6 +305,7 @@ export function createBenchPresence(app: PresenceHost): BenchPresence {
       ++token;
       clearStep();
       for (const off of offs.splice(0)) off();
+      if (companions.get(app.world) === companion) companions.delete(app.world);
       companion.dispose();
       layer.removeFromParent();
     },

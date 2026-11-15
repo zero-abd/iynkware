@@ -24,6 +24,7 @@ export const toolsModule: FeatureModule = {
       locate: (t) => app.bench.worldOf(t),
       bench: { project: app.project, sim: app.sim },
       nav: createNavHost(app),
+      mode: () => hub.mode.value,
     };
     hub.host = host;
     hub.tools = createTools(host);
