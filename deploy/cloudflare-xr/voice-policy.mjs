@@ -19,7 +19,6 @@ export const LOCKED_LIVE_CONFIG = Object.freeze({
   speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } },
   inputAudioTranscription: {},
   outputAudioTranscription: {},
-  realtimeInputConfig: { automaticActivityDetection: { disabled: true } },
   systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
   tools: [],
 });

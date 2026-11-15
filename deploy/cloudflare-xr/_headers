@@ -4,7 +4,7 @@
 
 /*
   Permissions-Policy: xr-spatial-tracking=(self), microphone=(self), camera=(), geolocation=(), serial=(), usb=(), hid=(), bluetooth=(), midi=(), payment=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' blob: data:; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' blob: data: wss://generativelanguage.googleapis.com; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Content-Type-Options: nosniff

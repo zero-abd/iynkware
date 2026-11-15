@@ -100,6 +100,16 @@ function stageBuild(opts, staging) {
     }
     source = describeSource(dir);
     cpSync(dir, site, { recursive: true });
+    if (process.env.IYNK_XR_VOICE_DEMO === "1") {
+      const voice = join(here, "voice");
+      cpSync(voice, join(site, "voice"), { recursive: true });
+      copyFileSync(join(here, "voice-policy.mjs"), join(site, "voice", "policy.mjs"));
+      const index = join(site, "index.html");
+      const html = readFileSync(index, "utf8");
+      if (!html.includes("/voice/demo.js")) {
+        writeFileSync(index, html.replace("</body>", '  <script type="module" src="/voice/demo.js"></script>\n  </body>'));
+      }
+    }
   }
   copyFileSync(join(here, "_headers"), join(site, "_headers"));
   const ignore = readFileSync(join(here, ".assetsignore"), "utf8");
