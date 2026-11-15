@@ -11,7 +11,7 @@ import type { FeatureModule, XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import { PLATE } from '../../../look/paint';
 import { dmm } from '../../../look/type';
-import { shellPanel, placementFrom, TITLE_BAR_DMM, type Fading } from '../../../shell/kit';
+import { dropEntities, shellPanel, placementFrom, TITLE_BAR_DMM, type Fading } from '../../../shell/kit';
 import { bindPlate, langOf, onLookFrame, plateButton } from '../../shared';
 import { flightSceneOf, type FlightScene } from '../scene';
 import { ASPECT, chasePosition, fpvCamera, frameDue, nextView, verticalFov, type Pose, type Quat, type Vec, type View } from './model';
@@ -110,7 +110,7 @@ function openScreen(app: XrApp, scene: FlightScene): { dispose(): void } {
   );
   plates.rotation.y = Math.atan2(-fx, -fz);
   root.add(plates);
-  disposers.push(() => plates.removeFromParent());
+  disposers.push(() => dropEntities(app.world, plates));
   const plate = plateButton(app, { w: 0.11, d: 0.055, standing: true }, { icon: 'scope', label: S.t(lang(), 'los'), lang: lang() });
   plate.group.name = 'screen:view';
   plates.add(plate.group);

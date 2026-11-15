@@ -18,6 +18,7 @@ import type { Hand } from '../../../contracts/input';
 import { VIRTUAL_STICK_FULL_M, VIRTUAL_STICK_DEADZONE } from '../../../input/helpers';
 import { ACCENT, dropIn, INK, inkSolid, langOf, onLookFrame, plateButton, type InkSolid, type Plate } from '../../shared';
 import { bindPlate } from '../../shared';
+import { dropEntities } from '../../../shell/kit';
 import { clampTarget, guideSticks, guideSpeed, handSticks, type Out3 } from '../core';
 import { flightSceneOf, type FlightScene } from '../scene';
 import { ClaimGate, guideTarget, HoldTimer, PinchTrack, ringOffset } from './logic';
@@ -174,7 +175,7 @@ function start(app: XrApp, scene: FlightScene): Session {
     lineGeo.dispose();
     lineMat.dispose();
     line.removeFromParent();
-    plates.removeFromParent();
+    dropEntities(app.world, plates);
   });
 
   const targetCourse: Out3 = [0, 0, 0];

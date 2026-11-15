@@ -1,8 +1,8 @@
 /**
- * Experiments: the lab switcher and the lab panel. A Home tile (the `lessons` slot: the shell has no lab slot yet, a
- * contract change would add one) opens the lab picker; the menu's Tools group lists the four labs and Leave the lab.
+ * Experiments: the lab switcher and the lab panel. Switching labs happens on Home: one tile per lab (the `lessons` slot,
+ * ids `lab/open/<lab>`; the shell has no lab slot yet, a contract change would add one), which Home lays out in a Labs
+ * row. There is no separate lab picker. The menu's Tools group lists the four labs and Leave the lab too.
  * The panel beside the bench shows, by state:
- *   picker    the four labs
  *   lab       its experiments, each with Practice and Exam, and Back to the circuit bench
  *   running   the step to do, the answer choices when the step asks, Hint (practice), Finish, Stop, the tutor's line
  *   results   the score, every check with its detail, what was logged
@@ -10,10 +10,8 @@
 import { atSlot, ringSpot } from '../../bench/core/ring';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
-import type { IconName } from '../../look/icons';
 import { INK, MUTED, RULE, STATE } from '../../look/palette';
 import { TYPE } from '../../look/type';
-import { value } from '../../ui/value';
 import { labOf, type LabContext } from '../context';
 import { createLabPanel, type PanelUi } from '../kit/panel';
 import { LAB_UI } from '../kit/strings';
@@ -23,7 +21,6 @@ import { fill, say, type L6 } from '../text';
 import { experimentsOf } from './list';
 import type { Mode } from './types';
 
-const LAB_ICON: Readonly<Record<LabId, IconName>> = { chemistry: 'flame', physics: 'timer', electrical: 'lightning', signals: 'waveform' };
 export const PANEL = { widthM: 0.46, heightM: 0.5, distanceM: 0.8 } as const;
 /**
  * Where it stands: the panel ring's `side` slot (bench/core/ring.ts), away from the dominant hand, past the guide; the
@@ -40,13 +37,11 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
   panel.group.position.set(...at.position);
   panel.group.rotation.set(at.tiltRad, at.yawRad, 0, 'YXZ');
   app.bench.table.add(panel.group);
-  const picker = value(false);
   let hint: L6 | null = null;
   const lang = () => app.settings.lang.value;
   const t = (s: L6, vars?: Parameters<typeof fill>[1]) => say(vars ? fill(s, vars) : s, lang());
 
   const openLab = (id: LabId) => {
-    picker.set(false);
     hint = null;
     lab.open(id);
     app.shell.closeHome();
@@ -54,21 +49,6 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
   const start = (id: string, mode: Mode) => {
     hint = null;
     lab.start(id, mode);
-  };
-
-  const paintPicker = (ui: PanelUi) => {
-    const { u, W } = ui;
-    const pad = 24 * u;
-    ui.kicker(t(LAB_UI.kicker), pad, 30 * u);
-    ui.text(t(LAB_UI.chooseLab), pad, 44 * u, W - 2 * pad, { role: TYPE.title });
-    const bw = (W - 3 * pad - 6 * u) / 2;
-    const bh = 70 * u;
-    LAB_IDS.forEach((id, i) => {
-      const x = pad + (i % 2) * (bw + pad);
-      const y = 110 * u + Math.floor(i / 2) * (bh + 18 * u);
-      ui.button(`lab-${id}`, x, y, bw, bh, t(LAB_NAMES[id]), () => openLab(id), { icon: LAB_ICON[id] });
-    });
-    ui.button('close', W - pad - 160 * u, ui.H - 70 * u, 160 * u, 46 * u, t(LAB_UI.stop), () => picker.set(false));
   };
 
   /** The tutor's latest line, or the hint asked for, along the bottom. */
@@ -180,14 +160,13 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
   const redraw = () => {
     const run = runner.state.value;
     const id = store.lab;
-    const visible = picker.value || id !== null;
+    const visible = id !== null;
     panel.setVisible(visible);
     if (!visible) return;
     const last = lab.tutor.recent.at(-1)?.seq ?? 0;
-    const key = JSON.stringify([lang(), picker.value, id, run?.experiment.id, run?.mode, run?.stepIndex, run?.done, run?.result?.score, store.answers, last, hint?.en]);
+    const key = JSON.stringify([lang(), id, run?.experiment.id, run?.mode, run?.stepIndex, run?.done, run?.result?.score, store.answers, last, hint?.en]);
     panel.draw(key, (ui) => {
-      if (picker.value && !id) paintPicker(ui);
-      else if (run?.done) paintResults(ui);
+      if (run?.done) paintResults(ui);
       else if (run) paintRun(ui);
       else if (id) paintLab(ui, id);
     });
@@ -199,15 +178,9 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
     }),
     runner.state.subscribe(redraw),
     lab.tutor.subscribe(redraw),
-    picker.subscribe(redraw),
     app.settings.lang.subscribe(redraw),
-    app.shell.addEntry({
-      id: 'lab/labs',
-      slot: 'lessons',
-      title: LAB_UI.labsTile,
-      detail: LAB_UI.labsDetail,
-      open: () => picker.set(true),
-    }),
+    // One Home tile per lab, in Home's Labs row (shell/home/entry.ts): Home is where the person switches labs.
+    ...LAB_IDS.map((id) => app.shell.addEntry({ id: `lab/open/${id}`, slot: 'lessons', title: LAB_NAMES[id], detail: LAB_UI.labsTile, open: () => openLab(id) })),
     ...LAB_IDS.map((id) => app.shell.addMenuItem({ id: `lab/${id}`, group: 'tools', label: LAB_NAMES[id], run: () => openLab(id) })),
     app.shell.addMenuItem({ id: 'lab/leave', group: 'tools', label: LAB_UI.leaveMenu, run: () => lab.leave() }),
   ];

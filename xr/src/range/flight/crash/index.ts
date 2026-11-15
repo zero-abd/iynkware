@@ -14,6 +14,7 @@ import type { FeatureModule, XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
 import type { InteractionEvent } from '../../../contracts/input';
 import { ACCENT, bindPlate, hexNum, INK, inkSolid, langOf, loadDrone, loadFlightText, motionOf, onLookFrame, panelOpen, plateButton, roundedSlab, textLabel, type InkSolid, type Plate, type TextLabel } from '../../shared';
+import { dropEntities } from '../../../shell/kit';
 import { movable } from '../../../ui/panels';
 import { ReplayClock, type ReplayWindow, type RunnerFrame } from '../core';
 import { benchFocusOf } from '../focus';
@@ -57,7 +58,9 @@ function openCrash(app: XrApp, scene: FlightScene): { dispose(): void } {
   group.name = 'range-crash';
   group.visible = false;
   root.add(group);
-  disposers.push(() => group.removeFromParent());
+  // Binding gave the plates, the grip and their plain ancestors IWSDK entities: destroy them, or IWSDK parents the card
+  // under the level root, where it outlives the Range (shell/kit/entity.ts).
+  disposers.push(() => dropEntities(app.world, group));
 
   // ---- the ring ----
   const ringMat = new MeshBasicMaterial({ color: hexNum(INK), transparent: true, opacity: 0, toneMapped: false, depthWrite: false });
