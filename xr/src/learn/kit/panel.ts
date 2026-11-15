@@ -8,13 +8,13 @@
  *
  * Usage: const p = createPanel(app, { id: 'guide', widthM: 0.52, heightM: 0.4, distanceM: 1.1 }); p.draw(key, ctx, title, content);
  */
-import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Shape, ShapeGeometry, Vector3 } from '@iwsdk/core';
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Shape, ShapeGeometry, Vector3, type Object3D } from '@iwsdk/core';
 import type { XrApp } from '../../contracts/app';
 import type { InteractionEvent } from '../../contracts/input';
 import { movable } from '../../ui/panels';
 import { drawButton, roundRect, type ButtonFace, type DrawCtx } from './button';
 import { dmm } from './dmm';
-import { releaseEntities } from './entities';
+import { dropEntities, ownEntity } from './entities';
 import { createHits, type HitRegion } from './hits';
 import { drawIcon, type IconName } from './icons';
 import { surface, type Surface } from './surface';
@@ -36,6 +36,12 @@ export interface PanelOptions {
   readonly onMove?: (world: Vector3) => void;
   /** Gives it the shared grip bar and makes it movable (ui/panels). Default true; false for a panel inside another. */
   readonly movable?: boolean;
+  /**
+   * The object the panel hangs on (it must have an IWSDK entity). The panel's group is added to it by `createPanel`:
+   * IWSDK keeps an entity directly under its parent entity's object, so a group added later to a plain object would
+   * send its bound hit quads to the level root. Without a parent the panel sits under the level root.
+   */
+  readonly parent?: Object3D;
 }
 
 /** A button or other hit drawn in the canvas: pixel rectangle, its face (for the lift plate) and what it does. */
@@ -114,6 +120,8 @@ export function createPanel(app: Pick<XrApp, 'input' | 'world'> & { bench?: Pick
   const pxPerM = T / mPerDmm;
   const group = new Group();
   group.name = `${o.id}:panel`;
+  if (o.parent) o.parent.add(group);
+  ownEntity(app.world, group, o.parent);
   const body = surface({ widthM: o.widthM, heightM: o.heightM, pxPerM, name: `${o.id}:plate` });
   const W = body.canvas.width;
   const H = body.canvas.height;
@@ -192,6 +200,8 @@ export function createPanel(app: Pick<XrApp, 'input' | 'world'> & { bench?: Pick
   // ---- moving: the shared grip bar under the panel, and the title bar, which feeds it ----
   const grip =
     o.movable === false ? null : movable(app, { id: `learn/${o.id}`, group, width: o.widthM, height: o.heightM, distanceM: o.distanceM, onMove: o.onMove });
+  // The grip's root is a plain group; its hit is bound a frame later, so the root gets its entity now, under the panel's.
+  if (grip) ownEntity(app.world, grip.grip, group);
   const move = (e: InteractionEvent) => grip?.drag(e);
 
   const draw: Panel['draw'] = (key, c, head, drawContent) => {
@@ -269,8 +279,9 @@ export function createPanel(app: Pick<XrApp, 'input' | 'world'> & { bench?: Pick
       grip?.dispose();
       offHits();
       offPlate();
+      // Entities first, deepest first, while the hit quads are still in place; then the quads' own cleanup.
+      dropEntities(app.world, group);
       hits.dispose();
-      releaseEntities(app.world, group);
       body.dispose();
       for (const l of lifts) l.s.dispose();
       shadow.geometry.dispose();

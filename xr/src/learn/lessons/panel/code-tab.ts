@@ -182,9 +182,8 @@ export function createCodeTab(app: XrApp, panel: Panel): CodeTab {
     const rowsN = Math.ceil(options.length / cols);
     const heightDmm = 44 + 12 + 30 + rowsN * 54 + 12;
     const widthDmm = cols === 3 ? 330 : 280;
-    const p = createPanel(app, { id: 'guide-picker', widthM: (widthDmm * 1.1) / 1000, heightM: (heightDmm * 1.1) / 1000, distanceM: 1.1, onClose: closePicker, movable: false });
+    const p = createPanel(app, { id: 'guide-picker', widthM: (widthDmm * 1.1) / 1000, heightM: (heightDmm * 1.1) / 1000, distanceM: 1.1, parent: panel.group, onClose: closePicker, movable: false });
     picker = p;
-    panel.group.add(p.group);
     p.group.position.set(0, 0, 0.03);
     const P = p.pxPerDmm;
     const label = pick(chip.label, c.lang).text;
