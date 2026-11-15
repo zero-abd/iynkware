@@ -21,8 +21,9 @@ const [title, disclosure, consentText, enableText, disableText, talkText, idle, 
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
 let media, audio, socket, node, source;
-let active = false, released = false, controllerDown = false, playbackAt = 0;
+let active = false, released = false, setupReady = false, endSent = false, controllerDown = false, playbackAt = 0;
 let playback = [];
+let pendingAudio = [];
 
 const panel = document.createElement('aside');
 panel.id = 'voice-demo';
@@ -55,30 +56,47 @@ function play(encoded) {
 }
 function closeTurn() {
   node?.disconnect(); source?.disconnect(); node = source = null;
+  pendingAudio = []; setupReady = false; endSent = false;
   const current = socket; socket = null;
   if (current && current.readyState < WebSocket.CLOSING) current.close(1000, 'turn complete');
 }
 function failTurn(message = failed) {
   active = false; closeTurn(); ui.talk.disabled = !media; ui.status.textContent = message; bridge.state('idle');
 }
-async function streamInput() {
+function sendAudio(buffer) {
+  if (socket?.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({realtimeInput:{audio:{data:base64(buffer),mimeType:'audio/pcm;rate=16000'}}}));
+}
+function startCapture() {
   source = audio.createMediaStreamSource(media);
   node = new AudioWorkletNode(audio, 'iynkware-voice-input', {numberOfInputs:1, numberOfOutputs:0});
-  node.port.onmessage = event => { if (socket?.readyState === WebSocket.OPEN && !released) socket.send(JSON.stringify({realtimeInput:{audio:{data:base64(event.data),mimeType:'audio/pcm;rate=16000'}}})); };
-  source.connect(node); ui.status.textContent = listening; bridge.state('listening');
-  if (released) sendEnd();
+  node.port.onmessage = event => {
+    if (setupReady && socket?.readyState === WebSocket.OPEN) sendAudio(event.data);
+    else if (pendingAudio.length < 150) pendingAudio.push(event.data);
+  };
+  source.connect(node);
 }
 function sendEnd() {
+  if (!setupReady || endSent || socket?.readyState !== WebSocket.OPEN) return;
+  endSent = true;
   node?.disconnect(); source?.disconnect(); node = source = null;
-  if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({realtimeInput:{audioStreamEnd:true}}));
+  socket.send(JSON.stringify({realtimeInput:{audioStreamEnd:true}}));
   ui.status.textContent = speaking; bridge.state('thinking');
 }
-function endQuestion() { if (!active || released) return; released = true; sendEnd(); }
+function endQuestion() {
+  if (!active || released) return;
+  released = true; node?.disconnect(); source?.disconnect(); node = source = null;
+  sendEnd();
+}
 function onMessage(event) {
   let message; try { message = JSON.parse(event.data); } catch { return; }
   if (message.setupComplete) {
     socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:untrustedContext(bridge.context())}]}],turnComplete:true}}));
-    void streamInput();
+    setupReady = true;
+    for (const chunk of pendingAudio) sendAudio(chunk);
+    pendingAudio = [];
+    if (released) sendEnd();
+    else { ui.status.textContent = listening; bridge.state('listening'); }
   }
   const content = message.serverContent;
   if (content?.interrupted) clearPlayback();
@@ -92,8 +110,11 @@ function onMessage(event) {
 }
 async function beginQuestion() {
   if (!media || active) return;
-  active = true; released = false; ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
+  active = true; released = false; setupReady = false; endSent = false; pendingAudio = [];
+  ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
   try {
+    await audio.resume();
+    startCapture();
     const response = await fetch('/api/voice/token', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),adultConsent:true,consentVersion:POLICY_VERSION,toolsVersion:TOOLS_VERSION})});
     if (!response.ok) throw new Error(response.status === 429 ? 'quota' : 'token');
     const grant = await response.json();
@@ -124,9 +145,16 @@ for (const type of ['pointerup','pointercancel']) ui.talk.addEventListener(type,
 ui.talk.addEventListener('keydown', event => { if ([' ','Enter'].includes(event.key) && !event.repeat) { event.preventDefault(); void beginQuestion(); } });
 ui.talk.addEventListener('keyup', event => { if ([' ','Enter'].includes(event.key)) { event.preventDefault(); endQuestion(); } });
 function pollController() {
-  const pressed = controllerTalkPressed(root);
-  if (pressed && !controllerDown) void beginQuestion();
-  if (!pressed && controllerDown) endQuestion();
+  const current = window.iynkware || root;
+  const pressed = controllerTalkPressed(current);
+  if (pressed && !controllerDown) {
+    current?.app?.input?.pulse?.('right', .35, 35);
+    void beginQuestion();
+  }
+  if (!pressed && controllerDown) {
+    current?.app?.input?.pulse?.('right', .18, 20);
+    endQuestion();
+  }
   controllerDown = pressed; requestAnimationFrame(pollController);
 }
 requestAnimationFrame(pollController);
