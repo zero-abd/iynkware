@@ -84,7 +84,7 @@ describe('the converted drone', () => {
     expect(drone!.isPartVisible('PROPS')).toBe(true);
     expect(drone!.set('prop:M1', 9000)).toBe(true);
     expect(drone!.set('prop:M9', 9000)).toBe(false);
-    expect(await loadDrone('whoop', read)).toBeNull();
+    expect(await loadDrone('not-a-craft', read)).toBeNull();
     drone!.dispose();
   });
 });
