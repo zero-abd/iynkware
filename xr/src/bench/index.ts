@@ -5,5 +5,6 @@ import { shelfModule } from './shelf';
 import { wireModule } from './wire';
 import { editModule } from './edit';
 import { poseModule } from './pose';
+import { railModule } from './rail';
 
-export const benchModule = composeModules('bench', [projectModule, shelfModule, wireModule, editModule, poseModule]);
+export const benchModule = composeModules('bench', [projectModule, shelfModule, wireModule, editModule, poseModule, railModule]);

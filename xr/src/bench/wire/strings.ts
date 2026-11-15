@@ -4,6 +4,7 @@ import { table } from '../core/text';
 export const WIRE_STRINGS = table({
   en: {
     'wire.joined': '{a} to {b}',
+    'wire.ticker': 'Wire joined {a} to {b}',
     'wire.remove': 'Remove',
     'wire.colour.red': 'Red',
     'wire.colour.black': 'Black',
@@ -18,6 +19,7 @@ export const WIRE_STRINGS = table({
   },
   de: {
     'wire.joined': '{a} zu {b}',
+    'wire.ticker': 'Draht verbunden: {a} zu {b}',
     'wire.remove': 'Entfernen',
     'wire.colour.red': 'Rot',
     'wire.colour.black': 'Schwarz',
@@ -32,6 +34,7 @@ export const WIRE_STRINGS = table({
   },
   es: {
     'wire.joined': '{a} a {b}',
+    'wire.ticker': 'Cable unido: {a} a {b}',
     'wire.remove': 'Quitar',
     'wire.colour.red': 'Rojo',
     'wire.colour.black': 'Negro',
@@ -46,6 +49,7 @@ export const WIRE_STRINGS = table({
   },
   fr: {
     'wire.joined': '{a} à {b}',
+    'wire.ticker': 'Fil relié : {a} à {b}',
     'wire.remove': 'Retirer',
     'wire.colour.red': 'Rouge',
     'wire.colour.black': 'Noir',
@@ -60,6 +64,7 @@ export const WIRE_STRINGS = table({
   },
   hi: {
     'wire.joined': '{a} से {b}',
+    'wire.ticker': 'तार जुड़ा: {a} से {b}',
     'wire.remove': 'हटाएँ',
     'wire.colour.red': 'लाल',
     'wire.colour.black': 'काला',
@@ -74,6 +79,7 @@ export const WIRE_STRINGS = table({
   },
   zh: {
     'wire.joined': '{a} 到 {b}',
+    'wire.ticker': '已连线：{a} 到 {b}',
     'wire.remove': '删除',
     'wire.colour.red': '红',
     'wire.colour.black': '黑',
