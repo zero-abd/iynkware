@@ -140,6 +140,30 @@ const moved = await page.evaluate((id) => {
 }, beaker.id);
 check('ray grab carries the beaker and it settles upright on the bench', Math.abs(moved.x - beaker.x) > 40 && moved.drawnY < 0.002, { from: beaker, to: moved });
 
+// Carry it off the bench and let go in the air: it falls to the floor and stands there, like a real one.
+const grab2 = await page.evaluate((id) => window.__pos(`lab-grab:${id}`), beaker.id);
+await aim(grab2);
+await sleep(350);
+await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 1 }));
+await sleep(200);
+for (let i = 1; i <= 12; i++) {
+  await aim(grab2, -0.075 * i);
+  await sleep(60);
+}
+await page.evaluate(() => window.__x('set_select_value', { device: 'controller-right', value: 0 }));
+await sleep(1500);
+const floored = await page.evaluate((id) => {
+  const it = window.iynkware.lab.store.get(id);
+  const g = window.iynkware.world.scene.getObjectByName(`lab-item:${id}`);
+  g.updateWorldMatrix(true, false);
+  const w = g.getWorldPosition(g.position.clone());
+  return { x: Math.round(it.pose.x), y: Math.round(it.pose.y ?? 0), worldY: +w.y.toFixed(3), tilt: +Math.abs(g.rotation.x + g.rotation.z).toFixed(3) };
+}, beaker.id);
+check('carried off the bench and let go, the beaker falls to the floor and stands upright', floored.x < -500 && floored.y < -500 && Math.abs(floored.worldY) < 0.01 && floored.tilt < 0.01, floored);
+// back where it was, for the flame test
+await page.evaluate(([id, b]) => window.iynkware.lab.store.move(id, { x: b.x, z: b.z, yaw: 0 }), [beaker.id, beaker]);
+await sleep(800);
+
 // The flame test, practice, seeded.
 await page.evaluate(() => {
   window.__events.length = 0;

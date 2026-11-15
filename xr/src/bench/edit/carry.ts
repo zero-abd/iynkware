@@ -16,7 +16,8 @@ import type { Vec3 } from '../../contracts/common';
 import { createCallout } from '../../look/callout';
 import { easeIynk, DURATION } from '../../look/motion';
 import { motionOf, onLookFrame } from '../../look/runner';
-import { movePart, placePart, seatPart, type ActionRefusal, type ActionResult } from '../core/actions';
+import { movePart, partOrigin, placePart, seatPart, type ActionRefusal, type ActionResult } from '../core/actions';
+import { fallEase, fallMs, restBelow } from '../core/rest';
 import { createGhostFit, type GhostFit } from '../core/fit';
 import { benchKit } from '../core/kit';
 import { createFlick, createPullTracker, createTrackingLoss, createYawStepper, PART_YAW } from '../core/gesture';
@@ -306,10 +307,10 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
       return [_w.x, _w.y, _w.z];
     };
 
-    if (decision.kind === 'back') {
-      if (held.id === null) return back(0);
-      return back(RETURN_MS);
-    }
+    // a new part from the shelf let go off the mat goes back to the shelf
+    if (decision.kind === 'back' && held.id === null) return back(0);
+    // anything else that lands back on the mat stops being set down in the room
+    if (decision.kind !== 'back' && held.id !== null) bi.setFree(held.id, null, { relayout: false });
 
     // where the part would lie if it did not seat: its rectangle clears the others, on the mat
     const lieAt = (): { x: number; y: number } | null => {
@@ -351,6 +352,30 @@ export function createHolder(deps: Deps, held: Held, start: HoldStart): Holder |
         showReason(reasonText(lang, reason), at);
       } else kit.feedback.play('snap', feedbackAt(at), hand);
     };
+
+    // let go off the mat: like in real life it stays where it was let go, dropped onto what is under it (the bench
+    // top or the floor). Pulled out of its holes, it leaves the circuit (the document keeps it, unseated).
+    if (decision.kind === 'back' && held.id !== null) {
+      const id = held.id;
+      _w.copy(object.position);
+      root.localToWorld(_w);
+      const rest = restBelow(app, _w);
+      const drop = Math.max(0, _w.y - rest.y);
+      _w.y = rest.y;
+      const at = _w.clone();
+      root.worldToLocal(_w);
+      transitions.hold(id, false);
+      transitions.hint(id, fallMs(drop), fallEase);
+      bi.setFree(id, { position: _w.clone(), quaternion: object.quaternion.clone() }, { relayout: !held.seated });
+      if (held.seated) {
+        const spot = lieAt();
+        const to = spot ? { x_mm: spot.x, y_mm: spot.y } : partOrigin(doc, id);
+        const refused = to ? applyResult(movePart(doc, { part: id, to, seat: false })) : null;
+        if (!to || refused) bi.restore(id);
+      }
+      kit.feedback.play('snap', [at.x, at.y, at.z], hand);
+      return;
+    }
 
     if (decision.kind === 'seat') {
       const r = seatPart(doc, held.id !== null ? { part: held.id, fit: decision.fit } : { ref: held.ref, fit: decision.fit });

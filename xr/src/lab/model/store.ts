@@ -22,6 +22,11 @@ export interface Pose {
   z: number;
   /** Degrees about up. */
   yaw: number;
+  /**
+   * Millimetres, table frame: the height of the surface it stands on. Absent or 0 is the bench top; below it is the
+   * floor or anything else in the room it was set down on.
+   */
+  y?: number;
 }
 
 export interface PlacedItem {

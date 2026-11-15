@@ -8,6 +8,7 @@ import type { BootStage, Booted } from '../../main';
 import { say } from '../copy';
 import { initialLang } from '../settings';
 import { ENTRY } from './copy';
+import { AUTOSTART_KEY } from '../home/actions';
 
 const lang: Lang = initialLang();
 document.documentElement.lang = lang;
@@ -70,7 +71,7 @@ enterBtn.addEventListener('click', () => {
   });
 });
 
-flatBtn.addEventListener('click', () => {
+function openFlat() {
   flatBtn.disabled = true;
   enterBtn.disabled = true;
   void load().then(() => {
@@ -79,7 +80,19 @@ flatBtn.addEventListener('click', () => {
     enterBtn.disabled = !immersive;
     show('ready');
   });
-});
+}
+
+flatBtn.addEventListener('click', openFlat);
+
+// Restart (home panel / menu bar) reloads the page and asks to come straight back to the bench on this screen.
+try {
+  if (sessionStorage.getItem(AUTOSTART_KEY) === 'flat') {
+    sessionStorage.removeItem(AUTOSTART_KEY);
+    openFlat();
+  }
+} catch {
+  // No storage: the buttons stay.
+}
 
 let immersive = false;
 void (async () => {

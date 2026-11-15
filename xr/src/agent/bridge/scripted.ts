@@ -1,6 +1,7 @@
 /**
  * The scripted brain: no model, no network. Keyword intents in English and German for the demo questions, each done
- * through the tools (so it says only what a tool result backs), and a callout with the fix when the coach reports a
+ * through the tools (so it says only what a tool result backs): it changes the circuit (remove, pull out, turn a part),
+ * takes changes back (undo, redo), says what is wrong (explain_problems) and fixes it (apply_fix); and a callout with the fix when the coach reports a
  * lab mistake or a bench finding. Anything else gets an honest "I can only answer a few things" with suggestion chips.
  */
 import { LAB_NAMES } from '../../lab/model/catalogue';
@@ -10,7 +11,9 @@ import { AGENT_TEXT } from '../text';
 import type { Brain, BrainIO } from './bridge';
 
 export type Intent =
-  | { readonly kind: 'undo' | 'yes' | 'all' | 'no' | 'next' }
+  | { readonly kind: 'undo' | 'redo' | 'yes' | 'all' | 'no' | 'next' | 'wrong' | 'fix' }
+  | { readonly kind: 'edit'; readonly action: 'removePart' | 'pullPart' | 'turnPart'; readonly thing: string; readonly half?: boolean }
+  | { readonly kind: 'sim'; readonly action: 'run' | 'pause' | 'stop' }
   | { readonly kind: 'where'; readonly thing: string }
   | { readonly kind: 'build'; readonly request: string }
   | { readonly kind: 'open'; readonly lab: LabId }
@@ -39,7 +42,22 @@ const ARTICLE = /^(?:the|a|an|der|die|das|den|dem|ein|eine)\s+/;
 export function intentOf(raw: string): Intent {
   const t = raw.toLowerCase().replace(/[?!.¿¡,]/g, ' ').replace(/\s+/g, ' ').trim();
   const short = t.split(' ').length <= 4;
+  if (/\bredo\b|put (?:that|it) back|wiederherstellen/.test(t)) return { kind: 'redo' };
   if (/\bundo\b|take (?:that|it) back|rückgängig/.test(t)) return { kind: 'undo' };
+  if (/what(?:'s| is) wrong|why (?:does|doesn't|won't|isn't|is it not|is)|not working|doesn't work|check (?:the |my )?circuit|explain|problem|was ist falsch|warum|funktioniert nicht|prüfe/.test(t)) return { kind: 'wrong' };
+  if (/^(?:fix|repair|repariere|reparier)\b|\bfix (?:it|that|this|them|everything|all)\b/.test(t)) return { kind: 'fix' };
+  if (/^(?:run|start)(?: the)? (?:circuit|sim|simulation|it)\b|^starte die schaltung/.test(t)) return { kind: 'sim', action: 'run' };
+  if (/^(?:stop|halt)(?: the)? (?:circuit|sim|simulation|it|run)?\b|^stopp/.test(t)) return { kind: 'sim', action: 'stop' };
+  if (/^pause\b/.test(t)) return { kind: 'sim', action: 'pause' };
+  const edit = /^(remove|delete|take out|entferne|lösche|pull out|unplug|zieh|turn around|flip|reverse|rotate|turn|dreh(?:e)?)\s+(.+?)(?:\s+(around|herum|um))?$/.exec(t);
+  if (edit) {
+    const verb = edit[1]!;
+    const thing = edit[2]!.replace(ARTICLE, '').trim();
+    const named = NOUNS[thing] ?? thing;
+    if (/remove|delete|take out|entferne|lösche/.test(verb)) return { kind: 'edit', action: 'removePart', thing: named };
+    if (/pull|unplug|zieh/.test(verb)) return { kind: 'edit', action: 'pullPart', thing: named };
+    return { kind: 'edit', action: 'turnPart', thing: named, half: /around|flip|reverse|herum|um/.test(t) || !!edit[3] };
+  }
   if (/do the rest|accept all|alle annehmen|mach den rest/.test(t)) return { kind: 'all' };
   if (short && /^(?:yes|yeah|yep|accept|do it|ok|okay|sure|ja|annehmen|mach es|mach das)\b/.test(t)) return { kind: 'yes' };
   if (short && /^(?:no|nope|skip|nein|überspring)/.test(t)) return { kind: 'no' };
@@ -108,11 +126,59 @@ export function scriptedBrain(): Brain {
           return done(r.ok ? t(io, R.skipped) : t(io, R.nothingWaiting));
         }
         case 'undo': {
-          const r = await io.call('undo_step');
-          return done(r.ok ? t(io, R.undone) : t(io, R.nothingWaiting));
+          const r = await io.call('undo');
+          return done(r.ok ? t(io, R.undone) : t(io, R.nothingUndo));
+        }
+        case 'redo': {
+          const r = await io.call('redo');
+          return done(r.ok ? t(io, R.redone) : t(io, R.nothingRedo));
+        }
+        case 'wrong': {
+          const r = await io.call('explain_problems');
+          if (!r.ok) return done(/exam/.test(r.error ?? '') ? t(io, R.examNoHints) : t(io, R.cannotChange, { why: String(r.error) }));
+          const problems = (r.problems ?? []) as Array<{ title: string; why?: string | null; fix?: string | null; fixes?: Array<{ canApply: boolean }> }>;
+          if (problems.length === 0) return done(t(io, R.problemsNone));
+          const p = problems[0]!;
+          const one = t(io, R.problemOne, { title: p.title, why: p.why ?? '', fix: p.fix ?? '' }).trim();
+          const text = problems.length === 1 ? one : t(io, R.problemsMore, { count: problems.length, first: one });
+          const fixable = p.fixes?.some((f) => f.canApply);
+          return done(fixable ? `${text} ${t(io, R.canFix)}` : text, fixable ? [sayL6(AGENT_TEXT.questions[7]!, io.lang())] : undefined);
+        }
+        case 'fix': {
+          const r = await io.call('apply_fix', {});
+          if (!r.ok) return done(t(io, R.noFix));
+          return done(t(io, R.fixed, { what: (r.applied as string[]).join(' ') }), [sayL6(AGENT_TEXT.questions[8]!, io.lang())]);
+        }
+        case 'edit': {
+          // a turn: half way round for "turn it around" (one change), else a quarter turn either way that fits
+          const tries = (part: string): object[] =>
+            intent.action !== 'turnPart' ? [{ part }] : intent.half ? [{ part, deg: 180 }, { part, deg: 0 }] : [{ part, step: 1 }, { part, step: -1 }];
+          const attempt = async (part: string) => {
+            let last: Awaited<ReturnType<typeof io.call>> | null = null;
+            for (const args of tries(part)) {
+              last = await io.call('edit_bench', { action: intent.action, args_json: JSON.stringify(args) });
+              if (last.ok) break;
+            }
+            return last!;
+          };
+          let r = await attempt(intent.thing);
+          if (!r.ok && /unknown|no-such|bad-args|not-found|missing|no part/.test(`${String(r.reason ?? '')} ${String(r.error ?? '')}`)) {
+            // an everyday word ("resistor", "led"): find the part by its kind and try again
+            const where = await io.call('list_targets');
+            const word = intent.thing.split(' ')[0]!.slice(0, 5);
+            const hit = ((where.targets ?? []) as Array<{ id: string; def?: string }>).find((x) => (x.def ?? '').toLowerCase().includes(word) || x.id.toLowerCase().startsWith(word.slice(0, 3)));
+            if (hit) r = await attempt(hit.id);
+          }
+          if (!r.ok) return done(t(io, R.cannotChange, { why: String(r.say ?? r.error) }));
+          return done(t(io, R.changed, { what: String(r.did) }), [sayL6(AGENT_TEXT.questions[6]!, io.lang()), sayL6(AGENT_TEXT.questions[8]!, io.lang())]);
+        }
+        case 'sim': {
+          const r = await io.call('run_circuit', { action: intent.action });
+          if (!r.ok) return done(t(io, R.cannotChange, { why: String(r.error) }));
+          return done(intent.action === 'run' ? t(io, R.running) : t(io, R.stopped));
         }
         default:
-          return done(t(io, R.noModel), QUESTIONS(io).slice(0, 3));
+          return done(t(io, R.noModel), [QUESTIONS(io)[6]!, ...QUESTIONS(io).slice(0, 2)]);
       }
     },
     observe(o, io) {

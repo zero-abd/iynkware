@@ -20,8 +20,8 @@ const STAGGER_MS = 60;
 const fall: Ease = (t) => t * t;
 
 export interface Transitions {
-  /** The next move of this item takes `ms` (a seat, a slide, a return). Used once. */
-  hint(id: string, ms: number): void;
+  /** The next move of this item takes `ms` (a seat, a slide, a return), with `ease` (a fall). Used once. */
+  hint(id: string, ms: number, ease?: Ease): void;
   /** Marks an item as held: layout changes under it end at once. */
   hold(id: string, held: boolean): void;
   dispose(): void;
@@ -29,7 +29,7 @@ export interface Transitions {
 
 export function installTransitions(app: XrApp): Transitions {
   const bi = benchInternals(app.bench);
-  const hints = new Map<string, number>();
+  const hints = new Map<string, { ms: number; ease?: Ease }>();
   const held = new Set<string>();
   let adds = 0;
   const motion = motionOf(app.world);
@@ -58,7 +58,9 @@ export function installTransitions(app: XrApp): Transitions {
       return;
     }
     // move: from where the object is to the target
-    const ms = hints.get(item.id) ?? GLIDE_MS;
+    const hinted = hints.get(item.id);
+    const ms = hinted?.ms ?? GLIDE_MS;
+    const ease = hinted?.ease ?? easeIynk;
     hints.delete(item.id);
     if (!from || !to) return done();
     const a: BenchPose = { position: from.position.clone(), quaternion: from.quaternion.clone() };
@@ -66,7 +68,7 @@ export function installTransitions(app: XrApp): Transitions {
     motion.tween({
       key: o,
       ms,
-      ease: easeIynk,
+      ease,
       onUpdate: (k) => {
         o.position.copy(_p.copy(a.position).lerp(b.position, k));
         o.quaternion.copy(_q.copy(a.quaternion).slerp(b.quaternion, k));
@@ -77,7 +79,7 @@ export function installTransitions(app: XrApp): Transitions {
 
   bi?.setTransition(hook);
   return {
-    hint: (id, ms) => void hints.set(id, ms),
+    hint: (id, ms, ease) => void hints.set(id, { ms, ease }),
     hold(id, on) {
       if (on) held.add(id);
       else held.delete(id);

@@ -11,6 +11,7 @@ import { benchInternals } from '../space';
 import { createBoardHolder } from './board';
 import { createCarryLoop, createHolder } from './carry';
 import { installTransitions } from './motion';
+import { mountMouseDrag } from './mouse';
 
 export const editModule: FeatureModule = {
   id: 'bench/edit',
@@ -21,6 +22,7 @@ export const editModule: FeatureModule = {
     const releaseRouter = router.retain();
     const transitions = installTransitions(app);
     const loop = createCarryLoop(app);
+    const offMouse = mountMouseDrag(app, transitions);
 
     const offBody = router.on('body', (press) => {
       const item = bi.items.get(press.item);
@@ -82,6 +84,7 @@ export const editModule: FeatureModule = {
     });
 
     return () => {
+      offMouse();
       offBody();
       offEdge();
       offCarry();

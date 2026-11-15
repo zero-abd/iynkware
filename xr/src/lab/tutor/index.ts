@@ -43,7 +43,7 @@ export function mountTutorCallouts(app: XrApp, lab: LabContext): Unsubscribe {
     const it = store.get(id);
     if (!it) return remove(id);
     const h = modelOf(it.kind).foot[2] / 1000;
-    s.callout.group.position.set(it.pose.x / 1000, Math.min(h, 0.3) + 0.02, it.pose.z / 1000);
+    s.callout.group.position.set(it.pose.x / 1000, (it.pose.y ?? 0) / 1000 + Math.min(h, 0.3) + 0.02, it.pose.z / 1000);
   };
 
   const offTutor = lab.tutor.subscribe((e) => {
