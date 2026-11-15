@@ -283,10 +283,19 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const scene: FlightScene | null = drone
     ? {
         contentId: project.contentId,
+        content,
+        spec: flight.craft,
+        course,
+        build: { source: build.source, faults: build.faults },
         runner,
+        volume,
         map,
+        head,
         root,
         craft: drone,
+        arm,
+        reset,
+        say,
         claimSticks(owner, read) {
           const i = claims.findIndex((c) => c.owner === owner);
           if (i >= 0) claims.splice(i, 1);

@@ -469,8 +469,10 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
 
 ### 8.3 Range: drones and robots
 
-- The craft flies in the room at 1:1. The flight volume is the guardian bounds inset 0.3 m, from 0.1 to 2.2 m high.
-  A net (ink grid every 0.5 m at 10 %) shows on a face of that volume only while the craft is within 0.5 m of it;
+- The course is fitted into the room at one uniform scale, not 1:1 (courses are 9 to 300 m fields): the flight volume
+  is a 3 x 3 m square in front of where you stood at entry, inside the guardian bounds inset 0.3 m, from 0.1 to 2.2 m
+  high, and k = min(1, side / field, height / ceiling). quad5's 40 m field flies at about 1:13 (k 0.075). The craft is
+  drawn at the same scale, but never under 8 cm across; physics stays in course metres. A net (ink grid every 0.5 m at 10 %) shows on a face of that volume only while the craft is within 0.5 m of it;
   touching it is a crash. The pad is on the floor 1.5 m ahead of where you stood at entry.
 - **Views:** `los` (line of sight, default), `chase` and `fpv`. Chase and FPV are a screen (0.48 x 0.27 m at 1.2 m,
   world-locked, rendered at 15 Hz [custom]), never your eyes. Y (C) or the view button cycles them.
