@@ -32,7 +32,8 @@ xr/src/agent/
 ## Tools
 
 Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_text { text, suggestions? }`,
-`clear_callouts`. Act: `propose_build { request, template? }`, `accept_step { all? }`, `reject_step`, `undo_step`,
+`clear_callouts`. Act: `propose_build { request, template? }`, `propose_edit { summary, steps }`, `accept_step { all? }`,
+`reject_step`, `undo_step`,
 `open_lab { lab }`, `leave_lab`, `start_experiment { id, mode? }`, `set_lab_control { item, action, value? }`,
 `request_item { name }`, `next_step_hint`. Schemas are in `tools/declarations.json`.
 
@@ -40,6 +41,13 @@ Read: `look`, `list_targets`. Show: `point_at { target, text, tone? }`, `show_te
   only `accept_step` performs it, authored and undoable. `AssistantService` has no public free-text `ask` yet, so
   `propose_build` builds templates only (Blink and the other board templates) and returns `ok: false` for a free
   request.
+- `propose_edit` runs the agent's own bench edits through the same co-builder (`tools/edit.ts`). Each step is one of
+  these: `move` or `place` (first leg into a hole), `turn`, `pull`, `remove`, `wire`, `unwire`. Parts are named by refdes, pins as `REF.PIN`
+  (spoken names work: `U1.5V` is `P5V`), holes like `e12`. A custom `CoBuilder` goes to
+  `buildWithMe(doc, { from: 'bench', builder })`, so the ghost, the card, accept, skip and undo and the companion's
+  carry all apply unchanged. The steps are dry-run in order, so a later step sees the earlier ones. A step the
+  person does by hand counts as done when the session plans again. An edit that cannot be done returns in
+  `unreachable` with the reason (a bad pin lists the part's pins).
 - Lab tools go through the lab context and `LabStore.apply`, so the tutor and the run log see them.
 - In an exam `set_lab_control`, `request_item` and `next_step_hint` refuse.
 - `point_at` targets: a lab item id, kind or name when a lab is open; else a bench refdes (`RES1`), a pin
@@ -69,7 +77,7 @@ longer injected.
   `xr/.env.local` (git-ignored) opens the plain v1beta endpoint with the same setup. A production build contains
   neither that endpoint nor the variable.
 - The Worker locks `tools: [{ functionDeclarations }]` from `xr/src/agent/tools/declarations.json` into the token,
-  and `TOOLS_VERSION` is `agent-v1`.
+  and `TOOLS_VERSION` is `agent-v2` (v2 added `propose_edit`).
 
 ## Wiring another Gemini Live client
 
