@@ -47,7 +47,8 @@ companion knows it at once. `look` carries the same brief, so the lab snapshot n
 
 ## Assist and Build
 
-`hub.mode` is `assist` or `build` (build by default). The button floating over the bunny shows it and flips it, and
+`hub.mode` is `assist` or `build` (build by default). In build the bunny wears sunglasses and a hi-vis vest
+(`Companion.outfit`). The button floating over the bunny shows the mode and flips it, and
 the Tools menu has the same switch ("Assistant can build"). In assist every tool in `CHANGES` (catalog.ts) returns
 `{ ok: false, mode: 'assist' }`: `propose_build`, the step tools, `start_experiment`, `set_lab_control`,
 `request_item`, `edit_bench`, `undo`, `redo`, `apply_fix`, `run_circuit`, `use_control`. Reading, pointing, ghosts

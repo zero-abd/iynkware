@@ -1,6 +1,6 @@
 // The companion's Assist / Build mode in the IWER emulator, headless: the mode button floats over the bunny, the
 // Tools menu has the switch, pressing the button flips the mode, Assist refuses a tool that changes things (and says
-// so in look), Build runs it, and the context carries the scene brief of the open lab.
+// so in look), Build runs it, the bunny wears its sunglasses and vest in Build only, and the context carries the scene brief of the open lab.
 //
 //   npx vite --mode http --port 23265                 # in another terminal
 //   node scripts/agent-mode-check.mjs [url] [shot-dir]
@@ -35,6 +35,9 @@ const button = () =>
 const b = await button();
 check('the mode button is in the scene, over the bunny', !!b && b.visible && b.at[1] > 0.5, b);
 
+const outfit = () => page.evaluate(() => new Promise((r) => setTimeout(() => r(window.iynkware.world.scene.getObjectByName('assistant:outfit')?.visible), 300)));
+check('in build the bunny wears the sunglasses and vest', (await outfit()) === true);
+
 const mode = () => page.evaluate(async () => (await window.iynkware.agent.call('look')).companion);
 check('the companion starts in build mode', (await mode()) === 'build');
 
@@ -47,6 +50,7 @@ const flip = () =>
 const hasMenu = await flip();
 if (hasMenu) {
   check('the Tools menu switch flips it to assist', (await mode()) === 'assist');
+  check('in assist the bunny is plain', (await outfit()) === false);
 } else {
   // no app on window: press the button's face through the bridge-free path (the menu row is the same run)
   check('the menu row is reachable', false, 'window.iynkware.app is missing');
