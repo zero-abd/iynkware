@@ -16,6 +16,8 @@ export interface NewPartCarry {
   readonly start: InteractionEvent;
   /** World position of the bin item when it was pulled, for a smooth hand-over. */
   readonly from: Vec3;
+  /** How big the bin item looked, as a multiple of the held part's size in the bench frame (1: the same). The hand takes the part from there. */
+  readonly fromScale?: number;
   /** The carry ended without placing the part (released off the mat or cancelled): the shelf shows it again. */
   onReturn(): void;
 }

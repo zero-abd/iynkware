@@ -5,6 +5,7 @@
  * hand-over (`benchKit(app).carry`) carries a new part the same way.
  */
 import type { FeatureModule } from '../../contracts/app';
+import { motionOf } from '../../look/runner';
 import { benchKit, type Carry } from '../core/kit';
 import { routerOf } from '../core/router';
 import { benchInternals } from '../space';
@@ -64,6 +65,12 @@ export const editModule: FeatureModule = {
           if (!holder) {
             object.removeFromParent();
             return req.onReturn();
+          }
+          const s0 = req.fromScale ?? 1;
+          if (Math.abs(s0 - 1) > 0.02) {
+            // the bin item may look smaller than the part is on the bench (a board): the hand takes it from there, eased
+            object.scale.setScalar(s0);
+            motionOf(app.world).tween({ key: object, ms: 220, onUpdate: (k) => object.scale.setScalar(s0 + (1 - s0) * k) });
           }
           loop.add(holder);
           if (ended) holder.end();
