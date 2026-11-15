@@ -14,6 +14,7 @@
  */
 import { newId } from '@/core/ids';
 import { getAppRegistry } from '@/parts/builtin';
+import { interfaceOf } from '@/parts/pins';
 import type { PartRegistry } from '@/parts/registry';
 import type { Op, Placement, Project, View, Wire, WireColor, WireEnd } from '@/project/generated/types';
 import { createSession } from '@/project/session';
@@ -226,6 +227,36 @@ export function partOrigin(doc: Project, part: string, env: ActionEnv = {}): Doc
 
 // ---------------------------------------------------------------------------------------------------------- parts
 
+/** Where a blank project's board is laid, beside where the breadboard goes (the Blink lesson lays its Uno the same way). */
+export const BLANK_BOARD_AT: DocPoint = { x_mm: -90, y_mm: 0 };
+
+/**
+ * A blank project (iynk's `create`) holds its Uno in `boards` but not in the breadboard view, so the bench would show an
+ * empty mat. Lays the boards of an empty view on the mat in a row; refuses with `unchanged` for any other document.
+ */
+export function placeBoards(doc: Project): ActionResult {
+  const view = breadboardViewOf(doc);
+  if (!view) return refuse('no-breadboard-view');
+  if (view.placements.length > 0 || doc.components.length > 0 || doc.boards.length === 0) return refuse('unchanged');
+  let x = BLANK_BOARD_AT.x_mm;
+  const ops: Op[] = [];
+  for (const board of doc.boards) {
+    ops.push({ k: 'view.place', view: view.id, placement: { c: board.id, x_mm: x, y_mm: BLANK_BOARD_AT.y_mm, rotation_deg: 0 } });
+    x -= 100;
+  }
+  return done(ops, 'Place board', {});
+}
+
+/**
+ * `placeBatch` places a breadboard like any part, but a view only seats parts and takes wire holes on its `surface`. The
+ * first breadboard put into a view with no surface becomes it (what iynk's `breadboardBatch` does for the 2D Studio).
+ */
+function withSurface(view: View, registry: PartRegistry, ref: string, placed: { batch: Op[]; id: string }): Op[] {
+  const d = registry.latest(ref);
+  if (view.surface !== undefined || !d || interfaceOf(d).role !== 'surface') return placed.batch;
+  return [...placed.batch, { k: 'view.set', id: view.id, surface: placed.id }];
+}
+
 export type PlacePartArgs = { ref: string; at: DocPoint };
 export type Placed = { id: string; refdes: string; loose: boolean; chip: boolean };
 
@@ -244,7 +275,7 @@ export function placePart(doc: Project, args: PlacePartArgs, env: ActionEnv = {}
   if (typeof args?.ref !== 'string' || !isPoint(args.at)) return refuse('bad-args', { ref: String(args?.ref) });
   const placed = placeBatch(b.ctx, { registry: b.registry, session: NO_SESSION, ids: b.ids }, args.ref, { x: args.at.x_mm, y: args.at.y_mm });
   if ('refused' in placed) return refuse(placed.refused, { ref: args.ref });
-  return done(placed.batch, placed.label, { id: placed.id, refdes: placed.refdes, loose: placed.loose, chip: placed.chip });
+  return done(withSurface(b.view, b.registry, args.ref, placed), placed.label, { id: placed.id, refdes: placed.refdes, loose: placed.loose, chip: placed.chip });
 }
 
 export type MovePartArgs = {
