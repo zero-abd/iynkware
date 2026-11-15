@@ -43,6 +43,8 @@ const BUTTONS_DMM = 44;
 const H_DMM = 64 + 16 + ROWS * ROW_DMM + 12 + FOOT_DMM + 12 + BUTTONS_DMM + 30;
 /** A write is instant; it stays marked at least this long so the eye sees it before the marker moves on. */
 const DWELL_MS = 400;
+/** The delay line in the foot counts in steps of this, so its texture repaints at most ten times a second. */
+const DELAY_STEP_MS = 100;
 /**
  * Where it stands when it opens by itself, in the bench table's frame: this far past the bench's edge on the dominant
  * hand's side, its centre this high over the top and this far back.
@@ -98,7 +100,11 @@ export const codeViewModule: FeatureModule = {
       if (!sketch) return S.t(l, 'none');
       if (!sketch.plan || (key === null && app.sim.lastFrame && !pinKeyOf(sketch.plan.pin, app.sim.lastFrame.pins))) return S.t(l, 'untracked');
       if (pos.wrote) return S.t(l, 'wrote', { pin: sketch.plan.pin, level: pos.wrote.level ? 'HIGH' : 'LOW' });
-      if (pos.delay) return S.t(l, 'delay', { elapsed: pos.delay.elapsedMs, total: pos.delay.ms });
+      if (pos.delay) {
+        // Whole tenths of a second: the elapsed time moves every sim frame, and each new string repaints the foot's texture.
+        const total = pos.delay.ms;
+        return S.t(l, 'delay', { elapsed: Math.min(total, Math.round(pos.delay.elapsedMs / DELAY_STEP_MS) * DELAY_STEP_MS), total });
+      }
       return S.t(l, 'ready');
     };
 
