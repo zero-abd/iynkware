@@ -18,6 +18,30 @@
    "warnings": 2
   },
   {
+   "id": "drones/cinewhoop",
+   "kind": "drone",
+   "name": "3-inch cinewhoop",
+   "glb": "drones/cinewhoop.glb",
+   "sidecar": "drones/cinewhoop.json",
+   "triangles": 6131,
+   "drawCalls": 19,
+   "anchors": 38,
+   "channels": 8,
+   "warnings": 2
+  },
+  {
+   "id": "drones/longrange",
+   "kind": "drone",
+   "name": "7-inch long-range quad",
+   "glb": "drones/longrange.glb",
+   "sidecar": "drones/longrange.json",
+   "triangles": 4120,
+   "drawCalls": 18,
+   "anchors": 36,
+   "channels": 8,
+   "warnings": 1
+  },
+  {
    "id": "drones/quad5",
    "kind": "drone",
    "name": "5-inch freestyle quad",
@@ -26,6 +50,42 @@
    "triangles": 4843,
    "drawCalls": 18,
    "anchors": 32,
+   "channels": 8,
+   "warnings": 1
+  },
+  {
+   "id": "drones/racer",
+   "kind": "drone",
+   "name": "5-inch racing quad",
+   "glb": "drones/racer.glb",
+   "sidecar": "drones/racer.json",
+   "triangles": 5783,
+   "drawCalls": 18,
+   "anchors": 32,
+   "channels": 8,
+   "warnings": 1
+  },
+  {
+   "id": "drones/tricopter",
+   "kind": "drone",
+   "name": "Tricopter",
+   "glb": "drones/tricopter.glb",
+   "sidecar": "drones/tricopter.json",
+   "triangles": 5071,
+   "drawCalls": 15,
+   "anchors": 30,
+   "channels": 6,
+   "warnings": 2
+  },
+  {
+   "id": "drones/whoop",
+   "kind": "drone",
+   "name": "Tiny Whoop 65 mm",
+   "glb": "drones/whoop.glb",
+   "sidecar": "drones/whoop.json",
+   "triangles": 5263,
+   "drawCalls": 18,
+   "anchors": 28,
    "channels": 8,
    "warnings": 1
   },
