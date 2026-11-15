@@ -18,7 +18,7 @@ xr/src/lab/
     catalogue.ts     tutor notes per kind (name, summary, safe use, hazards, mistakes with severity), refusals
     inventory.ts     LabInventory: kinds, request(kindOrName) -> found | the generic stand-in
   experiments/       Experiment data, the runner (steps, checks, exam log, score), the lab panel and shell rows
-  tutor/             the deterministic tutor, its feed (subscribe, snapshot), callouts over items
+  tutor/             the deterministic tutor and its feed (subscribe, snapshot); nothing drawn over items
   items/             drawing and working the items: controls, channels, primitives, the glTF source
   kit/               the lab panel (canvas, look kit) and its words
 ```
@@ -79,7 +79,8 @@ The tutor (`tutor/tutor.ts`) emits `TutorEvent { seq, kind: 'instruct'|'praise'|
 itemKind, mistakeId?, experimentId?, stepId?, text: LocalizedText (all six), at }`. Pacing: a mistake is said once
 when it starts, again every 12 s while it lasts; `escalate` mistakes (gas on and unlit, an overloaded resistor, the
 iron left out) become hazards after 5 s more; a hint after 25 s stuck on a step (practice). Mistakes are checked every
-200 ms. The headset shows events as callouts over the item and a line on the lab panel.
+200 ms. The headset draws no pop-ups for them: the lab panel shows the latest step, praise or hint line, and warnings,
+hazards and refusals go to the companion's coach as observations, for the AI to comment on when asked.
 
 A voice or model-backed tutor (issue #2) uses `labOf(world).feed` (or `window.iynkware.lab.feed`), and calls no
 network itself:

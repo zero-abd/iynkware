@@ -1,7 +1,7 @@
 /**
  * Coach observations from the app: the lab tutor's events and lab actions, project ops, the simulation's run state and
- * findings, and lesson steps, as compact English lines in the coach (coach.ts). A hazard from the lab tutor is also
- * shown at once as a warn callout from the item, with no brain or model involved (deterministic safety, #180).
+ * findings, and lesson steps, as compact English lines in the coach (coach.ts). Nothing here draws on the bench: the
+ * companion reads these lines and comments when asked (the lab shows no pop-ups of its own).
  */
 import type { FeatureModule } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
@@ -9,12 +9,8 @@ import type { DocChange } from '../../contracts/project';
 import { labOf } from '../../lab/context';
 import { rangeProjectOf } from '../../range/shared/detect';
 import { notesOf } from '../../lab/model/catalogue';
-import { say } from '../../lab/text';
 import { onLookFrame } from '../../look/runner';
 import { agentOf } from '../hub';
-
-/** How long the local hazard callout stays (it is put back while the tutor repeats the hazard). */
-export const HAZARD_MS = 15_000;
 
 /** One line for a project change: what was added or removed, by op kind. */
 export function describeChange(c: DocChange, title: string): string | null {
@@ -46,7 +42,6 @@ export const coachModule: FeatureModule = {
     const hub = agentOf(app.world);
     const { coach } = hub;
     const offs: Unsubscribe[] = [];
-    const lang = () => app.settings.lang.value;
 
     /**
      * A new place to work: a project opened, a lab opened or left. Nothing from the bench that closed is shown or sent
@@ -75,13 +70,10 @@ export const coachModule: FeatureModule = {
           const ref = e.equipmentId ? [`lab:${e.equipmentId}`] : [];
           const what = e.itemKind ?? 'experiment';
           // A safety mistake (severity hazard or escalate: gas on and unlit, an overload) counts as a hazard from its
-          // first warning: the local callout does not wait for the tutor to escalate it.
+          // first warning. It is an observation for the companion only: nothing pops up over the bench.
           const severity = e.itemKind && e.mistakeId ? notesOf(e.itemKind).mistakes[e.mistakeId]?.severity : undefined;
           if (e.kind === 'hazard' || (e.kind === 'warn' && (severity === 'escalate' || severity === 'hazard'))) {
             coach.push({ kind: 'hazard', text: `HAZARD at ${what}: ${e.text.en}`, refs: ref, say: e.text });
-            if (e.equipmentId && e.itemKind) {
-              hub.callouts.add({ kind: 'lab', id: e.equipmentId, itemKind: e.itemKind, name: say(notesOf(e.itemKind).name, lang()) }, say(e.text, lang()), 'warn', HAZARD_MS);
-            }
           } else if (e.kind === 'warn') coach.push({ kind: 'lab-mistake', text: `mistake at ${what}${e.mistakeId ? ` (${e.mistakeId})` : ''}: ${e.text.en}`, refs: ref, say: e.text });
           else if (e.kind === 'instruct') coach.push({ kind: 'lab-step', text: `step${e.stepId ? ` ${e.stepId}` : ''}: ${e.text.en}`, refs: ref, say: e.text });
         }),

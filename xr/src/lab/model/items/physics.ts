@@ -51,17 +51,13 @@ export const pendulum = defineItem({
       d.set('swinging', true);
     },
     length: (d, a) => {
-      if (d.p.swinging) return 'stop-first';
       d.set('length', a.value ?? cycle(pendulum.params.length!, d.p.length!));
     },
     amplitude: (d, a) => {
-      if (d.p.swinging) return 'stop-first';
       d.set('amplitude', a.value ?? cycle(pendulum.params.amplitude!, d.p.amplitude!));
     },
     bob: (d) => d.set('bob', d.p.bob === 'brass' ? 'wood' : 'brass'),
     record: (d) => {
-      const n = swingsOf(d.p, d.s.swingT as number);
-      if (n < MIN_SWINGS) return 'too-few-swings';
       // The stopwatch over n whole swings divided by n, to the hundredth: what a person would write down.
       const T = Math.round(period(d.p.length as number, d.p.amplitude as number) * 100) / 100;
       const L = d.p.length as number;

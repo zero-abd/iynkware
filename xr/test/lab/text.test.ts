@@ -10,7 +10,7 @@ import { CONTROL_LABELS } from '../../src/lab/items/labels';
 /** Every refusal reason a model can give, found by reading the models' sources would be brittle: list them here. */
 const REASONS = [
   'beaker-full', 'flask-full', 'flask-empty', 'no-gas', 'already-lit', 'unknown-param', 'bad-value', 'unknown-action', 'no-item', 'no-burner',
-  'meter-off', 'calibrate-in-buffer', 'no-sample', 'output-off', 'no-current', 'stop-first', 'too-few-swings', 'mystery-locked', 'scope-off',
+  'meter-off', 'calibrate-in-buffer', 'no-sample', 'output-off', 'no-current', 'mystery-locked', 'scope-off',
   'no-signal', 'no-generator',
 ];
 
