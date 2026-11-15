@@ -236,6 +236,16 @@ for (const [lab, setup] of [
   await shot(`lab-6-${lab}`);
 }
 await page.evaluate(() => window.iynkware.lab.leave());
+await sleep(800);
+// Nothing of any lab is left in the scene (the pendulum's bob and the flame-test loop once stayed at the person's feet).
+const leftovers = await page.evaluate(() => {
+  const found = [];
+  window.iynkware.world.scene.traverse((o) => {
+    if (/^(lab-(item|grab|control):|BOB$|LOOP$)/.test(o.name)) found.push(o.name);
+  });
+  return found;
+});
+check('after leaving the labs no lab object is left in the scene', leftovers.length === 0, leftovers.slice(0, 8));
 check('no page errors', errors.length === 0, errors.slice(0, 5));
 const perf = await page.evaluate(() => ({ calls: window.iynkware.world.renderer.info.render.calls, tris: window.iynkware.world.renderer.info.render.triangles }));
 console.log('render', perf);

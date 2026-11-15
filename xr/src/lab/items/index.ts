@@ -250,11 +250,14 @@ export function mountLabItems(app: XrApp, lab: LabContext): Unsubscribe {
     for (const l of h.labels.splice(0)) l.label.dispose();
     dropEntities(app, h.proxy);
     h.proxy.geometry.dispose();
-    h.visual?.dispose();
     h.group.traverse((o) => {
       if ((o as Mesh).isMesh && (o as Mesh).material === hit) (o as Mesh).geometry.dispose();
     });
+    // Entities first, while the visual is still in the group: a control on a moving node (the pendulum's BOB, the
+    // flame-test loop) gave that node and its ancestors entities, and an entity left alive is re-added to the scene by
+    // IWSDK's TransformSystem, at the room's origin, at the person's feet.
     dropEntities(app, h.group);
+    h.visual?.dispose();
     holders.delete(h.id);
     list = [...holders.values()];
   };
