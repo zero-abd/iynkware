@@ -1,9 +1,11 @@
 /**
- * Session controls: Recentre and Exit, two inked buttons centred below the person's view, in every mode and every
- * project. The cluster follows the head lazily (`follow.ts`: it waits until the head has turned 28 degrees, then eases
+ * Session controls: Home, Recentre and Exit, three inked buttons centred below the person's view, in every mode and
+ * every project. The cluster follows the head lazily (`follow.ts`: it waits until the head has turned 28 degrees, then eases
  * after it and settles), at touch range (0.45 m), straight ahead and 45 degrees below eye level (`FOLLOW` in `follow.ts`), so it never covers
  * the work and a poke or a ray finds it. It is shown only inside a session.
  *
+ *   Home      opens Home in front of the person from anywhere (the bench, Room size, the Range), closing whatever
+ *             shell panel is open; pressed while Home is open, it brings Home round to where the person now looks.
  *   Recentre  puts the bench (and everything anchored to it) in front of the person again with an eased move, through
  *             `BenchSpace.setBenchTop`, at the height and distance of XR_DESIGN.md 2.1. At Room size or in the Range,
  *             which place their own content from the head when they open, it leaves and re-enters the place.
@@ -31,6 +33,13 @@ const TWEEN_KEY = 'session-controls/recentre';
 
 const eye = new Vector3();
 const dir = new Vector3();
+
+/** Opens Home ahead of the person, from anywhere. Exported for the emulator walk. */
+export function goHome(app: XrApp): void {
+  // Closing first makes Home place itself again where the person looks now (it places only when it opens).
+  if (app.shell.homeOpen.value) app.shell.closeHome();
+  app.shell.openHome();
+}
 
 /** Recentres the bench from the current head pose; returns the target. Exported for the emulator walk. */
 export function recentre(app: XrApp): BenchPose {
@@ -63,6 +72,11 @@ export const sessionControlsModule: FeatureModule = {
     root.visible = false;
     ownEntity(app.world, root);
 
+    const homeButton: SessionButton = sessionButton(
+      app,
+      { id: 'session/home', w: W, h: H, distanceM: d, icon: 'home', onSelect: () => goHome(app) },
+      { label: say(SESSION, lang(), 'home') },
+    );
     const recentreButton: SessionButton = sessionButton(
       app,
       { id: 'session/recentre', w: W, h: H, distanceM: d, icon: 'target', onSelect: () => recentre(app) },
@@ -73,14 +87,15 @@ export const sessionControlsModule: FeatureModule = {
       { id: 'session/exit', w: W, h: H, distanceM: d, icon: 'exit', hold: { ms: EXIT_HOLD_MS, onDone: () => app.world.exitXR() } },
       { label: say(SESSION, lang(), 'exit'), hint: say(SESSION, lang(), 'hold') },
     );
-    recentreButton.group.position.x = -(W + GAP) / 2;
-    exitButton.group.position.x = (W + GAP) / 2;
-    root.add(recentreButton.group, exitButton.group);
+    homeButton.group.position.x = -(W + GAP);
+    exitButton.group.position.x = W + GAP;
+    root.add(homeButton.group, recentreButton.group, exitButton.group);
 
     let follow: FollowState | null = null;
     let opacity = 0;
     const setOpacity = (a: number) => {
       opacity = a;
+      homeButton.setOpacity(a);
       recentreButton.setOpacity(a);
       exitButton.setOpacity(a);
       root.visible = a > 0.001;
@@ -126,6 +141,7 @@ export const sessionControlsModule: FeatureModule = {
     const offs = [
       app.mode.subscribe(syncMode),
       app.settings.lang.subscribe(() => {
+        homeButton.set({ label: say(SESSION, lang(), 'home') });
         recentreButton.set({ label: say(SESSION, lang(), 'recentre') });
         exitButton.set({ label: say(SESSION, lang(), 'exit'), hint: say(SESSION, lang(), 'hold') });
       }),
@@ -138,11 +154,12 @@ export const sessionControlsModule: FeatureModule = {
     ];
     syncMode();
     // For scripts and tests: where the buttons are and what Exit is doing.
-    root.userData.sessionControls = { recentre: recentreButton, exit: exitButton };
+    root.userData.sessionControls = { home: homeButton, recentre: recentreButton, exit: exitButton };
 
     return () => {
       for (const off of offs) off();
       motionOf(app.world).cancel(TWEEN_KEY);
+      homeButton.dispose();
       recentreButton.dispose();
       exitButton.dispose();
       dropEntities(app.world, root);

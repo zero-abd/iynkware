@@ -1,5 +1,5 @@
 // The in-headset Menu in the IWER emulator, headless: left thumbstick click opens it, a controller ray and trigger on
-// Drones opens the drone and goes to the Range, the menu again with Bench goes back, the Blink lesson changes the
+// Drones opens the drone and goes to the Range, the menu's Home row opens Home there, the menu again with Bench goes back, the Blink lesson changes the
 // project, and the palm button (hand input, left palm turned to the head) opens it too.
 //
 //   npx vite --mode http --port 23182                          # in another terminal
@@ -100,6 +100,14 @@ const toRange = await waitFor(() => window.__state().place === 'range', null, 15
 const st = await page.evaluate(() => window.__state());
 check('place is range and the drone project is open', toRange && st.project !== start.project && st.project.startsWith('prj_drone'), { start, st });
 check('menu closed after the switch', await waitFor(() => !window.__menu(), null, 3000));
+
+// 2b. From the Range, the menu's Home row opens Home and closes the menu.
+await stick();
+await press('controller-right', 'button:menu/home', 0.35);
+const homeUp = await waitFor(() => window.iynkware.app.shell.homeOpen.value && !!window.iynkware.world.scene.getObjectByName('shell-panel:home')?.visible && !window.__menu(), null, 4000);
+check('menu Home row opens Home from the Range', homeUp, await page.evaluate(() => ({ ...window.__state(), home: window.iynkware.app.shell.homeOpen.value, menu: window.__menu() })));
+await page.evaluate(() => window.iynkware.app.shell.closeHome());
+await sleep(600);
 
 // 3. Menu again: Bench.
 await stick();
