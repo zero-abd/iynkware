@@ -1,0 +1,122 @@
+[
+  {
+    "name": "look",
+    "description": "Read what the person sees now: bench or lab mode, the bench snapshot (parts, wires, nets, findings, lesson), the lab snapshot when a lab is open (items, reports, mistakes, the experiment step), the selection, the co-build session and recent observations. Call it before answering about the bench.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "list_targets",
+    "description": "List what point_at can point at: lab item ids and kinds when a lab is open, else bench part refdes and pins as <refdes>.<pin>.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "point_at",
+    "description": "Show a callout bubble with a leader line from an item to a short text, such as 'use this one'. At most 3 at once; the oldest goes.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "target": { "type": "STRING", "description": "A lab item id or kind (bunsen-burner), a bench part refdes (R1, LED1) or a pin as <refdes>.<pin> (U1.D13)." },
+        "text": { "type": "STRING", "description": "A few words in the person's language." },
+        "tone": { "type": "STRING", "enum": ["info", "do", "warn"], "description": "info (default), do (an action to take) or warn." }
+      },
+      "required": ["target", "text"]
+    }
+  },
+  {
+    "name": "show_text",
+    "description": "Show text in the speech bubble near the person, with optional reply chips the person can press.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "text": { "type": "STRING" },
+        "suggestions": { "type": "ARRAY", "items": { "type": "STRING" }, "description": "Up to 3 short replies." }
+      },
+      "required": ["text"]
+    }
+  },
+  {
+    "name": "clear_callouts",
+    "description": "Remove every callout bubble.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "propose_build",
+    "description": "Start 'Build it with me': the co-builder proposes the first step of a template build as a ghost on the bench. Nothing changes until the person accepts. Only templates can be built today (for example Blink); a free request returns ok false.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "request": { "type": "STRING", "description": "What to build, in the person's words (help me build blink)." },
+        "template": { "type": "STRING", "description": "A template id (prj_uno-r3-blink), when known." }
+      },
+      "required": ["request"]
+    }
+  },
+  {
+    "name": "accept_step",
+    "description": "Perform the proposed co-build step (the person said yes). Set all to do every remaining step.",
+    "parameters": { "type": "OBJECT", "properties": { "all": { "type": "BOOLEAN" } } }
+  },
+  {
+    "name": "reject_step",
+    "description": "Skip the proposed co-build step for the rest of the session.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "undo_step",
+    "description": "Take back the co-builder's last performed step.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "open_lab",
+    "description": "Lay out a training lab on the bench (the circuit bench is hidden, never changed).",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": { "lab": { "type": "STRING", "enum": ["chemistry", "physics", "electrical", "signals"] } },
+      "required": ["lab"]
+    }
+  },
+  {
+    "name": "leave_lab",
+    "description": "Leave the lab and bring back the circuit bench.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  },
+  {
+    "name": "start_experiment",
+    "description": "Start a guided experiment with its own kit. In exam mode the tutor is silent and hints and acting tools are refused.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "id": { "type": "STRING", "enum": ["chemistry/flame-test", "chemistry/ph", "electrical/ohms-law", "physics/pendulum", "signals/measure-wave"] },
+        "mode": { "type": "STRING", "enum": ["practice", "exam"] }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "set_lab_control",
+    "description": "Work a lab item's control for the person (gas, light, collar, power ...), through the lab store so the tutor sees it. Refused in an exam.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "item": { "type": "STRING", "description": "Lab item id or kind." },
+        "action": { "type": "STRING", "description": "One of the item's actions (look shows the kinds; bunsen-burner: gas, light, collar)." },
+        "value": { "type": "STRING", "description": "Optional value; numbers and true/false are converted." }
+      },
+      "required": ["item", "action"]
+    }
+  },
+  {
+    "name": "request_item",
+    "description": "Put equipment on the lab bench by kind or name. Equipment the lab has no model of comes as a labelled stand-in box (placeholder true): say so. Refused in an exam.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": { "name": { "type": "STRING" } },
+      "required": ["name"]
+    }
+  },
+  {
+    "name": "next_step_hint",
+    "description": "The current experiment or lesson step and its hint, with a callout on the item it is about. Refused in an exam.",
+    "parameters": { "type": "OBJECT", "properties": {} }
+  }
+]
