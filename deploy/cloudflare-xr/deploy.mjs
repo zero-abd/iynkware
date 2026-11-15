@@ -100,17 +100,7 @@ function stageBuild(opts, staging) {
     }
     source = describeSource(dir);
     cpSync(dir, site, { recursive: true });
-    if (process.env.IYNK_XR_VOICE_DEMO === "1") {
-      const voice = join(here, "voice");
-      cpSync(voice, join(site, "voice"), { recursive: true });
-      copyFileSync(join(here, "voice-policy.mjs"), join(site, "voice", "policy.mjs"));
-      const index = join(site, "index.html");
-      const html = readFileSync(index, "utf8");
-      if (!html.includes("/voice/demo.js")) {
-        const version = git("rev-parse", "--short=12", "HEAD") || "dev";
-        writeFileSync(index, html.replace("</body>", `  <script type="module" src="/voice/demo.js?v=${version}"></script>\n  </body>`));
-      }
-    }
+    // Voice is the headset app's own client now (xr/src/agent/voice); the old demo page script is not injected.
   }
   copyFileSync(join(here, "_headers"), join(site, "_headers"));
   const ignore = readFileSync(join(here, ".assetsignore"), "utf8");

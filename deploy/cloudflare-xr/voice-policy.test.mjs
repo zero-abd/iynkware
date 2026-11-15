@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   CONSENT_VERSION,
   DEFAULT_DEVICE_DAILY_LIMIT,
   DEFAULT_GLOBAL_DAILY_LIMIT,
+  FUNCTION_DECLARATIONS,
   GEMINI_MODEL,
   LOCKED_BIDI_SETUP,
   LOCKED_LIVE_CONFIG,
@@ -46,9 +48,15 @@ test("locks a single-use token to Gemini Live audio", () => {
   assert.deepEqual(LOCKED_LIVE_CONFIG.outputAudioTranscription, {});
   assert.equal(LOCKED_LIVE_CONFIG.realtimeInputConfig.automaticActivityDetection.disabled, true);
   assert.match(SYSTEM_INSTRUCTION, /RESPOND IN ENGLISH/);
-  assert.deepEqual(LOCKED_LIVE_CONFIG.tools, []);
+  assert.equal(TOOLS_VERSION, "agent-v1");
+  assert.deepEqual(LOCKED_LIVE_CONFIG.tools, [{ functionDeclarations: FUNCTION_DECLARATIONS }]);
+  assert.deepEqual(request.bidiGenerateContentSetup.tools, LOCKED_LIVE_CONFIG.tools);
+  assert.deepEqual(FUNCTION_DECLARATIONS, JSON.parse(readFileSync(new URL("../../xr/src/agent/tools/declarations.json", import.meta.url), "utf8")));
+  for (const name of ["look", "point_at", "propose_build", "accept_step", "set_lab_control"]) assert.ok(FUNCTION_DECLARATIONS.some((d) => d.name === name), name);
   assert.match(SYSTEM_INSTRUCTION, /UNTRUSTED_BENCH_CONTEXT/);
-  assert.match(SYSTEM_INSTRUCTION, /never claim to change/i);
+  assert.match(SYSTEM_INSTRUCTION, /act only through the tools/i);
+  assert.match(SYSTEM_INSTRUCTION, /never claim an action happened unless the tool result says ok/i);
+  assert.match(SYSTEM_INSTRUCTION, /safety caveat/);
   assert.equal(Date.parse(request.expireTime) - now, TOKEN_SESSION_MINUTES * 60_000);
   assert.equal(Date.parse(request.newSessionExpireTime) - now, TOKEN_START_SECONDS * 1_000);
 });
