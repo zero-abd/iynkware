@@ -6,7 +6,7 @@ import { createAssetRegistry, describeFrom } from './assets/registry';
 import { createBenchSpace } from './bench/space';
 import type { FeatureModule, XrApp, XrMode } from './contracts/app';
 import type { Project } from './contracts/project';
-import { MODE_LINES, createInputService } from './input';
+import { createInputService } from './input';
 import { createLessonSlot } from './learn/launcher';
 import { effectsOf } from './look/fx';
 import { createProgressStore } from './learn/progress';
@@ -45,11 +45,7 @@ export function createApp(world: World, doc: Project): AppHandle {
   const shell = createShellService();
   const templates = createTemplateSource();
   const sim = createSimBridge();
-  const input = createInputService(world, {
-    haptics: () => settings.xr.value.haptics,
-    // B on the right controller toggles hands on and off (src/input/mode.ts)
-    onModeChange: (m) => shell.notify({ id: 'input/mode', tone: 'info', text: MODE_LINES[m], ms: 2500 }),
-  });
+  const input = createInputService(world, { haptics: () => settings.xr.value.haptics });
   const feedback = createFeedbackService({ world, input, settings, ring: (at) => effectsOf(world).popRing({ x: at[0], y: at[1], z: at[2] }) });
   const assistant = createAssistantService({ project, templates, sim, lang: () => settings.lang.value, guide: () => lessons.guide.value?.state ?? null, presence: instantPresence });
   const app: XrApp = {

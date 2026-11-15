@@ -504,7 +504,7 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   trail. A 0.40 m timeline under the card has a playhead (pinch drag to scrub), Play and Pause, and marks for events
   (stick spikes, motors saturated, battery sag) with labels. The camera does not move.
 - **Robots on the floor:** at 1:1 on the real floor, starting 1.0 m ahead, inside the guardian inset 0.3 m.
-  Controllers: left stick arcade drive (y speed, x turn), A stop, Y reset. B on the right controller is only the hands on and off switch. Hands: one virtual stick on the dominant
+  Controllers: left stick arcade drive (y speed, x turn), A stop, Y reset. Hands: one virtual stick on the dominant
   hand, same numbers. A dashed ink trail shows the last 5 s of path. Obstacles are virtual, placed by the lesson.
 
 ## 9. Spatial UI kit
