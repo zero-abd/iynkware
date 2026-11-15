@@ -9,6 +9,7 @@
   "scripts": {
     "deploy": "node deploy.mjs",
     "preview": "node deploy.mjs --preview",
-    "check": "node check.mjs"
+    "check": "node check.mjs",
+    "test": "node --test '*.test.mjs'"
   }
 }
