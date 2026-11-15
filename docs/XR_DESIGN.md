@@ -40,7 +40,7 @@ device, and section 12 is the bar the final polish pass is held to.
 | | Standing | Seated |
 |---|---|---|
 | Top height | `E - 0.47` m (just above elbow height), clamped 0.80 to 1.20 m | `E - 0.47` m, clamped 0.62 to 0.85 m |
-| Front edge | 0.15 m ahead of the eyes | same |
+| Front edge | 0.35 m ahead of the eyes where Recentre puts it (0.15 m was too close on a Quest, #363) | same |
 | Shape | half-round (horseshoe): an annular sector about a point 0.30 m behind the eyes, inner radius 0.45 m, spanning 70 degrees either way, so its inner edge is the front edge ahead and comes back to beside the person | same |
 | Depth (ring) | 0.60 m | 0.55 m |
 | Mat (width x depth, on the centre, front edge at the rail) | 0.90 x 0.48 m | 0.86 x 0.44 m |
@@ -538,7 +538,8 @@ six lines), an optional figure, and Back, Show me and Next (Next primary). Tabs:
   once when the session starts on the person's left, 48 degrees off the heading (owner, 2026-11-15), 0.85 m from the
   eyes and 3 degrees above eye level, just over the companion, facing them; it never follows the head. It has the same grip bar and Tidy up, and Recentre brings
   it back to that place beside the person. The bench itself
-  has the same grip bar just in front of its front edge (`xr/src/bench/pose`): drag it and the whole bench, with
+  has the same grip bar standing on the centre of the table's far edge, beyond the mat, where a ray from either hand
+  reaches it (`xr/src/bench/pose`; on the front edge it was level with the hands and could not be taken, #363): drag it and the whole bench, with
   everything on it, follows in all three directions, level and keeping its turn, never under 0.1 m above the floor.
   Parts, pins and wires win over it. Its place is kept after a reload; Recentre and Tidy up put it back.
 - **Budget:** at most six panels visible; opening a seventh closes the oldest that is not the guide. No head-locked UI.

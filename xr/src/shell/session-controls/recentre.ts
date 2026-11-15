@@ -1,7 +1,7 @@
 /**
  * Recentre: where the bench goes so it stands in front of the person again (XR_DESIGN.md 2.1 and 2.4, "Bring the bench
- * here"): the top's front edge 0.15 m ahead of the eyes, its centre half a depth further, level, facing the person,
- * the top at eye height minus 0.47 m clamped for the posture. The move is written to `BenchSpace.setBenchTop`, the one
+ * here"): the top's front edge 0.35 m ahead of the eyes (a comfortable arm's length; 0.15 m was too close, #363), its
+ * centre half a depth further, level, facing the person, the top at eye height minus 0.47 m clamped for the posture. The move is written to `BenchSpace.setBenchTop`, the one
  * transform path; this file only works out the target and the in-between poses. Pure maths, tested.
  */
 import type { Vec3 } from '../../contracts/common';
@@ -13,8 +13,8 @@ export interface BenchPose {
   readonly yawRad: number;
 }
 
-/** Eye to the bench's front edge (2.1). */
-export const FRONT_EDGE_M = 0.15;
+/** Eye to the bench's front edge (2.1; 0.15 m was too close on a headset, #363). */
+export const FRONT_EDGE_M = 0.35;
 /** Eye height to the top (2.1: just above elbow height). */
 export const EYE_TO_TOP_M = 0.47;
 const DEPTH: Record<XrSettings['posture'], number> = { standing: 0.55, seated: 0.5 };
