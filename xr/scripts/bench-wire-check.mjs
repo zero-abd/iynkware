@@ -285,7 +285,7 @@ check('and redo brings it back', (await page.evaluate(() => window.__wires())).l
 await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
 await sleep(800);
 const mid2 = await page.evaluate((id) => window.__mid(id), wireId);
-const from2 = add(mid2, [0.0, 0.25, 0.3]);
+const from2 = add(mid2, [0, 0.3, -0.12]);
 check('the ray can be aimed at the wire', await rayAt('controller-right', 'right', mid2, from2));
 await page.evaluate(() => window.__fresh());
 await trigger('controller-right', true);
@@ -322,13 +322,13 @@ await sleep(600);
 const chip2 = await page.evaluate(() => window.__chip());
 const rm = chip2?.plates[10];
 if (rm) {
-  await rayAt('controller-right', 'right', rm, add(rm, [0.05, 0.1, 0.45]));
+  await rayAt('controller-right', 'right', rm, add(rm, [0, 0.02, 0.5]));
   await trigger('controller-right', true);
   await sleep(120);
   await trigger('controller-right', false);
   await sleep(700);
 }
-check('Remove takes the wire out', !(await page.evaluate(() => window.__wires())).some((w) => w.id === wireId));
+check('Remove takes the wire out', !(await page.evaluate(() => window.__wires())).some((w) => w.id === wireId), { chip2: chip2 && chip2.plates.length, rm });
 await page.evaluate(() => window.iynkware.app.project.undo());
 await sleep(700);
 check('and undo brings it back', (await page.evaluate(() => window.__wires())).some((w) => w.id === wireId));
@@ -412,6 +412,155 @@ const outline = await page.evaluate(() => window.iynkware.app.bench.objectOf('cm
 check('a pinch on a seated part body still grabs the part, no wire starts', outline === true && (await page.evaluate(() => window.__pending())) === false, { outline });
 await hand(false);
 await sleep(900);
+
+// ---------------------------------------------------------------------------------------------------- 6. wire end beads
+await page.evaluate(() => {
+  const { world } = window.iynkware;
+  window.__bead = (wire, side) => {
+    const m = world.scene.getObjectByName(`bench:wire-bead:${wire}:${side}`);
+    const b = world.scene.getObjectByName(`bench:wire-bead-hit:${wire}:${side}`);
+    if (!m || !b) return null;
+    return { mesh: m.getWorldPosition(m.position.clone()).toArray(), box: b.getWorldPosition(b.position.clone()).toArray(), size: b.scale.x * world.scene.getObjectByName('board').scale.x, shown: m.visible };
+  };
+  window.__beadCount = () => {
+    let n = 0;
+    world.scene.traverse((o) => {
+      if (o.name?.startsWith('bench:wire-bead:') && o.parent?.name === 'board') n++;
+    });
+    return n;
+  };
+  window.__drawn = (wire) => {
+    const o = world.scene.getObjectByName(wire);
+    return o ? o.visible : null;
+  };
+});
+const BAND_WORLD = 0.015;
+const holeD = await page.evaluate(() => window.__hole('e20'));
+const sameWires = async (a) => JSON.stringify(a) === JSON.stringify(await page.evaluate(() => window.__wires()));
+
+// a hand makes a wire e10 to e15 again, the way section 1 does
+await place('hand-right', 'right', add(holeA, [0, 0.3, 0.3]));
+await sleep(400);
+({ dev, off } = await pinchAt(holeA));
+await stepsTo(devOver(add(holeA, [0, 0.03, 0.03])));
+await stepsTo(devOver(holeB));
+await sleep(300);
+await hand(false);
+await sleep(900);
+const wiresB = await page.evaluate(() => window.__wires());
+const wB = wiresB.find((w) => !wires0.some((o) => o.id === w.id));
+check('a wire is there for the beads', !!wB, wiresB.length);
+const sideOf = (w, name) => (w.from.kind === 'hole' && w.from.hole === name ? 'from' : 'to');
+const sideEnd = sideOf(wB, END);
+const sideStart = sideOf(wB, START);
+const beadEnd = await page.evaluate(([w, s]) => window.__bead(w, s), [wB.id, sideEnd]);
+const beadStart = await page.evaluate(([w, s]) => window.__bead(w, s), [wB.id, sideStart]);
+check('both ends of the wire have a bead', !!beadEnd && !!beadStart);
+check('a bead lies above the cell band over its hole, with a collider of at least 20 mm', !!beadEnd && beadEnd.mesh[1] - holeB[1] >= BAND_WORLD - 1e-4 && beadEnd.size >= 0.0199, { dy: beadEnd && beadEnd.mesh[1] - holeB[1], size: beadEnd?.size });
+const wiresStart = await page.evaluate(() => window.__wires());
+
+// hand: pinch the end bead, carry it to e20, release
+await place('hand-right', 'right', add(beadEnd.box, [0, 0.3, 0.3]));
+await sleep(400);
+({ dev, off } = await pinchAt(beadEnd.box));
+await stepsTo(devOver(add(holeD, [0, 0.03, 0.02])));
+await stepsTo(devOver(holeD));
+await sleep(400);
+const liftedPending = await page.evaluate(() => window.__pending());
+const liftedDrawn = await page.evaluate((w) => window.__drawn(w), wB.id);
+const ringD = await page.evaluate(() => window.__ring('right'));
+check('grabbing a bead lifts the end: the wire is drawn live and its fixed drawing hides', liftedPending === true && liftedDrawn === false, { liftedPending, liftedDrawn });
+check('the ring runs on the cell it would land on', !!ringD && Math.hypot(...ringD.map((v, i) => v - holeD[i])) < 0.002, ringD);
+check('nothing is in the document while lifted', (await sameWires(wiresStart)));
+if (process.argv[5]) await page.screenshot({ path: process.argv[5] });
+await hand(false);
+await sleep(900);
+const movedW = (await page.evaluate(() => window.__wires())).find((w) => w.id === wB.id);
+const movedEnd = movedW && (sideEnd === 'from' ? movedW.from : movedW.to);
+const keptEnd = movedW && (sideEnd === 'from' ? movedW.to : movedW.from);
+check('release on the ringed hole moves that end only', movedEnd?.hole === 'e20' && keptEnd?.hole === START, { movedEnd, keptEnd });
+check('the wire is drawn again and the pending wire is gone', (await page.evaluate(() => window.__pending())) === false && (await page.evaluate((w) => window.__drawn(w), wB.id)) !== false);
+await page.evaluate(() => window.iynkware.app.project.undo());
+await sleep(600);
+check('one undo puts the end back', await sameWires(wiresStart));
+await page.evaluate(() => window.iynkware.app.project.redo());
+await sleep(400);
+await page.evaluate(() => window.iynkware.app.project.undo());
+await sleep(600);
+
+// controller: the trigger on a bead, release over nothing pulls the wire out
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await sleep(800);
+const bead2 = await page.evaluate(([w, s]) => window.__bead(w, s), [wB.id, sideStart]);
+const ray0 = add(bead2.box, [0, 0.3, -0.12]);
+check('the ray can be aimed at a bead', await rayAt('controller-right', 'right', bead2.box, ray0));
+await sleep(300);
+await page.evaluate(() => window.__fresh());
+await trigger('controller-right', true);
+await sleep(400);
+const ctlLifted = await page.evaluate(() => window.__pending());
+console.log('events', JSON.stringify(await page.evaluate(() => [...window.__ev])));
+const nowhere = add(holeA, [-0.3, 0, 0.1]);
+for (let i = 1; i <= 8; i++) await rayAt('controller-right', 'right', vec(bead2.box, nowhere, i / 8), vec(ray0, add(nowhere, [0, 0.3, -0.12]), i / 8));
+await sleep(300);
+const ringNone = await page.evaluate(() => window.__ring('right'));
+check('a trigger hold on a bead lifts it and the wire follows the ray, no ring over nothing', ctlLifted === true && (await page.evaluate(() => window.__pending())) === true && ringNone === null, { ctlLifted, ringNone });
+await trigger('controller-right', false);
+await sleep(800);
+check('releasing over no cell pulls the wire out', !(await page.evaluate(() => window.__wires())).some((w) => w.id === wB.id));
+await page.evaluate(() => window.iynkware.app.project.undo());
+await sleep(700);
+check('one undo brings the wire back as it was', await sameWires(wiresStart));
+
+// B cancels a lifted end
+const bead3 = await page.evaluate(([w, s]) => window.__bead(w, s), [wB.id, sideStart]);
+await rayAt('controller-right', 'right', bead3.box, add(bead3.box, [0, 0.3, -0.12]));
+await trigger('controller-right', true);
+await sleep(400);
+for (let i = 1; i <= 6; i++) await rayAt('controller-right', 'right', vec(bead3.box, nowhere, i / 6), vec(add(bead3.box, [0, 0.3, -0.12]), add(nowhere, [0, 0.3, -0.12]), i / 6));
+await trigger('controller-right', true, [{ index: 4, value: 1 }]);
+await sleep(300);
+const afterB = await page.evaluate(() => window.__pending());
+await trigger('controller-right', true, [{ index: 4, value: 0 }]);
+await trigger('controller-right', false);
+await sleep(700);
+check('B cancels a lifted end: the wire is unchanged and drawn', afterB === false && (await sameWires(wiresStart)) && (await page.evaluate((w) => window.__drawn(w), wB.id)) !== false, { afterB });
+
+// a pinch on the cell below a bead on a board pin still starts a new wire
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'controller' }));
+await rayAt('controller-right', 'right', pin, pinRay);
+await trigger('controller-right', true);
+await sleep(300);
+for (let i = 1; i <= 8; i++) await rayAt('controller-right', 'right', vec(pin, holeC, i / 8), vec(pinRay, [holeC[0], holeC[1] + 0.3, holeC[2] + 0.35], i / 8));
+await sleep(300);
+await trigger('controller-right', false);
+await sleep(800);
+const wiresPin = await page.evaluate(() => window.__wires());
+const wP = wiresPin.find((w) => !wiresStart.some((o) => o.id === w.id));
+check('a wire from the Uno pin D13 is there', !!wP, wiresPin.length);
+await page.evaluate(() => window.__x('set_input_mode', { mode: 'hand' }));
+await sleep(700);
+const sideP = wP && wP.from.kind === 'pin' ? 'from' : 'to';
+const beadP = wP && (await page.evaluate(([w, s]) => window.__bead(w, s), [wP.id, sideP]));
+check('the pin has a bead above its cell band', !!beadP && beadP.mesh[1] - pin[1] >= BAND_WORLD - 1e-4, beadP && beadP.mesh[1] - pin[1]);
+const holeF = await page.evaluate(() => window.__hole('e24'));
+await place('hand-right', 'right', add(pin, [0, 0.3, 0.3]));
+await sleep(400);
+({ dev, off } = await pinchAt(pin));
+await stepsTo(devOver(add(holeF, [0, 0.03, 0.03])));
+await stepsTo(devOver(holeF));
+await sleep(400);
+await hand(false);
+await sleep(900);
+const wiresAfterPin = await page.evaluate(() => window.__wires());
+const wPnow = wiresAfterPin.find((w) => w.id === wP.id);
+const added = wiresAfterPin.filter((w) => !wiresPin.some((o) => o.id === w.id));
+check('a pinch on the pin cell below the bead starts a new wire, the old one is untouched', added.length === 1 && JSON.stringify(wPnow) === JSON.stringify(wP), { added: added.length });
+for (let i = 0; i < 4; i++) {
+  await page.evaluate(() => window.iynkware.app.project.undo());
+  await sleep(500);
+}
+check('back to the start (wires), only the own beads of the project', (await page.evaluate(() => window.__wires())).length === wires0.length && (await page.evaluate(() => window.__beadCount())) === wires0.length * 2, { wires: (await page.evaluate(() => window.__wires())).length, wires0: wires0.length, beads: await page.evaluate(() => window.__beadCount()) });
 
 await browser.close();
 console.log(fails ? `${fails} FAILED` : 'ALL PASS');

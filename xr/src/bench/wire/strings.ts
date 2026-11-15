@@ -5,6 +5,8 @@ export const WIRE_STRINGS = table({
   en: {
     'wire.joined': '{a} to {b}',
     'wire.ticker': 'Wire joined {a} to {b}',
+    'wire.moved': 'Wire end moved to {a}',
+    'wire.pulled': 'Wire pulled out of {a}',
     'wire.remove': 'Remove',
     'wire.colour.red': 'Red',
     'wire.colour.black': 'Black',
@@ -20,6 +22,8 @@ export const WIRE_STRINGS = table({
   de: {
     'wire.joined': '{a} zu {b}',
     'wire.ticker': 'Draht verbunden: {a} zu {b}',
+    'wire.moved': 'Drahtende nach {a} versetzt',
+    'wire.pulled': 'Draht aus {a} gezogen',
     'wire.remove': 'Entfernen',
     'wire.colour.red': 'Rot',
     'wire.colour.black': 'Schwarz',
@@ -35,6 +39,8 @@ export const WIRE_STRINGS = table({
   es: {
     'wire.joined': '{a} a {b}',
     'wire.ticker': 'Cable unido: {a} a {b}',
+    'wire.moved': 'Extremo del cable movido a {a}',
+    'wire.pulled': 'Cable sacado de {a}',
     'wire.remove': 'Quitar',
     'wire.colour.red': 'Rojo',
     'wire.colour.black': 'Negro',
@@ -50,6 +56,8 @@ export const WIRE_STRINGS = table({
   fr: {
     'wire.joined': '{a} à {b}',
     'wire.ticker': 'Fil relié : {a} à {b}',
+    'wire.moved': 'Extrémité du fil déplacée vers {a}',
+    'wire.pulled': 'Fil retiré de {a}',
     'wire.remove': 'Retirer',
     'wire.colour.red': 'Rouge',
     'wire.colour.black': 'Noir',
@@ -65,6 +73,8 @@ export const WIRE_STRINGS = table({
   hi: {
     'wire.joined': '{a} से {b}',
     'wire.ticker': 'तार जुड़ा: {a} से {b}',
+    'wire.moved': 'तार का सिरा {a} पर ले जाया गया',
+    'wire.pulled': 'तार {a} से निकाला गया',
     'wire.remove': 'हटाएँ',
     'wire.colour.red': 'लाल',
     'wire.colour.black': 'काला',
@@ -80,6 +90,8 @@ export const WIRE_STRINGS = table({
   zh: {
     'wire.joined': '{a} 到 {b}',
     'wire.ticker': '已连线：{a} 到 {b}',
+    'wire.moved': '线端已移到 {a}',
+    'wire.pulled': '已从 {a} 拔出导线',
     'wire.remove': '删除',
     'wire.colour.red': '红',
     'wire.colour.black': '黑',
