@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { LANGS } from '../src/contracts/common';
 import { parity } from '../src/bench/core/text';
-import { pickVerb } from '../src/bench/core/router';
+import { paddedProxySize, pickVerb } from '../src/bench/core/router';
 import { createPullTracker, createTrackingLoss } from '../src/bench/core/gesture';
 import { rectRelativeToCorner } from '../src/bench/edit/carry';
 import {
@@ -123,6 +123,14 @@ describe('what a press means', () => {
     expect(pickVerb({ cell: false, body: true, edge: true })).toBe('body');
     expect(pickVerb({ cell: false, body: false, edge: true })).toBe('edge');
     expect(pickVerb({ cell: false, body: false, edge: false })).toBeNull();
+  });
+
+  it('keeps a thin component target thin while making its longest side reachable', () => {
+    const tiny = paddedProxySize(0.01, 0.003, 0.004, 0.03);
+    expect(tiny[0]).toBeCloseTo(0.03);
+    expect(tiny[1]).toBeCloseTo(0.009);
+    expect(tiny[2]).toBeCloseTo(0.012);
+    expect(paddedProxySize(0.06, 0.004, 0.004, 0.03)).toEqual([0.06, 0.004, 0.004]);
   });
 });
 

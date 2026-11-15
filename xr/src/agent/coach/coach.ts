@@ -26,6 +26,8 @@ export interface Coach {
   tick(): void;
   /** The last `n` sent, oldest first. */
   recent(n?: number): readonly Observation[];
+  /** Drops observations and queued context from the project that just closed. */
+  clear(): void;
   subscribe(fn: (o: Observation) => void): Unsubscribe;
 }
 
@@ -74,6 +76,11 @@ export function createCoach(now: () => number, opts: { gapMs?: number; size?: nu
       if (pending.length && now() - last >= gap) flush();
     },
     recent: (n = size) => ring.slice(-n),
+    clear() {
+      ring.length = 0;
+      pending = [];
+      last = -Infinity;
+    },
     subscribe(fn) {
       fns.add(fn);
       return () => fns.delete(fn);

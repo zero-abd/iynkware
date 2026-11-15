@@ -122,7 +122,9 @@ export function sessionButton(app: XrApp, o: SessionButtonOptions, initial: { la
   };
   // Session controls stay reachable, but yield when they visually overlap a work control on a large bench (the
   // drone build's XT60 and camera plates sit behind this cluster from some seated head poses).
-  const off = app.input.bind(face.mesh, { id: o.id, ray: true, poke: true, kind: 'panel' }, (e) => {
+  // This head-following cluster can occupy the controller's near-poke volume while its ray works on the bench. Keep it
+  // ray-driven so the invisible poke target cannot suppress the trigger intended for a work control behind it.
+  const off = app.input.bind(face.mesh, { id: o.id, ray: true, poke: false, kind: 'panel' }, (e) => {
     switch (e.type) {
       case 'hover-start':
         hovering++;
