@@ -27,6 +27,14 @@ const micBlocked = ({
   hi: 'माइक्रोफ़ोन अनुमति अवरुद्ध है। Quest Browser की साइट अनुमतियों में माइक्रोफ़ोन चालू करके पेज फिर लोड करें।',
   zh: '麦克风权限被阻止。请在 Quest Browser 的网站权限中允许麦克风，然后重新加载。',
 })[language] || 'Microphone access is blocked. Allow it in Quest Browser site permissions and reload.';
+const stages = ({
+  en: ['Waiting for microphone permission…', 'Starting voice audio…'],
+  de: ['Warte auf Mikrofonberechtigung…', 'Sprachaudio wird gestartet…'],
+  es: ['Esperando permiso del micrófono…', 'Iniciando audio de voz…'],
+  fr: ['En attente de l’autorisation du microphone…', 'Démarrage de l’audio vocal…'],
+  hi: ['माइक्रोफ़ोन अनुमति की प्रतीक्षा…', 'वॉइस ऑडियो शुरू हो रहा है…'],
+  zh: ['正在等待麦克风权限…', '正在启动语音音频…'],
+})[language] || ['Waiting for microphone permission…', 'Starting voice audio…'];
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
 let media, audio, socket, node, source;
@@ -150,13 +158,20 @@ function microphone() {
     });
   });
 }
+function deadline(promise, ms, code) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(code)), ms)),
+  ]);
+}
 async function enable() {
-  ui.enable.disabled = true; ui.status.textContent = connecting;
+  ui.enable.disabled = true; ui.status.textContent = stages[0];
   try {
-    const permission = await navigator.permissions?.query?.({name:'microphone'}).catch(() => null);
-    if (permission?.state === 'denied') throw new Error('microphone_blocked');
+    audio = new AudioContext({latencyHint:'interactive'});
+    const audioReady = Promise.all([audio.resume(), audio.audioWorklet.addModule('/voice/input-worklet.js')]);
     media = await microphone();
-    audio = new AudioContext({latencyHint:'interactive'}); await audio.audioWorklet.addModule('/voice/input-worklet.js'); await audio.resume();
+    ui.status.textContent = stages[1];
+    await deadline(audioReady, 5000, 'audio_blocked');
     ui.disable.disabled = false; ui.talk.disabled = false; ui.status.textContent = ready;
   } catch (error) { await disable(); ui.status.textContent = error?.message === 'microphone_blocked' ? micBlocked : failed; }
 }
