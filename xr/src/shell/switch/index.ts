@@ -11,7 +11,7 @@
  *   openCraft(app, id, at?)      any drone craft or robot template, then the Range place (or the bench, as above)
  *   goPlace(app, place)          the mode switch; `range` opens the drone first when no Range project is open
  *
- * Each closes Home and the lesson guide as needed, runs one switch at a time (`switching`), and says what failed as a
+ * Each closes Home and the lesson guide as needed, leaves any open lab (its items go with it), runs one switch at a time (`switching`), and says what failed as a
  * notice instead of throwing. `providePanel`/`openPanel` let Home and the menu open each other and the projects and
  * settings panels without importing them.
  */
@@ -20,6 +20,7 @@ import type { XrApp } from '../../contracts/app';
 import type { Lang, LocalizedText, ReadonlyValue } from '../../contracts/common';
 import { LANGS, pickText } from '../../contracts/common';
 import type { Place } from '../../contracts/shell';
+import { labOf } from '../../lab/context';
 import { value } from '../../ui/value';
 import { say } from '../copy';
 import { libraryOf } from '../library/types';
@@ -57,11 +58,21 @@ const failed = (): LocalizedText => Object.fromEntries(LANGS.map((l) => [l, say(
  */
 const SWITCH_LIMIT_MS = 15_000;
 
+/**
+ * Leaves the open lab, if any: its items go and the circuit bench comes back. Every switch does this first, so a lab's
+ * things never stay on the table under a drone, a project or a lesson, whoever asked (Home, the menu, the companion).
+ */
+export function leaveLab(app: XrApp): void {
+  const lab = labOf(app.world);
+  if (lab?.store.lab) lab.leave();
+}
+
 async function run(app: XrApp, what: () => Promise<unknown>): Promise<boolean> {
   const b = switching(app) as ReturnType<typeof value<boolean>>;
   if (b.value) return false;
   b.set(true);
   app.shell.closeHome();
+  leaveLab(app);
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
@@ -146,6 +157,7 @@ export function continueLast(app: XrApp): Promise<boolean> {
   const t = continueTarget(app);
   if (t.kind === 'bench') {
     app.shell.closeHome();
+    leaveLab(app);
     toBench(app);
     return Promise.resolve(true);
   }
@@ -194,6 +206,7 @@ export const openCraft = (app: XrApp, templateId: string, at: DroneAt = 'range')
 export function goPlace(app: XrApp, place: Place): Promise<boolean> {
   if (app.shell.offered.value.includes(place)) {
     app.shell.closeHome();
+    leaveLab(app);
     return Promise.resolve(app.shell.go(place));
   }
   return place === 'range' ? openDrone(app) : Promise.resolve(false);
