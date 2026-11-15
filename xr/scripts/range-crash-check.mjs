@@ -125,7 +125,6 @@ async function flyUntilCrash(mode) {
   }) : null;
   for (let i = 0; i < 4; i++) {
     await sticks(0, 0, 0, 0);
-    await page.evaluate(() => [window.iynkware.app.input.stick('left'), window.iynkware.app.input.stick('right')]);
     await sleep(250);
   }
   let s = await state();
@@ -140,8 +139,6 @@ async function flyUntilCrash(mode) {
   while (Date.now() - t0 < 150000) {
     s = await state();
     if (s.phase !== 'armed') break;
-    // reading the sticks each round keeps the emulator's gamepad state flowing into the page
-    await page.evaluate(() => [window.iynkware.app.input.stick('left'), window.iynkware.app.input.stick('right')]);
     // left stick y = -1 raises the throttle (forward is -1), right stick y = -1 pitches forward
     let want;
     if (target) {

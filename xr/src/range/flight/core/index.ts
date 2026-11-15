@@ -4,6 +4,7 @@
  */
 export * from './room';
 export * from './sticks';
+export * from './controls';
 export * from './gimbal';
 export * from './guide';
 export * from './runner';

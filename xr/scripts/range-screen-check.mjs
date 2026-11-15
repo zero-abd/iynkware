@@ -115,7 +115,6 @@ await pad('controller-left', [], [{ index: 0, value: 0 }, { index: 1, value: -1 
 await pad('controller-right', [], [{ index: 0, value: 0.4 }, { index: 1, value: -0.3 }]);
 const hashes = new Set();
 for (let i = 0; i < 6; i++) {
-  await page.evaluate(() => [window.iynkware.app.input.stick('left'), window.iynkware.app.input.stick('right')]);
   await sleep(350);
   hashes.add((await pixels()).h);
 }

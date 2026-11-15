@@ -14,7 +14,17 @@ import { movable } from '../../../ui/panels';
 import { rangeOf } from '../../activate';
 import { bindPlate, dropIn, fadeIn, INK, langOf, loadFlightText, onLookFrame, plateButton, textLabel, type Plate, type TextLabel } from '../../shared';
 import { loadDrone } from '../../shared';
-import { controllerSticks, createRunner, mapCourse, roomVolume, type FlightRunner, type RunnerEvent } from '../core';
+import {
+  controllerExpo,
+  createRunner,
+  mapCourse,
+  newControllerFrame,
+  readController,
+  roomVolume,
+  type ControllerFrame,
+  type FlightRunner,
+  type RunnerEvent,
+} from '../core';
 import { courseChoiceOf, pickCourse, pickerOpenOf } from '../picker/model';
 import { flightSceneOf, type FlightScene } from '../scene';
 import { drawCourse, type CourseDrawing } from './course';
@@ -297,13 +307,19 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   disposers.push(bindPlate(app, backPlate, 'range/room/back', () => void app.shell.go('bench')));
   disposers.push(bindPlate(app, craftPlate, 'range/room/craft', () => pickerOpenOf(app).set(!pickerOpenOf(app).value)));
 
-  // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks
+  // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks, read afresh every frame (`readController`)
   const claims: Array<{ owner: string; read: (out: Sticks) => void }> = [];
+  const pad: ControllerFrame = newControllerFrame();
   const sticks: Sticks = { throttle: 0.5, yaw: 0, pitch: 0, roll: 0 };
-  const left = app.input.stick('left');
-  const right = app.input.stick('right');
-  const buttonA = app.input.button('right', 'lower');
-  const buttonB = app.input.button('right', 'upper');
+  let expoMode = '';
+  let expo = 0;
+  const expoNow = (): number => {
+    if (runner.mode !== expoMode) {
+      expoMode = runner.mode;
+      expo = controllerExpo(flight.craft.modes.find((m) => m.id === expoMode));
+    }
+    return expo;
+  };
 
   const scene: FlightScene | null = drone
     ? {
@@ -352,11 +368,12 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
         dirty = false;
         return;
       }
-      if (buttonA.down) arm();
-      if (buttonB.down) reset();
+      readController(app.input, 2, expoNow(), pad);
+      if (pad.arm) arm();
+      if (pad.reset) reset();
       const claim = claims[claims.length - 1];
       if (claim) claim.read(sticks);
-      else controllerSticks(left, right, 2, sticks);
+      else Object.assign(sticks, pad.sticks);
       runner.setSticks(sticks);
       runner.tick(dt);
       const f = runner.frame;
