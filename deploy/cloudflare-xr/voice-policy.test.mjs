@@ -42,10 +42,10 @@ test("locks a single-use token to Gemini Live audio", () => {
   assert.deepEqual(request.bidiGenerateContentSetup.generationConfig.responseModalities, ["AUDIO"]);
   assert.deepEqual(LOCKED_LIVE_CONFIG.responseModalities, ["AUDIO"]);
   assert.equal(LOCKED_LIVE_CONFIG.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, "Puck");
-  assert.deepEqual(LOCKED_LIVE_CONFIG.inputAudioTranscription, {});
+  assert.deepEqual(LOCKED_LIVE_CONFIG.inputAudioTranscription, { languageCodes: ["en-US"] });
   assert.deepEqual(LOCKED_LIVE_CONFIG.outputAudioTranscription, {});
   assert.equal(LOCKED_LIVE_CONFIG.realtimeInputConfig.automaticActivityDetection.disabled, true);
-  assert.match(SYSTEM_INSTRUCTION, /Respond in English/);
+  assert.match(SYSTEM_INSTRUCTION, /RESPOND IN ENGLISH/);
   assert.deepEqual(LOCKED_LIVE_CONFIG.tools, []);
   assert.match(SYSTEM_INSTRUCTION, /UNTRUSTED_BENCH_CONTEXT/);
   assert.match(SYSTEM_INSTRUCTION, /never claim to change/i);

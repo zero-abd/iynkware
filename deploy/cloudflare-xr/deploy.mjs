@@ -107,7 +107,8 @@ function stageBuild(opts, staging) {
       const index = join(site, "index.html");
       const html = readFileSync(index, "utf8");
       if (!html.includes("/voice/demo.js")) {
-        writeFileSync(index, html.replace("</body>", '  <script type="module" src="/voice/demo.js"></script>\n  </body>'));
+        const version = git("rev-parse", "--short=12", "HEAD") || "dev";
+        writeFileSync(index, html.replace("</body>", `  <script type="module" src="/voice/demo.js?v=${version}"></script>\n  </body>`));
       }
     }
   }
