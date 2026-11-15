@@ -11,8 +11,10 @@
  *                                                              bench edits through it: edit.ts)
  *         open_lab, leave_lab, start_experiment, set_lab_control, request_item, next_step_hint
  *                                                             (the lab's own context and store, undoable, seen by the tutor)
- *         edit_bench, undo, redo, apply_fix, run_circuit      (tools/bench.ts: the project itself, one undo each)
- *   read  bench_actions, explain_problems                     (tools/bench.ts: the build actions, the circuit check)
+ *         edit_bench, add_part, undo, redo, apply_fix, run_circuit
+ *                                                             (tools/bench.ts: the project itself, one undo each)
+ *   read  bench_actions, explain_problems, find_parts         (tools/bench.ts: the build actions, the circuit check,
+ *                                                              the parts library)
  *
  * The companion's mode (`ToolHost.mode`): in `assist` it talks, reads, points, shows ghosts (propose_edit) and moves
  * nothing else: every tool in `CHANGES` refuses (moving around too). The one action Assist takes is `set_mode` to build,
@@ -103,6 +105,7 @@ export const CHANGES: ReadonlySet<string> = new Set([
   'set_lab_control',
   'request_item',
   'edit_bench',
+  'add_part',
   'undo',
   'redo',
   'apply_fix',

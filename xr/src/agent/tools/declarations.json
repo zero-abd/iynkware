@@ -41,7 +41,7 @@
   },
   {
     "name": "propose_build",
-    "description": "Start 'Build it with me': the co-builder proposes the first step of a template build as a ghost on the bench. Nothing changes until the person accepts. Only templates can be built today (for example Blink); a free request returns ok false.",
+    "description": "Start 'Build it with me' for a template project (for example Blink): the co-builder proposes each step as a ghost on the bench; nothing changes until the person accepts. Only for templates. For the person's own free build do not use this: go_to 'new project' for an empty workbench, then add_part for parts and edit_bench addWire for wires.",
     "parameters": {
       "type": "OBJECT",
       "properties": {
@@ -206,6 +206,27 @@
     }
   },
   {
+    "name": "find_parts",
+    "description": "Search the parts library (the shelf: every core part and the person's imported ones). Use it when the person asks whether a part exists or what parts there are. With no query it lists every part by group. Says inLibrary false when nothing matches.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": { "query": { "type": "STRING", "description": "The part in the person's words (ultrasonic sensor, red LED); leave out for everything." } }
+    }
+  },
+  {
+    "name": "add_part",
+    "description": "Put one part from the parts library on the circuit bench by name (LED, resistor, push button, servo, breadboard …): into a breadboard hole when hole is given, else loose in a row in front of the breadboard. Works on any project, an empty workbench too: no template needed. Comes back with inLibrary false when the library has no such part. One change the person can undo.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "name": { "type": "STRING", "description": "The part in the person's words, or a library ref from find_parts (core.led-5mm)." },
+        "hole": { "type": "STRING", "description": "Optional breadboard hole for its first leg (e12)." },
+        "deg": { "type": "INTEGER", "description": "With hole: rotation 0, 90, 180 or 270." }
+      },
+      "required": ["name"]
+    }
+  },
+  {
     "name": "undo",
     "description": "Take back the last change: on the circuit bench the person's or your own last edit or fix, in a lab the last change to a lab item, else the co-builder's last step. Refused in an exam.",
     "parameters": {
@@ -308,13 +329,13 @@
   },
   {
     "name": "go_to",
-    "description": "Go anywhere in the app from wherever the person is, leaving what is open first: a lab (chemistry, physics, electrical, signals and systems), the drone, the workbench, room size, Home, a template (blink, button, servo, piano, robot …) or a saved project, by name. Use it for 'go to', 'open', 'switch to', 'take me to'.",
+    "description": "Go anywhere in the app from wherever the person is, leaving what is open first: a lab (chemistry, physics, electrical, signals and systems), the drone, the workbench, room size, Home, a template (blink, button, servo, piano, robot …), a saved project by name, or 'new project': a new empty workbench (a blank Uno bench) to build their own thing. Use it for 'go to', 'open', 'switch to', 'take me to', and for 'start empty', 'clear the bench', 'start from scratch'.",
     "parameters": {
       "type": "OBJECT",
       "properties": {
         "where": {
           "type": "STRING",
-          "description": "The place, lab, template or project in the person's words, e.g. 'signals lab', 'drone', 'servo', 'workbench'."
+          "description": "The place, lab, template or project in the person's words, e.g. 'signals lab', 'drone', 'servo', 'workbench', 'new project'."
         }
       },
       "required": [

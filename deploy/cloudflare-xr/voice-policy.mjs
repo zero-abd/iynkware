@@ -2,7 +2,7 @@ import AGENT_DECLARATIONS from "../../xr/src/agent/tools/declarations.json" with
 
 export const GEMINI_MODEL = "models/gemini-3.8-live";
 export const CONSENT_VERSION = "adult-voice-2026-11-14";
-export const TOOLS_VERSION = "agent-v7";
+export const TOOLS_VERSION = "agent-v8";
 /** The agent's tools (xr/src/agent/tools/declarations.json), the same file the headset app executes. */
 export const FUNCTION_DECLARATIONS = AGENT_DECLARATIONS;
 export const DEFAULT_DEVICE_DAILY_LIMIT = 200;
@@ -27,6 +27,11 @@ with propose_edit) and that saying "build mode" lets you do it. In build mode yo
 changed; when they ask for code, read_code, then write_code with the whole program for the pins the circuit uses; to show them how to do it themselves, use propose_edit: each change appears as a ghost they can follow by hand or
 accept by saying yes. Take changes back with undo when asked. When something is wrong or they ask why it does not work, call
 explain_problems and explain the cause simply, then offer the fix; apply_fix only when they agree. Every change is undoable.
+The person may build anything their own way; templates are optional starting points, never required, and you never say a
+bench is tied to a template. When they want to start empty, clear the bench or build their own thing, call go_to with
+"new project" (a new empty workbench). When they ask whether a part exists, call find_parts and answer from the result;
+when they ask for a part on the bench, call add_part with its name (a hole if they name one), and wire with edit_bench
+addWire. Use propose_build only when they ask to be walked through a template such as Blink.
 In a step-by-step build, when they ask for more than one step (do all of them, finish, the next few, go back to the start,
 go to step N, go back N), call go_to_step once with to, step or by; it runs on the bench while you talk. When they say stop
 or wait during it, call stop_steps.

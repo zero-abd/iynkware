@@ -109,7 +109,7 @@ function blockers(state: Project, id: string, kind: "board" | "component", empti
     view.labels?.forEach((label, l) => {
       if (label.net !== undefined && emptied.has(label.net)) refs.push(pointer("views", v, "labels", l));
     });
-    if (view.surface === id) refs.push(pointer("views", v, "surface"));
+    if (view.surface === id && surfaceInUse(view)) refs.push(pointer("views", v, "surface"));
   });
   return refs;
 }
@@ -133,7 +133,27 @@ function dropFromNets(nets: readonly Net[], id: string, emptied: ReadonlySet<str
 }
 
 /** Removes the instance's placement, its wires and the junctions and group members that go with them. */
+/**
+ * A view's surface is in use while a placement has legs in its holes or a wire ends in a hole. An unused surface is a
+ * soft reference: removing its component clears it (and the inverse sets it back), so the first breadboard placed in a
+ * view can be undone, which `view.set` alone cannot express (it has no way to clear a surface).
+ */
+function surfaceInUse(view: View): boolean {
+  return (
+    view.placements.some((p) => p.legs !== undefined && Object.keys(p.legs).length > 0) ||
+    view.wires.some((w) => w.from.kind === "hole" || w.to.kind === "hole")
+  );
+}
+
 function dropFromView(view: View, id: string, emptied: ReadonlySet<string>): { view: View; restore: Op[] } {
+  const dropped = dropFromViewContents(view, id, emptied);
+  if (view.surface !== id) return dropped;
+  const next: View = { ...dropped.view };
+  delete next.surface;
+  return { view: next, restore: [...dropped.restore, { k: "view.set", id: view.id, surface: id }] };
+}
+
+function dropFromViewContents(view: View, id: string, emptied: ReadonlySet<string>): { view: View; restore: Op[] } {
   const placement = view.placements.find((p) => p.c === id);
   const deadWires = view.wires.filter((w) => emptied.has(w.net) || pinEnd(w.from, id) || pinEnd(w.to, id));
   const deadWireIds = new Set(deadWires.map((w) => w.id));
