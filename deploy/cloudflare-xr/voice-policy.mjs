@@ -1,8 +1,8 @@
 export const GEMINI_MODEL = "models/gemini-3.8-live";
 export const CONSENT_VERSION = "adult-voice-2026-11-14";
 export const TOOLS_VERSION = "ask-only-v1";
-export const DEFAULT_DEVICE_DAILY_LIMIT = 20;
-export const DEFAULT_GLOBAL_DAILY_LIMIT = 200;
+export const DEFAULT_DEVICE_DAILY_LIMIT = 500;
+export const DEFAULT_GLOBAL_DAILY_LIMIT = 1000;
 export const TOKEN_SESSION_MINUTES = 10;
 export const TOKEN_START_SECONDS = 60;
 

@@ -7,7 +7,7 @@ import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v2';
-const VOICE_BUILD = 'voice-ptt-en-v12';
+const VOICE_BUILD = 'voice-ptt-en-v13';
 const COPY = {
   en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold the right thumbstick click in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
@@ -39,7 +39,8 @@ const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
 let media, audio, socket, node, source, sink, connectTimer, responseTimer, completionTimer, zeroTimer;
 let active = false, released = false, setupReady = false, activityStarted = false, endSent = false, controllerDown = false, playbackAt = 0;
-let capRetried = false, trackNote = '';
+let capRetried = false, trackNote = '', turnId = 0, holdTimer, stickUpSince = 0;
+const MAX_HOLD_MS = 30_000, STICK_RELEASE_MS = 150;
 let playback = [];
 let pendingAudio = [];
 let preRoll = [];
@@ -65,16 +66,27 @@ function clearPlayback() {
   playback.forEach(item => { try { item.stop(); } catch {} });
   playback = []; playbackAt = audio?.currentTime || 0;
 }
+// Gemini's audio arrives in uneven bursts over Wi-Fi. Scheduling each chunk 20 ms ahead made every answer stutter.
+// An answer starts with a cushion that absorbs arrival jitter; if the queue still runs dry mid-answer, it resumes
+// after a short re-buffer that grows a little each time, so a slow link costs a brief pause, not a stutter.
+const START_CUSHION = 0.25, REBUFFER = 0.12, MAX_REBUFFER = 0.3;
+let cushion = START_CUSHION, answerChunks = 0;
 function play(encoded) {
   if (!audio) return;
   const raw = atob(encoded), samples = new Float32Array(Math.floor(raw.length / 2));
   for (let i = 0; i < samples.length; i++) { const n = raw.charCodeAt(i*2) | (raw.charCodeAt(i*2+1)<<8); samples[i] = (n >= 0x8000 ? n - 0x10000 : n) / 0x8000; }
   const buffer = audio.createBuffer(1, samples.length, 24000); buffer.copyToChannel(samples, 0);
   const item = audio.createBufferSource(); item.buffer = buffer; item.connect(audio.destination);
-  const at = Math.max(audio.currentTime + .02, playbackAt); playbackAt = at + buffer.duration; playback.push(item);
+  const now = audio.currentTime;
+  if (playbackAt < now + 0.01) {
+    if (answerChunks > 0) cushion = cushion === START_CUSHION ? REBUFFER : Math.min(MAX_REBUFFER, cushion + 0.06);
+    playbackAt = now + cushion;
+  }
+  const at = playbackAt; playbackAt += buffer.duration; answerChunks += 1; playback.push(item);
   item.addEventListener('ended', () => { playback = playback.filter(x => x !== item); }, {once:true}); item.start(at);
 }
 function closeTurn() {
+  clearTimeout(holdTimer); holdTimer = undefined;
   clearTimeout(zeroTimer); zeroTimer = undefined;
   clearTimeout(connectTimer); connectTimer = undefined;
   clearTimeout(responseTimer); responseTimer = undefined;
@@ -98,7 +110,7 @@ function peakOf(buffer) {
 function routeAudio(buffer) {
   const peak = peakOf(buffer); speechPeak = Math.max(speechPeak, peak);
   if (!activityStarted) {
-    preRoll.push(buffer); if (preRoll.length > 10) preRoll.shift();
+    preRoll.push(buffer); if (preRoll.length > 15) preRoll.shift();
     if (peak < 500) return;
     activityStarted = true;
     socket.send(JSON.stringify({realtimeInput:{activityStart:{}}}));
@@ -174,10 +186,16 @@ function onMessage(event) {
   if (content?.generationComplete || content?.turnComplete) finishTurn();
 }
 async function beginQuestion() {
-  if (!media || active) return;
-  clearPlayback();
+  if (!media) return;
+  if (active && !released) return;   // Talk is already held
+  if (active) { clearPlayback(); closeTurn(); active = false; }   // talking over an answer interrupts it
+  const turn = ++turnId;
+  clearPlayback(); cushion = START_CUSHION; answerChunks = 0;
   active = true; released = false; setupReady = false; activityStarted = false; endSent = false; pendingAudio = []; preRoll = []; audioChunks = 0; speechPeak = 0; capRetried = false;
-  ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
+  // The button stays enabled during a turn: some browsers drop pointerup on a disabled button, which left the
+  // question stuck listening, and an enabled button is what lets a second press interrupt the answer.
+  ui.status.textContent = connecting; bridge.state('connecting');
+  holdTimer = setTimeout(() => { if (turn === turnId) endQuestion(); }, MAX_HOLD_MS);
   try {
     // Keep ONE persistent stream, exactly like the probe page that measures real audio on this hardware. Quest
     // Browser hands back an all-zero stream when tracks are stopped and immediately reacquired per turn (the v9
@@ -187,21 +205,27 @@ async function beginQuestion() {
       stopCapture();
       media.getTracks().forEach(item => item.stop());
       media = watchTracks(await microphone());
+      if (turn !== turnId) return;
     }
     await audio.resume();
+    if (turn !== turnId) return;
     startCapture();
     zeroWatch();
     const response = await deadline(fetch('/api/voice/token', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),adultConsent:true,consentVersion:POLICY_VERSION,toolsVersion:TOOLS_VERSION})}), 5000, 'network');
+    if (turn !== turnId) return;
     if (!response.ok) throw new Error(response.status === 429 ? 'quota' : 'token');
     const grant = await response.json();
+    if (turn !== turnId) return;
     if (grant.model !== MODEL || typeof grant.token !== 'string') throw new Error('token');
     ui.status.textContent = 'Opening Gemini Live…';
-    socket = new WebSocket(SOCKET);
-    connectTimer = setTimeout(() => failTurn('Gemini connection timed out. Check Quest Wi-Fi and try again.'), 8000);
-    socket.addEventListener('open', () => socket.send(JSON.stringify({authToken:grant.token})));
-    socket.addEventListener('message', onMessage); socket.addEventListener('error', () => failTurn());
-    socket.addEventListener('close', () => { if (active) failTurn(); });
-  } catch (error) { failTurn(error.message === 'quota' ? quota : failed); }
+    // Events from a socket that belongs to an earlier, interrupted turn are ignored.
+    const ws = socket = new WebSocket(SOCKET);
+    connectTimer = setTimeout(() => { if (ws === socket) failTurn('Gemini connection timed out. Check Quest Wi-Fi and try again.'); }, 8000);
+    ws.addEventListener('open', () => { if (ws === socket) ws.send(JSON.stringify({authToken:grant.token})); });
+    ws.addEventListener('message', event => { if (ws === socket) onMessage(event); });
+    ws.addEventListener('error', () => { if (ws === socket) failTurn(); });
+    ws.addEventListener('close', () => { if (ws === socket && active) failTurn(); });
+  } catch (error) { if (turn === turnId) failTurn(error.message === 'quota' ? quota : failed); }
 }
 function watchTracks(stream) {
   const track = stream?.getAudioTracks?.()[0];
@@ -217,6 +241,7 @@ function watchTracks(stream) {
 // the turn going; the second check only reports, so a quiet person just sees the diagnostics.
 function zeroWatch() {
   clearTimeout(zeroTimer);
+  const turn = turnId;
   zeroTimer = setTimeout(async () => {
     zeroTimer = undefined;
     if (!active || released || activityStarted || speechPeak > 0) return;
@@ -230,11 +255,11 @@ function zeroWatch() {
       stopCapture();
       media?.getTracks().forEach(track => track.stop());
       const fresh = watchTracks(await microphone(true));
-      if (!active || released) { fresh.getTracks().forEach(track => track.stop()); return; }
+      if (turn !== turnId || !active || released) { fresh.getTracks().forEach(track => track.stop()); return; }
       media = fresh;
       startCapture();
       zeroWatch();
-    } catch { failTurn(micBlocked); }
+    } catch { if (turn === turnId) failTurn(micBlocked); }
   }, 1600);
 }
 function microphone(rawCapture) {
@@ -285,18 +310,28 @@ ui.talk.addEventListener('pointerdown', event => { event.preventDefault(); ui.ta
 for (const type of ['pointerup','pointercancel']) ui.talk.addEventListener(type, event => { event.preventDefault(); endQuestion(); });
 ui.talk.addEventListener('keydown', event => { if ([' ','Enter'].includes(event.key) && !event.repeat) { event.preventDefault(); void beginQuestion(); } });
 ui.talk.addEventListener('keyup', event => { if ([' ','Enter'].includes(event.key)) { event.preventDefault(); endQuestion(); } });
+// Polled on a timer rather than requestAnimationFrame, which a browser may pause while an immersive session owns the
+// display. A release has to last STICK_RELEASE_MS: a thumbstick click that flickers open for a frame mid-question
+// used to end the question halfway.
 function pollController() {
   const current = window.iynkware || root;
   const pressed = controllerTalkPressed(current);
-  if (pressed && !controllerDown) {
-    current?.app?.input?.pulse?.('right', .35, 35);
-    void beginQuestion();
+  if (pressed) {
+    stickUpSince = 0;
+    if (!controllerDown) {
+      controllerDown = true;
+      current?.app?.input?.pulse?.('right', .35, 35);
+      void beginQuestion();
+    }
+  } else if (controllerDown) {
+    const now = performance.now();
+    if (!stickUpSince) stickUpSince = now;
+    else if (now - stickUpSince >= STICK_RELEASE_MS) {
+      controllerDown = false; stickUpSince = 0;
+      current?.app?.input?.pulse?.('right', .18, 20);
+      endQuestion();
+    }
   }
-  if (!pressed && controllerDown) {
-    current?.app?.input?.pulse?.('right', .18, 20);
-    endQuestion();
-  }
-  controllerDown = pressed; requestAnimationFrame(pollController);
 }
-requestAnimationFrame(pollController);
+setInterval(pollController, 20);
 window.addEventListener('pagehide', disable, {once:true});

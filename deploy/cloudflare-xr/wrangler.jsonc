@@ -29,8 +29,8 @@
   },
   "secrets": { "required": ["GEMINI_API_KEY"] },
   "vars": {
-    "VOICE_DEVICE_DAILY_LIMIT": "20",
-    "VOICE_GLOBAL_DAILY_LIMIT": "200"
+    "VOICE_DEVICE_DAILY_LIMIT": "500",
+    "VOICE_GLOBAL_DAILY_LIMIT": "1000"
   },
   // Previews use the top-level assets and compatibility date; nothing else needs a Preview value.
   "previews": {}
