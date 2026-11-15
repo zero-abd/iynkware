@@ -71,6 +71,8 @@ export const AGENT_TEXT = {
     nothingRedo: l6('There is nothing to redo.', 'Es gibt nichts wiederherzustellen.', 'No hay nada que rehacer.', 'Il n’y a rien à rétablir.', 'फिर से करने को कुछ नहीं है।', '没有可重做的操作。'),
     changed: l6('Done: {what}. Say “undo” to take it back.', 'Erledigt: {what}. Sag „rückgängig“, um es zurückzunehmen.', 'Hecho: {what}. Di «deshacer» para revertirlo.', 'Fait : {what}. Dis « annuler » pour revenir en arrière.', 'हो गया: {what}। वापस लेने के लिए “वापस लो” कहो।', '完成：{what}。说“撤销”可以撤回。'),
     cannotChange: l6('I could not do that: {why}', 'Das konnte ich nicht tun: {why}', 'No pude hacerlo: {why}', 'Je n’ai pas pu le faire : {why}', 'मैं यह नहीं कर सका: {why}', '我做不到：{why}'),
+    went: l6('Here you are: {where}.', 'Da sind wir: {where}.', 'Aquí estás: {where}.', 'Te voilà : {where}.', 'आप यहाँ हैं: {where}।', '到了：{where}。'),
+    cannotGo: l6('I could not open {where}.', 'Ich konnte {where} nicht öffnen.', 'No pude abrir {where}.', 'Je n’ai pas pu ouvrir {where}.', 'मैं {where} नहीं खोल सका।', '我没能打开{where}。'),
     running: l6('The circuit is running.', 'Die Schaltung läuft.', 'El circuito está en marcha.', 'Le circuit tourne.', 'सर्किट चल रहा है।', '电路正在运行。'),
     stopped: l6('The circuit is stopped.', 'Die Schaltung ist angehalten.', 'El circuito está detenido.', 'Le circuit est arrêté.', 'सर्किट रुक गया है।', '电路已停止。'),
     finding: l6('A problem was found here. Stop the run and check this part.', 'Hier wurde ein Problem gefunden. Halte den Lauf an und prüfe dieses Teil.', 'Se encontró un problema aquí. Detén la ejecución y revisa esta pieza.', 'Un problème a été trouvé ici. Arrête l’exécution et vérifie cette pièce.', 'यहाँ एक समस्या मिली। रन रोको और यह हिस्सा जाँचो।', '这里发现了问题。停止运行并检查这个零件。'),
