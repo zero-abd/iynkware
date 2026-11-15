@@ -3,70 +3,17 @@
  * simulation that only records calls and states, and iynk's real check runner inline (Node has no Worker).
  */
 import { sha256Hex } from '@/core/sha256';
-import { memoryLearnKv } from '@/local/progress';
 import { emptyRecord, withAnswer, withCompletion, withEdited, withLastRun, type LearnerRecord } from '@/project/guided/record';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { XrApp } from '../../src/contracts/app';
-import type { Lang } from '../../src/contracts/common';
 import type { Op, Project } from '../../src/contracts/project';
-import type { RunState } from '../../src/contracts/sim';
 import { forkLesson, loadTemplate, templateIdOf } from '../../src/learn/content';
-import { createLessonSlot, lessonSlot } from '../../src/learn/launcher';
-import { createProgressStore } from '../../src/learn/progress';
+import { lessonSlot } from '../../src/learn/launcher';
 import { attachLessons, createLessonSession, EVAL_DELAY_MS } from '../../src/learn/session';
 import type { LessonSession } from '../../src/learn/types';
-import { createProjectStore } from '../../src/project/store';
-import { value } from '../../src/ui/value';
+import { MemoryStorage, rig } from './app-double';
 
-class MemoryStorage {
-  private m = new Map<string, string>();
-  getItem = (k: string) => this.m.get(k) ?? null;
-  setItem = (k: string, v: string) => void this.m.set(k, String(v));
-  removeItem = (k: string) => void this.m.delete(k);
-}
 const g = globalThis as unknown as { localStorage?: MemoryStorage };
-
-function fakeSim() {
-  let state: RunState = 'unloaded';
-  const fns = new Set<(s: RunState) => void>();
-  const set = (s: RunState) => {
-    state = s;
-    for (const fn of [...fns]) fn(s);
-  };
-  const calls: string[] = [];
-  return {
-    calls,
-    get state() {
-      return state;
-    },
-    async load(doc: Project) {
-      calls.push(`load:${doc.id}`);
-      set('idle');
-      return { ok: true, diagnostics: [] };
-    },
-    async stop() {
-      calls.push('stop');
-      if (state !== 'unloaded') set('idle');
-    },
-    async run() {
-      calls.push('run');
-      set('running');
-    },
-    onState(fn: (s: RunState) => void) {
-      fns.add(fn);
-      return () => void fns.delete(fn);
-    },
-  };
-}
-
-function rig(doc: Project) {
-  const lessons = createLessonSlot();
-  const sim = fakeSim();
-  const lang = value<Lang>('en');
-  const progress = createProgressStore({ kv: memoryLearnKv() });
-  const app = { project: createProjectStore(doc), sim, settings: { lang }, progress, lessons, guide: lessons.guide } as unknown as XrApp;
-  return { app, sim, lang, progress };
-}
 
 let blink: Project;
 beforeAll(async () => {

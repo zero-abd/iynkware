@@ -78,6 +78,15 @@ function manualStates(count: number, record: LearnerRecord | undefined): StepSta
   });
 }
 
+/**
+ * The headset has no legacy 2D figure, so a tour's legacy-state gates (which the engine holds as blocked for ever) become
+ * manual ones: the learner ticks those steps with Next, as the Studio does for a project with no figure.
+ */
+export function withoutLegacyGates(plan: GuidedPlan): GuidedPlan {
+  if (!plan.gates.some((g) => g.kind === 'legacy-state')) return plan;
+  return { ...plan, gates: plan.gates.map((g): StepGate => (g.kind === 'legacy-state' ? { step: g.step, kind: 'manual' } : g)) };
+}
+
 export function evaluateLesson(
   doc: Project,
   plan: GuidedPlan | null,
@@ -89,7 +98,7 @@ export function evaluateLesson(
   const startRevision = doc.history.checkpoints.find((c) => c.label === START_LABEL)?.revision ?? 0;
   const input: GuideInput = {
     project: doc,
-    plan: plan ?? MANUAL_PLAN,
+    plan: plan === null ? MANUAL_PLAN : withoutLegacyGates(plan),
     record,
     run,
     activeFaults: activeFaults(doc),
