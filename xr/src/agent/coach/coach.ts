@@ -1,12 +1,26 @@
 /**
  * Coach observations: compact English lines about what the person is doing, for a model to speak up unasked. Pushed
  * from the lab tutor, the project, the simulation and findings (coach/index.ts); coalesced so at most one goes out
- * per `gapMs` (several in that window merge into one), kept in a ring of `size`. A hazard goes out at once, alone.
+ * per `gapMs` (several in that window merge into one), kept in a ring of `size`. A hazard goes out at once, alone. Pose
+ * and dwell lines (coach/pose.ts) come through the same push, already rate limited at their source.
  */
 import type { Unsubscribe } from '../../contracts/common';
 import type { L6 } from '../../lab/text';
 
-export type ObservationKind = 'lab-step' | 'lab-mistake' | 'lab-action' | 'hazard' | 'project' | 'sim' | 'finding' | 'lesson' | 'mixed';
+export type ObservationKind =
+  | 'lab-step'
+  | 'lab-mistake'
+  | 'lab-action'
+  | 'hazard'
+  | 'project'
+  | 'sim'
+  | 'finding'
+  | 'lesson'
+  /** What the person looks at and has in or near each hand (coach/pose.ts). */
+  | 'pose'
+  /** On one thing with no action for a while: stuck or hesitating (coach/pose.ts). */
+  | 'dwell'
+  | 'mixed';
 
 export interface Observation {
   /** Milliseconds (the coach's clock). */

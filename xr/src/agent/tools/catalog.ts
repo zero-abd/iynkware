@@ -65,6 +65,8 @@ export interface ToolHost {
   observations(n: number): readonly Observation[];
   /** World point of a bench target, or null when it is not on the bench; absent in tests without a bench. */
   locate?(t: BoardTarget): unknown;
+  /** What the person looks at and has in or near each hand now, one line, or null; absent in tests without poses. */
+  pose?(): string | null;
 }
 
 export const DECLS = DECLARATIONS as unknown as readonly FunctionDeclaration[];
@@ -281,6 +283,8 @@ export function lookNow(h: ToolHost): Record<string, unknown> {
   const st = h.assistant.session.value?.state.value;
   out.cobuild = st ? { status: st.status, current: st.current ? { key: st.current.key, label: st.current.label, reason: st.current.reason } : null, performed: st.performed.length } : null;
   out.callouts = h.callouts.list.map((c) => ({ id: c.id, target: c.target.name, text: c.text }));
+  const pose = h.pose?.();
+  if (pose) out.pose = pose;
   out.observations = h.observations(5).map((o) => ({ kind: o.kind, text: o.text }));
   return out;
 }

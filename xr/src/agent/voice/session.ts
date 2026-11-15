@@ -10,7 +10,7 @@
  *   release   `activityEnd`.
  *   replies   transcripts to `agent.user` / `agent.say` (deltas, final on `turnComplete`), audio to the player,
  *             `toolCall.functionCalls` to `agent.call` and back as `toolResponse.functionResponses` with the same ids.
- *   coach     a mistake or hazard observation while idle: one short text turn per COACH_MS at most.
+ *   coach     a mistake, hazard or dwell (stuck) observation while idle: one short text turn per COACH_MS at most.
  *
  * In a dev build with no Worker (the token route answers 404) `dev` opens the plain v1beta endpoint with the full setup;
  * voice/index.ts passes it only under `import.meta.env.DEV`, so a production build carries neither the URL nor a key.
@@ -332,7 +332,7 @@ export function createVoiceSession(d: VoiceDeps): VoiceSession {
 
   const offObserve = d.agent.observe((o: Observation) => {
     if (!coachOn || closed || !live?.ready || talking || answering) return;
-    if (o.kind !== 'hazard' && o.kind !== 'lab-mistake') return;
+    if (o.kind !== 'hazard' && o.kind !== 'lab-mistake' && o.kind !== 'dwell') return;
     if (d.now() - lastCoach < COACH_MS) return;
     lastCoach = d.now();
     answering = true;

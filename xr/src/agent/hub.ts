@@ -18,6 +18,8 @@ export interface AgentHub {
   bridge: AgentBridge | null;
   /** The microphone level while the person talks (voice), else null. */
   micLevel: (() => number | null) | null;
+  /** The current pose view in one line (`looking at RES1; right hand near LED1`), or null (coach/pose.ts). */
+  pose: (() => string | null) | null;
 }
 
 const hubs = new WeakMap<object, AgentHub>();
@@ -26,7 +28,7 @@ const clock = () => (typeof performance !== 'undefined' ? performance.now() : Da
 export function agentOf(world: object): AgentHub {
   let h = hubs.get(world);
   if (!h) {
-    h = { conversation: createConversation(), callouts: createCalloutList(clock), coach: createCoach(clock), now: clock, tools: null, host: null, bridge: null, micLevel: null };
+    h = { conversation: createConversation(), callouts: createCalloutList(clock), coach: createCoach(clock), now: clock, tools: null, host: null, bridge: null, micLevel: null, pose: null };
     hubs.set(world, h);
   }
   return h;

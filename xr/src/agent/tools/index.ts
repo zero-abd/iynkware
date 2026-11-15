@@ -21,6 +21,7 @@ export const toolsModule: FeatureModule = {
       conversation: hub.conversation,
       observations: (n) => hub.coach.recent(n),
       locate: (t) => app.bench.worldOf(t),
+      pose: () => hub.pose?.() ?? null,
     };
     hub.host = host;
     hub.tools = createTools(host);
