@@ -1,12 +1,16 @@
 # iynkware
 
-iynkware is the headset version of [iynk](https://iynk.tech), a free hardware lab in the browser. The aim: on a Meta
-Quest 3S, with controllers or hand tracking, a person builds hardware projects on a spatial workbench, runs and stress
-tests them in an immersive scene, and learns along the way.
+iynkware is the headset version of [iynk](https://iynk.tech), a free hardware lab in the browser. On a Meta Quest 3S,
+with controllers or hand tracking, a person builds hardware projects on a spatial workbench in passthrough, runs and
+breaks them in real simulation, does science labs, flies the drone they built around their own room, and talks to an
+AI companion that watches the bench and builds with them.
 
-None of the headset app is merged yet. Today this repository holds the 2D iynk app, copied from iynk on 2026-11-14 with
-no shared history. [docs/STATE.md](docs/STATE.md) is the record of what exists and what does not; where this page and
-it disagree, it wins.
+**Live demo:** https://iynkware-xr.asnu.workers.dev/ — open it in the Quest's browser and press Enter; it also runs
+flat on a desktop browser. The headset app lives in `xr/` and was built during Immerse the Bay 2026 (StanfordXR) on
+top of the 2D iynk app, which this repository holds too (copied from iynk on 2026-11-14 with no shared history).
+[docs/DEVPOST.md](docs/DEVPOST.md) is the submission write-up: what it does, how the AI works, and the social-good
+case. [docs/STATE.md](docs/STATE.md) is the record of what exists and what does not; where this page and it disagree,
+it wins.
 
 ## What exists today
 
@@ -32,17 +36,34 @@ model and are there to show the idea. It does not replace a bench, a compiler or
 
 ![A Board Lab lesson in the 2D app: Blink on the Arduino Uno R3](docs/media/lab.jpg)
 
-## What is being built
+## The headset app
 
-| Piece | Where | Its doc (being written) |
+What a person can do today, in six languages, with hands or controllers ([docs/DEVPOST.md](docs/DEVPOST.md) tells it
+in full, [docs/STATE.md](docs/STATE.md) keeps the checked record):
+
+- **Bench:** parts from a shelf, wiring by hand with grabbable wire ends, movable panels with grip bars, Tidy up,
+  Recentre, and a Home panel that reaches everything.
+- **Run:** the circuit simulated in a Web Worker on the device — current dots on the wires, node voltages, LED halos,
+  an editable code window that marks the running line, meters and a fault lab.
+- **Learn:** guided lessons with highlights on the bench, checks, and first-run onboarding.
+- **Labs:** chemistry, physics, electrical and signals — practice and exam, a tutor, and a Data tab that plots what
+  you measure. Switched from Home.
+- **Range:** design a quad on the drone workbench, fly it in your room on a course scaled to your space, FPV and
+  chase screens, crash replay at the crash point, "Simulate here" around you, and robot arenas on the floor.
+- **AI companion:** hold Talk and speak (Gemini Live through a Cloudflare token broker; the key never reaches the
+  headset). It navigates you anywhere, proposes edits as ghosts, builds circuits and drones with you step by step,
+  and follows the bench through structured events — no camera.
+
+| Piece | Where | Its doc |
 |---|---|---|
 | The headset app, on the Meta Immersive Web SDK and three.js, built with Vite | `xr/` | `docs/XR_ARCHITECTURE.md` |
+| The voice companion: tools, coach, Gemini Live | `xr/src/agent/` | `docs/XR_AGENT.md` |
 | 3D assets generated from the figure sources in `figures/` | `tools/xr-assets/` | `docs/XR_ASSETS.md` |
 | Deployment of the headset app to Cloudflare | `deploy/cloudflare-xr/` | `docs/XR_DEPLOY.md` |
 
-The headset app is to reuse the 2D app's simulation, project, content and i18n code; `docs/XR_ARCHITECTURE.md` sets
-the folder layout and the shared contract files. What in the 2D app refuses WebXR today (the Permissions-Policy and the
-content security policy) is under open items in docs/STATE.md. No headset test setup or hosted copy exists yet.
+The headset app reuses the 2D app's simulation, project, content and i18n code; `docs/XR_ARCHITECTURE.md` sets the
+folder layout and the shared contract files. What in the 2D app refuses WebXR today (the Permissions-Policy and the
+content security policy) is under open items in docs/STATE.md.
 
 ## Run the 2D app
 
@@ -85,9 +106,9 @@ NODE_OPTIONS=--max-old-space-size=4096 bash scripts/ci-local.sh --only content,t
 ## Project layout
 
 ```
-xr/                      the headset app (being built)
-tools/xr-assets/         3D assets from the figure sources (being built)
-deploy/cloudflare-xr/    the headset app's Cloudflare deployment (being built)
+xr/                      the headset app
+tools/xr-assets/         3D assets from the figure sources
+deploy/cloudflare-xr/    the headset app's Cloudflare deployment and voice token broker
 src/app                  pages and API routes of the 2D app, one page per lab item, in six languages
 src/components           lab UIs, Studio, the shell, the landing page, shared ui
 src/content              boards, benches and drones: lessons, steps, faults, checks

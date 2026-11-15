@@ -14,12 +14,17 @@ it without a USB cable. Everything for the deploy lives in [deploy/cloudflare-xr
 
 ### Live URLs
 
-Checked on 2026-11-14:
+Checked on 2026-11-15:
 
 | URL | Serves |
 |---|---|
-| https://iynkware-xr.almahmud-zero.workers.dev | Production: `xr/dist` built from `main`, deployed by hand (last on 2026-11-14 from `a26a57e`). |
+| https://iynkware-xr.asnu.workers.dev | **The demo for judging.** The same Worker on Aaren's Cloudflare account: `xr/dist` built from `main`, plus the voice token broker with `GEMINI_API_KEY` set as a Worker secret (`npx wrangler secret put GEMINI_API_KEY`), deployed by hand. |
+| https://iynkware-xr.almahmud-zero.workers.dev | Production on zero-abd's account: `xr/dist` built from `main`, deployed by hand. |
 | https://test-page-iynkware-xr.almahmud-zero.workers.dev | A Preview with the deploy test page: one cube, an Enter button, a list of what the headers allow. |
+
+The Worker name and routes come from `wrangler.jsonc`, so `npm run deploy` deploys to whichever Cloudflare account
+Wrangler is logged in to (`npx wrangler whoami`); the voice demo caps (sessions per device per day) are in
+`voice-policy.mjs`.
 
 **These URLs are public.** Anyone with the link can open them, while the repo stays private. Whatever is deployed
 can be read by anyone: the built JavaScript, the scene files, the assets. Do not deploy anything that must stay
