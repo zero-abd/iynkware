@@ -33,6 +33,7 @@ import {
 import { claimFocus, onFocusLost } from '../switch/focus';
 import type { IconName } from '../../look/icons';
 import { HOME, LANG_NAMES } from './copy';
+import { learnSpotEntry } from './entry';
 
 /** Viewing distance and the grid, in dmm (9.1, 9.6). */
 const D = 0.95;
@@ -76,7 +77,7 @@ function cells(app: XrApp, lang: Lang): { title: string; rows: Array<{ kicker?: 
   };
   const fresh: Cell = { id: 'home/new', look: { label: t('newProject'), detail: t('newDetail'), icon: 'plus', layout: 'row', disabled: busy || !lib }, run: go(() => newProject(app)) };
 
-  const lessonEntry = app.shell.entries.value.find((e) => e.slot === 'lessons');
+  const lessonEntry = learnSpotEntry(app.shell.entries.value);
   const learn: Cell[] = [
     { id: 'home/blink', look: { label: t('blink'), detail: t('blinkDetail'), icon: 'lightbulb', layout: 'row', disabled: busy }, run: go(() => openLesson(app, BLINK)) },
     lessonEntry
