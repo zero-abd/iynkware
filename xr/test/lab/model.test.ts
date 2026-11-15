@@ -133,17 +133,17 @@ describe('lab item models (ported from the figures)', () => {
     expect(k.mistake(st, NO_ENV)).toBe('too-hot');
   });
 
-  it('pendulum: T = 2π√(L/g) for small swings, large-angle above 15°, record needs 10 swings', () => {
+  it('pendulum: T = 2π√(L/g) for small swings, large-angle above 15°, record and length free while it swings', () => {
     expect(periodSmall(400)).toBeCloseTo(1.269, 3);
     expect(period(400, 45) / periodSmall(400)).toBeGreaterThan(1.03);
     const k = MODELS['pendulum-stand']!;
     let st = act('pendulum-stand', k.init({ amplitude: 10 }), 'swing');
-    expect(isRefusal(k.apply(st, { type: 'record' }, NO_ENV))).toBe(true);
+    expect(isRefusal(k.apply(st, { type: 'record' }, NO_ENV))).toBe(false);
     run('pendulum-stand', st, 13_000);
     expect(k.report(st, NO_ENV).swings).toBe(10);
     st = act('pendulum-stand', st, 'record');
     expect(k.report(st, NO_ENV).r1T).toBeCloseTo(1.27, 2);
-    expect(isRefusal(k.apply(st, { type: 'length' }, NO_ENV))).toBe(true);
+    expect(isRefusal(k.apply(st, { type: 'length' }, NO_ENV))).toBe(false);
     st = act('pendulum-stand', k.init({ amplitude: 20 }), 'swing');
     expect(k.mistake(st, NO_ENV)).toBe('large-angle');
   });

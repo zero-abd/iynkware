@@ -1,6 +1,6 @@
 // The agent pillar in the IWER emulator, headless: enter the session, open the Chemistry lab, ask "where is the
 // burner" (the scripted brain points at it: a callout whose leader starts at the burner), turn the gas on and leave it
-// unlit (a local hazard callout from the burner, with no brain involved), then a fake brain registered with `use` that
+// unlit (a hazard observation for the companion, and nothing popping up over the bench), then a fake brain registered with `use` that
 // calls point_at and streams its words (the speech bubble shows them), then voice: enabled from the 2D button with a
 // fake Gemini socket (the dev build's test seam), held to talk with the fake microphone, the fake answer's transcript
 // in the bubble and its tool call's callout on the beaker.
@@ -89,7 +89,7 @@ const c1 = where.callouts[0];
 check('"where is the burner" -> a callout whose leader starts over the burner', where.callouts.length === 1 && near(c1.start, where.burner, 0.02) && c1.start[1] > where.burner[1] + 0.03 && c1.end[1] > c1.start[1], where);
 await shot('agent-1-where-burner');
 
-// Gas on, not lit: the coach shows a hazard callout from the burner by itself (no brain involved).
+// Gas on, not lit: the coach notes a hazard for the companion, and nothing pops up over the bench (no lab pop-ups).
 await page.evaluate(() => {
   window.iynkware.agent.call('clear_callouts', {});
   window.iynkware.agent.use({ name: 'silent', turn() {}, observe() {} });
@@ -97,12 +97,9 @@ await page.evaluate(() => {
   window.iynkware.lab.store.apply(b.id, { type: 'gas' });
 });
 const t0 = Date.now();
-await page.waitForFunction(() => window.iynkware.world.scene.getObjectByName('agent:callouts').children.some((g) => g.visible), null, { timeout: 6000 }).catch(() => undefined);
-const hazard = await page.evaluate(() => {
-  const b = window.iynkware.lab.store.byKind('bunsen-burner');
-  return { burner: window.__pos(window.iynkware.world.scene.getObjectByName(`lab-item:${b.id}`)), callouts: window.__callouts(), obs: window.iynkware.agent.observations(5).map((o) => o.kind) };
-});
-check('gas on unlit -> a local hazard callout from the burner within 6 s', hazard.callouts.length === 1 && near(hazard.callouts[0].start, hazard.burner, 0.02) && hazard.obs.includes('hazard'), { ...hazard, ms: Date.now() - t0 });
+await page.waitForFunction(() => window.iynkware.agent.observations(5).some((o) => o.kind === 'hazard'), null, { timeout: 6000 }).catch(() => undefined);
+const hazard = await page.evaluate(() => ({ callouts: window.__callouts(), obs: window.iynkware.agent.observations(5).map((o) => o.kind) }));
+check('gas on unlit -> a hazard observation within 6 s, and no callout over the bench', hazard.callouts.length === 0 && hazard.obs.includes('hazard'), { ...hazard, ms: Date.now() - t0 });
 await sleep(400);
 await shot('agent-2-hazard');
 await page.evaluate(() => {

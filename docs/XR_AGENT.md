@@ -13,7 +13,7 @@ xr/src/agent/
   knowledge/              the scene brief: what the companion knows where the person is, built from the registries
   mode/                   Assist or Build: the button over the bunny and the Tools menu switch
   bubbles/                model.ts (conversation, callout list), speech.ts, callouts.ts
-  coach/                  coach.ts (coalescing ring), index.ts (sources, local hazard callouts)
+  coach/                  coach.ts (coalescing ring), index.ts (sources; lab hazards are observations, not callouts)
   bridge/                 bridge.ts, scripted.ts (the default brain), index.ts (window, menu row, Ask panel)
 ```
 

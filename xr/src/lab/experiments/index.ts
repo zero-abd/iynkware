@@ -61,11 +61,12 @@ export function mountLabPanel(app: XrApp, lab: LabContext): Unsubscribe {
       ui.text(t(LAB_UI.examNote), pad, y + 10 * u, W - 2 * pad, { role: TYPE.caption, colour: MUTED, maxLines: 1 });
       return;
     }
-    const ev = lab.tutor.recent.at(-1);
+    // Guidance only (the step, praise, a hint): warnings and refusals go to the companion, not the panel.
+    const ev = lab.tutor.recent.findLast((e) => e.kind !== 'warn' && e.kind !== 'hazard');
     const text = hint ?? ev?.text;
     if (!text) return;
-    const tone = hint ? STATE.info : ev?.kind === 'hazard' ? STATE.bad : ev?.kind === 'warn' ? STATE.warn : ev?.kind === 'praise' ? STATE.good : INK;
-    ui.icon(hint || ev?.kind === 'hint' ? 'lightbulb' : ev?.kind === 'hazard' || ev?.kind === 'warn' ? 'warning' : 'info', pad, y + 10 * u, 26 * u, tone);
+    const tone = hint ? STATE.info : ev?.kind === 'praise' ? STATE.good : INK;
+    ui.icon(hint || ev?.kind === 'hint' ? 'lightbulb' : 'info', pad, y + 10 * u, 26 * u, tone);
     ui.text(t(text), pad + 34 * u, y + 10 * u, W - 2 * pad - 34 * u, { role: TYPE.caption, colour: tone, maxLines: 2 });
   };
 
