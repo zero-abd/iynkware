@@ -4,7 +4,7 @@
  * wire opens its chip: ten colours and Remove. A pin or hole always wins over a part body (no tool mode), except a hole
  * a seated leg occupies, which is the part's.
  */
-import { Quaternion, Vector3 } from '@iwsdk/core';
+import { Vector3 } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { Unsubscribe, Vec3 } from '../../contracts/common';
 import type { Hand } from '../../contracts/input';
@@ -18,8 +18,10 @@ import { benchKit } from '../core/kit';
 import { routerOf, type BenchPress } from '../core/router';
 import { say } from '../core/text';
 import { benchInternals, type BenchInternals } from '../space';
+import { aimFreeEnd } from './aim';
 import { openChip, type Chip } from './chip';
 import { endOfCell, refOfCell, sameCell, underSeatedBody } from './ends';
+import { createWireBeads, type WireBeads } from './beads';
 import { createWireHits } from './hits';
 import { createPendingWire } from './pending';
 import { WIRE_STRINGS } from './strings';
@@ -42,8 +44,6 @@ interface Pending {
 
 const _a = new Vector3();
 const _o = new Vector3();
-const _d = new Vector3();
-const _q = new Quaternion();
 
 export const wireModule: FeatureModule = {
   id: 'bench/wire',
@@ -63,6 +63,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
   const timers = new Set<ReturnType<typeof setTimeout>>();
   let cur: Pending | null = null;
   let chip: Chip | null = null;
+  let beads: WireBeads | null = null;
 
   const worldOf = (p: Vector3): Vec3 => {
     _a.copy(p);
@@ -86,6 +87,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
   const closeChip = () => {
     chip?.close();
     chip = null;
+    beads?.refocus();
   };
 
   // ---- the pending wire --------------------------------------------------------------------------------------------
@@ -96,30 +98,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
   };
 
   /** Where the free end is this frame: the ringed cell's anchor, else the pinch point (near) or the ray on the plane. */
-  const aim = (p: Pending): boolean => {
-    const pose = app.input.pose(p.hand);
-    if (!pose) return false;
-    const ring = router.ringed(p.hand);
-    if (ring && !sameCell(ring, p.press.cell) && bi.anchorBoard(ring.part, ring.anchor, _o)) {
-      p.end.copy(_o);
-      return true;
-    }
-    if (p.press.near) {
-      p.end.set(pose.position[0], pose.position[1], pose.position[2]);
-      root.worldToLocal(p.end);
-      return true;
-    }
-    _o.set(pose.ray.origin[0], pose.ray.origin[1], pose.ray.origin[2]);
-    _d.set(pose.ray.direction[0], pose.ray.direction[1], pose.ray.direction[2]);
-    root.worldToLocal(_o);
-    // a direction only turns with the board frame (it is turned about +y and scaled evenly)
-    root.getWorldQuaternion(_q).invert();
-    _d.applyQuaternion(_q).normalize();
-    if (Math.abs(_d.y) < 1e-4) return true;
-    const t = (p.start.y - _o.y) / _d.y;
-    if (t > 0 && t < 10) p.end.copy(_o).addScaledVector(_d, t);
-    return true;
-  };
+  const aim = (p: Pending): boolean => aimFreeEnd(app, bi, router, root, p.hand, p.press.near, p.press.cell, p.start.y, p.end);
 
   const finish = (p: Pending) => {
     const lang = app.settings.lang.value;
@@ -167,7 +146,7 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
   // ---- start -------------------------------------------------------------------------------------------------------
 
   const offCell = router.on('cell', (press) => {
-    if (cur || !press.cell || !press.hand) return null;
+    if (cur || beads?.dragging() || !press.cell || !press.hand) return null;
     const from = endOfCell(app.project.doc, bi.surface, press.cell.part, press.cell.anchor);
     // the holes between a seated part's legs are under its body: a pinch there grabs the part
     if (press.cell.part === bi.surface && underSeatedBody(app.project.doc, press.cell.anchor, (h) => (bi.anchorBoard(press.cell!.part, h, _o) ? [_o.x, _o.z] : null))) return null;
@@ -203,8 +182,23 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
 
   // ---- the chip ----------------------------------------------------------------------------------------------------
 
-  const offHits = createWireHits(app, root, (wire) => {
-    if (cur || chip?.wire === wire) return;
+  beads = createWireBeads({
+    app,
+    bi,
+    router,
+    root,
+    pending,
+    busy: () => cur !== null,
+    selected: () => chip?.wire ?? null,
+    lifted: closeChip,
+    callout,
+  });
+
+  const offHits = createWireHits(
+    app,
+    root,
+    (wire) => {
+    if (cur || beads?.dragging() || chip?.wire === wire) return;
     closeChip();
     const mid = app.bench.worldOf({ kind: 'wire', wire });
     if (!mid) return;
@@ -217,13 +211,19 @@ function mountWire(app: XrApp, bi: BenchInternals): Unsubscribe {
       onRemove: () => apply(removeWire(app.project.doc, { wire })),
       onClose: () => {
         chip = null;
+        beads?.refocus();
       },
     });
-  });
+    beads?.refocus();
+    },
+    (wire, on) => beads?.hover(wire, on),
+  );
 
   return () => {
     offCell();
     offHits();
+    beads?.dispose();
+    beads = null;
     offFrame();
     closeChip();
     pending.dispose();

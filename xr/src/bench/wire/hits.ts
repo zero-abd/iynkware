@@ -66,7 +66,12 @@ interface Rec {
   unbind: Unsubscribe;
 }
 
-export function createWireHits(app: XrApp, root: Object3D, onSelect: (wire: string, e: InteractionEvent) => void): Unsubscribe {
+export function createWireHits(
+  app: XrApp,
+  root: Object3D,
+  onSelect: (wire: string, e: InteractionEvent) => void,
+  onHover?: (wire: string, on: boolean) => void,
+): Unsubscribe {
   let recs: Rec[] = [];
   const offs: Unsubscribe[] = [];
 
@@ -92,6 +97,10 @@ export function createWireHits(app: XrApp, root: Object3D, onSelect: (wire: stri
     root.add(mesh);
     let down: { t: number; x: number; y: number; z: number } | null = null;
     const unbind = app.input.bind(mesh, { id: `bench/wire:${wire}`, ray: true, grab: 'both' }, (e) => {
+      if (e.type === 'hover-start' || e.type === 'hover-end') {
+        onHover?.(wire, e.type === 'hover-start');
+        return;
+      }
       if (e.type === 'select') {
         onSelect(wire, e);
         return;
