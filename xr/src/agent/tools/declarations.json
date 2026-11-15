@@ -365,5 +365,21 @@
         "mode"
       ]
     }
+  },
+  {
+    "name": "give_substance",
+    "description": "Put a classroom substance on the chemistry bench, a solution or liquid in a beaker and a solid in a dish, by name, formula or everyday word (copper sulfate, CuSO4, vinegar, baking soda, salt, hydrochloric acid ...), or an element sample by its symbol (Na, Cu). Opens the chemistry lab first if another bench is up. If the stockroom does not have it, say so and name what it does have. Mention the hazard briefly when it is corrosive, toxic, an oxidiser or flammable.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "name": {
+          "type": "STRING",
+          "description": "The substance or element as the person said it."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
   }
 ]

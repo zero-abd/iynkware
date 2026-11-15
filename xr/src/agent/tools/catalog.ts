@@ -41,6 +41,7 @@ import { createEditBuilder, planEdits, type EditSpec } from './edit';
 import { doneFor, stepNow as stepNumber, stopWalk, walkTo, walking, type StepTarget } from './steps';
 import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
 import { NAV_KINDS, NAV_RUNS, type NavHost } from './navigate';
+import { CHEM_KINDS, CHEM_RUNS } from './chem';
 import { sceneBrief } from '../knowledge';
 
 export type SchemaType = 'OBJECT' | 'STRING' | 'NUMBER' | 'INTEGER' | 'BOOLEAN' | 'ARRAY';
@@ -111,6 +112,7 @@ export const CHANGES: ReadonlySet<string> = new Set([
   // moving the person around is an action too
   'go_to',
   'open_lab',
+  'give_substance',
   'leave_lab',
 ]);
 export const ASSIST_REFUSAL = 'assist mode: do not do this. Say in one short sentence that you are in Assist mode and cannot do it directly, then offer one way to help (explain the steps, point at it, or show a ghost with propose_edit), and that saying "build mode" lets you do it. The only action allowed in assist mode is set_mode to build when the person asks.';
@@ -140,6 +142,7 @@ export const KIND_OF: Readonly<Record<string, ToolKind>> = {
   next_step_hint: 'act',
   ...BENCH_KINDS,
   ...NAV_KINDS,
+  ...CHEM_KINDS,
 };
 
 /** How long a callout from `point_at` stays, ms. */
@@ -388,6 +391,7 @@ const RUNS: Readonly<Record<string, Run>> = {
   },
   ...BENCH_RUNS,
   ...NAV_RUNS,
+  ...CHEM_RUNS,
   look: (h) => ({ ok: true, ...lookNow(h) }),
   list_targets(h) {
     const lab = labOpen(h);
