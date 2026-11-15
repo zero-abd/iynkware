@@ -49,5 +49,5 @@ export function rawSetup(model, config) {
 }
 
 export function controllerTalkPressed(root) {
-  return Boolean(root?.app?.input?.button?.("right", "upper")?.pressed);
+  return Boolean(root?.app?.input?.button?.("right", "stick")?.pressed);
 }

@@ -7,9 +7,9 @@ import { controllerTalkPressed, runtimeBridge } from './client-core.mjs';
 
 const SOCKET = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/voice/live`;
 const DEVICE_KEY = 'iynkware:voice-device:v2';
-const VOICE_BUILD = 'voice-ptt-en-v7';
+const VOICE_BUILD = 'voice-ptt-en-v8';
 const COPY = {
-  en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold B in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
+  en: ['Gemini voice guide','Adult hackathon prototype. While you hold Talk, microphone audio goes directly to Google Gemini. iynkware does not intentionally store audio, transcripts, or conversation history.','I am 18 or older and agree to send microphone audio to Google for this demo.','Enable voice','Disable voice','Hold to talk','Voice is off.','Voice ready. Hold the right thumbstick click in MR or hold the button below.','Connecting…','Listening… release when finished.','Gemini is answering…','Voice failed. Release and try again.','Daily demo limit reached.'],
   de: ['Gemini-Sprachhilfe','Hackathon-Prototyp nur für Erwachsene. Beim Halten von Sprechen wird Mikrofon-Audio direkt an Google Gemini gesendet. iynkware speichert es nicht absichtlich.','Ich bin mindestens 18 Jahre alt und stimme dem Senden meines Mikrofon-Audios an Google zu.','Sprache aktivieren','Sprache deaktivieren','Zum Sprechen halten','Sprache ist aus.','Sprache bereit. In MR B oder die Taste unten halten.','Verbindung…','Hört zu… danach loslassen.','Gemini antwortet…','Sprachfehler. Erneut versuchen.','Tageslimit erreicht.'],
   es: ['Guía de voz Gemini','Prototipo solo para adultos. Al mantener Hablar, el audio va directamente a Google Gemini. iynkware no lo almacena intencionalmente.','Tengo al menos 18 años y acepto enviar mi audio a Google.','Activar voz','Desactivar voz','Mantén para hablar','La voz está apagada.','Voz lista. Mantén B en MR o el botón inferior.','Conectando…','Escuchando… suelta al terminar.','Gemini está respondiendo…','Error de voz. Inténtalo de nuevo.','Límite diario alcanzado.'],
   fr: ['Guide vocal Gemini','Prototype réservé aux adultes. En maintenant Parler, le son va directement à Google Gemini. iynkware ne le stocke pas volontairement.','J’ai au moins 18 ans et j’accepte d’envoyer mon son à Google.','Activer la voix','Désactiver la voix','Maintenir pour parler','La voix est désactivée.','Voix prête. Maintenez B en MR ou le bouton ci-dessous.','Connexion…','Écoute… relâchez après la question.','Gemini répond…','Échec vocal. Réessayez.','Limite quotidienne atteinte.'],
@@ -38,10 +38,11 @@ const stages = ({
 const root = window.iynkware || (window.iynkware = {});
 const bridge = runtimeBridge(root);
 let media, audio, socket, node, source, sink, connectTimer, responseTimer, completionTimer;
-let active = false, released = false, setupReady = false, endSent = false, controllerDown = false, playbackAt = 0;
+let active = false, released = false, setupReady = false, activityStarted = false, endSent = false, controllerDown = false, playbackAt = 0;
 let playback = [];
 let pendingAudio = [];
-let audioChunks = 0;
+let preRoll = [];
+let audioChunks = 0, speechPeak = 0;
 
 const panel = document.createElement('aside');
 panel.id = 'voice-demo';
@@ -88,28 +89,46 @@ function sendAudio(buffer) {
   if (socket?.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({realtimeInput:{audio:{data:base64(buffer),mimeType:'audio/pcm;rate=16000'}}}));
 }
+function peakOf(buffer) {
+  const samples = new Int16Array(buffer); let peak = 0;
+  for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
+  return peak;
+}
+function routeAudio(buffer) {
+  const peak = peakOf(buffer); speechPeak = Math.max(speechPeak, peak);
+  if (!activityStarted) {
+    preRoll.push(buffer); if (preRoll.length > 10) preRoll.shift();
+    if (peak < 500) return;
+    activityStarted = true;
+    socket.send(JSON.stringify({realtimeInput:{activityStart:{}}}));
+    for (const chunk of preRoll) sendAudio(chunk);
+    preRoll = [];
+    return;
+  }
+  sendAudio(buffer);
+}
 function startCapture() {
   source = audio.createMediaStreamSource(media);
   node = new AudioWorkletNode(audio, 'iynkware-voice-input', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[1]});
   sink = audio.createGain(); sink.gain.value = 0;
   node.port.onmessage = event => {
     audioChunks += 1;
-    if (setupReady && socket?.readyState === WebSocket.OPEN) sendAudio(event.data);
+    if (setupReady && socket?.readyState === WebSocket.OPEN) routeAudio(event.data);
     else if (pendingAudio.length < 150) pendingAudio.push(event.data);
   };
   source.connect(node); node.connect(sink); sink.connect(audio.destination);
 }
 function sendEnd() {
   if (!setupReady || endSent || socket?.readyState !== WebSocket.OPEN) return;
-  if (audioChunks === 0) {
-    failTurn('No microphone audio was captured. Disable voice, enable it again, and retry.');
+  if (!activityStarted) {
+    failTurn(`No speech was detected (microphone level ${speechPeak}). Check that the Quest microphone is unmuted.`);
     return;
   }
   endSent = true;
   node?.disconnect(); source?.disconnect(); sink?.disconnect(); node = source = sink = null;
   socket.send(JSON.stringify({realtimeInput:{activityEnd:{}}}));
   ui.status.textContent = speaking; bridge.state('thinking');
-  responseTimer = setTimeout(() => failTurn('Gemini received audio but did not answer. Try a slightly longer question.'), 15000);
+  responseTimer = setTimeout(() => failTurn('Gemini transcribed no question. Check the Quest microphone and speak closer to the headset.'), 15000);
 }
 function endQuestion() {
   if (!active || released) return;
@@ -133,8 +152,7 @@ function onMessage(event) {
   if (message.setupComplete) {
     clearTimeout(connectTimer); connectTimer = undefined;
     setupReady = true;
-    socket.send(JSON.stringify({realtimeInput:{activityStart:{}}}));
-    for (const chunk of pendingAudio) sendAudio(chunk);
+    for (const chunk of pendingAudio) routeAudio(chunk);
     pendingAudio = [];
     if (released) sendEnd();
     else { ui.status.textContent = listening; bridge.state('listening'); }
@@ -149,7 +167,7 @@ function onMessage(event) {
 async function beginQuestion() {
   if (!media || active) return;
   clearPlayback();
-  active = true; released = false; setupReady = false; endSent = false; pendingAudio = []; audioChunks = 0;
+  active = true; released = false; setupReady = false; activityStarted = false; endSent = false; pendingAudio = []; preRoll = []; audioChunks = 0; speechPeak = 0;
   ui.talk.disabled = true; ui.status.textContent = connecting; bridge.state('connecting');
   try {
     await audio.resume();

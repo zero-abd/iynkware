@@ -44,7 +44,7 @@ test("maps the locked SDK-style config to a raw Live setup", () => {
   assert.equal(setup.realtimeInputConfig.automaticActivityDetection.disabled, true);
 });
 
-test("reads the demo-only right upper controller button", () => {
-  assert.equal(controllerTalkPressed({ app: { input: { button: (hand, which) => ({ pressed: hand === "right" && which === "upper" }) } } }), true);
+test("reads the demo-only right thumbstick click", () => {
+  assert.equal(controllerTalkPressed({ app: { input: { button: (hand, which) => ({ pressed: hand === "right" && which === "stick" }) } } }), true);
   assert.equal(controllerTalkPressed(null), false);
 });
