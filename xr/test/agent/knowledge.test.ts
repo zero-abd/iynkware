@@ -68,7 +68,8 @@ describe('drones by name', () => {
     expect(at('go to the drone projects')).toEqual({ kind: 'drones' });
     expect(at('drones')).toEqual({ kind: 'drones' });
     expect(at('which drones can I fly')).toEqual({ kind: 'drones' });
-    expect(at('the drone project')).toEqual({ kind: 'drone' });
+    // the drone with no place word stays where the person is: in the Range it flies, anywhere else its workbench (#373)
+    expect(at('the drone project')).toEqual({ kind: 'droneHere' });
     expect(at('tiny whoop')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-whoop' }));
     expect(at('the racer drone')).toEqual(expect.objectContaining({ kind: 'craft', id: 'prj_drone-racer' }));
   });
