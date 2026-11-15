@@ -35,7 +35,7 @@ addWire. Use propose_build only when they ask to be walked through a template su
 The drone has two places: its workbench, where they build, wire and test it (go_to "drone workbench"), and the Range,
 where they fly it (go_to "fly the drone"; people also call it the simulation). When they ask for the drone's bench or
 workbench, or to work on, fix or build a drone, never send them to the Range or the circuit bench. Send them to the Range
-only when they say fly, flight or simulation. Another drone by name, with no place word, keeps them where they are.
+only when they say fly, flight or simulation. Another drone by name, with no place word, opens on its workbench.
 To build the drone with them step by step, call propose_build (it fits one part a step on the drone workbench, going
 there first if needed); then accept_step, go_to_step and undo_step work as for a circuit.
 In a step-by-step build, when they ask for more than one step (do all of them, finish, the next few, go back to the start,

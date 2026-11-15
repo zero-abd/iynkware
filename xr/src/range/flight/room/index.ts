@@ -3,8 +3,9 @@
  * flown with the controller thumbsticks on the flight core. The person never moves; only the mapping places the craft.
  * While in the range the bench is hidden (a stopgap until the bench pillar hides its own content).
  *
- * Simulate here (`../here.ts`): no course is drawn and the bench stays; the craft takes off at real size from the spot
- * it sat on the bench top and flies around the person.
+ * Run here (`../here.ts`, the drone bench's plate): no course is drawn and the bench stays; the craft takes off at real
+ * size from the spot it sat on the bench top and flies around the person. Leaving the Range turns it off, so every other
+ * way in (Run, the mode switch, Fly) is the course.
  */
 import { BufferAttribute, BufferGeometry, Group, Line, LineBasicMaterial, Quaternion, Vector3, type Object3D } from '@iwsdk/core';
 import { loadDrone as loadDroneContent } from '@/content/index.generated';
@@ -133,6 +134,7 @@ export const roomModule: FeatureModule = {
             if (mine === epoch) entering = false;
           });
       } else if (!inRange && (session || entering)) leave();
+      if (app.shell.place.value !== 'range') flyHereOf(app).set(false);
     };
     const offPlace = app.shell.place.subscribe(sync);
     // a new size lays the course out again from where the person stands now
@@ -143,7 +145,7 @@ export const roomModule: FeatureModule = {
     });
     const offRange = rangeOf(app).subscribe(sync);
     const offChoice = courseChoiceOf(app).subscribe(sync);
-    // Simulate here on or off while flying: the flight starts again, from the bench or on the course
+    // Run here on or off while flying: the flight starts again, from the bench or on the course
     const offHere = flyHereOf(app).subscribe(() => {
       if (!session && !entering) return;
       leave();
@@ -214,7 +216,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   app.world.scene.add(root);
   disposers.push(() => dropEntities(app.world, root));
 
-  // the bench steps aside while the room flies (Simulate here keeps it: the craft takes off from it)
+  // the bench steps aside while the room flies (Run here keeps it: the craft takes off from it)
   if (!here) {
     const benchRoot = app.bench.root, benchTable = app.bench.table;
     const wasVisible = [benchRoot.visible, benchTable.visible];
@@ -226,7 +228,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     });
   }
 
-  // the course, fading in and dropping onto the floor (Simulate here draws none)
+  // the course, fading in and dropping onto the floor (Run here draws none)
   const drawing: CourseDrawing | null = here ? null : drawCourse(map, course);
   if (drawing) {
     const stage = new Group();
@@ -294,7 +296,7 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   plates.rotation.y = Math.atan2(-fx, -fz);
   root.add(plates);
   const lang = () => langOf(app);
-  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope' | 'probe', primary: boolean, label: string): Plate => {
+  const makePlate = (name: string, slot: number, icon: 'run' | 'reset' | 'close' | 'restart' | 'scope', primary: boolean, label: string): Plate => {
     const p = plateButton(app, { w: 0.11, d: 0.055, standing: true, primary }, { icon, label, lang: lang() });
     p.group.name = `room:${name}`;
     p.group.position.x = slot * PLATE_GAP_M;
@@ -311,10 +313,8 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   const craftPlate = makePlate('craft', 3, 'restart', false, S.t(lang(), 'craft'));
   const sizeLabel = () => S.t(lang(), 'size', { size: S.t(lang(), `size_${courseSizeOf(app).value}` as 'size_room') });
   const sizePlate = makePlate('size', 5, 'scope', false, sizeLabel());
-  // Simulate here takes the Size plate's place while it is on (there is no course to size)
+  // Run here has no course to size
   sizePlate.group.visible = !here;
-  const herePlate = makePlate('here', here ? 5 : 6, 'probe', false, S.t(lang(), 'here'));
-  herePlate.set({ label: S.t(lang(), 'here'), lang: lang(), latched: here });
   dropIn(app.world, plates, { height: 0.04 });
 
   // what the label says
@@ -332,7 +332,6 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
     backPlate.set({ label: S.t(lang(), 'back'), lang: lang() });
     craftPlate.set({ label: S.t(lang(), 'craft'), lang: lang() });
     sizePlate.set({ label: sizeLabel(), lang: lang() });
-    herePlate.set({ label: S.t(lang(), 'here'), lang: lang(), latched: here });
   };
   let shownArmed = false;
   const offLang = app.settings.lang.subscribe((l) => {
@@ -396,8 +395,6 @@ async function enter(app: XrApp, head: Head, alive: () => boolean): Promise<Sess
   disposers.push(bindPlate(app, craftPlate, 'range/room/craft', () => pickerOpenOf(app).set(!pickerOpenOf(app).value)));
   // the next size (Room, Compact, Tabletop): the room flight lays out again (courseSizeOf's subscriber in the module)
   disposers.push(bindPlate(app, sizePlate, 'range/room/size', () => courseSizeOf(app).set(nextSize(courseSizeOf(app).value))));
-  // Simulate here on or off: the flight starts again (flyHereOf's subscriber in the module)
-  disposers.push(bindPlate(app, herePlate, 'range/room/here', () => flyHereOf(app).set(!flyHereOf(app).value)));
 
   // the sticks: a claim wins (the hand rings, a guide), else the thumbsticks, read afresh every frame (`readController`)
   const claims: Array<{ owner: string; read: (out: Sticks) => void }> = [];

@@ -1,6 +1,7 @@
 // The Range picker in the IWER emulator, headless (issue #282): from Home press the Drones tile with the controller ray,
-// the picker opens in the Range, pick racer, pick a course, the flight re-enters, arm and fly a little with the
-// thumbsticks; then pick another craft with a hand pinch. The Craft plate and the menu row reopen it.
+// the drone workbench opens with the picker on it; in the Range pick a course, the flight re-enters, arm and fly a
+// little with the thumbsticks; picking a craft (racer by controller, whoop by hand pinch) opens its workbench. The Craft
+// plate and the menu row reopen it.
 //
 //   npx vite --mode http --port 23282 --strictPort            # in another terminal
 //   node scripts/range-picker-check.mjs [url] [shot-prefix]  # url defaults to http://localhost:23282/
@@ -81,11 +82,15 @@ const pickerVisible = () => page.evaluate(() => !!window.iynkware.world.scene.ge
 
 // 1. the Drones tile
 check('Drones tile pressed', await press('controller-right', 'button:home/drone'));
-check('in the Range, quad5 flies', await waitFor(() => window.__state()?.contentId === 'quad5'), await page.evaluate(() => window.__state()));
+check('the drone workbench opens, not the Range', await waitFor(() => window.iynkware.app.shell.place.value === 'bench' && !!window.iynkware.world.scene.getObjectByName('range-bench')), await page.evaluate(() => window.iynkware.app.shell.place.value));
 await sleep(2000);
-check('the picker opened on arriving', await pickerVisible());
+check('the picker opened on the workbench', await pickerVisible());
 await shot('2-picker-open');
 await park('controller-right');
+// to the Range, as Run does: the picker stays open
+await page.evaluate(() => window.iynkware.app.shell.go('range'));
+check('in the Range, quad5 flies', await waitFor(() => window.__state()?.contentId === 'quad5'), await page.evaluate(() => window.__state()));
+await sleep(1500);
 
 // 4. close it with the Craft plate, then arm and fly a little (the thumbsticks are not read while a panel is under the ray)
 await waitFor(() => (window.__pos('room:craft')?.[1] ?? 0) > 0.5, null, 30000);
@@ -152,11 +157,14 @@ check('the Craft plate closes it again', !(await pickerVisible()));
 await press('controller-right', 'room:craft', 0.4); // opens again, for the craft pick below
 await park('controller-right');
 check('racer pressed', await press('controller-right', 'button:range/picker/craft/racer'));
-check('the flight re-entered on racer', await waitFor(() => window.__state()?.contentId === 'racer'), await page.evaluate(() => ({ s: window.__state(), doc: window.iynkware.app.project.doc.id, place: window.iynkware.app.shell.place.value })));
+check('a picked craft opens its workbench', await waitFor(() => window.iynkware.app.shell.place.value === 'bench' && !!window.iynkware.world.scene.getObjectByName('range-bench')), await page.evaluate(() => window.iynkware.app.shell.place.value));
 await sleep(1200);
-check('the picker stays open after a craft', await pickerVisible());
+check('the picker closes after a craft', !(await pickerVisible()));
 await shot('3-racer');
 await park('controller-right');
+await page.evaluate(() => window.iynkware.app.shell.go('range'));
+check('the Range then flies racer', await waitFor(() => window.__state()?.contentId === 'racer'), await page.evaluate(() => window.__state()));
+await sleep(1500);
 
 // 5. the Craft plate reopens it; the menu row exists in the Range
 check('the Craft plate exists', !!(await page.evaluate(() => window.__pos('room:craft'))));
@@ -183,7 +191,9 @@ await sleep(2000);
 check('the picker is open for the hand', await pickerVisible());
 await shot('5-hand');
 check('whoop pinched', await press('hand-right', 'button:range/picker/craft/whoop', 0.12));
-check('the flight re-entered on whoop', await waitFor(() => window.__state()?.contentId === 'whoop'), await page.evaluate(() => window.__state()));
+check('whoop opens on its workbench', await waitFor(() => window.iynkware.app.shell.place.value === 'bench'));
+await page.evaluate(() => window.iynkware.app.shell.go('range'));
+check('the Range then flies whoop', await waitFor(() => window.__state()?.contentId === 'whoop'), await page.evaluate(() => window.__state()));
 await sleep(800);
 await shot('6-whoop');
 

@@ -1,7 +1,7 @@
 /**
- * Simulate here: the drone flies from the bench it was built on, around the person, instead of on a course laid out
- * in the room. The toggle (one slot per app) is set on the drone bench and on the flight plates; the room flight
- * (`./room`) reads it as the person arrives in the Range.
+ * Run here: the drone flies from the bench it was built on, around the person, instead of on a course laid out in the
+ * room. The drone bench's Run here plate sets the flag (one slot per app) and goes to the Range; the room flight
+ * (`./room`) reads it as the person arrives, and clears it when they leave (Run and every other way in fly the course).
  *
  * Here the craft flies at real size (k = 1) from where it sat on the bench top. The bench top is the ground: the flight
  * model has one flat ground, so the craft lands back on the table's height wherever it is. The course loses its gates,
@@ -13,12 +13,12 @@ import type { Heading } from '../../input/helpers';
 import { value, type Value } from '../../ui/value';
 import { placeCourse, ROOM_BOTTOM_M, type CourseMap, type RoomVolume } from './core';
 
-/** The drone's spot on the bench top (the table's local metres): the bench draws it there, Simulate here takes off from it. */
+/** The drone's spot on the bench top (the table's local metres): the bench draws it there, Run here takes off from it. */
 export const BENCH_DRONE_AT = { x: 0, z: -0.04 } as const;
 
 const slots = new WeakMap<object, Value<boolean>>();
 
-/** True when the flight starts from the bench (Simulate here), false for the course in the room. Off at first. */
+/** True when the flight starts from the bench (Run here), false for the course in the room. Off at first. */
 export function flyHereOf(app: Pick<XrApp, 'world'>): Value<boolean> {
   let v = slots.get(app.world);
   if (!v) {
