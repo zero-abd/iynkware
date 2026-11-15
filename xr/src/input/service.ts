@@ -949,9 +949,15 @@ export function createInputService(world: World, opts: InputServiceOptions = {})
    * B on the right controller toggles hands on and off, read from the gamepad itself so it works whatever the mode
    * blocks. B does nothing else: `button('right', 'upper')` always reports it released.
    */
+  let bWasDown = false;
   const updateMode = () => {
-    const gp = xr.isPrimary('controller', 'right') ? xr.gamepads.right : undefined;
-    if (!gp?.getButtonDown(InputComponent.B_Button)) return;
+    // Read from the right controller's own gamepad whether or not it is the primary source: with the controller put
+    // down the tracked hand is primary, and B must still turn hands off and on (xr-standard: buttons[5] is B).
+    const ctrl = internal.activeInputSources?.controller.right;
+    const down = !!ctrl?.inputSource.gamepad?.buttons[5]?.pressed;
+    const edge = down && !bWasDown;
+    bWasDown = down;
+    if (!edge) return;
     const next = toggled(inputMode.value);
     inputMode.value = next;
     service.pulse('right', 0.6, 60);

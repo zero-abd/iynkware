@@ -3,8 +3,9 @@
  * own outline shader (a transparent depth-writing body and a back-face outline clone) and each controller as a model, both
  * loaded by IWSDK from its default asset path (a CDN; this module adds no fetch and no asset).
  *
- *   passthrough   the hand body draws depth only, first, so virtual parts hide behind the real fingers; the outline
- *                 clone and every controller mesh are hidden (the real ones show through).
+ *   passthrough   the hand body draws depth only, first, so virtual parts hide behind the real fingers; IWSDK's own
+ *                 outline stays, so the person sees their tracked hand in the scene; every controller mesh is hidden
+ *                 (the real ones show through).
  *   paper room    the hand is a paper fill with an inked, inflated back-face hull; controllers stay hidden.
  *
  * `mountHandSkin` swaps materials when the room changes and when a model appears (checked each frame by identity, no
@@ -79,8 +80,12 @@ export function mountHandSkin(opts: HandSkinOptions): HandSkin {
     if (s.kind === 'controller') {
       mesh.visible = false;
     } else if (room === 'passthrough') {
-      if (s.outline) mesh.visible = false;
-      else {
+      // the outline shows the tracked hand (the person saw none and could not tell their hand was there)
+      if (s.outline) {
+        mesh.material = s.material;
+        mesh.visible = s.visible;
+        mesh.renderOrder = s.renderOrder;
+      } else {
         mesh.material = occluder;
         mesh.renderOrder = OCCLUDER_ORDER;
         mesh.visible = s.visible;
