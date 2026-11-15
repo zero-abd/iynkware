@@ -29,7 +29,7 @@ import type { XrApp } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import type { InteractionEvent } from '../../contracts/input';
 import { hoverLift, setPanelHit } from '../../look/moves';
-import { makeCanvas, paintPlate, PLATE, PX_PER_DMM } from '../../look/paint';
+import { makeCanvas, paintIcon, paintPlate, PLATE, PX_PER_DMM } from '../../look/paint';
 import { ACCENT, INK, PAPER, SHADOW } from '../../look/palette';
 import { dmm } from '../../look/type';
 import { createPanelPlaces, type PanelPlaces } from './registry';
@@ -62,6 +62,11 @@ export interface MovableOptions {
   readonly z?: number;
   /** Called with the panel's new world position while it is dragged. */
   onMove?(world: Vector3): void;
+  /**
+   * Shows a round Close beside the bar and calls this when it is pressed: for a panel with no Close of its own (the
+   * calm layout's panels that open from the menu and close again here).
+   */
+  onClose?(): void;
 }
 
 export interface Movable {
@@ -161,6 +166,28 @@ export function paintGrip(g: CanvasRenderingContext2D, w: number, h: number, px:
   g.restore();
 }
 
+/** Close beside the bar, in dmm: the drawn disc (with its shadow), the gap to the bar, and its hit. */
+export const CLOSE_DMM = { size: 40, gap: 12, hit: 56 } as const;
+
+/** Paints the round Close for `look` into a square canvas `s` px a side at `px` px per dmm. */
+export function paintClose(g: CanvasRenderingContext2D, s: number, px: number, look: GripLook): void {
+  g.clearRect(0, 0, s, s);
+  const sh = GRIP_DMM.shadow * px;
+  g.save();
+  if (look === 'held') g.translate(sh * 0.67, sh * 0.67);
+  paintPlate(g, 0, 0, s, s, {
+    fill: look === 'idle' ? PAPER : ACCENT,
+    ink: INK,
+    border: PLATE.border * px,
+    radius: s,
+    shadow: sh,
+    shadowColor: look === 'held' ? 'rgba(0,0,0,0)' : SHADOW,
+  });
+  const icon = 22 * px;
+  paintIcon(g, 'close', (s - sh) / 2 - icon / 2, (s - sh) / 2 - icon / 2, icon, INK);
+  g.restore();
+}
+
 /** The bar's length in metres for a panel `width` wide read at `distanceM`. */
 export function barWidth(width: number, distanceM: number): number {
   return Math.min(dmm(GRIP_DMM.maxW, distanceM), Math.max(dmm(GRIP_DMM.minW, distanceM), width * BAR_SHARE));
@@ -206,6 +233,13 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
   o.group.add(grip);
   setPanelHit(grip, false);
 
+  // Close beside the bar, when the panel has none of its own.
+  const close = o.onClose ? closeDisc(app, D, o.id, () => o.onClose?.()) : null;
+  if (close) {
+    close.root.position.set(barW / 2 + dmm(CLOSE_DMM.gap + CLOSE_DMM.size / 2, D), 0, 0);
+    grip.add(close.root);
+  }
+
   let look: GripLook | null = null;
   const paint = (next: GripLook) => {
     if (next === look) return;
@@ -227,7 +261,7 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
     delete bar.userData.lookRest;
     bar.position.set(0, 0, 0);
     handle.drop = dropOf(centreY, height, D, edge);
-    handle.halfWidth = Math.max(width, barW) / 2;
+    handle.halfWidth = Math.max(width, barW + (close ? 2 * dmm(CLOSE_DMM.gap + CLOSE_DMM.size, D) : 0)) / 2;
   };
 
   const hovered = new Set<number>();
@@ -279,10 +313,12 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
         hovered.clear();
         pressId = null;
         refresh();
+        close?.reset();
       }
     },
     onAttached() {
       unbind = app.input.bind(hit, { id: `panel-grip/${o.id}`, ray: true, nearSelect: true, kind: 'control' }, onEvent);
+      close?.bind();
     },
   };
   layout(o.width, o.height, o.centreY);
@@ -297,6 +333,7 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
     setOpacity(a) {
       mat.opacity = a;
       bar.visible = a > 0.001;
+      close?.setOpacity(a);
     },
     resize: layout,
     placed: (out) => reg.placed(out),
@@ -304,12 +341,96 @@ export function movable(app: Pick<XrApp, 'world' | 'input'> & { bench?: Pick<XrA
       reg.remove();
       unbind?.();
       unbind = null;
+      close?.unbind();
       releaseEntities(app.world, grip);
       grip.removeFromParent();
       tex.dispose();
       mat.dispose();
       hitMat.dispose();
       bar.geometry.dispose();
+      hit.geometry.dispose();
+      close?.dispose();
+    },
+  };
+}
+
+interface Disc {
+  readonly root: Group;
+  bind(): void;
+  unbind(): void;
+  reset(): void;
+  setOpacity(a: number): void;
+  dispose(): void;
+}
+
+/** The round Close: drawn disc, its hit, hover lift, press sink; a ray, a pinch or a poke selects it. */
+function closeDisc(app: Pick<XrApp, 'world' | 'input'>, D: number, id: string, onSelect: () => void): Disc {
+  const size = dmm(CLOSE_DMM.size, D);
+  const side = Math.ceil(CLOSE_DMM.size * PX_PER_DMM);
+  const canvas = makeCanvas(side, side);
+  const tex = new CanvasTexture(canvas);
+  tex.colorSpace = SRGBColorSpace;
+  tex.minFilter = LinearMipmapLinearFilter;
+  const mat = new MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false });
+  const disc = new Mesh(new PlaneGeometry(size, size), mat);
+  disc.name = `panel-close-disc:${id}`;
+  disc.renderOrder = 21;
+  disc.raycast = () => undefined;
+  const hitMat = new MeshBasicMaterial({ visible: false });
+  const hit = new Mesh(new PlaneGeometry(dmm(CLOSE_DMM.hit, D), dmm(CLOSE_DMM.hit, D)), hitMat);
+  hit.name = `panel-close:${id}`;
+  const root = new Group();
+  root.add(disc, hit);
+  let look: GripLook | null = null;
+  const hovered = new Set<number>();
+  let pressed: number | null = null;
+  const paint = () => {
+    const next: GripLook = pressed !== null ? 'held' : hovered.size > 0 ? 'hover' : 'idle';
+    if (next === look) return;
+    const was = look;
+    look = next;
+    const g = canvas.getContext('2d');
+    if (g) {
+      paintClose(g, side, side / CLOSE_DMM.size, next);
+      tex.needsUpdate = true;
+    }
+    if (was !== null && (was === 'hover') !== (next === 'hover')) hoverLift(app.world, disc, dmm(GRIP_DMM.lift, D), next === 'hover');
+  };
+  paint();
+  let off: Unsubscribe | null = null;
+  return {
+    root,
+    bind() {
+      off = app.input.bind(hit, { id: `panel-close/${id}`, ray: true, poke: true, nearSelect: true, kind: 'control' }, (e) => {
+        if (e.type === 'hover-start') hovered.add(e.pointer.id);
+        else if (e.type === 'hover-end') hovered.delete(e.pointer.id);
+        else if (e.type === 'select-start') pressed = e.pointer.id;
+        else if (e.type === 'select-end') pressed = null;
+        else if (e.type === 'select') {
+          if (e.pointer.hand) app.input.pulse(e.pointer.hand, 0.35, 12);
+          onSelect();
+        }
+        paint();
+      });
+    },
+    unbind() {
+      off?.();
+      off = null;
+    },
+    reset() {
+      hovered.clear();
+      pressed = null;
+      paint();
+    },
+    setOpacity(a) {
+      mat.opacity = a;
+      disc.visible = a > 0.001;
+    },
+    dispose() {
+      tex.dispose();
+      mat.dispose();
+      hitMat.dispose();
+      disc.geometry.dispose();
       hit.geometry.dispose();
     },
   };

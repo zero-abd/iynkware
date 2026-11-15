@@ -7,9 +7,9 @@
 import { CanvasTexture, Group, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from '@iwsdk/core';
 import type { CoBuildSession, CoBuildState } from '../contracts/assistant';
 import type { XrApp } from '../contracts/app';
-import type { Lang, Unsubscribe } from '../contracts/common';
+import type { Lang, ReadonlyValue, Unsubscribe } from '../contracts/common';
 import type { IconName } from '../look/icons';
-import { panelClose, panelOpen } from '../look/moves';
+import { panelClose, panelOpen, setPanelHit } from '../look/moves';
 import { ACCENT, INK, MUTED } from '../look/palette';
 import { fitLines, makeCanvas, paintKicker, paintPlate } from '../look/paint';
 import { onFontsReady, TYPE } from '../look/type';
@@ -77,11 +77,14 @@ export interface Card {
 
 /**
  * The card, on the bench table, watching `session` (the running build or null). `start` runs "Build it with me".
+ * `offerPill` says when the folded pill shows with no build running (the calm layout: only on an empty bench); always,
+ * when absent. The menu's Build it with me row is there either way.
  */
 export function createCard(
   app: CardHost,
   session: { readonly value: CoBuildSession | null; subscribe(fn: (s: CoBuildSession | null) => void): Unsubscribe },
   start: () => void,
+  offerPill?: ReadonlyValue<boolean>,
 ): Card {
   const lang = () => app.settings.lang.value;
   const group = new Group();
@@ -190,7 +193,9 @@ export function createCard(
     const s = session.value;
     const running = s !== null && s.state.value.status !== 'stopped';
     entry.set({ label: say(lang(), 'menu'), icon: 'sparkle', enabled: !running, primary: true });
-    entry.mesh.visible = !running;
+    const pill = !running && (offerPill?.value ?? true);
+    entry.mesh.visible = pill;
+    setPanelHit(entry.mesh, pill);
     if (running && s) {
       model = cardModel(s.state.value, lang());
       drawFace();
@@ -214,6 +219,7 @@ export function createCard(
   watch(session.value);
   offs.push(app.settings.lang.subscribe(render));
   offs.push(app.settings.xr.subscribe(place));
+  if (offerPill) offs.push(offerPill.subscribe(render));
   offs.push(
     onFontsReady(() => {
       drawFace();

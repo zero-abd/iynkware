@@ -3,11 +3,13 @@
  * degrees away from the dominant hand, relative to the bench; moved by its title bar, kept 0.8 to 2.0 m away, always
  * turned to the head in yaw and pitch. Tabs Steps, Code (once `learn/code/` lands) and Checks, drawn through learn's kit
  * into one canvas: the panel is two draw calls at rest (plate and shadow), plus the code texture on the Code tab, a lift
- * plate under a hovered button, the running spinner and the off-view arrow while they show.
+ * plate under a hovered button, the running spinner and the off-view arrow while they show. While Home is open the guide
+ * is hidden and takes no rays (the calm layout: Home alone), and it comes back when Home closes.
  */
 import { CanvasTexture, InstancedMesh, Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SRGBColorSpace, Vector3 } from '@iwsdk/core';
 import type { XrApp } from '../../../contracts/app';
 import type { Unsubscribe } from '../../../contracts/common';
+import { setPanelHit } from '../../../look/moves';
 import { replayHighlights } from '../../callouts/bus';
 import { buttonWidth, drawButton, type ButtonFace, type DrawCtx } from '../../kit/button';
 import { onFrame } from '../../kit/frame';
@@ -215,6 +217,16 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
     });
     code.setVisible(tab === 'code');
     if (drew) placeSpinners(spin, k);
+    // A redraw turns its regions back on: behind Home they stay off.
+    if (behindHome) setPanelHit(panel.group, false);
+  };
+
+  // ---- the calm layout: Home is alone when it is open; the guide steps back until Home closes ----
+  let behindHome = false;
+  const showGuide = (homeOpen: boolean) => {
+    behindHome = homeOpen;
+    panel.group.visible = !homeOpen;
+    setPanelHit(panel.group, !homeOpen);
   };
 
   const placeSpinners = (show: Array<{ x: number; y: number; d: number }>, k: ReturnType<typeof tokens>) => {
@@ -355,11 +367,13 @@ export function createGuidePanel(app: XrApp, session: LessonSession): Unsubscrib
     app.bench.onLayout(refreshTargets),
     app.bench.scale.subscribe(refreshTargets),
     app.mode.subscribe(replace),
+    app.shell.homeOpen.subscribe(showGuide),
   ];
   drawArrow();
   refreshTargets();
   redraw();
   placeNow();
+  showGuide(app.shell.homeOpen.value);
 
   return () => {
     offs.forEach((off) => off());
