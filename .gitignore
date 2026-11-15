@@ -73,6 +73,9 @@ docs/MASTER_PLAN/**/node_modules/
 /e2e/visual.spec.ts-snapshots/
 /test-results/ui-shots/
 
+# Local Cloudflare Wrangler account cache
+/deploy/cloudflare-xr/.wrangler/
+
 # Frame-time results of e2e/studio-perf.spec.ts
 .perf/
 
