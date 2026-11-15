@@ -140,19 +140,21 @@ export function mountBenchLook(app: XrApp): Unsubscribe {
     const renderer = app.world.renderer as { capabilities?: { getMaxAnisotropy?(): number } } | undefined;
     const anisotropy = Math.min(8, renderer?.capabilities?.getMaxAnisotropy?.() ?? 4);
 
-    // The mat, sized by the posture's bench top.
+    // The mat, sized by the posture's bench (`benchGeometry(...).mat`).
     let mat: WorkMat | undefined;
     let size = '';
     const place = () => {
       const xr = app.settings.xr.value;
-      const top = benchGeometry(xr.posture, xr.dominantHand).top;
+      // The cutting mat lies on the half-round table's centre, its front edge (and the rail) at the table's front.
+      const m = benchGeometry(xr.posture, xr.dominantHand).mat;
       // The grid follows the work scale setting (not a live pinch-scale, which would repaint the mat every frame).
       const gridPitch = FIGURE_GRID * (xr.benchScale || 3);
-      const key = `${top.w}x${top.d}@${gridPitch}`;
+      const key = `${m.w}x${m.d}@${m.z}@${gridPitch}`;
       if (key === size) return;
       size = key;
       mat?.dispose();
-      mat = createWorkMat(tableKit, top, { anisotropy, gridPitch });
+      mat = createWorkMat(tableKit, m, { anisotropy, gridPitch });
+      mat.group.position.set(m.x, 0, m.z);
       bench.table.add(mat.group);
     };
     place();

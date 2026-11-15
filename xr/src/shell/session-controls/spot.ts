@@ -11,8 +11,11 @@ import { placementFrom, type Placement } from '../kit/place';
 export const CLUSTER = {
   /** Eyes to the cluster's centre, metres: past touch range, read and pressed by ray or hand ray. */
   distance: 0.85,
-  /** Towards the left of the heading (negative is left): clear of the bench's run cluster and the forward view. */
-  sideDeg: -60,
+  /**
+   * Towards the left of the heading (negative is left): clear of the bench's run cluster, the forward view and the
+   * panel ring's `side` slot at 58 degrees (bench/core/ring.ts), whose fault panel would otherwise stand behind it.
+   */
+  sideDeg: -86,
   /**
    * A little under eye level: above the companion on the bench's front-left corner (about 46 degrees left, 12 to 30
    * below from the eyes), which would otherwise stand in front of Exit.

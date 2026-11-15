@@ -11,7 +11,8 @@ import type { Project } from '@/project/generated/types';
 import type { FeatureModule, XrApp } from '../../contracts/app';
 import type { LocalizedText, Unsubscribe } from '../../contracts/common';
 import { LANGS } from '../../contracts/common';
-import { placeAhead, shellButton, shellPanel, shellText, type ShellPanel } from '../../shell/kit';
+import { shellButton, shellPanel, shellText, type ShellPanel } from '../../shell/kit';
+import { placeInRing } from '../../ui/panels/ring';
 import { dmm } from '../../look/type';
 import { activeOf, deckOf, injectOps, resetOps, takeBackOps, type Card } from './deck';
 import { causeText, faultStrings as S } from './strings';
@@ -200,7 +201,7 @@ export const faultsModule: FeatureModule = {
       panel ??= shellPanel(app, { id: 'run/fault-lab', w: d(W * 1000), h: d(H * 1000), distanceM: DISTANCE_M, title: S.t(lang(), 'title'), kicker: S.t(lang(), 'kicker'), icon: 'warning', onClose: close });
       // The lab is the task now: home steps aside so the two panels never overlap.
       if (app.shell.homeOpen.value) app.shell.closeHome();
-      placeAhead(app.world, panel.group, { distance: DISTANCE_M, belowDeg: 12, sideDeg: 30 });
+      placeInRing(app, panel.group, 'side');
       panel.open();
       fill();
     };

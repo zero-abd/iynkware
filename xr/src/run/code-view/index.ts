@@ -1,7 +1,8 @@
 /**
  * The Code window (#311): the running project's sketch with line numbers, the line that runs marked in ink and eased
- * from line to line. Read-only. Menu, Tools, Code shows or hides it; the first press of Step opens it beside the bench,
- * off to the side away from the dominant hand, so the forward view stays on the build. It is a shell panel, so its
+ * from line to line. Read-only. Menu, Tools, Code shows or hides it; the first press of Step opens it in its slot of the
+ * panel ring (`bench/core/ring.ts`, on the dominant hand's side), so the forward view stays on the build. It is a shell
+ * panel, so its
  * grip bar and title bar move it, with hands and controllers.
  *
  * The line is read off the run (`mapper.ts`), not a debugger: the tracked pin's changes are the `digitalWrite`s and the
@@ -20,8 +21,8 @@ import { LANGS, type LocalizedText, type Unsubscribe } from '../../contracts/com
 import { reducedMotionOf } from '../../look';
 import { dmm } from '../../look/type';
 import { Vector3 } from '@iwsdk/core';
-import { benchGeometry } from '../../bench/core/geometry';
-import { placeAhead, shellButton, shellPanel, shellText, type ShellButton, type ShellPanel, type ShellText } from '../../shell/kit';
+import { ringSpot } from '../../bench/core/ring';
+import { shellButton, shellPanel, shellText, type ShellButton, type ShellPanel, type ShellText } from '../../shell/kit';
 import { agentOf } from '../../agent/hub';
 import { createFlatEditor } from '../code/editor';
 import { languagesFrom, programOf, writeProgramOps } from '../code/model';
@@ -45,11 +46,6 @@ const H_DMM = 64 + 16 + ROWS * ROW_DMM + 12 + FOOT_DMM + 12 + BUTTONS_DMM + 30;
 const DWELL_MS = 400;
 /** The delay line in the foot counts in steps of this, so its texture repaints at most ten times a second. */
 const DELAY_STEP_MS = 100;
-/**
- * Where it stands when it opens by itself, in the bench table's frame: this far past the bench's edge on the dominant
- * hand's side, its centre this high over the top and this far back.
- */
-const BESIDE = { out: 0.3, rise: 0.28, back: 0 } as const;
 /**
  * The flat page's camera is fixed over the bench and leaves no room beside it, so there the window stands in the
  * camera's frame instead: its centre at this point of the screen (-1..1 each way), this share of the screen's width,
@@ -220,9 +216,9 @@ export const codeViewModule: FeatureModule = {
         return;
       }
       const xr = app.settings.xr.value;
-      const g = benchGeometry(xr.posture, xr.dominantHand);
+      const at = ringSpot('code', xr.posture, xr.dominantHand).position;
       app.bench.table.updateMatrixWorld(true);
-      panel.group.position.copy(app.bench.table.localToWorld(new Vector3(g.d * (g.top.w / 2 + BESIDE.out), BESIDE.rise, g.back.z + BESIDE.back)));
+      panel.group.position.copy(app.bench.table.localToWorld(new Vector3(at[0], at[1], at[2])));
       panel.group.lookAt(eye.x, panel.group.position.y, eye.z);
     };
 
@@ -230,11 +226,8 @@ export const codeViewModule: FeatureModule = {
       replan();
       panel ??= build();
       beside = byItself;
-      if (byItself) placeBeside();
-      else {
-        const side = app.settings.xr.value.dominantHand === 'left' ? 40 : -40;
-        placeAhead(app.world, panel.group, { distance: DISTANCE_M, belowDeg: 12, sideDeg: side });
-      }
+      // Its slot in the panel ring (bench/core/ring.ts), from the menu, Step or a programmable board alike.
+      placeBeside();
       panel.open();
       shown.set(true);
       fill();
@@ -304,10 +297,10 @@ export const codeViewModule: FeatureModule = {
         if (app.mode.value !== 'flat') editor.close();
         paintButtons();
         // the headset's head and bench differ from the flat page's: stand it beside the bench again
-        if (panel?.isOpen && beside) placeBeside();
+        if (panel?.isOpen) placeBeside();
       }),
       app.settings.xr.subscribe(() => {
-        if (panel?.isOpen && beside) placeBeside();
+        if (panel?.isOpen) placeBeside();
       }),
       app.bench.benchTop.subscribe(() => {
         if (panel?.isOpen && beside) placeBeside();

@@ -4,8 +4,8 @@
  *
  *   rail   the front rail between the run cluster and the rail's end away from the dominant hand: Scale minus, the
  *          current step, Scale plus, Room size. Lying plates, poke and ray, 48 mm.
- *   panel  the Look inside panel: a standing paper panel in reach zone 3 (0.80 m, 16 degrees below eye level, 38 degrees
- *          away from the dominant hand), clear of the guide, the shelf and the tools rack, one column of wide rows for
+ *   panel  the Look inside panel: a standing paper panel in reach zone 3, in the panel ring's `side` slot (1.10 m, 12
+ *          degrees below eye level, 58 degrees away from the dominant hand), clear of the guide, one column of rows for
  *          the ray (poke where it reaches): See-through, Take apart, Current flow, Inspect, Paper room. It starts closed
  *          (the calm layout): the menu's Look inside row opens it, the Close beside its grip bar closes it.
  *
@@ -82,8 +82,12 @@ export function railXs(count: number, d: 1 | -1): number[] {
   return xs.sort((a, b) => a - b);
 }
 
-/** The panel: one column of rows (icon and label side by side), 40 dmm tall at 0.8 m and wider than the 56 dmm hit. */
-export const PANEL = { rowW: 0.15, rowH: 0.044, gap: 0.01, pad: 0.016, title: 0.036, distance: 0.8, down: 16, away: 38 } as const;
+/**
+ * The panel: one column of rows (icon and label side by side), 40 dmm tall and wider than the 56 dmm hit. It stands in
+ * the panel ring's `side` slot (bench/core/ring.ts: 1.10 m, 12 degrees below, 58 degrees away from the dominant hand),
+ * so its metres are the old 0.8 m panel's times 1.1 / 0.8: the same size to the eye.
+ */
+export const PANEL = { rowW: 0.206, rowH: 0.06, gap: 0.014, pad: 0.022, title: 0.05, distance: 1.1, down: 12, away: 58 } as const;
 
 export interface PanelGrid {
   readonly w: number;
