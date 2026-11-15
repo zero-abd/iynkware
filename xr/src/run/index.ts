@@ -6,5 +6,6 @@ import { inputsModule } from './inputs';
 import { toolsModule } from './tools';
 import { findingsModule } from './findings';
 import { faultsModule } from './faults';
+import { codeViewModule } from './code-view';
 
-export const runModule = composeModules('run', [viewsModule, controlsModule, inputsModule, toolsModule, findingsModule, faultsModule]);
+export const runModule = composeModules('run', [viewsModule, controlsModule, inputsModule, toolsModule, findingsModule, faultsModule, codeViewModule]);
