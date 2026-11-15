@@ -5,8 +5,10 @@
  *
  *   read  look, list_targets
  *   show  point_at, show_text, clear_callouts                 (bubbles only)
- *   act   propose_build, accept_step, reject_step, undo_step  (the co-builder: plan, preview, accept; nothing else
- *                                                              touches the project)
+ *   act   propose_build, propose_edit, accept_step, reject_step, undo_step
+ *                                                             (the co-builder: plan, preview, accept; nothing else
+ *                                                              touches the project. propose_edit runs the agent's own
+ *                                                              bench edits through it: edit.ts)
  *         open_lab, leave_lab, start_experiment, set_lab_control, request_item, next_step_hint
  *                                                             (the lab's own context and store, undoable, seen by the tutor)
  *
@@ -29,6 +31,7 @@ import { say as sayL6 } from '../../lab/text';
 import type { CalloutList, CalloutTone, Conversation, PointTarget } from '../bubbles/model';
 import type { Observation } from '../coach/coach';
 import DECLARATIONS from './declarations.json';
+import { createEditBuilder, planEdits, type EditSpec } from './edit';
 
 export type SchemaType = 'OBJECT' | 'STRING' | 'NUMBER' | 'INTEGER' | 'BOOLEAN' | 'ARRAY';
 export interface Schema {
@@ -77,6 +80,7 @@ export const KIND_OF: Readonly<Record<string, ToolKind>> = {
   show_text: 'show',
   clear_callouts: 'show',
   propose_build: 'act',
+  propose_edit: 'act',
   accept_step: 'act',
   reject_step: 'act',
   undo_step: 'act',
@@ -303,6 +307,8 @@ export function templateFor(request: string): string | null {
 }
 
 const sessionOf = (h: ToolHost): CoBuildSession | null => h.assistant.session.value;
+/** The most edits one `propose_edit` takes: a guided change, not a whole build (that is propose_build). */
+const MAX_EDITS = 12;
 const stepJson = (s: CoBuildSession) => {
   const st = s.state.value;
   return { status: st.status, step: st.current ? { key: st.current.key, label: st.current.label, reason: st.current.reason } : null, performed: st.performed.length, message: st.message };
@@ -359,6 +365,24 @@ const RUNS: Readonly<Record<string, Run>> = {
       return { ok: true, template: typeof target === 'string' ? target : doc.id, summary: s.state.value.plan?.summary ?? null, ...stepJson(s) };
     } catch (err) {
       return fail(`the build did not start: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  },
+  async propose_edit(h, a) {
+    if (labOpen(h)) return fail('a lab is open: propose_edit changes the circuit bench only');
+    const edits = a.steps as EditSpec[];
+    if (edits.length === 0) return fail('no steps');
+    if (edits.length > MAX_EDITS) return fail(`at most ${MAX_EDITS} steps at once`);
+    const summary = (a.summary as string).trim();
+    const doc = h.project.doc;
+    const preview = planEdits(doc, edits, summary);
+    if (preview.steps.length === 0) {
+      return fail(preview.unreachable.length > 0 ? 'none of the edits can be done here' : 'the bench already shows every edit', { unreachable: preview.unreachable });
+    }
+    try {
+      const s = await h.assistant.buildWithMe(doc, { from: 'bench', builder: createEditBuilder(edits, summary) });
+      return { ok: true, summary, steps: preview.steps.map((x) => x.label), unreachable: preview.unreachable, ...stepJson(s) };
+    } catch (err) {
+      return fail(`the edit did not start: ${err instanceof Error ? err.message : String(err)}`);
     }
   },
   async accept_step(h, a) {

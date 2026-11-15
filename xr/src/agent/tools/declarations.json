@@ -67,6 +67,33 @@
     "parameters": { "type": "OBJECT", "properties": {} }
   },
   {
+    "name": "propose_edit",
+    "description": "Show bench changes as ghosts the person can follow by hand, or that you perform when they say yes (accept_step; all for every step). Use it to move, place, turn, pull or remove a part, or to add or remove a wire, when the person asks you to do it or to show them how. Nothing changes until they accept or do it themselves; a step they do by hand counts as done and the next is shown. Name parts by refdes (LED1), pins as REF.PIN (U1.D13, U1.5V), holes like e12; look first. Edits that cannot be done come back in unreachable with the reason.",
+    "parameters": {
+      "type": "OBJECT",
+      "properties": {
+        "summary": { "type": "STRING", "description": "One short line for the card, in the person's language (Move the LED next to the resistor)." },
+        "steps": {
+          "type": "ARRAY",
+          "description": "The edits, in order; later ones may use what earlier ones make.",
+          "items": {
+            "type": "OBJECT",
+            "properties": {
+              "action": { "type": "STRING", "enum": ["move", "place", "turn", "pull", "remove", "wire", "unwire"], "description": "move or place: first leg into hole to. turn: to deg. pull: out of its holes. wire or unwire: between from and to." },
+              "part": { "type": "STRING", "description": "Refdes of a bench part (LED1); for place, a part definition ref (core.led-5mm)." },
+              "to": { "type": "STRING", "description": "move, place: a hole (e12). wire, unwire: the second end, a hole or REF.PIN." },
+              "from": { "type": "STRING", "description": "wire, unwire: the first end (U1.D13 or a10)." },
+              "deg": { "type": "INTEGER", "description": "turn (and optionally place): 0, 90, 180 or 270." },
+              "reason": { "type": "STRING", "description": "Why, in one short sentence in the person's language." }
+            },
+            "required": ["action"]
+          }
+        }
+      },
+      "required": ["summary", "steps"]
+    }
+  },
+  {
     "name": "open_lab",
     "description": "Lay out a training lab on the bench (the circuit bench is hidden, never changed).",
     "parameters": {
