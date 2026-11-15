@@ -108,12 +108,17 @@ const start = s;
 await tap('controller-right', A);
 s = await state();
 check('A arms', s.armed && s.phase === 'armed', s);
+const hum = () => page.evaluate(() => window.__room().userData.motor?.());
+const h1 = await hum();
+check('the motor sound is running after arm', !!h1?.running && h1.state === 'running', h1);
 check('the hint now says how to take off', /take off/i.test(s.hint ?? ''), s.hint);
 
 // throttle: the left stick up for two seconds
 await sticks(0, -1, 0, 0);
 await sleep(2000);
 s = await state();
+const h2 = await hum();
+check('the motor sound rises with throttle', !!h2?.running && h2.hz > h1.hz, { idle: h1, climb: h2 });
 check('left stick up: the craft takes off and climbs in the room', s.airborne && s.course[2] > 1 && s.world[1] > start.world[1] + 0.05, { start: start.world, now: s.world, course: s.course });
 await sleep(400);
 s = await state();
@@ -149,6 +154,8 @@ check('left stick right turns the craft right', s.yaw < yaw0 - 10, { yaw0, yaw: 
 await tap('controller-right', A);
 s = await state();
 check('A again disarms', !s.armed, s);
+const h3 = await hum();
+check('the motor sound is stopped after disarm', !!h3 && !h3.running, h3);
 await sleep(1500);
 await tap('controller-right', B);
 s = await state();
