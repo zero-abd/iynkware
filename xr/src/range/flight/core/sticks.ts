@@ -5,7 +5,8 @@
  * channels mean what they mean in iynk's 2D range (`readSticks` in `src/lib/flight/input.ts`): throttle 0..1 with 0.5
  * holding altitude in a climb mode, yaw positive turns right, pitch positive is nose down (forward), roll positive banks
  * left. A sprung thumbstick cannot hold a manual throttle, so the room flies climb modes: `climbModeFor` gives the climb
- * alternative of a manual-throttle mode such as quad5's `race`.
+ * alternative of a manual-throttle mode such as quad5's `race`. The service's `{x, y}` comes from IWSDK's input profile
+ * for the controller, which on the Quest's `xr-standard` gamepads is axes 2 and 3; `./controls` reads it each frame.
  */
 import { DEFAULT_PAD, type FlightCraft, type FlightMode, type Sticks } from '@/lib/flight';
 
@@ -20,19 +21,36 @@ export type StickLayout = 1 | 2;
 /** The 2D range's gamepad deadband, rescaled so the channel leaves zero smoothly. */
 export const STICK_DEADBAND = DEFAULT_PAD.deadband;
 
+/**
+ * Expo on pitch and roll for a mode that has none of its own (iynk's angle and climb modes): a Quest thumbstick's short
+ * throw makes the centre twitchy in a 3 m room. A mode's own expo (acro's 0.7) is applied by the flight model, so the
+ * sticks add nothing on top of it; yaw stays linear, as the flight model and the flight controllers' CLIs keep it.
+ */
+export const CONTROLLER_EXPO = 0.3;
+
+/** The expo the sticks add for `mode`: none when the flight model already shapes the mode's sticks. */
+export function controllerExpo(mode: Pick<FlightMode, 'expo'> | undefined): number {
+  return mode && mode.expo !== undefined ? 0 : CONTROLLER_EXPO;
+}
+
 const dead = (v: number, d: number) => {
   const c = v < -1 ? -1 : v > 1 ? 1 : v;
   return Math.abs(c) < d ? 0 : (c - Math.sign(c) * d) / (1 - d);
 };
+/** Betaflight's expo (iynk's `expo` in `src/lib/flight/math.ts`): 0 is linear, full stick stays full. */
+const curve = (v: number, e: number) => (e === 0 ? v : v * (1 - e) + v * v * v * e);
 
-/** The two thumbsticks to `Sticks` for a climb-rate throttle, written into `out`. */
-export function controllerSticks(left: ThumbStick, right: ThumbStick, layout: StickLayout, out: Sticks): Sticks {
+/**
+ * The two thumbsticks to `Sticks` for a climb-rate throttle, written into `out`. `expo` shapes pitch and roll
+ * (`controllerExpo`); 0, the default, is the 2D range's straight mapping.
+ */
+export function controllerSticks(left: ThumbStick, right: ThumbStick, layout: StickLayout, out: Sticks, expo = 0): Sticks {
   const climbStick = layout === 2 ? left : right;
   const pitchStick = layout === 2 ? right : left;
   out.throttle = 0.5 + dead(-climbStick.y, STICK_DEADBAND) / 2;
   out.yaw = dead(left.x, STICK_DEADBAND);
-  out.pitch = dead(-pitchStick.y, STICK_DEADBAND);
-  out.roll = 0 - dead(right.x, STICK_DEADBAND);
+  out.pitch = curve(dead(-pitchStick.y, STICK_DEADBAND), expo);
+  out.roll = 0 - curve(dead(right.x, STICK_DEADBAND), expo);
   return out;
 }
 

@@ -21,6 +21,8 @@ const check = (name, ok, detail) => {
 };
 const ev = (fn, arg) => page.evaluate(fn, arg);
 
+// A person who has been through the first-run onboarding: its panel would stand in front and take every pinch.
+await page.addInitScript(() => localStorage.setItem('iynkware:xr:onboarding:v1', 'skipped'));
 await page.goto(target.href, { waitUntil: 'load' });
 await page.click('#flat');
 await page.waitForFunction(() => window.iynkware?.ready, null, { timeout: 60000 });
@@ -34,6 +36,7 @@ await page.waitForFunction(() => window.iynkware.world.visibilityState.value ===
   await page.waitForFunction(() => window.iynkware.world.visibilityState.value === 'visible', null, { timeout: 20000 });
 });
 await sleep(800);
+await ev(() => window.iynkware.app.shell.closeHome());
 await ev(() => window.iynkware.app.shell.go('range'));
 await page.waitForFunction(() => {
   let f = null;
@@ -54,17 +57,33 @@ await ev(() => {
   window.__hands = () => window.__root().userData.hands;
   window.__plate = (n) => window.iynkware.world.scene.getObjectByName(n).getWorldPosition(window.iynkware.world.camera.position.clone()).toArray();
 });
+// Home opens on entering for a person who has seen onboarding; it would stand in front of the plates too
+await ev(() => window.iynkware.app.shell.closeHome());
 await ev(() => window.__x('set_input_mode', { mode: 'hand' }));
 await sleep(600);
+check('nothing of the shell stands in front', await ev(() => !window.iynkware.app.shell.homeOpen.value && !window.iynkware.world.scene.getObjectByName('shell-panel:onboarding')?.visible));
 check('hands are the source', (await ev(() => window.iynkware.app.input.sources.value)).right === 'hand');
 const head = await ev(() => window.iynkware.world.camera.getWorldPosition(window.iynkware.world.camera.position.clone()).toArray());
 
 const setHand = (d, p) => ev(([d, p]) => window.__x('set_transform', { device: d, position: { x: p[0], y: p[1], z: p[2] }, orientation: { x: 0, y: 0, z: 0, w: 1 } }), [d, p]);
 const pinch = (d, v) => ev(([d, v]) => window.__x('set_select_value', { device: d, value: v }), [d, v]);
 
+// The hand aims at a plate from in front and to the right of it, turned towards it. Straight in front it sits on the
+// session controls (Home, Recentre and Exit, just below the view): its fingertip hovers Exit, and IWSDK gives the
+// fingertip the pinch before the ray.
+const AIM = { right: 0.3, ahead: 0.2 };
+const aimAt = (d, p) => {
+  const yaw = Math.atan2(AIM.right, AIM.ahead); // turns -Z towards -X: the ray points back at the plate
+  return ev(
+    ([d, p, yaw, aim]) =>
+      window.__x('set_transform', { device: d, position: { x: p[0] + aim.right, y: p[1], z: p[2] + aim.ahead }, orientation: { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) } }),
+    [d, p, yaw, AIM],
+  );
+};
+
 // Arm: a short pinch on the hold plate does nothing, a held one arms
 const a = await ev(() => window.__plate('hands:arm'));
-await setHand('hand-right', [a[0], a[1], a[2] + 0.35]);
+await aimAt('hand-right', a);
 await sleep(500);
 await pinch('hand-right', 1);
 await sleep(250);
@@ -119,7 +138,7 @@ await sleep(800);
 
 // Guide: switch, drag the target
 const m = await ev(() => window.__plate('hands:mode'));
-await setHand('hand-right', [m[0], m[1], m[2] + 0.35]);
+await aimAt('hand-right', m);
 await sleep(500);
 await pinch('hand-right', 1);
 await sleep(250);
