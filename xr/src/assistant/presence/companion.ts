@@ -24,7 +24,7 @@ import type { Unsubscribe } from '../../contracts/common';
 import { shadowOffset } from '../../look/light';
 import { easeIynk } from '../../look/motion';
 import type { MotionRunner } from '../../look/motion';
-import { hexNum, INK, SHADOW } from '../../look/palette';
+import { FIGURE_ACCENT, hexNum, INK, SHADOW } from '../../look/palette';
 import { motionOf, onLookFrame } from '../../look/runner';
 import { bodyMaterial, hullOf, merge, outlineMaterial, paintBands, paintFlat } from './ink';
 import { arcLift, arcPoint, flightMs, turnTo, yawTowards } from './pose';
@@ -54,6 +54,8 @@ export interface Companion {
   /** Points the nib and the leader at a table-frame point, or stops pointing. */
   point(at: Vector3 | null): void;
   mood(m: Mood): void;
+  /** Build mode's outfit: sunglasses and a hi-vis worker vest; off is the plain bunny. */
+  outfit(on: boolean): void;
   dispose(): void;
 }
 
@@ -94,6 +96,33 @@ function figureGeometry(): BufferGeometry {
   ]);
 }
 
+/** The vest's reflective stripes: pale silver against the hi-vis yellow. */
+const REFLECT = '#d9dde3';
+
+/**
+ * Build mode's outfit, in the same frame and bands: a hi-vis vest just outside the body (open at the front, so the
+ * fur shows down the middle) with two reflective stripes, and wraparound sunglasses over the eyes with a bridge.
+ */
+function outfitGeometry(): BufferGeometry {
+  const vest = (g: BufferGeometry) => paintBands(g, FIGURE_ACCENT);
+  const flat = (hex: string) => (g: BufferGeometry) => paintFlat(g, hex);
+  const side = (x: number) => [
+    vest(blob(0.5, 0.74, 0.82, x * 0.4, -0.18, -0.02)), // a vest panel over each side and the back
+    flat(REFLECT)(blob(0.52, 0.06, 0.84, x * 0.4, -0.02, -0.02, 0, 10)), // reflective stripes
+    flat(REFLECT)(blob(0.52, 0.06, 0.84, x * 0.4, -0.42, -0.02, 0, 10)),
+  ];
+  return merge([
+    ...side(-1),
+    ...side(1),
+    vest(blob(0.84, 0.74, 0.6, 0, -0.18, -0.22)), // the back, joining the panels
+    flat(INK)(blob(0.21, 0.16, 0.06, -0.25, 1.14, 0.67, 0, 10)), // lenses
+    flat(INK)(blob(0.21, 0.16, 0.06, 0.25, 1.14, 0.67, 0, 10)),
+    flat(INK)(blob(0.14, 0.03, 0.04, 0, 1.18, 0.7, 0, 8)), // bridge
+    flat(INK)(blob(0.04, 0.03, 0.34, -0.5, 1.16, 0.38, 0, 8)), // arms back to the ears
+    flat(INK)(blob(0.04, 0.03, 0.34, 0.5, 1.16, 0.38, 0, 8)),
+  ]);
+}
+
 export function createCompanion(world: World, opts: { home: Vector3; top: () => { halfW: number; halfD: number } }): Companion {
   const motion: MotionRunner = motionOf(world);
   const group = new Group();
@@ -109,6 +138,17 @@ export function createCompanion(world: World, opts: { home: Vector3; top: () => 
   body.renderOrder = 2;
   figure.add(hull, body);
   group.add(figure);
+
+  const outfitGeo = outfitGeometry();
+  const outfit = new Group();
+  outfit.name = 'assistant:outfit';
+  const outfitBody = new Mesh(outfitGeo, bodyMat);
+  const outfitHull = new Mesh(hullOf(outfitGeo, OUTLINE), lineMat);
+  outfitHull.renderOrder = 1;
+  outfitBody.renderOrder = 3;
+  outfit.add(outfitHull, outfitBody);
+  outfit.visible = false;
+  figure.add(outfit);
 
   const shadowMat = new MeshBasicMaterial({ color: hexNum(SHADOW), transparent: true, toneMapped: false, depthWrite: false });
   const shadow = new Mesh(new CircleGeometry(BODY_R * 0.9, 20), shadowMat);
@@ -263,6 +303,9 @@ export function createCompanion(world: World, opts: { home: Vector3; top: () => 
       pointing = at !== null;
       if (at) pointAt.copy(at);
     },
+    outfit(on) {
+      outfit.visible = on;
+    },
     mood(m) {
       mood = m;
       if (m === 'done' && !motion.reducedMotion) {
@@ -278,6 +321,8 @@ export function createCompanion(world: World, opts: { home: Vector3; top: () => 
       parts.removeFromParent();
       geometry.dispose();
       hull.geometry.dispose();
+      outfitGeo.dispose();
+      outfitHull.geometry.dispose();
       shadow.geometry.dispose();
       leaderGeo.dispose();
       bodyMat.dispose();

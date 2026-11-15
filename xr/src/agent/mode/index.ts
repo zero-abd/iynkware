@@ -1,7 +1,7 @@
 /**
  * The companion's mode, Assist or Build (`hub.mode`): a small button floating over the bunny shows it and flips it,
  * and the Tools menu has it as a switch ("Assistant can build"). In Assist the tools that change things refuse
- * (catalog.ts `CHANGES`); the model is told the mode with every turn (`look().companion`). A notice says what changed.
+ * (catalog.ts `CHANGES`); in Build the bunny wears sunglasses and a hi-vis vest; the model is told the mode with every turn (`look().companion`). A notice says what changed.
  */
 import { Vector3 } from '@iwsdk/core';
 import type { FeatureModule, XrApp } from '../../contracts/app';
@@ -46,6 +46,7 @@ export function mountMode(app: XrApp): Unsubscribe {
   const offFrame = onLookFrame(app.world, () => {
     const c = companionOf(app.world);
     const show = !!c && c.group.visible;
+    c?.outfit(hub.mode.value === 'build');
     button.group.visible = show;
     if (!c || !show) return;
     button.group.position.set(c.position.x, c.position.y + LIFT, c.position.z);
