@@ -2,6 +2,8 @@
  * The agent's way around the app: go anywhere from anywhere, and press any button the pillars put in the menu.
  *
  *   go_to          a lab (chemistry, physics, electrical, signals), the drone or a drone by name (Tiny Whoop, racer),
+ *                  flying in the Range, or on the drone workbench ("drone bench", "build the drone": the drone project
+ *                  on the bench place, where the Range draws the drone bench),
  *                  the list of drones ("drone projects": named, not opened), the bench, room size, Home, a template
  *                  (blink, servo, button, piano, robot …), a saved project by name, or a new empty workbench
  *                  ("new project", "empty bench", "from scratch"). It leaves what is open first
@@ -18,16 +20,20 @@ import { pickText, type Lang } from '../../contracts/common';
 import { labOf } from '../../lab/context';
 import { LAB_IDS, type LabId } from '../../lab/model/types';
 import { libraryOf } from '../../shell/library/types';
-import { goPlace, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
+import { continueLast, goPlace, newProject, openCraft, openDrone, openProject } from '../../shell/switch';
+import { rangeProjectOf } from '../../range/shared/detect';
 import { droneCrafts } from '../knowledge';
 import type { Args, ToolHost, ToolResult } from './catalog';
 
 export type Destination =
   | { readonly kind: 'lab'; readonly lab: LabId }
+  /** The drone, flying in the Range. */
   | { readonly kind: 'drone' }
+  /** The drone workbench: the drone project on the bench place (build, wire, test the motors), not the Range. */
+  | { readonly kind: 'droneBench' }
   /** The drones to choose from: listed, nothing opens. */
   | { readonly kind: 'drones' }
-  | { readonly kind: 'craft'; readonly id: string; readonly title: string }
+  | { readonly kind: 'craft'; readonly id: string; readonly title: string; readonly at?: 'bench' }
   | { readonly kind: 'bench' }
   /** A new empty workbench: a blank Uno project, the person's own build. */
   | { readonly kind: 'new' }
@@ -42,8 +48,8 @@ export interface NavHost {
   go(d: Destination): Promise<boolean>;
   controls(lang: Lang): ReadonlyArray<{ id: string; label: string; on?: boolean }>;
   runControl(id: string): boolean;
-  /** Where the person is now. */
-  where(): { place: string; lab: string | null; project: string; home?: boolean };
+  /** Where the person is now; `drone` when the open project is a drone (the bench place is then the drone bench). */
+  where(): { place: string; lab: string | null; project: string; home?: boolean; drone?: boolean };
 }
 
 const fail = (error: string, extra: Record<string, unknown> = {}): ToolResult => ({ ok: false, error, ...extra });
@@ -55,6 +61,13 @@ const LAB_WORDS: ReadonlyArray<readonly [RegExp, LabId]> = [
   [/signal|system|wave|scope|oscillo/, 'signals'],
 ];
 
+/** Words that mean the drone's workbench (build, wire, test it) rather than flying it. */
+const DRONE_BENCH = /\b(?:bench|workbench|build|building|assembl\w*|put (?:it )?together|wire|wiring|calibrat\w*|parts|motors?)\b|werkbank|bauen|zusammenbau/;
+/** Words that mean flying it, in the Range. */
+const DRONE_FLY = /\b(?:fly|flying|flight|(?<!long )range|take ?off|hover)\b|fly ?test|flugtest|fliegen/;
+/** Bench words win only when nothing says fly: "fly the drone" goes to the Range, "drone workbench" to the bench. */
+const onDroneBench = (t: string) => DRONE_BENCH.test(t) && !DRONE_FLY.test(t);
+
 /** A destination for words like "the drone project", "my signals and systems lab", "servo", "workbench". */
 export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lang: Lang = 'en'): Destination | null {
   const clean = (x: string) => x.toLowerCase().replace(/\b(the|my|a|an|go|to|open|switch|back)\b/g, ' ').replace(/\s+/g, ' ').trim();
@@ -62,14 +75,14 @@ export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lan
   if (!t) return null;
   const lab = LAB_IDS.find((id) => t === id) ?? LAB_WORDS.find(([re]) => re.test(t))?.[1];
   if (lab && /lab|labor|chem|physi|signal|system|electri|ohm|pendul|scope|wave/.test(t)) return { kind: 'lab', lab };
-  if (/\bdrones\b|drohnen|drone (projects|list|crafts|models)|(list|all|which|choose|pick)\b.*\bdrone/.test(t)) return { kind: 'drones' };
+  if (/\bdrones\b|\bdrohnen\b|drone (projects|list|crafts|models)|(list|all|which|choose|pick)\b.*\bdrone/.test(t)) return { kind: 'drones' };
   const craft = craftOf(t, lang);
-  if (craft) return craft;
-  if (/drone|quad|range|fly|flight|drohne/.test(t)) return { kind: 'drone' };
+  if (craft) return craft.kind === 'craft' && onDroneBench(t) ? { ...craft, at: 'bench' } : craft;
+  if (/drone|quad|range|fly|flight|drohne/.test(t)) return onDroneBench(t) ? { kind: 'droneBench' } : { kind: 'drone' };
   if (/\b(new|empty|blank|clean|clear|fresh|own)\b.*\b(project|bench|workbench|board|build|one)\b|\bfrom scratch\b|^(start )?(new|empty|blank|fresh)( one)?$|neues projekt|leere werkbank/.test(t)) return { kind: 'new' };
   if (/^home|main menu|start screen/.test(t)) return { kind: 'home' };
   if (/room size|room scale|full size|life size/.test(t)) return { kind: 'room' };
-  if (/^(bench|workbench|circuit bench|circuit|werkbank)( project)?$/.test(t)) return { kind: 'bench' };
+  if (/^(?:(?:circuit|circuits|electronics|arduino|uno) )?(?:bench|workbench|work bench)(?: project)?$|^circuits?(?: project)?$|^(?:schaltungs)?werkbank$/.test(t)) return { kind: 'bench' };
   const project = nav.projects().find((p) => clean(p.title) === t || (clean(p.title).length >= 3 && t.includes(clean(p.title))));
   if (project) return { kind: 'project', ...project };
   const key = t.replace(/\b(project|template|lesson|circuit|build)\b/g, ' ').trim();
@@ -87,7 +100,12 @@ export function destinationOf(words: string, nav: Pick<NavHost, 'projects'>, lan
 
 /** A drone craft by its catalogue id (whoop, racer, quad5) or title words ("tiny whoop", "long range"). */
 function craftOf(t: string, lang: Lang): Destination | null {
-  const key = t.replace(/\b(drone|drones|project|craft|quad|copter|fly|open)\b/g, ' ').replace(/\s+/g, ' ').trim();
+  const key = t
+    .replace(/\b(drone|drones|project|craft|quad|copter|fly|flying|flight|open|bench|workbench|build|test|motors?)\b/g, ' ')
+    // "range" on its own is the flight range; "long range" names the long-range quad
+    .replace(/(?<!long[\s-])\brange\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   const flat = (x: string) => x.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
   const k = flat(key);
   if (k.length < 4) return null;
@@ -102,7 +120,7 @@ export const NAV_RUNS: Readonly<Record<string, (h: ToolHost, a: Args) => Promise
     const d = destinationOf(a.where as string, nav, h.lang());
     if (!d) {
       return fail(`I do not know a place or project called "${a.where}"`, {
-        try: ['chemistry lab', 'physics lab', 'electrical lab', 'signals lab', 'drone', 'drones', 'workbench', 'home', ...TEMPLATES.filter((x) => x.id.includes('uno-r3')).slice(0, 6).map((x) => x.id)],
+        try: ['chemistry lab', 'physics lab', 'electrical lab', 'signals lab', 'drone', 'drone workbench', 'fly the drone', 'drones', 'workbench', 'home', ...TEMPLATES.filter((x) => x.id.includes('uno-r3')).slice(0, 6).map((x) => x.id)],
       });
     }
     if (d.kind === 'drones') {
@@ -151,14 +169,20 @@ export function createNavHost(app: XrApp): NavHost {
         case 'drone':
           leaveLab();
           return openDrone(app);
+        case 'droneBench':
+          leaveLab();
+          return openDrone(app, 'bench');
         case 'drones':
           return true;
         case 'craft':
           leaveLab();
-          return openCraft(app, d.id);
+          return openCraft(app, d.id, d.at ?? 'range');
         case 'bench':
           leaveLab();
           app.shell.closeHome();
+          // a drone or robot is open: the bench place would show its drone bench, so the circuit workbench is the
+          // circuit project to continue (the last library project, else the last lesson, else Blink)
+          if (rangeProjectOf(app.project.doc)) return continueLast(app);
           return app.shell.place.value === 'bench' || app.shell.go('bench');
         case 'room':
           leaveLab();
@@ -184,6 +208,12 @@ export function createNavHost(app: XrApp): NavHost {
       m.run();
       return true;
     },
-    where: () => ({ place: app.shell.place.value, lab: labOf(app.world)?.store.lab ?? null, project: app.project.doc.id, home: app.shell.homeOpen.value }),
+    where: () => ({
+      place: app.shell.place.value,
+      lab: labOf(app.world)?.store.lab ?? null,
+      project: app.project.doc.id,
+      home: app.shell.homeOpen.value,
+      drone: rangeProjectOf(app.project.doc)?.kind === 'drone',
+    }),
   };
 }

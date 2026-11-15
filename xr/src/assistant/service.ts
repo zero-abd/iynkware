@@ -73,6 +73,13 @@ export function createAssistantService(host: AssistantHost): AssistantServiceImp
       guide: host.guide?.() ?? null,
     });
 
+  // Another project opening ends the build that was running: its plan, ghosts and card belong to the bench that closed
+  // (switching to a drone, a lab bench or another project), and re-planning them on the new bench would carry them over.
+  // buildWithMe's own `open` comes after its `running?.stop()`, so it never ends the build it is starting.
+  host.project.subscribe((c) => {
+    if (c.origin === 'load') running?.stop();
+  });
+
   const service: AssistantServiceImpl = {
     session,
     snapshot,

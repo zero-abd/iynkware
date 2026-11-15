@@ -7,6 +7,7 @@ import type { FeatureModule } from '../../contracts/app';
 import type { Unsubscribe } from '../../contracts/common';
 import type { DocChange } from '../../contracts/project';
 import { labOf } from '../../lab/context';
+import { rangeProjectOf } from '../../range/shared/detect';
 import { notesOf } from '../../lab/model/catalogue';
 import { say } from '../../lab/text';
 import { onLookFrame } from '../../look/runner';
@@ -47,9 +48,29 @@ export const coachModule: FeatureModule = {
     const offs: Unsubscribe[] = [];
     const lang = () => app.settings.lang.value;
 
+    /**
+     * A new place to work: a project opened, a lab opened or left. Nothing from the bench that closed is shown or sent
+     * again (its turns, pointers and observations), and the first observation says where the person is now, so the
+     * next answer is about this bench and not the last one.
+     */
+    const fresh = (now: string) => {
+      hub.conversation.clear();
+      hub.callouts.clear();
+      coach.clear();
+      coach.push({ kind: 'project', text: `now at ${now}; what was said about the previous bench no longer applies`, refs: [] });
+    };
+    const benchName = () => {
+      const kind = rangeProjectOf(app.project.doc)?.kind;
+      const bench = kind === 'drone' ? 'drone workbench' : kind ? `${kind} workbench` : 'circuit workbench';
+      return `the ${bench} (${app.project.doc.meta.title})`;
+    };
+
     const lab = labOf(app.world);
     if (lab) {
       offs.push(
+        lab.store.subscribe((c) => {
+          if (c.type === 'lab') fresh(lab.store.lab ? `the ${lab.store.lab} lab` : benchName());
+        }),
         lab.feed.subscribe((e) => {
           const ref = e.equipmentId ? [`lab:${e.equipmentId}`] : [];
           const what = e.itemKind ?? 'experiment';
@@ -75,8 +96,17 @@ export const coachModule: FeatureModule = {
 
     offs.push(
       app.project.subscribe((c) => {
+        // A project is a new teaching context (a circuit, a drone, a lesson): start fresh, saying which bench this is.
+        if (c.origin === 'load') fresh(benchName());
         const text = describeChange(c, app.project.doc.meta.title);
         if (text) coach.push({ kind: 'project', text, refs: [] });
+      }),
+      // Same project, another place (the drone bench and flying it in the Range): pointers on the bench go, and the
+      // companion is told where the person is now; the conversation about this drone stays.
+      app.shell.place.subscribe((place) => {
+        hub.callouts.clear();
+        const where = place === 'range' ? 'flying in the Range' : place === 'room' ? 'room size' : benchName();
+        coach.push({ kind: 'project', text: `now at ${where}`, refs: [] });
       }),
       app.sim.onState((s) => {
         if (s === 'running' || s === 'paused' || s === 'idle' || s === 'done' || s === 'halted' || s === 'error') coach.push({ kind: 'sim', text: `simulation ${s}`, refs: [] });

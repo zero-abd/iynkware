@@ -170,6 +170,29 @@ describe('coach', () => {
     for (let i = 0; i < 30; i++) coach.push({ kind: 'hazard', text: `h${i}`, refs: [] });
     expect(coach.recent()).toHaveLength(20);
   });
+
+  it('clears old project observations and pending context', async () => {
+    const { coach, advance } = await setup();
+    coach.push({ kind: 'project', text: 'old bench', refs: [] });
+    coach.push({ kind: 'sim', text: 'old pending', refs: [] });
+    expect(coach.recent()).toHaveLength(1);
+    coach.clear();
+    advance(2000);
+    expect(coach.recent()).toEqual([]);
+  });
+});
+
+describe('conversation lifecycle', () => {
+  it('starts fresh on a new project but keeps the voice status note', () => {
+    const conversation = createConversation();
+    conversation.setNote('Voice on');
+    conversation.user('old question', { final: true });
+    conversation.say('old answer', { final: true, suggestions: ['old chip'] });
+    conversation.clear();
+    expect(conversation.turns).toEqual([]);
+    expect(conversation.suggestions).toEqual([]);
+    expect(conversation.note).toBe('Voice on');
+  });
 });
 
 describe('bridge', () => {

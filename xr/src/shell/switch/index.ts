@@ -6,8 +6,9 @@
  *   openLesson(app, templateId)  a template as a lesson (forked, with the guide)
  *   openProject(app, id)         a library project
  *   newProject(app, template?)   a new library project, blank or forked from a template, opened
- *   openDrone(app)               the Range's drone (the `range` home entry), then the Range place
- *   openCraft(app, templateId)   any drone craft or robot template, then the Range place
+ *   openDrone(app, at?)          the Range's drone (the `range` home entry), then the Range place (or `at: 'bench'`:
+ *                                stay on the bench, where the Range draws the drone bench to build and test it)
+ *   openCraft(app, id, at?)      any drone craft or robot template, then the Range place (or the bench, as above)
  *   goPlace(app, place)          the mode switch; `range` opens the drone first when no Range project is open
  *
  * Each closes Home and the lesson guide as needed, runs one switch at a time (`switching`), and says what failed as a
@@ -137,8 +138,21 @@ export function continueLast(app: XrApp): Promise<boolean> {
   return t.kind === 'project' ? openProject(app, t.id) : openLesson(app, t.id);
 }
 
-/** The Range's drone: its home entry opens the craft; then the Range place, once Range offers it. */
-export const openDrone = (app: XrApp) =>
+/** Where a drone ends up: flying in the Range, or on the bench (the drone bench: build, wire, test the motors). */
+export type DroneAt = 'range' | 'bench';
+
+/** After a drone project is open: the Range place, or the bench (with Home closed) for the drone bench. */
+const settleDrone = (app: XrApp, at: DroneAt) => {
+  if (at === 'range') {
+    app.shell.go('range');
+    return;
+  }
+  app.shell.closeHome();
+  toBench(app);
+};
+
+/** The Range's drone: its home entry opens the craft; then the Range place once Range offers it, or the drone bench. */
+export const openDrone = (app: XrApp, at: DroneAt = 'range') =>
   run(app, async () => {
     const entry = app.shell.entries.value.find((e) => e.slot === 'range');
     if (!entry) throw new Error('no range entry');
@@ -148,18 +162,18 @@ export const openDrone = (app: XrApp) =>
       entry.open();
       if (!(await offeredSoon(app, 'range'))) throw new Error('range was not offered');
     }
-    app.shell.go('range');
+    settleDrone(app, at);
   });
 
-/** A drone craft or robot from `content/projects` (LAB_TEMPLATES), opened like the Drones tile, then the Range place. */
-export const openCraft = (app: XrApp, templateId: string) =>
+/** A drone craft or robot from `content/projects` (LAB_TEMPLATES), opened like the Drones tile, then the Range place or the drone bench. */
+export const openCraft = (app: XrApp, templateId: string, at: DroneAt = 'range') =>
   run(app, async () => {
     if (!LAB_TEMPLATES.some((t) => t.id === templateId)) throw new Error(`unknown craft ${templateId}`);
     app.lessons.close();
     toBench(app);
     await app.project.open(await app.templates.load(templateId));
     if (!(await offeredSoon(app, 'range'))) throw new Error('range was not offered');
-    app.shell.go('range');
+    settleDrone(app, at);
   });
 
 /** The mode switch: `room` and `bench` go when offered; `range` opens the drone first when nothing offers it. */

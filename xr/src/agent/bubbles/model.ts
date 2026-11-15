@@ -31,6 +31,8 @@ export interface Conversation {
   /** The note is a problem (drawn in the warning colour). */
   readonly noteWarn: boolean;
   setNote(text: string, warn?: boolean): void;
+  /** Starts a fresh project conversation while keeping the current voice-status note. */
+  clear(): void;
   subscribe(fn: () => void): Unsubscribe;
 }
 
@@ -96,6 +98,12 @@ export function createConversation(): Conversation {
       if (text === note && warn === noteWarn) return;
       note = text;
       noteWarn = warn;
+      changed();
+    },
+    clear() {
+      if (turns.length === 0 && suggestions.length === 0) return;
+      turns.length = 0;
+      suggestions = [];
       changed();
     },
     subscribe(fn) {
