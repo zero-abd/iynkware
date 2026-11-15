@@ -65,3 +65,31 @@ describe('ProjectStore.as', () => {
     expect(ch.canUndo()).toBe(true);
   });
 });
+
+describe('ProjectStore undo and redo labels', () => {
+  it('names the entry undo and redo would apply next', async () => {
+    const { store, p1, p2, set } = await setup();
+    expect([store.undoLabel(), store.redoLabel()]).toEqual([null, null]);
+    store.apply(set(p1, 'a'), { label: 'place R1' });
+    store.apply(set(p2, 'b'), { label: 'wire D13' });
+    store.apply(set(p1, 'c'));
+    expect(store.undoLabel()).toBeNull();
+    store.undo();
+    expect([store.undoLabel(), store.redoLabel()]).toEqual(['wire D13', null]);
+    store.undo();
+    expect([store.undoLabel(), store.redoLabel()]).toEqual(['place R1', 'wire D13']);
+    store.redo();
+    expect([store.undoLabel(), store.redoLabel()]).toEqual(['wire D13', null]);
+    store.apply(set(p2, 'd'), { label: 'move Uno' });
+    expect([store.undoLabel(), store.redoLabel(), store.canRedo()]).toEqual(['move Uno', null, false]);
+  });
+
+  it('ignores the co-builder and forgets on open', async () => {
+    const { store, doc, p1, p2, set } = await setup();
+    store.apply(set(p1, 'a'), { label: 'mine' });
+    store.as(ai).apply(set(p2, 'b'), { label: 'theirs' });
+    expect(store.undoLabel()).toBe('mine');
+    store.open(doc);
+    expect([store.undoLabel(), store.redoLabel(), store.canUndo()]).toEqual([null, null, false]);
+  });
+});

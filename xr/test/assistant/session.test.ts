@@ -204,6 +204,8 @@ function storeWithActors(doc: Project): ProjectStore & { as(a: CoAuthor): Author
     redo: () => session.redo(person.actor),
     canUndo: () => session.canUndo(person.actor),
     canRedo: () => session.canRedo(person.actor),
+    undoLabel: () => null,
+    redoLabel: () => null,
     subscribe: (fn: (c: DocChange) => void) => session.subscribe(fn),
     open: (next) => session.replace(next),
     as: (a) => ({

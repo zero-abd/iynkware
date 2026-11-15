@@ -23,6 +23,10 @@ export interface ProjectStore {
   redo(): ApplyResult | null;
   canUndo(): boolean;
   canRedo(): boolean;
+  /** The `label` given to `apply` for the entry `undo()` would revert next; null when there is none or it had no label. */
+  undoLabel(): string | null;
+  /** The label of the entry `redo()` would apply next; null when there is none or it had no label. */
+  redoLabel(): string | null;
   /** Called after every applied change, undo, redo and `open` (an `open` arrives with `origin: 'load'`). */
   subscribe(fn: (change: DocChange) => void): Unsubscribe;
   /** Swaps in another document (opening a project or a lesson); forgets undo history. */

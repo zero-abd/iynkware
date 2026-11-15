@@ -10,6 +10,8 @@ import type { Unsubscribe } from '../contracts/common';
 import type { DocChange, Descriptor, Op, Project, ProjectStore, Selection, TemplateSource } from '../contracts/project';
 
 const clock = () => Date.now();
+/** iynk's session keeps at most this many undo (and redo) entries per actor; the label stacks keep the same. */
+const MAX_UNDO = 100;
 const rnd = { bytes: (n: number) => crypto.getRandomValues(new Uint8Array(n)) };
 
 function createSelection(): Selection {
@@ -42,6 +44,14 @@ export function createProjectStore(doc: Project, parts: PartRegistry = builtinRe
   };
   const author = () => ({ actor: session.state.access.owners[0] ?? 'local', kind: 'user' as const });
   const selection = createSelection();
+  // The person's undo and redo labels, kept in step with the session's stacks for the local actor: the session only
+  // exposes the top of the latest actor's undo stack, and nothing of redo.
+  let undoLabels: Array<string | null> = [];
+  let redoLabels: Array<string | null> = [];
+  const push = (stack: Array<string | null>, label: string | null) => {
+    stack.push(label);
+    if (stack.length > MAX_UNDO) stack.shift();
+  };
 
   return {
     get doc() {
@@ -50,11 +60,35 @@ export function createProjectStore(doc: Project, parts: PartRegistry = builtinRe
     get revision() {
       return session.revision;
     },
-    apply: (ops: Op | readonly Op[], opts) => session.apply(ops, author(), opts?.label ? { label: opts.label } : undefined),
-    undo: () => session.undo(author().actor),
-    redo: () => session.redo(author().actor),
+    apply(ops: Op | readonly Op[], opts) {
+      const result = session.apply(ops, author(), opts?.label ? { label: opts.label } : undefined);
+      if (result.ok) {
+        push(undoLabels, opts?.label || null);
+        redoLabels = [];
+      }
+      return result;
+    },
+    // The session takes the entry off its stack whether or not reverting it applies, and moves it over only when it does.
+    undo() {
+      const result = session.undo(author().actor);
+      if (result) {
+        const label = undoLabels.pop() ?? null;
+        if (result.ok) push(redoLabels, label);
+      }
+      return result;
+    },
+    redo() {
+      const result = session.redo(author().actor);
+      if (result) {
+        const label = redoLabels.pop() ?? null;
+        if (result.ok) push(undoLabels, label);
+      }
+      return result;
+    },
     canUndo: () => session.canUndo(author().actor),
     canRedo: () => session.canRedo(author().actor),
+    undoLabel: () => (session.canUndo(author().actor) ? (undoLabels.at(-1) ?? null) : null),
+    redoLabel: () => (session.canRedo(author().actor) ? (redoLabels.at(-1) ?? null) : null),
     subscribe(fn) {
       fns.add(fn);
       return () => fns.delete(fn);
@@ -64,6 +98,8 @@ export function createProjectStore(doc: Project, parts: PartRegistry = builtinRe
       unhook();
       session = createSession({ state: next, clock, rnd });
       unhook = session.subscribe((c) => emit(c));
+      undoLabels = [];
+      redoLabels = [];
       selection.clear();
       emit({ from: prev.revision, to: next.revision, ops: [], touched: computeTouched(prev, next), origin: 'load' });
     },
