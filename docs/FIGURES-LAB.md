@@ -200,10 +200,24 @@ in item-frame mm (the catalogue repeats it):
 - **Parts**: `role` (`body`, `control`, `pin`, `light`, `liquid`, `wire`, `cover`), `layer: 'xray'` for what only
   see-through shows (a gas jet, the supply's insides) and `explode` offsets in mm for the exploded view.
 
-The sidecar's `ItemKind` gains `lab` in its own contract PR (`tools/xr-assets/schema`, branch
-`naeemexe/10-lab-kind-contract`): `source.engine` is `bench`, the frame `board-mm`, and the tutor notes ride in the
-sidecar's `extras.lab` until a later contract change makes them a field. Until that lands the catalogue says
-`kind: 'lab'` and nothing else depends on it.
+The converter converts every lab item: `npm run xr:assets -- lab/<id>` (adapter `tools/xr-assets/capture/lab.mjs`,
+`docs/XR_ASSETS.md` §1; `lab/bunsen-burner` is a committed sample). The sidecar's `kind` is `lab`, `source.engine` is
+`bench`, the frame `board-mm` and the tutor notes ride in its `extras.lab`; `xr.extras` (the liquid, the screens) is
+copied into its `extras` in item mm. What that means for an item:
+
+- Every channel needs a param that drives it (`bind`, with `extras.deg` or the `degPerUnit`/`degAtZero` form for a
+  param that is not degrees) or one of the lamp rules the adapter knows (`extras.on`); the converter sets that param,
+  captures the drawing and puts what changed into the channel's node. A part that turns as one (a knob, the collar) is
+  round about its axis; a lever or rocker is not, and only what the figure moves goes into the node.
+- `flame:` and `swing:` ids are written `led:<part>` and `turn:<part>` in the sidecar (the schema allows six channel
+  prefixes), with the lab id in the channel's `extras.labId`.
+- A piece drawn only while active (the flame) has its node built from the active drawing; the converter warns, and the
+  app hides it at level 0.
+- Draw a liquid inside a `data-part="LIQUID"` group (`LAB.glass` does) so it gets its own node; glass drawn faint
+  (`LAB.glass`'s walls) becomes a translucent `static.glass` node.
+
+The `lab` kind itself is the contract change on branch `naeemexe/10-lab-kind-contract` (issue #10). Until it is merged
+the converter's tests apply exactly that change to the schema in memory (`tools/xr-assets/test/validate.mjs`).
 
 ## 9. The catalogue
 

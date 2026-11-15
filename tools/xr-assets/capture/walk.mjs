@@ -1,7 +1,8 @@
 // Walks the SVG string a figure's scene returned in capture mode and lists what was drawn, each with the data-act
-// groups around it. A recorded primitive is a <g data-cfp="n"> (its insides are skipped); any other <path> is looked
-// up in the paths pd() recorded, so its 3D points are known; <text> is looked up by its transform. Screen-space marks
-// (circles, rects, ellipses, paths not made by pd) have no 3D and are counted as dropped.
+// groups around it (a bare data-part group counts as act 'group'). A recorded primitive is a <g data-cfp="n"> (its
+// insides are skipped); any other <path> is looked up in the paths pd() recorded, so its 3D points are known; <text> is
+// looked up by its transform. Screen-space marks (circles, rects, ellipses, paths not made by pd) have no 3D and are
+// counted as dropped.
 const SKIP = new Set(['clippath', 'defs', 'filter', 'mask', 'pattern', 'lineargradient', 'radialgradient', 'style', 'title', 'desc', 'symbol']);
 const ATTR = /([\w:.-]+)\s*=\s*"([^"]*)"/g;
 const TOKEN = /<(\/?)([a-zA-Z][\w:-]*)((?:\s+[\w:.-]+\s*=\s*"[^"]*")*)\s*(\/?)>|<!--[\s\S]*?-->|([^<]+)/g;
@@ -22,7 +23,7 @@ function attrs(src) {
 /** One frame of context: the act groups (outermost first), the product of opacities, and group classes. */
 const frame0 = { acts: [], opacity: 1, classes: [] };
 
-export function walk(svg, { paths, texts }) {
+export function walk(svg, { paths, texts }, { notDrawn = null } = {}) {
   const draws = [];
   const dropped = {};
   const stack = [{ tag: '#root', ctx: frame0, skip: 0 }];
@@ -46,13 +47,16 @@ export function walk(svg, { paths, texts }) {
       if (a['data-cfp'] != null) { draws.push({ k: 'prim', id: +a['data-cfp'], ctx }); skip = 1; }
       else {
         const op = a.opacity != null ? +a.opacity : 1;
-        const act = a['data-act'] ? { act: a['data-act'], id: a['data-id'] || '', label: a['data-label'] || '', part: a['data-part'] || '' } : null;
+        // a bare data-part group (no data-act) names a piece inside a pressable part: the lab glass's LIQUID, a FLAME
+        const act = a['data-act'] ? { act: a['data-act'], id: a['data-id'] || '', label: a['data-label'] || '', part: a['data-part'] || '' }
+          : a['data-part'] ? { act: 'group', id: a['data-part'], label: '', part: a['data-part'] } : null;
         if (act || op !== 1 || a.class) ctx = { acts: act ? [...ctx.acts, act] : ctx.acts, opacity: ctx.opacity * (isFinite(op) ? op : 1), classes: a.class ? [...ctx.classes, a.class] : ctx.classes };
       }
     } else if (!skip) {
       if (tag === 'path') {
         const rec = paths.get(a.d);
-        if (!rec) drop('path');
+        // notDrawn(attrs): a 2D path the adapter knows is not the item (the lab page's mat grid), not counted
+        if (!rec) { if (!(notDrawn && notDrawn(a))) drop('path'); }
         else draws.push({ k: 'path', pts: rec.pts, close: rec.close, fill: a.fill, stroke: a.stroke, sw: a['stroke-width'] != null ? +a['stroke-width'] : 1,
           dash: !!a['stroke-dasharray'], opacity: (a.opacity != null ? +a.opacity : 1) * (a['fill-opacity'] != null ? +a['fill-opacity'] : 1), ctx });
       } else if (tag === 'text') {

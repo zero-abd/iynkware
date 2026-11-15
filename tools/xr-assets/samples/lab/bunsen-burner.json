@@ -1,0 +1,569 @@
+{
+ "schema": "iynkware.xr-asset/1",
+ "id": "lab/bunsen-burner",
+ "kind": "lab",
+ "name": "Bunsen burner",
+ "glb": "bunsen-burner.glb",
+ "source": {
+  "figure": "figures/lab/bunsen-burner.js",
+  "engine": "bench",
+  "pageSha256": "025b3c6fcc4f440f86d25136d761e039e44646dcdb395637d3290867ba11a80e"
+ },
+ "generator": {
+  "tool": "tools/xr-assets",
+  "version": "1.0.0"
+ },
+ "frame": {
+  "units": "m",
+  "up": "+Y",
+  "front": "+Z",
+  "handedness": "right",
+  "origin": "footprint-centre",
+  "source": "board-mm",
+  "fromSource": [
+   0.001,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -0.001,
+   0,
+   0,
+   0.001,
+   0,
+   0,
+   -0.0055,
+   0,
+   0,
+   1
+  ]
+ },
+ "bounds": {
+  "min": [
+   -0.0945,
+   0,
+   -0.045
+  ],
+  "max": [
+   0.0945,
+   0.15,
+   0.045
+  ]
+ },
+ "stats": {
+  "triangles": 1476,
+  "trianglesXray": 58,
+  "drawCalls": 7,
+  "lineSegments": 494,
+  "nodes": 6,
+  "bytes": 220268
+ },
+ "look": {
+  "ink": "#231e16",
+  "paper": "#f2efe7",
+  "shadow": "#41538f",
+  "sun": [
+   0.62558,
+   0.761939,
+   0.167624
+  ],
+  "fixedLight": [
+   -0.169031,
+   0.845154,
+   0.507093
+  ],
+  "defaultView": [
+   -0.57735,
+   0.57735,
+   0.57735
+  ],
+  "shadowLength": 0.45
+ },
+ "parts": [
+  {
+   "id": "",
+   "index": 0,
+   "name": "Bunsen burner",
+   "parent": "",
+   "role": "item",
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "BASE",
+   "index": 1,
+   "name": "Heavy base",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "body"
+   },
+   "bounds": {
+    "min": [
+     0.0045,
+     0,
+     -0.045
+    ],
+    "max": [
+     0.0945,
+     0.012,
+     0.045
+    ]
+   }
+  },
+  {
+   "id": "BARREL",
+   "index": 2,
+   "name": "Barrel",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0.045,
+    0
+   ],
+   "extras": {
+    "role": "body",
+    "explodeMm": [
+     0,
+     0,
+     45
+    ]
+   },
+   "bounds": {
+    "min": [
+     0.0425,
+     0.012,
+     -0.006894
+    ],
+    "max": [
+     0.0565,
+     0.15,
+     0.006894
+    ]
+   }
+  },
+  {
+   "id": "COLLAR",
+   "index": 3,
+   "name": "Air collar",
+   "parent": "",
+   "role": "control",
+   "explode": [
+    0,
+    0.01,
+    0
+   ],
+   "extras": {
+    "role": "control",
+    "explodeMm": [
+     0,
+     0,
+     10
+    ]
+   },
+   "nodes": [
+    "turn:COLLAR"
+   ],
+   "bounds": {
+    "min": [
+     0.041,
+     0.022,
+     -0.0094
+    ],
+    "max": [
+     0.058,
+     0.042,
+     0.0094
+    ]
+   }
+  },
+  {
+   "id": "JET",
+   "index": 4,
+   "name": "Gas jet",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "body",
+    "layer": "xray"
+   }
+  },
+  {
+   "id": "INLET",
+   "index": 5,
+   "name": "Gas inlet",
+   "parent": "",
+   "role": "part",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "body"
+   },
+   "bounds": {
+    "min": [
+     0.0155,
+     0.0026,
+     -0.0044
+    ],
+    "max": [
+     0.041,
+     0.0114,
+     0.0044
+    ]
+   }
+  },
+  {
+   "id": "HOSE",
+   "index": 6,
+   "name": "Rubber gas hose",
+   "parent": "",
+   "role": "wire",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "wire"
+   },
+   "bounds": {
+    "min": [
+     -0.071171,
+     0.002728,
+     -0.021345
+    ],
+    "max": [
+     0.016496,
+     0.033608,
+     0.007835
+    ]
+   }
+  },
+  {
+   "id": "TAP",
+   "index": 7,
+   "name": "Gas tap",
+   "parent": "",
+   "role": "control",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "control"
+   },
+   "nodes": [
+    "turn:TAP"
+   ],
+   "bounds": {
+    "min": [
+     -0.0945,
+     0,
+     -0.04
+    ],
+    "max": [
+     -0.0665,
+     0.042092,
+     -0.006
+    ]
+   }
+  },
+  {
+   "id": "FLAME",
+   "index": 8,
+   "name": "Flame",
+   "parent": "",
+   "role": "led",
+   "explode": [
+    0,
+    0,
+    0
+   ],
+   "extras": {
+    "role": "light"
+   },
+   "nodes": [
+    "led:FLAME"
+   ]
+  }
+ ],
+ "anchors": [
+  {
+   "id": "control:COLLAR",
+   "kind": "control",
+   "part": "COLLAR",
+   "position": [
+    0.0495,
+    0.031,
+    0.0085
+   ],
+   "normal": [
+    0,
+    0,
+    1
+   ],
+   "channel": "turn:COLLAR"
+  },
+  {
+   "id": "control:TAP",
+   "kind": "control",
+   "part": "TAP",
+   "position": [
+    -0.0725,
+    0.04,
+    -0.018
+   ],
+   "normal": [
+    0,
+    1,
+    0
+   ],
+   "channel": "turn:TAP"
+  },
+  {
+   "id": "port:INLET",
+   "kind": "port",
+   "part": "INLET",
+   "position": [
+    0.0155,
+    0.007,
+    0
+   ],
+   "normal": [
+    -1,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "label:FLAME",
+   "kind": "label",
+   "part": "FLAME",
+   "position": [
+    0.0495,
+    0.19,
+    0
+   ],
+   "normal": [
+    0,
+    0,
+    1
+   ],
+   "text": "Flame",
+   "layer": "base",
+   "up": [
+    0,
+    1,
+    0
+   ]
+  }
+ ],
+ "channels": [
+  {
+   "id": "turn:COLLAR",
+   "kind": "rotate",
+   "part": "COLLAR",
+   "nodes": [
+    "turn:COLLAR"
+   ],
+   "value": {
+    "unit": "deg",
+    "min": 0,
+    "max": 90,
+    "rest": 0
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    0.0495,
+    0.032,
+    0
+   ],
+   "scale": 0.017453,
+   "bind": {
+    "source": "param",
+    "key": "collar"
+   },
+   "extras": {
+    "deg": {
+     "closed": 0,
+     "half": 45,
+     "open": 90
+    }
+   }
+  },
+  {
+   "id": "turn:TAP",
+   "kind": "rotate",
+   "part": "TAP",
+   "nodes": [
+    "turn:TAP"
+   ],
+   "value": {
+    "unit": "deg",
+    "min": 0,
+    "max": 90,
+    "rest": 90
+   },
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "pivot": [
+    -0.0825,
+    0.04,
+    -0.018
+   ],
+   "scale": 0.017453,
+   "bind": {
+    "source": "param",
+    "key": "gasOn"
+   },
+   "extras": {
+    "deg": {
+     "false": 90,
+     "true": 0
+    }
+   }
+  },
+  {
+   "id": "led:FLAME",
+   "kind": "emissive",
+   "part": "FLAME",
+   "nodes": [
+    "led:FLAME"
+   ],
+   "value": {
+    "unit": "level",
+    "min": 0,
+    "max": 1,
+    "rest": 0
+   },
+   "color": "#7a86ea",
+   "bind": {
+    "source": "param",
+    "key": "lit"
+   },
+   "extras": {
+    "colorByCollar": {
+     "closed": "#f6b73c",
+     "half": "#8d93e6",
+     "open": "#7a86ea"
+    },
+    "heightMm": {
+     "closed": 105,
+     "half": 82,
+     "open": 66
+    },
+    "labId": "flame:BURNER",
+    "hiddenAtRest": true
+   }
+  }
+ ],
+ "layers": [
+  {
+   "id": "base",
+   "nodes": [
+    "static",
+    "turn:COLLAR",
+    "turn:TAP",
+    "led:FLAME"
+   ],
+   "opacity": [
+    1,
+    1
+   ]
+  },
+  {
+   "id": "xray",
+   "nodes": [
+    "static.xray"
+   ],
+   "opacity": [
+    0,
+    1
+   ]
+  }
+ ],
+ "texts": [],
+ "warnings": [
+  "channel flame:BURNER is written led:FLAME: the schema's channel ids are led, servo, prop, motor, press and turn (the lab id is in its extras.labId)",
+  "led:FLAME: the figure draws FLAME only while it is lit, so its node holds the lit drawing (lit true, gasOn true); hide it at level 0"
+ ],
+ "extras": {
+  "lab": {
+   "lab": "chemistry",
+   "summary": "A gas burner. The air collar sets the flame: closed gives a yellow safety flame, open gives a hot roaring blue flame.",
+   "safeUse": [
+    "Tie back long hair, wear goggles, and stand the burner on a heat-proof mat away from paper.",
+    "Close the air collar before you light it.",
+    "Have the lit splint or lighter ready over the barrel before you turn the gas on, then light it at once.",
+    "Open the collar for a hot blue flame only while you are heating something.",
+    "When you are not heating, close the collar to the yellow safety flame so everyone can see it.",
+    "Turn the gas off at the tap when you finish."
+   ],
+   "hazards": [
+    "Unburnt gas can build up and explode.",
+    "A blue flame is almost invisible in daylight.",
+    "The barrel stays hot after the flame is out.",
+    "Hair, sleeves and paper catch fire."
+   ],
+   "mistakes": [
+    {
+     "id": "gas-unlit",
+     "when": "The gas tap has been on for more than 2 seconds with no flame.",
+     "say": "Gas is on but not lit. Turn the gas tap off now, then light it the right way."
+    },
+    {
+     "id": "light-collar-open",
+     "when": "Someone tried to light it with the air collar open, and the gas is still on.",
+     "say": "It will not light with the collar open. Turn the gas off, close the collar, then try again."
+    },
+    {
+     "id": "blue-flame-idle",
+     "when": "A roaring blue flame has burned for over 20 seconds.",
+     "say": "A blue flame is hard to see. If you are not heating, close the collar to the yellow safety flame."
+    }
+   ]
+  },
+  "item": {
+   "frame": "board-mm",
+   "units": "mm",
+   "foot": [
+    205,
+    92,
+    260
+   ],
+   "defaults": {
+    "collar": "closed",
+    "gasOn": false,
+    "lit": false
+   },
+   "exploded": true,
+   "note": "mm values in extras are in the item frame (board-mm); frame.fromSource maps them into the asset"
+  }
+ }
+}

@@ -10,17 +10,18 @@
 //   node build.mjs --kind boards
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { convert, VERSION } from './capture/assemble.mjs';
 import { ROOT, TOOL, buildPage } from './capture/page.mjs';
 import { adapterFor } from './capture/adapters.mjs';
 
-export const DIRS = ['boards', 'parts', 'modules', 'robotics', 'drones', 'flight'];
-// the Blink scene (an Uno, a half breadboard, an LED, a resistor, a wire) and one drone, committed so the app can load
-// real assets without running the converter
-export const SAMPLES = ['boards/uno-r3', 'parts/breadboard', 'parts/led', 'parts/resistor', 'parts/wire', 'drones/quad5'];
-const BUDGET = { part: [12000, 12], board: [40000, 32], module: [40000, 32], bench: [150000, 96], drone: [80000, 64], flight: [60000, 24] };
+export const DIRS = ['boards', 'parts', 'modules', 'robotics', 'drones', 'flight', 'lab'];
+// the Blink scene (an Uno, a half breadboard, an LED, a resistor, a wire), one drone and one lab item, committed so the
+// app can load real assets without running the converter
+export const SAMPLES = ['boards/uno-r3', 'parts/breadboard', 'parts/led', 'parts/resistor', 'parts/wire', 'drones/quad5', 'lab/bunsen-burner'];
+const BUDGET = { part: [12000, 12], board: [40000, 32], module: [40000, 32], bench: [150000, 96], drone: [80000, 64], flight: [60000, 24], lab: [20000, 16] };
 
-/** Every figure item: figures/<dir>/<id>.js for the six item folders. */
+/** Every figure item: figures/<dir>/<id>.js for the seven item folders. */
 export function allItems() {
   const out = [];
   for (const dir of DIRS) {
@@ -109,4 +110,5 @@ async function main() {
   process.exit(failed.length ? 1 : 0);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// compared as URLs, so a checkout path with spaces or other escaped characters still runs main()
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main();

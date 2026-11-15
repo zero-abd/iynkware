@@ -22,7 +22,7 @@ import {
 
 export { INK, PAPER, SHADOW };
 
-const STATIC_NODES = ['static', 'static.cover', 'static.xray'];
+const STATIC_NODES = ['static', 'static.liquid', 'static.glass', 'static.cover', 'static.xray'];
 /** a lit LED's halo radius at full level: GLOW_K x its node's bounding-box diagonal + GLOW_R0 metres (a 2 mm SMD
     LED gets about 1.7 mm, a 5 mm through-hole one about 3.5 mm; the halo's bands are flat to their edge, ink.js
     GLOW_BANDS, so it needs less radius than a soft glow to read) */
@@ -164,6 +164,9 @@ export function createXrAsset(gltf, sidecar, options = {}) {
       const name = nameOf(node);
       e = { node, name, layer: layerOfNode.get(name) || (name === 'static.cover' ? 'cover' : name === 'static.xray' ? 'xray' : 'base'),
         bodies: [], solids: [], lines: [], materials: [], outlines: [], shadows: [], visible: true, layerVisible: true };
+      // a node drawn translucent of its own (a lab item's clear glass): its opacity at see-through 0 and 1
+      const ud = node.userData || {};
+      if (typeof ud.opacity === 'number') e.opacity = [ud.opacity, typeof ud.opacitySeeThrough === 'number' ? ud.opacitySeeThrough : ud.opacity];
       nodes.set(node, e);
     }
     return e;
@@ -178,7 +181,7 @@ export function createXrAsset(gltf, sidecar, options = {}) {
     if (!node) continue;
     const e = nodeEntry(node);
     const depthPull = e.layer === 'xray' ? xrayPull : 0;
-    o.renderOrder = ORDER[e.layer] || 0;
+    o.renderOrder = e.opacity ? 0.75 : ORDER[e.layer] || 0;      // translucent glass after what it holds
     const g = o.geometry;
     growBounds(g);
     for (const m of [].concat(o.material)) old.add(m);
@@ -358,7 +361,8 @@ export function createXrAsset(gltf, sidecar, options = {}) {
       seeT = clamp01(Number(t) || 0);
       for (const e of nodes.values()) {
         const l = (sidecar.layers || []).find((x) => x.id === e.layer);
-        const op = l ? lerp(l.opacity[0], l.opacity[1], seeT) : e.layer === 'xray' ? seeT : e.layer === 'cover' ? lerp(1, 0.28, seeT) : 1;
+        const op = e.opacity ? lerp(e.opacity[0], e.opacity[1], seeT)
+          : l ? lerp(l.opacity[0], l.opacity[1], seeT) : e.layer === 'xray' ? seeT : e.layer === 'cover' ? lerp(1, 0.28, seeT) : 1;
         for (const m of e.materials) setInkOpacity(m, op);
         e.layerVisible = op > 0.003;
         const oo = smoothstep(0.55, 1, op);          // a hull seen through a translucent body would read as a blot

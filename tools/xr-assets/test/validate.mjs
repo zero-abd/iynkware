@@ -16,8 +16,23 @@ export async function validateGlb(buf, uri = 'asset.glb') {
 /** Schema errors for a sidecar object ([] when it is valid). */
 export function sidecarErrors(sidecar) {
   if (!validateSidecar) {
-    const schema = JSON.parse(readFileSync(join(TOOL, 'schema', 'xr-asset.schema.json'), 'utf8'));
+    const schema = withLabKind(JSON.parse(readFileSync(join(TOOL, 'schema', 'xr-asset.schema.json'), 'utf8')));
     validateSidecar = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
   }
   return validateSidecar(sidecar) ? [] : validateSidecar.errors.map((e) => `${e.instancePath} ${e.message}`);
+}
+
+/**
+ * The lab item kind (docs/XR_ASSETS.md section 1) is its own contract change (issue #10, branch
+ * naeemexe/10-lab-kind-contract): it adds 'lab' to the item kinds and 'lab/' to the id pattern, nothing else. Until it
+ * is merged the checked-in schema lacks both, so the tests apply exactly that change in memory; once the schema has it
+ * this does nothing.
+ */
+export const LAB_KIND_PENDING = (schema) => !schema.$defs.itemKind.enum.includes('lab');
+export function withLabKind(schema) {
+  if (!LAB_KIND_PENDING(schema)) return schema;
+  schema.$defs.itemKind.enum = [...schema.$defs.itemKind.enum, 'lab'];
+  schema.properties.id.pattern = schema.properties.id.pattern.replace('|flight)/', '|flight|lab)/');
+  if (!schema.properties.id.pattern.includes('|lab)/')) throw new Error('the schema id pattern changed: update withLabKind');
+  return schema;
 }

@@ -18,12 +18,12 @@ a PR.
 tools/xr-assets/
   package.json        its own dependencies (three, jsdom); the Next app gains none
   build.mjs           the converter: node build.mjs [--out <dir>] [<dir>/<id> ...]
-  capture/            the headless runner and the bench and drone adapters (no flight range adapter yet)
+  capture/            the headless runner and the bench, drone and lab adapters (no flight range adapter yet)
   gltf/               geometry builders, merging, the glb writer
   material/           the ink look for three.js, and loadXrAsset()
   schema/             xr-asset.ts, xr-asset.schema.json
   viewer/             a desktop page to look at any item
-  samples/            the Blink scene's items and one drone, committed
+  samples/            the Blink scene's items, one drone and one lab item, committed
   test/               node:test suites
   out/                build output, git-ignored
 ```
@@ -46,10 +46,23 @@ labs. Its figures are drawn by the bench engine, so `source.engine` is `bench`, 
 rule is the bench items' one. What a voice tutor needs about an item (what it is, safe use, common mistakes, hazards)
 rides in `extras.lab` until a later `contract-change` PR makes it a field.
 
+The lab adapter (`capture/lab.mjs`) reads what the item declares in its `xr` block (docs/FIGURES-LAB.md section 8) and
+maps it from item mm: anchors at their declared points, channels with their declared axis, pivot and scale, each
+channel's moving or lighting geometry captured into a node of its own by driving its bound param. A knob or collar
+turns as one node; a lever, rocker or swinging bob takes what the figure moves; a lamp drawn on a bigger part keeps only
+the pieces at its anchor. Two lab channel ids the schema's `channel.id` pattern does not allow are written in standard
+form, with the lab id in `extras.labId`: `flame:BURNER` is `led:FLAME`, `swing:BOB` is `turn:BOB`. A piece the figure
+draws only while active (the burner's flame) has its node built from the active drawing, `extras.hiddenAtRest` set and a
+warning: the app hides it at level 0. Glassware adds two static nodes: `static.liquid` (the liquid at the default
+volume; `extras.liquid` gives the inner profile and the level per volume to rebuild it) and `static.glass` (the clear
+glass, translucent: its opacity at see-through 0 and 1 is in the node's glTF extras and in the sidecar's
+`extras.nodeOpacity`). `extras.item` repeats the item's foot and defaults; mm values in `extras` are in the item frame,
+which `frame.fromSource` maps.
+
 Generated assets are built, not committed: `out/` is git-ignored and the app's build copies what it needs (pass
 `--out <dir>` to write straight into the app's static folder). Only `samples/` is committed, so the app and the viewer
 work without a build: the Blink scene (`boards/uno-r3`, `parts/breadboard`, `parts/led`, `parts/resistor`,
-`parts/wire`) and `drones/quad5`. A test checks that the samples are byte-identical to a fresh build;
+`parts/wire`), `drones/quad5` and `lab/bunsen-burner`. A test checks that the samples are byte-identical to a fresh build;
 `node build.mjs --samples` rewrites them. An asset is stale when its
 `source.pageSha256` differs from the figure page the current code builds; `build.mjs --check` reports that.
 
@@ -99,6 +112,7 @@ decoder worker). Indices are 16-bit when a primitive has fewer than 65,536 verti
 | `static` | every piece that never moves on its own, merged | base |
 | `static.cover` | cover parts (drone canopies), merged | cover |
 | `static.xray` | what only see-through shows (dies, bond wires, inner flows), merged | xray |
+| `static.liquid`, `static.glass` | lab glassware only: the liquid, and the clear glass drawn translucent (section 1) | base |
 | `<channel id>` | the piece a channel moves or lights (`led:L`, `prop:M1`, `press:RESET`), with its rest transform | base |
 
 Inside a mesh node, geometry is merged by material, so a mesh has at most one triangle primitive per shading class and
@@ -280,5 +294,6 @@ channel node, so on screen a mesh node costs its primitives plus up to two.
 `npm run xr:assets` prints a table of every item (triangles, draw calls, anchors, channels, warnings).
 `npm --prefix tools/xr-assets test` runs the geometry builder tests and the anchor tests: the Uno R3's header pin order
 and positions against `src/parts/data/uno-r3.component.json`, the half breadboard's 400 holes against
-`src/parts/data/breadboard.component.json`, a bench's wire ends, and a drone's motor numbering and spin directions
-against its craft data.
+`src/parts/data/breadboard.component.json`, a bench's wire ends, a drone's motor numbering and spin directions
+against its craft data, and every lab item's anchors and channels against its declared `xr` block
+(`figures/lab/catalogue.json`).
