@@ -183,7 +183,10 @@ export function createSession(opts: SessionOptions): ProjectSession {
     const at = stack?.findLastIndex((e) => allowed(e, filter)) ?? -1;
     const entry = at < 0 ? undefined : stack?.splice(at, 1)[0];
     if (!key || !entry) return null;
-    const result = commit(entry.ops, entry.author, origin, origin === "redo" ? entry.batch : undefined);
+    // An entry reverts the content as it stands now, so its source edits are based on the current revision: the stored
+    // baseSeq is stale (a later edit may have replaced the same range) and rebasing through that edit would corrupt it.
+    const ops = entry.ops.map((op): Op => (op.k === "source.edit" ? { ...op, baseSeq: state.revision } : op));
+    const result = commit(ops, entry.author, origin, origin === "redo" ? entry.batch : undefined);
     if (result.ok) push(to, key, { ops: result.inverse, author: entry.author, ...tagOf(entry) });
     return result;
   }

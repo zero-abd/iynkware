@@ -83,6 +83,26 @@ describe('chipOps', () => {
 
   });
 
+  it('undoes and redoes a chip changed twice, the source exact at every step', async () => {
+    const store = createProjectStore(await load());
+    const src = () => sourceOf(store.doc);
+    const s0 = src();
+    store.apply(chipOps(store.doc, 'par_on', 100));
+    const s1 = src();
+    store.apply(chipOps(store.doc, 'par_on', 2000));
+    const s2 = src();
+    expect([s0, s1, s2].every((s, i, a) => a.indexOf(s) === i)).toBe(true);
+    store.undo();
+    expect(src()).toBe(s1);
+    store.undo();
+    expect(src()).toBe(s0);
+    store.redo();
+    expect(src()).toBe(s1);
+    store.redo();
+    expect(src()).toBe(s2);
+    expect(valueOf(store.doc, 'par_on')).toBe(2000);
+  });
+
   it('undoes a change of each slot (one undo each)', async () => {
     const store = createProjectStore(await load());
     store.apply(chipOps(store.doc, 'par_on', 100));
