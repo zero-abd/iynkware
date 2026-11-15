@@ -1,5 +1,5 @@
 /** Builds the services every feature module receives (contracts/app.ts) around one IWSDK world and one project. */
-import { builtinRegistry } from '@/parts/builtin';
+import { getAppRegistry } from '@/parts/builtin';
 import type { World } from '@iwsdk/core';
 import { createAssistantService, instantPresence } from './assistant/service';
 import { createAssetRegistry, describeFrom } from './assets/registry';
@@ -29,7 +29,9 @@ export interface AppHandle {
 }
 
 export function createApp(world: World, doc: Project): AppHandle {
-  const parts = builtinRegistry();
+  // The one registry the app shares (`getAppRegistry`): every core part, plus the parts the person imported, which the
+  // parts library adds once it has read them. Core parts resolve exactly as they did from the built-in registry.
+  const parts = getAppRegistry();
   const settings = createSettingsStore();
   const project = createProjectStore(doc, parts);
   const assets = createAssetRegistry({ describe: describeFrom(parts) });
