@@ -1,11 +1,20 @@
 /**
  * The XR app's sim handler: iynk's `createSimHandler` (imported, not copied) with the interpreter engine, the digital
- * nets, the circuit solver, the probe tap (for `meter.read`), the fault rules and robot physics (rapier). Firmware
- * engines (avr8js, rp2040js) are not wired yet (see docs/XR_ARCHITECTURE.md, "Imported and ported").
+ * nets, the circuit solver, the probe tap (for `meter.read`), the fault rules, robot physics (rapier) and the firmware
+ * engines (avr8js for a hex, rp2040js for a UF2), each a lazy chunk imported the first time a program needs it.
  *
  * Pure: runs in the worker (sim.worker.ts) and inline in the headless test, so both see the same handler.
  */
 import { fail } from '@/core/result';
+import { simDiag } from '@/sim/core/diagnostic';
+import { cyclesToNs } from '@/sim/core/clock';
+import type { HexProgram, SimDiagnostic } from '@/sim/engine';
+import { RATE, type Avr8js, type AvrEngine } from '@/sim/mcu/avr8js';
+import { createFirmwareEngine, I2C_BUS, netlistBus } from '@/sim/mcu/firmware';
+import type { createRp2040Engine, Rp2040Engine } from '@/sim/mcu/rp2040/engine';
+import type { Rp2040js } from '@/sim/mcu/rp2040/lib';
+import { pinElementId } from '@/sim/analog/live';
+import type { SimEngine } from '@/sim-host/handler';
 import { INTERP_LANGUAGE } from '@/lib/interp';
 import type { Descriptor } from '@/parts/descriptor';
 import { builtinRegistry } from '@/parts/builtin';
@@ -63,8 +72,43 @@ async function physicsModule(onState: MechDeps['onState']): Promise<RapierModule
   return physics;
 }
 
+/** Where a compiled program's analog pins read the circuit; set once the run's solver exists. */
+type VoltsOf = ((pin: string) => number | null) | null;
+
+/** The engines a worker has loaded, once per worker. */
+let avr: Avr8js | null = null;
+let rp2040: { lib: Rp2040js; bootrom: Uint32Array; create: typeof createRp2040Engine } | null = null;
+
+const engineFailure = (message: string): SimDiagnostic[] => [simDiag('engine-load-failed', 'error', {}, { message })];
+
+/**
+ * Brings the engine a compiled program runs on in from the app's own bundle: avr8js for a hex, rp2040js and its boot
+ * ROM for a UF2. A failure is the diagnostics that refuse the load.
+ */
+async function loadCompiled(kind: 'hex' | 'uf2'): Promise<SimDiagnostic[]> {
+  if (kind === 'hex' ? avr : rp2040) return [];
+  try {
+    if (kind === 'hex') avr = await import('avr8js');
+    else {
+      const [lib, { createRp2040Engine: create }, { BOOTROM_B1: bootrom }] = await Promise.all([
+        import('rp2040js'),
+        import('@/sim/mcu/rp2040/engine'),
+        import('@/sim/mcu/rp2040/bootrom'),
+      ]);
+      rp2040 = { lib, bootrom, create };
+    }
+    return [];
+  } catch (error) {
+    return engineFailure(error instanceof Error ? error.message : String(error));
+  }
+}
+
 /** Never called: `prepareMech` is always handed the module, so it has nothing to download. */
 const noDownload: MechDeps['loadEngine'] = () => Promise.reject(new Error('the headset loads physics from its own bundle'));
+
+// The interpreter engines this handler made: the firmware engines have no Run world, and `in` cannot tell them apart.
+const interpEngines = new WeakSet<SimEngine>();
+const isInterp = (engine: SimEngine): engine is InterpEngine => interpEngines.has(engine);
 
 export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq, SimEv> {
   const parts = builtinRegistry();
@@ -76,16 +120,64 @@ export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq
   const fidelityRegistry = (): Registry => (fidelity ??= loadRegistry());
   const latestPart = (ref: string): Descriptor | undefined => parts.latest(ref);
 
+  // A firmware run's analog pins (the ADC) read the circuit through this, set once the run's solver exists.
+  let firmwareVolts: VoltsOf = null;
+  const unwired = {
+    drive: () => undefined,
+    mode: () => undefined,
+    level: () => null,
+    volts: (pin: string) => firmwareVolts?.(pin) ?? null,
+  };
+
+  function avrEngine(program: HexProgram, net: SimNetlist): SimEngine {
+    const board = boardOf(net);
+    const boardId = boardIdOf(board?.descriptor ?? '');
+    if (!avr) throw new Error('the AVR engine is not loaded');
+    if (!board || (boardId !== 'uno-r3' && boardId !== 'nano')) throw new Error(`${boardId} does not run on the AVR engine (an Uno or Nano hex)`);
+    firmwareVolts = null;
+    const supplyV = getProfile(boardId).logicV;
+    const running: { engine?: AvrEngine } = {};
+    const bus = netlistBus(net, board.id, supplyV, (part) => describe(part.descriptor), () => cyclesToNs(running.engine?.cycles ?? 0, RATE));
+    const made = createFirmwareEngine(avr, {
+      board: boardId,
+      hex: program.hex,
+      elf: program.elf,
+      wiring: { pins: unwired, bus, busId: I2C_BUS, vref: supplyV },
+      rangers: rangersOf(net),
+    });
+    if (!made.ok) throw new Error('message' in made.error ? made.error.message : made.error.kind);
+    running.engine = made.engine;
+    return made.engine;
+  }
+
+  function rp2040Engine(net: SimNetlist): SimEngine {
+    const board = boardOf(net);
+    const boardId = boardIdOf(board?.descriptor ?? '');
+    if (!rp2040) throw new Error('the RP2040 engine is not loaded');
+    if (!board || boardId !== 'pico') throw new Error(`${boardId} does not run on the RP2040 engine (a Pico UF2)`);
+    firmwareVolts = null;
+    const supplyV = getProfile(boardId).logicV;
+    const running: { engine?: Rp2040Engine } = {};
+    const nowNs = () => running.engine?.nowNs ?? 0;
+    running.engine = rp2040.create({
+      lib: rp2040.lib,
+      bootrom: rp2040.bootrom,
+      wiring: { volts: unwired.volts, i2c: (sda, scl) => netlistBus(net, board.id, supplyV, (part) => describe(part.descriptor), nowNs, {}, { sda, scl }) },
+    });
+    return running.engine;
+  }
+
   return createSimHandler({
     diag: false,
     wallMs: opts.wallMs,
     schedule: opts.schedule,
-    // Only the interpreter is wired, so every engine here is an InterpEngine.
+    prepareCompiled: loadCompiled,
     makeEngine: (program, net, runOpts) => {
-      if (program.kind !== 'source') throw new Error('compiled firmware does not run in the headset yet');
+      if (program.kind === 'hex') return avrEngine(program, net);
+      if (program.kind === 'uf2') return rp2040Engine(net);
       const board = boardOf(net);
       const boardId = boardIdOf(board?.descriptor ?? '');
-      return createInterpEngine({
+      const interp = createInterpEngine({
         id: board?.id ?? 'mcu',
         board: boardId,
         language: INTERP_LANGUAGE[program.language as keyof typeof INTERP_LANGUAGE] ?? 'arduino',
@@ -95,13 +187,17 @@ export function createXrSimHandler(opts: XrHandlerOptions): WorkerHandler<SimReq
           ? (nowNs) => wiredI2cDevices(net, board.id, getProfile(boardId), (part) => describe(part.descriptor), nowNs)
           : undefined,
       });
+      interpEngines.add(interp);
+      return interp;
     },
     makeDigital: createDigitalNets,
     analog: {
       create: () => createRunAnalog(parts, fidelityRegistry()),
       bind: (engine, live: LiveAnalog, net) => {
         const board = boardOf(net);
-        if (board) bindAnalog(engine as InterpEngine, live, board.id, getProfile(boardIdOf(board.descriptor)));
+        if (!board) return;
+        if (isInterp(engine)) bindAnalog(engine, live, board.id, getProfile(boardIdOf(board.descriptor)));
+        else firmwareVolts = (pin) => live.pinVolts(pinElementId(board.id, pin));
       },
     },
     makeTap: (net, _engine, live) =>
