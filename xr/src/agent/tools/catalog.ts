@@ -5,7 +5,7 @@
  *
  *   read  look, list_targets
  *   show  point_at, show_text, clear_callouts                 (bubbles only)
- *   act   propose_build, propose_edit, accept_step, reject_step, undo_step
+ *   act   propose_build, propose_edit, accept_step, reject_step, undo_step, go_to_step, stop_steps
  *                                                             (the co-builder: plan, preview, accept; nothing else
  *                                                              touches the project. propose_edit runs the agent's own
  *                                                              bench edits through it: edit.ts)
@@ -34,6 +34,7 @@ import type { CalloutList, CalloutTone, Conversation, PointTarget } from '../bub
 import type { Observation } from '../coach/coach';
 import DECLARATIONS from './declarations.json';
 import { createEditBuilder, planEdits, type EditSpec } from './edit';
+import { doneFor, stepNow as stepNumber, stopWalk, walkTo, walking, type StepTarget } from './steps';
 import { BENCH_KINDS, BENCH_RUNS, type BenchToolHost } from './bench';
 import { NAV_KINDS, NAV_RUNS, type NavHost } from './navigate';
 
@@ -92,6 +93,8 @@ export const KIND_OF: Readonly<Record<string, ToolKind>> = {
   accept_step: 'act',
   reject_step: 'act',
   undo_step: 'act',
+  go_to_step: 'act',
+  stop_steps: 'act',
   open_lab: 'act',
   leave_lab: 'act',
   start_experiment: 'act',
@@ -403,9 +406,10 @@ const RUNS: Readonly<Record<string, Run>> = {
     if (!s || st?.status !== 'proposing' || !st.current) return fail('no co-build step is waiting');
     const label = st.current.label;
     if (a.all === true) {
-      void s.acceptAll();
-      return { ok: true, performing: 'all remaining steps', first: label };
+      void walkTo(s, Infinity);
+      return { ok: true, performing: 'all remaining steps', first: label, from: stepNumber(s), stop: 'stop_steps' };
     }
+    stopWalk(s);
     const before = st.performed.length;
     await s.accept();
     const after = s.state.value;
@@ -414,6 +418,7 @@ const RUNS: Readonly<Record<string, Run>> = {
   },
   async reject_step(h) {
     const s = sessionOf(h);
+    if (s) stopWalk(s);
     const st = s?.state.value;
     if (!s || st?.status !== 'proposing' || !st.current) return fail('no co-build step is waiting');
     const skipped = st.current.label;
@@ -422,12 +427,39 @@ const RUNS: Readonly<Record<string, Run>> = {
   },
   async undo_step(h) {
     const s = sessionOf(h);
+    if (s) stopWalk(s);
     const st = s?.state.value;
     if (!s || !st || st.performed.length === 0) return fail('the co-builder has performed nothing to undo');
     const label = st.performed[st.performed.length - 1]!.label;
     await s.undo();
     if (s.state.value.performed.length >= st.performed.length) return fail('nothing was undone', stepJson(s));
     return { ok: true, undone: label, ...stepJson(s) };
+  },
+  go_to_step(h, a) {
+    const s = sessionOf(h);
+    const st = s?.state.value;
+    if (!s || !st || st.status === 'stopped' || st.status === 'failed') return fail('no co-build is running: start one with propose_build or propose_edit');
+    const given = ['to', 'step', 'by'].filter((k) => a[k] !== undefined);
+    if (given.length !== 1) return fail('give exactly one of to ("start" or "end"), step (the step to show next, from 1) or by (+N forward, -N back)');
+    const target: StepTarget = a.to !== undefined ? { to: a.to as 'start' | 'end' } : a.step !== undefined ? { step: a.step as number } : { by: a.by as number };
+    const from = st.performed.length;
+    const want = doneFor(s, target);
+    if (want === from || (want === Infinity && st.status === 'done')) return { ok: true, moved: 0, step: stepNumber(s), done: st.status === 'done' };
+    void walkTo(s, want);
+    return {
+      ok: true,
+      direction: want > from ? 'forward' : 'back',
+      from: from + 1,
+      to: want === Infinity ? 'end' : want + 1,
+      running: true,
+      note: 'The steps run on the bench now, each shown then performed; stop_steps stops where it is.',
+    };
+  },
+  stop_steps(h) {
+    const s = sessionOf(h);
+    if (!s || !walking(s)) return fail('no steps are running');
+    stopWalk(s);
+    return { ok: true, step: stepNumber(s), done: s.state.value.status === 'done' };
   },
   async open_lab(h, a) {
     const lab = h.lab();
